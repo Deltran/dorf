@@ -362,15 +362,6 @@ function getEnemyHitEffect(enemyId) {
       </div>
     </section>
 
-    <!-- Battle Log -->
-    <section class="battle-log">
-      <div class="log-entries">
-        <p v-for="(entry, index) in battleStore.battleLog.slice(-5)" :key="index">
-          {{ entry.message }}
-        </p>
-      </div>
-    </section>
-
     <!-- Hero Area -->
     <section class="hero-area">
       <div
@@ -447,6 +438,15 @@ function getEnemyHitEffect(enemyId) {
       <p v-else-if="battleStore.state === BattleState.ANIMATING">
         ...
       </p>
+    </section>
+
+    <!-- Battle Log -->
+    <section class="battle-log">
+      <div class="log-entries">
+        <p v-for="(entry, index) in battleStore.battleLog.slice(-5)" :key="index">
+          {{ entry.message }}
+        </p>
+      </div>
     </section>
 
     <!-- Victory Modal -->
