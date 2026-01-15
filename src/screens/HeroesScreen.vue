@@ -72,6 +72,17 @@ function removeFromParty(slotIndex) {
 function isInParty(instanceId) {
   return heroesStore.party.includes(instanceId)
 }
+
+const roleIcons = {
+  tank: '🛡️',
+  dps: '⚔️',
+  healer: '💚',
+  support: '✨'
+}
+
+function getRoleIcon(role) {
+  return roleIcons[role] || '❓'
+}
 </script>
 
 <template>
@@ -164,7 +175,7 @@ function isInParty(instanceId) {
     </div>
 
     <!-- Hero Detail Panel -->
-    <aside v-if="selectedHero && !placingHero" class="hero-detail">
+    <aside v-if="selectedHero && !placingHero" :class="['hero-detail', `rarity-${selectedHero.template.rarity}`]">
       <div class="detail-header">
         <div class="header-left">
           <img
@@ -186,7 +197,7 @@ function isInParty(instanceId) {
         </div>
         <div class="detail-row">
           <span class="label">Role</span>
-          <span>{{ selectedHero.class.role }}</span>
+          <span>{{ getRoleIcon(selectedHero.class.role) }} {{ selectedHero.class.role }}</span>
         </div>
         <div class="detail-row">
           <span class="label">Rarity</span>
@@ -427,6 +438,22 @@ function isInParty(instanceId) {
   overflow-y: auto;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
 }
+
+.hero-detail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  border-radius: 16px 16px 0 0;
+}
+
+.hero-detail.rarity-1::before { background: linear-gradient(90deg, #9ca3af 0%, #1f2937 100%); }
+.hero-detail.rarity-2::before { background: linear-gradient(90deg, #22c55e 0%, #1f2937 100%); }
+.hero-detail.rarity-3::before { background: linear-gradient(90deg, #3b82f6 0%, #1f2937 100%); }
+.hero-detail.rarity-4::before { background: linear-gradient(90deg, #a855f7 0%, #1f2937 100%); }
+.hero-detail.rarity-5::before { background: linear-gradient(90deg, #f59e0b 0%, #1f2937 100%); }
 
 .detail-header {
   display: flex;
