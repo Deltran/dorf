@@ -6,6 +6,7 @@ import EnemyCard from '../components/EnemyCard.vue'
 import ActionButton from '../components/ActionButton.vue'
 import DamageNumber from '../components/DamageNumber.vue'
 import ImpactIcon from '../components/ImpactIcon.vue'
+import StatBar from '../components/StatBar.vue'
 
 const emit = defineEmits(['navigate', 'battleEnd'])
 
@@ -217,6 +218,16 @@ function returnHome() {
 // Hero images
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
 
+// Enemy images
+const enemyImages = import.meta.glob('../assets/enemies/*.png', { eager: true, import: 'default' })
+
+function getEnemyImageUrl(enemy) {
+  const templateId = enemy.template?.id || enemy.templateId
+  if (!templateId) return null
+  const imagePath = `../assets/enemies/${templateId}.png`
+  return enemyImages[imagePath] || null
+}
+
 // Battle backgrounds
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 
@@ -357,8 +368,56 @@ function getEnemyHitEffect(enemyId) {
         class="enemy-area-background"
         :style="{ backgroundImage: `url(${battleBackgroundUrl})` }"
       ></div>
-      <div v-for="enemy in battleStore.enemies" :key="enemy.id" class="enemy-wrapper">
+      <div
+        v-for="enemy in battleStore.enemies"
+        :key="enemy.id"
+        :class="[
+          'enemy-wrapper',
+          { 'has-image': getEnemyImageUrl(enemy) }
+        ]"
+      >
+        <!-- Enemy with image -->
+        <div
+          v-if="getEnemyImageUrl(enemy)"
+          :class="[
+            'enemy-image-display',
+            { active: battleStore.currentUnit?.id === enemy.id },
+            { targetable: enemiesTargetable || (battleStore.isPlayerTurn && !battleStore.selectedAction) },
+            { selected: battleStore.selectedTarget?.id === enemy.id },
+            { dead: enemy.currentHp <= 0 },
+            getEnemyHitEffect(enemy.id) ? `hit-${getEnemyHitEffect(enemy.id)}` : ''
+          ]"
+          @click="selectEnemyTarget(enemy)"
+        >
+          <img
+            :src="getEnemyImageUrl(enemy)"
+            :alt="enemy.template?.name"
+            class="enemy-image"
+          />
+          <div class="enemy-image-stats">
+            <StatBar
+              :current="enemy.currentHp"
+              :max="enemy.maxHp"
+              color="red"
+              size="sm"
+            />
+            <div v-if="enemy.statusEffects?.length > 0" class="enemy-image-effects">
+              <div
+                v-for="(effect, index) in enemy.statusEffects"
+                :key="index"
+                class="effect-badge"
+                :class="{ buff: effect.definition?.isBuff, debuff: !effect.definition?.isBuff }"
+                :title="`${effect.definition?.name} (${effect.duration} turns)`"
+              >
+                <span class="effect-icon">{{ effect.definition?.icon }}</span>
+                <span class="effect-duration">{{ effect.duration }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Enemy without image (fallback to card) -->
         <EnemyCard
+          v-else
           :enemy="enemy"
           :active="battleStore.currentUnit?.id === enemy.id"
           :targetable="enemiesTargetable || (battleStore.isPlayerTurn && !battleStore.selectedAction)"
@@ -676,6 +735,133 @@ function getEnemyHitEffect(enemyId) {
   z-index: 1;
 }
 
+/* Enemy Image Display */
+.enemy-image-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.enemy-image-display.targetable {
+  cursor: pointer;
+}
+
+.enemy-image-display.targetable:hover {
+  border-color: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.3);
+}
+
+.enemy-image-display.selected {
+  border-color: #ef4444;
+}
+
+.enemy-image-display.active {
+  border-color: #fbbf24;
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+}
+
+.enemy-image-display.dead {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.enemy-image {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.enemy-image-stats {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.enemy-image-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+  justify-content: center;
+}
+
+.enemy-image-display .effect-badge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.enemy-image-display .effect-badge.buff {
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  background-color: rgba(34, 197, 94, 0.2);
+}
+
+.enemy-image-display .effect-badge.debuff {
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  background-color: rgba(239, 68, 68, 0.2);
+}
+
+.enemy-image-display .effect-icon {
+  font-size: 0.8rem;
+}
+
+.enemy-image-display .effect-duration {
+  color: #d1d5db;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* Hit Effects for enemy images */
+.enemy-image-display.hit-damage {
+  animation: hitDamage 0.3s ease-out;
+}
+
+.enemy-image-display.hit-heal {
+  animation: hitHeal 0.4s ease-out;
+}
+
+.enemy-image-display.hit-buff {
+  animation: hitBuff 0.4s ease-out;
+}
+
+.enemy-image-display.hit-debuff {
+  animation: hitDebuff 0.3s ease-out;
+}
+
+@keyframes hitDamage {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-4px); background-color: rgba(239, 68, 68, 0.3); }
+  30% { transform: translateX(4px); }
+  50% { transform: translateX(-3px); }
+  70% { transform: translateX(2px); }
+  90% { transform: translateX(-1px); }
+}
+
+@keyframes hitHeal {
+  0% { box-shadow: inset 0 0 0 rgba(34, 197, 94, 0); }
+  50% { box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.4); }
+  100% { box-shadow: inset 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+@keyframes hitBuff {
+  0% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+  50% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.6); }
+  100% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+}
+
+@keyframes hitDebuff {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(168, 85, 247, 0.3); }
+}
+
 .battle-log {
   background: #1f2937;
   border-radius: 8px;
@@ -773,11 +959,13 @@ function getEnemyHitEffect(enemyId) {
 
 .action-buttons {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
 .action-buttons > * {
-  flex: 1;
+  flex: 1 1 calc(50% - 6px);
+  max-width: calc(50% - 6px);
 }
 
 .waiting-area {
