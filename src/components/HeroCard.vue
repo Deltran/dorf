@@ -5,6 +5,14 @@ import StatBar from './StatBar.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 
+// Import all hero images
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+
+function getHeroImageUrl(heroId) {
+  const path = `../assets/heroes/${heroId}.png`
+  return heroImages[path] || null
+}
+
 const props = defineProps({
   hero: {
     type: Object,
@@ -77,6 +85,12 @@ const statusEffects = computed(() => {
   >
     <div class="card-header">
       <span class="role-icon">{{ roleIcon }}</span>
+      <img
+        v-if="!showBars && getHeroImageUrl(template?.id)"
+        :src="getHeroImageUrl(template?.id)"
+        :alt="template?.name"
+        class="card-hero-image"
+      />
       <span class="hero-level">Lv.{{ hero.level || 1 }}</span>
     </div>
 
@@ -155,12 +169,12 @@ const statusEffects = computed(() => {
   box-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
 }
 
-/* Rarity borders */
-.rarity-1 { border-left: 3px solid #9ca3af; }
-.rarity-2 { border-left: 3px solid #22c55e; }
-.rarity-3 { border-left: 3px solid #3b82f6; }
-.rarity-4 { border-left: 3px solid #a855f7; }
-.rarity-5 { border-left: 3px solid #f59e0b; }
+/* Rarity borders and backgrounds */
+.rarity-1 { border-left: 3px solid #9ca3af; background: linear-gradient(135deg, #1f2937 0%, #262d36 100%); }
+.rarity-2 { border-left: 3px solid #22c55e; background: linear-gradient(135deg, #1f2937 0%, #1f3329 100%); }
+.rarity-3 { border-left: 3px solid #3b82f6; background: linear-gradient(135deg, #1f2937 0%, #1f2a3d 100%); }
+.rarity-4 { border-left: 3px solid #a855f7; background: linear-gradient(135deg, #1f2937 0%, #2a2340 100%); }
+.rarity-5 { border-left: 3px solid #f59e0b; background: linear-gradient(135deg, #1f2937 0%, #302a1f 100%); }
 
 .card-header {
   display: flex;
@@ -171,6 +185,14 @@ const statusEffects = computed(() => {
 
 .role-icon {
   font-size: 1.2rem;
+}
+
+.card-hero-image {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #374151;
 }
 
 .hero-level {

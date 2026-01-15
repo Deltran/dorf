@@ -12,6 +12,16 @@ const heroesStore = useHeroesStore()
 
 const selectedHero = ref(null)
 const viewMode = ref('collection') // 'collection' or 'party'
+const placingHero = ref(null) // hero being placed into party
+const heroImageError = ref(false)
+
+// Import all hero images
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+
+function getHeroImageUrl(heroId) {
+  const path = `../assets/heroes/${heroId}.png`
+  return heroImages[path] || null
+}
 
 const heroesWithData = computed(() => {
   return heroesStore.collection.map(hero => heroesStore.getHeroFull(hero.instanceId))
@@ -36,11 +46,23 @@ const partySlots = computed(() => {
 
 function selectHero(hero) {
   selectedHero.value = hero
+  heroImageError.value = false
 }
 
 function addToParty(slotIndex) {
-  if (!selectedHero.value) return
-  heroesStore.setPartySlot(slotIndex, selectedHero.value.instanceId)
+  const heroToPlace = placingHero.value || selectedHero.value
+  if (!heroToPlace) return
+  heroesStore.setPartySlot(slotIndex, heroToPlace.instanceId)
+  placingHero.value = null
+}
+
+function startPlacing(hero) {
+  placingHero.value = hero
+  viewMode.value = 'party'
+}
+
+function cancelPlacing() {
+  placingHero.value = null
 }
 
 function removeFromParty(slotIndex) {
@@ -100,17 +122,13 @@ function isInParty(instanceId) {
             </button>
           </template>
           <template v-else>
-            <div class="empty-slot">
-              <span>Slot {{ slot.index + 1 }}</span>
-              <p v-if="selectedHero">Click to add</p>
-            </div>
-            <button
-              v-if="selectedHero && !isInParty(selectedHero.instanceId)"
-              class="add-btn"
-              @click="addToParty(slot.index)"
+            <div
+              :class="['empty-slot', { clickable: placingHero && !isInParty(placingHero.instanceId) }]"
+              @click="placingHero && !isInParty(placingHero.instanceId) && addToParty(slot.index)"
             >
-              Add {{ selectedHero.template.name }}
-            </button>
+              <span>Slot {{ slot.index + 1 }}</span>
+              <p v-if="placingHero && !isInParty(placingHero.instanceId)">Click to add</p>
+            </div>
           </template>
         </div>
       </div>
@@ -139,10 +157,25 @@ function isInParty(instanceId) {
       </div>
     </section>
 
+    <!-- Placement Bar -->
+    <div v-if="placingHero" class="placement-bar">
+      <span class="placement-text">Placing: {{ placingHero.template.name }}</span>
+      <button class="cancel-btn" @click="cancelPlacing">Cancel</button>
+    </div>
+
     <!-- Hero Detail Panel -->
-    <aside v-if="selectedHero" class="hero-detail">
+    <aside v-if="selectedHero && !placingHero" class="hero-detail">
       <div class="detail-header">
-        <h3>{{ selectedHero.template.name }}</h3>
+        <div class="header-left">
+          <img
+            v-if="getHeroImageUrl(selectedHero.template.id) && !heroImageError"
+            :src="getHeroImageUrl(selectedHero.template.id)"
+            :alt="selectedHero.template.name"
+            class="hero-portrait"
+            @error="heroImageError = true"
+          />
+          <h3>{{ selectedHero.template.name }}</h3>
+        </div>
         <button class="close-detail" @click="selectedHero = null">×</button>
       </div>
 
@@ -204,7 +237,7 @@ function isInParty(instanceId) {
           <button
             v-else
             class="add-to-party-btn"
-            @click="viewMode = 'party'"
+            @click="startPlacing(selectedHero)"
           >
             Add to Party
           </button>
@@ -305,6 +338,17 @@ function isInParty(instanceId) {
   border: 2px dashed #374151;
   border-radius: 8px;
   color: #6b7280;
+  transition: all 0.2s ease;
+}
+
+.party-slot .empty-slot.clickable {
+  cursor: pointer;
+  border-color: #3b82f6;
+}
+
+.party-slot .empty-slot.clickable:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: #60a5fa;
 }
 
 .remove-btn, .add-btn {
@@ -389,6 +433,20 @@ function isInParty(instanceId) {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hero-portrait {
+  width: 128px;
+  height: 128px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid #374151;
 }
 
 .detail-header h3 {
@@ -490,5 +548,37 @@ function isInParty(instanceId) {
   padding: 12px 24px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.placement-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1f2937;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  border-top: 2px solid #3b82f6;
+}
+
+.placement-text {
+  color: #f3f4f6;
+  font-weight: 600;
+}
+
+.cancel-btn {
+  background: #374151;
+  color: #f3f4f6;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background: #4b5563;
 }
 </style>

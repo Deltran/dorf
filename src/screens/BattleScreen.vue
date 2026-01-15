@@ -143,6 +143,16 @@ function returnHome() {
   battleStore.endBattle()
   emit('navigate', 'home')
 }
+
+// Hero images
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+
+function getHeroImageUrl(hero) {
+  const templateId = hero.template?.id
+  if (!templateId) return null
+  const imagePath = `../assets/heroes/${templateId}.png`
+  return heroImages[imagePath] || null
+}
 </script>
 
 <template>
@@ -191,6 +201,15 @@ function returnHome() {
         }]"
         @click="selectHeroTarget(hero)"
       >
+        <div class="hero-image-container">
+          <img
+            v-if="getHeroImageUrl(hero)"
+            :src="getHeroImageUrl(hero)"
+            :alt="hero.template?.name"
+            class="hero-image"
+          />
+          <div v-else class="hero-image-placeholder"></div>
+        </div>
         <HeroCard
           :hero="hero"
           :active="battleStore.currentUnit?.instanceId === hero.instanceId"
@@ -362,8 +381,30 @@ function returnHome() {
 }
 
 .hero-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   border-radius: 10px;
   transition: all 0.2s ease;
+}
+
+.hero-image-container {
+  width: 100px;
+  height: 67px; /* Shows top 2/3 of a 100x100 image */
+  overflow: hidden;
+  border-radius: 8px 8px 0 0;
+}
+
+.hero-image {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.hero-image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #374151;
 }
 
 .hero-wrapper.targetable {
