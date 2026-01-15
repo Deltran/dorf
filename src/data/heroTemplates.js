@@ -65,12 +65,25 @@ export const heroTemplates = {
     rarity: 4,
     classId: 'mage',
     baseStats: { hp: 85, atk: 45, def: 20, spd: 14, mp: 70 },
-    skill: {
-      name: 'Fireball',
-      description: 'Deal 130% ATK damage to one enemy and 50% ATK damage to adjacent enemies',
-      mpCost: 20,
-      targetType: 'enemy'
-    }
+    skills: [
+      {
+        name: 'Fireball',
+        description: 'Deal 130% ATK damage to one enemy and 50% ATK damage to adjacent enemies',
+        mpCost: 20,
+        targetType: 'enemy'
+      },
+      {
+        name: 'Ignite',
+        description: 'Set an enemy ablaze for 3 turns (burns for ATK×0.5 per turn)',
+        mpCost: 15,
+        skillUnlockLevel: 3,
+        targetType: 'enemy',
+        noDamage: true,
+        effects: [
+          { type: EffectType.BURN, target: 'enemy', duration: 3, atkPercent: 50 }
+        ]
+      }
+    ]
   },
   lady_moonwhisper: {
     id: 'lady_moonwhisper',
@@ -78,15 +91,26 @@ export const heroTemplates = {
     rarity: 4,
     classId: 'cleric',
     baseStats: { hp: 95, atk: 25, def: 30, spd: 11, mp: 80 },
-    skill: {
-      name: 'Lunar Blessing',
-      description: 'Heal one ally for 150% ATK and grant them 20% DEF boost for 2 turns',
-      mpCost: 22,
-      targetType: 'ally',
-      effects: [
-        { type: EffectType.DEF_UP, target: 'ally', duration: 2, value: 20 }
-      ]
-    }
+    skills: [
+      {
+        name: 'Lunar Blessing',
+        description: 'Heal one ally for 150% ATK and grant them 20% DEF boost for 2 turns',
+        mpCost: 22,
+        targetType: 'ally',
+        effects: [
+          { type: EffectType.DEF_UP, target: 'ally', duration: 2, value: 20 }
+        ]
+      },
+      {
+        name: 'Purifying Light',
+        description: 'Remove all stat debuffs from one ally',
+        mpCost: 18,
+        skillUnlockLevel: 3,
+        targetType: 'ally',
+        noDamage: true,
+        cleanse: 'debuffs'
+      }
+    ]
   },
   swift_arrow: {
     id: 'swift_arrow',
@@ -138,12 +162,24 @@ export const heroTemplates = {
     rarity: 3,
     classId: 'cleric',
     baseStats: { hp: 80, atk: 18, def: 25, spd: 9, mp: 65 },
-    skill: {
-      name: 'Healing Touch',
-      description: 'Heal one ally for 120% ATK',
-      mpCost: 15,
-      targetType: 'ally'
-    }
+    skills: [
+      {
+        name: 'Healing Touch',
+        description: 'Heal one ally for 120% ATK',
+        mpCost: 15,
+        targetType: 'ally'
+      },
+      {
+        name: 'Mana Spring',
+        description: 'Grant an ally MP regeneration (5 MP per turn for 3 turns)',
+        mpCost: 10,
+        skillUnlockLevel: 3,
+        targetType: 'ally',
+        effects: [
+          { type: EffectType.MP_REGEN, target: 'ally', duration: 3, value: 5 }
+        ]
+      }
+    ]
   },
   wandering_bard: {
     id: 'wandering_bard',

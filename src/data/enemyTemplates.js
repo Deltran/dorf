@@ -143,6 +143,7 @@ export const enemyTemplates = {
   goblin_chieftain: {
     id: 'goblin_chieftain',
     name: 'Goblin Chieftain',
+    imageSize: 150,
     stats: { hp: 180, atk: 28, def: 18, spd: 10 },
     skill: {
       name: 'War Cry',

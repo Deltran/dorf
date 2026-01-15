@@ -229,6 +229,16 @@ function getEnemyImageUrl(enemy) {
   return enemyImages[imagePath] || null
 }
 
+function getEnemyImageSize(enemy) {
+  const size = enemy.template?.imageSize
+  if (!size) return { width: '100px', height: '100px' }
+  if (typeof size === 'number') return { width: `${size}px`, height: `${size}px` }
+  return {
+    width: `${size.width || 100}px`,
+    height: `${size.height || 100}px`
+  }
+}
+
 // Battle backgrounds
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 
@@ -412,7 +422,10 @@ function isEnemyAttacking(enemyId) {
             :src="getEnemyImageUrl(enemy)"
             :alt="enemy.template?.name"
             class="enemy-image"
-            :style="{ animationDelay: `${enemyIndex * 1.5}s` }"
+            :style="{
+              animationDelay: `${enemyIndex * 1.5}s`,
+              ...getEnemyImageSize(enemy)
+            }"
           />
           <div class="enemy-image-stats">
             <StatBar
@@ -803,8 +816,6 @@ function isEnemyAttacking(enemyId) {
 }
 
 .enemy-image {
-  width: 100px;
-  height: 100px;
   object-fit: contain;
   image-rendering: pixelated;
   animation: enemyIdle 6s ease-in-out infinite;

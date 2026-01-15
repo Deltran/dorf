@@ -14,6 +14,7 @@ export const EffectType = {
 
   // Heal over time
   REGEN: 'regen',
+  MP_REGEN: 'mp_regen',
 
   // Control effects
   STUN: 'stun',
@@ -94,6 +95,14 @@ export const effectDefinitions = {
     color: '#22c55e',
     isBuff: true,
     isHot: true,
+    stackable: false
+  },
+  [EffectType.MP_REGEN]: {
+    name: 'MP Regen',
+    icon: '💙',
+    color: '#3b82f6',
+    isBuff: true,
+    isMpHot: true,
     stackable: false
   },
   [EffectType.STUN]: {
