@@ -94,26 +94,51 @@ export const useHeroesStore = defineStore('heroes', () => {
     }
   }
 
+  const MAX_LEVEL = 250
+
   function addExp(instanceId, amount) {
     const hero = collection.value.find(h => h.instanceId === instanceId)
     if (!hero) return
+
+    // No XP gain at max level
+    if (hero.level >= MAX_LEVEL) return
 
     hero.exp += amount
 
     // Level up logic: 100 exp per level
     const expPerLevel = 100
-    while (hero.exp >= expPerLevel * hero.level) {
+    while (hero.exp >= expPerLevel * hero.level && hero.level < MAX_LEVEL) {
       hero.exp -= expPerLevel * hero.level
       hero.level++
+    }
+
+    // Clear excess exp at max level
+    if (hero.level >= MAX_LEVEL) {
+      hero.exp = 0
     }
   }
 
   function addExpToParty(totalExp) {
     const activeParty = party.value.filter(Boolean)
-    if (activeParty.length === 0) return
+    if (activeParty.length === 0) return []
 
     const expPerHero = Math.floor(totalExp / activeParty.length)
-    activeParty.forEach(instanceId => addExp(instanceId, expPerHero))
+    const levelUps = []
+
+    activeParty.forEach(instanceId => {
+      const hero = collection.value.find(h => h.instanceId === instanceId)
+      if (!hero) return
+
+      const oldLevel = hero.level
+      addExp(instanceId, expPerHero)
+      const newLevel = hero.level
+
+      if (newLevel > oldLevel) {
+        levelUps.push({ instanceId, oldLevel, newLevel })
+      }
+    })
+
+    return levelUps
   }
 
   // Get computed stats for a hero instance

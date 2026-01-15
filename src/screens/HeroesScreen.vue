@@ -83,6 +83,21 @@ const roleIcons = {
 function getRoleIcon(role) {
   return roleIcons[role] || '❓'
 }
+
+function getLevelDisplay(level) {
+  return level >= 250 ? 'Master' : level
+}
+
+function getExpToNextLevel(level) {
+  return 100 * level
+}
+
+function getExpProgress(hero) {
+  if (hero.level >= 250) return { current: 0, needed: 0, percent: 100 }
+  const needed = getExpToNextLevel(hero.level)
+  const percent = Math.floor((hero.exp / needed) * 100)
+  return { current: hero.exp, needed, percent }
+}
 </script>
 
 <template>
@@ -205,7 +220,20 @@ function getRoleIcon(role) {
         </div>
         <div class="detail-row">
           <span class="label">Level</span>
-          <span>{{ selectedHero.level }}</span>
+          <span>{{ getLevelDisplay(selectedHero.level) }}</span>
+        </div>
+
+        <div v-if="selectedHero.level < 250" class="exp-section">
+          <div class="exp-header">
+            <span class="label">EXP</span>
+            <span class="exp-text">{{ getExpProgress(selectedHero).current }} / {{ getExpProgress(selectedHero).needed }}</span>
+          </div>
+          <div class="exp-bar-container">
+            <div
+              class="exp-bar-fill"
+              :style="{ width: getExpProgress(selectedHero).percent + '%' }"
+            ></div>
+          </div>
         </div>
 
         <h4>Stats</h4>
@@ -499,6 +527,35 @@ function getRoleIcon(role) {
 
 .label {
   color: #6b7280;
+}
+
+.exp-section {
+  margin-top: 12px;
+}
+
+.exp-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.exp-text {
+  color: #f3f4f6;
+  font-size: 0.85rem;
+}
+
+.exp-bar-container {
+  height: 8px;
+  background: #374151;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.exp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
 }
 
 .detail-body h4 {

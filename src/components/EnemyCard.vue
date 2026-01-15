@@ -18,6 +18,10 @@ const props = defineProps({
   targetable: {
     type: Boolean,
     default: false
+  },
+  hitEffect: {
+    type: String,
+    default: null // 'damage', 'heal', 'buff', 'debuff'
   }
 })
 
@@ -42,7 +46,8 @@ const statusEffects = computed(() => {
   <div
     :class="[
       'enemy-card',
-      { selected, active, targetable, dead: isDead }
+      { selected, active, targetable, dead: isDead },
+      hitEffect ? `hit-${hitEffect}` : ''
     ]"
     @click="!isDead && emit('click', enemy)"
   >
@@ -91,6 +96,7 @@ const statusEffects = computed(() => {
   border: 2px solid #4b5563;
   min-width: 120px;
   transition: all 0.2s ease;
+  user-select: none;
 }
 
 .enemy-card.targetable {
@@ -187,5 +193,48 @@ const statusEffects = computed(() => {
   color: #d1d5db;
   font-size: 0.65rem;
   font-weight: 600;
+}
+
+/* Hit Effects */
+.enemy-card.hit-damage {
+  animation: hitDamage 0.3s ease-out;
+}
+
+.enemy-card.hit-heal {
+  animation: hitHeal 0.4s ease-out;
+}
+
+.enemy-card.hit-buff {
+  animation: hitBuff 0.4s ease-out;
+}
+
+.enemy-card.hit-debuff {
+  animation: hitDebuff 0.3s ease-out;
+}
+
+@keyframes hitDamage {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-4px); background-color: rgba(239, 68, 68, 0.3); }
+  30% { transform: translateX(4px); }
+  50% { transform: translateX(-3px); }
+  70% { transform: translateX(2px); }
+  90% { transform: translateX(-1px); }
+}
+
+@keyframes hitHeal {
+  0% { box-shadow: inset 0 0 0 rgba(34, 197, 94, 0); }
+  50% { box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.4); }
+  100% { box-shadow: inset 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+@keyframes hitBuff {
+  0% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+  50% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.6); }
+  100% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+}
+
+@keyframes hitDebuff {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(168, 85, 247, 0.3); }
 }
 </style>

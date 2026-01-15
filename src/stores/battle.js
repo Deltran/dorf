@@ -26,6 +26,7 @@ export const useBattleStore = defineStore('battle', () => {
   const battleLog = ref([])
   const selectedAction = ref(null)
   const selectedTarget = ref(null)
+  const combatEffects = ref([]) // For visual feedback: { id, targetId, targetType, effectType, value }
 
   // Getters
   const currentUnit = computed(() => {
@@ -217,6 +218,7 @@ export const useBattleStore = defineStore('battle', () => {
       heroes.value.push({
         instanceId,
         templateId: heroFull.templateId,
+        level: heroFull.level,
         currentHp: savedState?.currentHp ?? heroFull.stats.hp,
         maxHp: heroFull.stats.hp,
         currentMp: savedState?.currentMp ?? Math.floor(heroFull.stats.mp * 0.3),
@@ -411,6 +413,7 @@ export const useBattleStore = defineStore('battle', () => {
       const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
       target.currentHp = Math.max(0, target.currentHp - damage)
       addLog(`${hero.template.name} attacks ${target.template.name} for ${damage} damage!`)
+      emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
       if (target.currentHp <= 0) {
         addLog(`${target.template.name} defeated!`)
@@ -441,12 +444,14 @@ export const useBattleStore = defineStore('battle', () => {
           const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
           target.currentHp = Math.max(0, target.currentHp - damage)
           addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
+          emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
           // Apply skill effects
           if (skill.effects) {
             for (const effect of skill.effects) {
               if (effect.target === 'enemy') {
                 applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: hero.instanceId })
+                emitCombatEffect(target.id, 'enemy', 'debuff', 0)
               }
             }
           }
@@ -470,12 +475,16 @@ export const useBattleStore = defineStore('battle', () => {
           target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
           const actualHeal = target.currentHp - oldHp
           addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}, healing for ${actualHeal} HP!`)
+          if (actualHeal > 0) {
+            emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+          }
 
           // Apply skill effects (buffs)
           if (skill.effects) {
             for (const effect of skill.effects) {
               if (effect.target === 'ally') {
                 applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: hero.instanceId })
+                emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
               }
             }
           }
@@ -488,6 +497,7 @@ export const useBattleStore = defineStore('battle', () => {
             for (const effect of skill.effects) {
               if (effect.target === 'self') {
                 applyEffect(hero, effect.type, { duration: effect.duration, value: effect.value, sourceId: hero.instanceId })
+                emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               }
             }
           }
@@ -502,11 +512,13 @@ export const useBattleStore = defineStore('battle', () => {
             const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
             target.currentHp = Math.max(0, target.currentHp - damage)
             totalDamage += damage
+            emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
             if (skill.effects) {
               for (const effect of skill.effects) {
                 if (effect.target === 'enemy') {
                   applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: hero.instanceId })
+                  emitCombatEffect(target.id, 'enemy', 'debuff', 0)
                 }
               }
             }
@@ -524,7 +536,12 @@ export const useBattleStore = defineStore('battle', () => {
           if (skill.description.toLowerCase().includes('heal')) {
             const healAmount = calculateHeal(effectiveAtk, skill.description)
             for (const target of aliveHeroes.value) {
+              const oldHp = target.currentHp
               target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
+              const actualHeal = target.currentHp - oldHp
+              if (actualHeal > 0) {
+                emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+              }
             }
           }
           if (skill.effects) {
@@ -532,6 +549,7 @@ export const useBattleStore = defineStore('battle', () => {
               if (effect.target === 'ally' || effect.target === 'all_allies') {
                 for (const target of aliveHeroes.value) {
                   applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: hero.instanceId })
+                  emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
                 }
               }
             }
@@ -579,14 +597,17 @@ export const useBattleStore = defineStore('battle', () => {
       const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
       target.currentHp = Math.max(0, target.currentHp - damage)
       addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
+      emitCombatEffect(target.instanceId, 'hero', 'damage', damage)
 
       // Apply skill effects
       if (skill.effects) {
         for (const effect of skill.effects) {
           if (effect.target === 'enemy' || effect.target === 'hero') {
             applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+            emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
           } else if (effect.target === 'self') {
             applyEffect(enemy, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+            emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
           }
         }
       }
@@ -596,6 +617,7 @@ export const useBattleStore = defineStore('battle', () => {
       const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
       target.currentHp = Math.max(0, target.currentHp - damage)
       addLog(`${enemy.template.name} attacks ${target.template.name} for ${damage} damage!`)
+      emitCombatEffect(target.instanceId, 'hero', 'damage', damage)
     }
 
     if (target.currentHp <= 0) {
@@ -640,6 +662,20 @@ export const useBattleStore = defineStore('battle', () => {
     })
   }
 
+  function emitCombatEffect(targetId, targetType, effectType, value) {
+    combatEffects.value.push({
+      id: Date.now() + Math.random(),
+      targetId,
+      targetType, // 'hero' or 'enemy'
+      effectType, // 'damage', 'heal', 'buff', 'debuff'
+      value
+    })
+  }
+
+  function clearCombatEffects() {
+    combatEffects.value = []
+  }
+
   function getPartyState() {
     const partyState = {}
     for (const hero of heroes.value) {
@@ -670,6 +706,7 @@ export const useBattleStore = defineStore('battle', () => {
     battleLog,
     selectedAction,
     selectedTarget,
+    combatEffects,
     // Getters
     currentUnit,
     isPlayerTurn,
@@ -684,6 +721,7 @@ export const useBattleStore = defineStore('battle', () => {
     selectTarget,
     getPartyState,
     endBattle,
+    clearCombatEffects,
     // Effect helpers (for UI)
     getEffectiveStat,
     hasEffect,

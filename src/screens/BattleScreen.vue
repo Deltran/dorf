@@ -4,6 +4,8 @@ import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, BattleSt
 import HeroCard from '../components/HeroCard.vue'
 import EnemyCard from '../components/EnemyCard.vue'
 import ActionButton from '../components/ActionButton.vue'
+import DamageNumber from '../components/DamageNumber.vue'
+import ImpactIcon from '../components/ImpactIcon.vue'
 
 const emit = defineEmits(['navigate', 'battleEnd'])
 
@@ -15,6 +17,14 @@ const gachaStore = useGachaStore()
 const showVictoryModal = ref(false)
 const showDefeatModal = ref(false)
 const rewards = ref(null)
+const levelUps = ref([])
+
+// Combat visual effects
+const damageNumbers = ref([])
+const heroHitEffects = ref({}) // { instanceId: 'damage' | 'heal' | 'buff' | 'debuff' }
+const enemyHitEffects = ref({}) // { id: 'damage' | 'heal' | 'buff' | 'debuff' }
+const heroImpactIcons = ref({}) // { instanceId: 'attack' | 'magic' | 'heal' | ... }
+const enemyImpactIcons = ref({}) // { id: 'attack' | 'magic' | 'heal' | ... }
 
 const currentNode = computed(() => questsStore.currentNode)
 const currentBattleIndex = computed(() => questsStore.currentBattleIndex)
@@ -55,6 +65,40 @@ const targetPrompt = computed(() => {
   if (!battleStore.needsTargetSelection) return 'Executing...'
   if (battleStore.currentTargetType === 'ally') return 'Select an ally'
   return 'Select an enemy'
+})
+
+// Rotated turn order (current unit at top)
+const rotatedTurnOrder = computed(() => {
+  const order = battleStore.turnOrder
+  const index = battleStore.currentTurnIndex
+  if (order.length === 0) return []
+
+  // Rotate array so current index is first
+  const rotated = [...order.slice(index), ...order.slice(0, index)]
+
+  // Map to include unit details
+  return rotated.map((turn, i) => {
+    const isCurrent = i === 0
+    if (turn.type === 'hero') {
+      const hero = battleStore.heroes.find(h => h.instanceId === turn.id)
+      return {
+        id: turn.id,
+        type: 'hero',
+        name: hero?.template?.name || 'Unknown',
+        rarity: hero?.template?.rarity || 1,
+        isCurrent
+      }
+    } else {
+      const enemy = battleStore.enemies.find(e => e.id === turn.id)
+      return {
+        id: turn.id,
+        type: 'enemy',
+        name: enemy?.template?.name || 'Unknown',
+        rarity: null,
+        isCurrent
+      }
+    }
+  })
 })
 
 // Start battle when component mounts
@@ -107,7 +151,7 @@ function handleVictory() {
     rewards.value = questsStore.completeRun()
     if (rewards.value) {
       gachaStore.addGems(rewards.value.gems)
-      heroesStore.addExpToParty(rewards.value.exp)
+      levelUps.value = heroesStore.addExpToParty(rewards.value.exp)
     }
     showVictoryModal.value = true
   }
@@ -123,7 +167,15 @@ function selectAction(action) {
 }
 
 function selectEnemyTarget(enemy) {
-  if (enemiesTargetable.value && enemy.currentHp > 0) {
+  if (enemy.currentHp <= 0) return
+
+  // If no action selected yet, clicking enemy selects attack
+  if (battleStore.isPlayerTurn && !battleStore.selectedAction) {
+    selectAction('attack')
+    return
+  }
+
+  if (enemiesTargetable.value) {
     battleStore.selectTarget(enemy.id, 'enemy')
   }
 }
@@ -147,16 +199,128 @@ function returnHome() {
 // Hero images
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
 
+// Battle backgrounds
+const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+
+const battleBackgroundUrl = computed(() => {
+  const nodeId = currentNode.value?.id
+  if (nodeId) {
+    const imagePath = `../assets/battle_backgrounds/${nodeId}.png`
+    if (battleBackgrounds[imagePath]) {
+      return battleBackgrounds[imagePath]
+    }
+  }
+  // Fallback to default
+  const defaultPath = '../assets/battle_backgrounds/default.png'
+  return battleBackgrounds[defaultPath] || null
+})
+
+// Victory screen helpers
+const partyHeroesForVictory = computed(() => {
+  return heroesStore.party
+    .filter(Boolean)
+    .map(instanceId => heroesStore.getHeroFull(instanceId))
+    .filter(Boolean)
+})
+
+function heroLeveledUp(instanceId) {
+  return levelUps.value.find(lu => lu.instanceId === instanceId)
+}
+
 function getHeroImageUrl(hero) {
   const templateId = hero.template?.id
   if (!templateId) return null
   const imagePath = `../assets/heroes/${templateId}.png`
   return heroImages[imagePath] || null
 }
+
+// Map effect type to impact icon type
+function getImpactIconType(effectType) {
+  switch (effectType) {
+    case 'damage': return 'attack'
+    case 'heal': return 'heal'
+    case 'buff': return 'buff'
+    case 'debuff': return 'debuff'
+    default: return 'attack'
+  }
+}
+
+// Watch for combat effects and trigger visual feedback
+watch(() => battleStore.combatEffects.length, () => {
+  const effects = battleStore.combatEffects
+  if (effects.length === 0) return
+
+  for (const effect of effects) {
+    const iconType = getImpactIconType(effect.effectType)
+
+    // Trigger impact icon and hit effect on target
+    if (effect.targetType === 'hero') {
+      heroImpactIcons.value[effect.targetId] = iconType
+      heroHitEffects.value[effect.targetId] = effect.effectType
+      setTimeout(() => {
+        delete heroHitEffects.value[effect.targetId]
+        delete heroImpactIcons.value[effect.targetId]
+      }, 400)
+    } else if (effect.targetType === 'enemy') {
+      enemyImpactIcons.value[effect.targetId] = iconType
+      enemyHitEffects.value[effect.targetId] = effect.effectType
+      setTimeout(() => {
+        delete enemyHitEffects.value[effect.targetId]
+        delete enemyImpactIcons.value[effect.targetId]
+      }, 400)
+    }
+
+    // Add damage number if there's a value
+    if (effect.value > 0) {
+      damageNumbers.value.push({
+        id: effect.id,
+        value: effect.value,
+        type: effect.effectType,
+        targetId: effect.targetId,
+        targetType: effect.targetType
+      })
+    }
+  }
+
+  // Clear processed effects
+  battleStore.clearCombatEffects()
+})
+
+function removeDamageNumber(id) {
+  damageNumbers.value = damageNumbers.value.filter(d => d.id !== id)
+}
+
+function getHeroHitEffect(instanceId) {
+  return heroHitEffects.value[instanceId] || null
+}
+
+function getEnemyHitEffect(enemyId) {
+  return enemyHitEffects.value[enemyId] || null
+}
 </script>
 
 <template>
   <div class="battle-screen">
+    <!-- Turn Order Panel -->
+    <aside class="turn-order-panel">
+      <div class="turn-order-header">Turn Order</div>
+      <div class="turn-order-list">
+        <div
+          v-for="unit in rotatedTurnOrder"
+          :key="unit.id"
+          :class="[
+            'turn-order-entry',
+            unit.type,
+            { current: unit.isCurrent },
+            unit.type === 'hero' ? `rarity-${unit.rarity}` : ''
+          ]"
+        >
+          <span v-if="unit.isCurrent" class="current-indicator">►</span>
+          <span class="unit-name">{{ unit.name }}</span>
+        </div>
+      </div>
+    </aside>
+
     <!-- Battle Header -->
     <header class="battle-header">
       <div class="node-info">
@@ -170,15 +334,32 @@ function getHeroImageUrl(hero) {
 
     <!-- Enemy Area -->
     <section class="enemy-area">
-      <EnemyCard
-        v-for="enemy in battleStore.enemies"
-        :key="enemy.id"
-        :enemy="enemy"
-        :active="battleStore.currentUnit?.id === enemy.id"
-        :targetable="enemiesTargetable"
-        :selected="battleStore.selectedTarget?.id === enemy.id"
-        @click="selectEnemyTarget(enemy)"
-      />
+      <div
+        v-if="battleBackgroundUrl"
+        class="enemy-area-background"
+        :style="{ backgroundImage: `url(${battleBackgroundUrl})` }"
+      ></div>
+      <div v-for="enemy in battleStore.enemies" :key="enemy.id" class="enemy-wrapper">
+        <EnemyCard
+          :enemy="enemy"
+          :active="battleStore.currentUnit?.id === enemy.id"
+          :targetable="enemiesTargetable || (battleStore.isPlayerTurn && !battleStore.selectedAction)"
+          :selected="battleStore.selectedTarget?.id === enemy.id"
+          :hitEffect="getEnemyHitEffect(enemy.id)"
+          @click="selectEnemyTarget(enemy)"
+        />
+        <DamageNumber
+          v-for="dmg in damageNumbers.filter(d => d.targetType === 'enemy' && d.targetId === enemy.id)"
+          :key="dmg.id"
+          :value="dmg.value"
+          :type="dmg.type"
+          @complete="removeDamageNumber(dmg.id)"
+        />
+        <ImpactIcon
+          v-if="enemyImpactIcons[enemy.id]"
+          :type="enemyImpactIcons[enemy.id]"
+        />
+      </div>
     </section>
 
     <!-- Battle Log -->
@@ -213,8 +394,20 @@ function getHeroImageUrl(hero) {
         <HeroCard
           :hero="hero"
           :active="battleStore.currentUnit?.instanceId === hero.instanceId"
+          :hitEffect="getHeroHitEffect(hero.instanceId)"
           showBars
           compact
+        />
+        <DamageNumber
+          v-for="dmg in damageNumbers.filter(d => d.targetType === 'hero' && d.targetId === hero.instanceId)"
+          :key="dmg.id"
+          :value="dmg.value"
+          :type="dmg.type"
+          @complete="removeDamageNumber(dmg.id)"
+        />
+        <ImpactIcon
+          v-if="heroImpactIcons[hero.instanceId]"
+          :type="heroImpactIcons[hero.instanceId]"
         />
       </div>
     </section>
@@ -276,6 +469,19 @@ function getHeroImageUrl(hero) {
           </div>
         </div>
 
+        <div class="victory-party">
+          <div
+            v-for="hero in partyHeroesForVictory"
+            :key="hero.instanceId"
+            :class="['victory-hero', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
+          >
+            <HeroCard :hero="hero" compact />
+            <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-badge">
+              Level Up!
+            </div>
+          </div>
+        </div>
+
         <div class="modal-actions">
           <button class="btn-primary" @click="returnToMap">Continue</button>
           <button class="btn-secondary" @click="returnHome">Home</button>
@@ -302,9 +508,90 @@ function getHeroImageUrl(hero) {
 .battle-screen {
   min-height: 100vh;
   padding: 16px;
+  padding-left: 130px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+/* Turn Order Panel */
+.turn-order-panel {
+  position: fixed;
+  left: 12px;
+  top: 16px;
+  width: 110px;
+  background: #1f2937;
+  border-radius: 8px;
+  padding: 8px;
+  z-index: 50;
+}
+
+.turn-order-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #374151;
+  margin-bottom: 8px;
+}
+
+.turn-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.turn-order-entry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.turn-order-entry.current {
+  background: #374151;
+}
+
+.current-indicator {
+  color: #fbbf24;
+  font-size: 0.7rem;
+}
+
+.unit-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Enemy styling */
+.turn-order-entry.enemy .unit-name {
+  color: #f87171;
+}
+
+/* Hero rarity gradients */
+.turn-order-entry.rarity-1 .unit-name {
+  color: #9ca3af;
+}
+
+.turn-order-entry.rarity-2 .unit-name {
+  color: #60a5fa;
+}
+
+.turn-order-entry.rarity-3 .unit-name {
+  color: #c084fc;
+}
+
+.turn-order-entry.rarity-4 .unit-name {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fcd34d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
 }
 
 .battle-header {
@@ -340,11 +627,33 @@ function getHeroImageUrl(hero) {
 }
 
 .enemy-area {
+  position: relative;
   display: flex;
   justify-content: center;
   gap: 12px;
   padding: 20px;
   flex-wrap: wrap;
+  min-height: 180px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.enemy-area-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 0;
+  opacity: 0.7;
+}
+
+.enemy-wrapper {
+  position: relative;
+  z-index: 1;
 }
 
 .battle-log {
@@ -375,12 +684,13 @@ function getHeroImageUrl(hero) {
 .hero-area {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   padding: 12px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
 }
 
 .hero-wrapper {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -520,6 +830,55 @@ function getHeroImageUrl(hero) {
   margin-top: 12px;
   color: #fbbf24;
   font-weight: 600;
+}
+
+.victory-party {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.victory-hero {
+  position: relative;
+}
+
+.victory-hero.leveled-up {
+  animation: levelUpGlow 1.5s ease-in-out infinite;
+}
+
+.level-up-badge {
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #1f2937;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  animation: badgePulse 1s ease-in-out infinite;
+}
+
+@keyframes levelUpGlow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.9));
+  }
+}
+
+@keyframes badgePulse {
+  0%, 100% {
+    transform: translateX(-50%) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.1);
+  }
 }
 
 .modal-actions {

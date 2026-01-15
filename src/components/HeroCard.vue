@@ -38,6 +38,10 @@ const props = defineProps({
   compact: {
     type: Boolean,
     default: false
+  },
+  hitEffect: {
+    type: String,
+    default: null // 'damage', 'heal', 'buff', 'debuff'
   }
 })
 
@@ -72,6 +76,11 @@ const roleIcon = computed(() => {
 const statusEffects = computed(() => {
   return props.hero.statusEffects || []
 })
+
+const levelDisplay = computed(() => {
+  const level = props.hero.level || 1
+  return level >= 250 ? 'Master' : `Lv.${level}`
+})
 </script>
 
 <template>
@@ -79,7 +88,8 @@ const statusEffects = computed(() => {
     :class="[
       'hero-card',
       rarityClass,
-      { selected, active, compact }
+      { selected, active, compact },
+      hitEffect ? `hit-${hitEffect}` : ''
     ]"
     @click="emit('click', hero)"
   >
@@ -91,7 +101,7 @@ const statusEffects = computed(() => {
         :alt="template?.name"
         class="card-hero-image"
       />
-      <span class="hero-level">Lv.{{ hero.level || 1 }}</span>
+      <span class="hero-level">{{ levelDisplay }}</span>
     </div>
 
     <div class="card-body">
@@ -148,6 +158,7 @@ const statusEffects = computed(() => {
   transition: all 0.2s ease;
   border: 2px solid transparent;
   min-width: 120px;
+  user-select: none;
 }
 
 .hero-card.compact {
@@ -282,5 +293,48 @@ const statusEffects = computed(() => {
   color: #d1d5db;
   font-size: 0.65rem;
   font-weight: 600;
+}
+
+/* Hit Effects */
+.hero-card.hit-damage {
+  animation: hitDamage 0.3s ease-out;
+}
+
+.hero-card.hit-heal {
+  animation: hitHeal 0.4s ease-out;
+}
+
+.hero-card.hit-buff {
+  animation: hitBuff 0.4s ease-out;
+}
+
+.hero-card.hit-debuff {
+  animation: hitDebuff 0.3s ease-out;
+}
+
+@keyframes hitDamage {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-4px); background-color: rgba(239, 68, 68, 0.3); }
+  30% { transform: translateX(4px); }
+  50% { transform: translateX(-3px); }
+  70% { transform: translateX(2px); }
+  90% { transform: translateX(-1px); }
+}
+
+@keyframes hitHeal {
+  0% { box-shadow: inset 0 0 0 rgba(34, 197, 94, 0); }
+  50% { box-shadow: inset 0 0 20px rgba(34, 197, 94, 0.4); }
+  100% { box-shadow: inset 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+@keyframes hitBuff {
+  0% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+  50% { box-shadow: 0 0 15px rgba(251, 191, 36, 0.6); }
+  100% { box-shadow: 0 0 0 rgba(251, 191, 36, 0); }
+}
+
+@keyframes hitDebuff {
+  0%, 100% { background-color: transparent; }
+  50% { background-color: rgba(168, 85, 247, 0.3); }
 }
 </style>
