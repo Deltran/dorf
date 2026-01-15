@@ -30,7 +30,7 @@ export const heroTemplates = {
   },
   shadow_king: {
     id: 'shadow_king',
-    name: 'Shadow King',
+    name: 'The Shadow King',
     rarity: 5,
     classId: 'berserker',
     baseStats: { hp: 110, atk: 55, def: 25, spd: 18, mp: 50 },
@@ -49,19 +49,31 @@ export const heroTemplates = {
     rarity: 4,
     classId: 'knight',
     baseStats: { hp: 130, atk: 30, def: 45, spd: 10, mp: 50 },
-    skill: {
-      name: 'Shield Bash',
-      description: 'Deal 80% ATK damage and reduce enemy ATK by 20% for 2 turns',
-      mpCost: 15,
-      targetType: 'enemy',
-      effects: [
-        { type: EffectType.ATK_DOWN, target: 'enemy', duration: 2, value: 20 }
-      ]
-    }
+    skills: [
+      {
+        name: 'Shield Bash',
+        description: 'Deal 80% ATK damage and reduce enemy ATK by 20% for 2 turns',
+        mpCost: 15,
+        targetType: 'enemy',
+        effects: [
+          { type: EffectType.ATK_DOWN, target: 'enemy', duration: 2, value: 20 }
+        ]
+      },
+      {
+        name: 'Challenge',
+        description: 'Force all enemies to target Sir Gallan for 1 turn',
+        mpCost: 12,
+        targetType: 'self',
+        noDamage: true,
+        effects: [
+          { type: EffectType.TAUNT, target: 'self', duration: 1 }
+        ]
+      }
+    ]
   },
   ember_witch: {
     id: 'ember_witch',
-    name: 'Ember Witch',
+    name: 'Shasha Ember Witch',
     rarity: 4,
     classId: 'mage',
     baseStats: { hp: 85, atk: 45, def: 20, spd: 14, mp: 70 },
@@ -102,6 +114,16 @@ export const heroTemplates = {
         ]
       },
       {
+        name: 'Moonveil',
+        description: 'Shroud an ally in moonlight, making them untargetable for 2 turns',
+        mpCost: 20,
+        targetType: 'ally',
+        noDamage: true,
+        effects: [
+          { type: EffectType.UNTARGETABLE, target: 'ally', duration: 2 }
+        ]
+      },
+      {
         name: 'Purifying Light',
         description: 'Remove all stat debuffs from one ally',
         mpCost: 18,
@@ -129,23 +151,37 @@ export const heroTemplates = {
   // 3-star (Rare)
   town_guard: {
     id: 'town_guard',
-    name: 'Town Guard',
+    name: 'Kensin, Squire',
     rarity: 3,
     classId: 'knight',
     baseStats: { hp: 110, atk: 22, def: 35, spd: 8, mp: 40 },
-    skill: {
-      name: 'Defensive Stance',
-      description: 'Increase own DEF by 50% for 2 turns',
-      mpCost: 12,
-      targetType: 'self',
-      effects: [
-        { type: EffectType.DEF_UP, target: 'self', duration: 2, value: 50 }
-      ]
-    }
+    skills: [
+      {
+        name: 'Defensive Stance',
+        description: 'Increase own DEF by 50% for 2 turns',
+        mpCost: 12,
+        targetType: 'self',
+        unlockLevel: 1,
+        effects: [
+          { type: EffectType.DEF_UP, target: 'self', duration: 2, value: 50 }
+        ]
+      },
+      {
+        name: 'Shield Ally',
+        description: 'Increase ally DEF by 35% for 2 turns',
+        mpCost: 10,
+        targetType: 'ally',
+        unlockLevel: 1,
+        noDamage: true,
+        effects: [
+          { type: EffectType.DEF_UP, target: 'ally', duration: 2, value: 35 }
+        ]
+      }
+    ]
   },
   hedge_wizard: {
     id: 'hedge_wizard',
-    name: 'Hedge Wizard',
+    name: 'Knarly Zeek',
     rarity: 3,
     classId: 'mage',
     baseStats: { hp: 70, atk: 35, def: 15, spd: 12, mp: 60 },
@@ -173,7 +209,7 @@ export const heroTemplates = {
   },
   village_healer: {
     id: 'village_healer',
-    name: 'Village Healer',
+    name: 'Grandma Helga',
     rarity: 3,
     classId: 'cleric',
     baseStats: { hp: 80, atk: 18, def: 25, spd: 9, mp: 65 },
@@ -198,7 +234,7 @@ export const heroTemplates = {
   },
   wandering_bard: {
     id: 'wandering_bard',
-    name: 'Wandering Bard',
+    name: 'Harl the Handsom',
     rarity: 3,
     classId: 'bard',
     baseStats: { hp: 75, atk: 20, def: 20, spd: 15, mp: 70 },
@@ -233,7 +269,7 @@ export const heroTemplates = {
   // 2-star (Uncommon)
   militia_soldier: {
     id: 'militia_soldier',
-    name: 'Militia Soldier',
+    name: 'Sorju, Gate Guard',
     rarity: 2,
     classId: 'knight',
     baseStats: { hp: 90, atk: 18, def: 28, spd: 7, mp: 35 },
@@ -249,7 +285,7 @@ export const heroTemplates = {
   },
   apprentice_mage: {
     id: 'apprentice_mage',
-    name: 'Apprentice Mage',
+    name: 'Calisus',
     rarity: 2,
     classId: 'mage',
     baseStats: { hp: 55, atk: 28, def: 10, spd: 11, mp: 50 },
@@ -262,7 +298,7 @@ export const heroTemplates = {
   },
   herb_gatherer: {
     id: 'herb_gatherer',
-    name: 'Herb Gatherer',
+    name: 'Bertan the Gatherer',
     rarity: 2,
     classId: 'druid',
     baseStats: { hp: 65, atk: 15, def: 18, spd: 10, mp: 55 },
@@ -277,7 +313,7 @@ export const heroTemplates = {
   // 1-star (Common)
   farm_hand: {
     id: 'farm_hand',
-    name: 'Farm Hand',
+    name: 'Darl',
     rarity: 1,
     classId: 'berserker',
     baseStats: { hp: 70, atk: 20, def: 12, spd: 8, mp: 30 },
@@ -290,7 +326,7 @@ export const heroTemplates = {
   },
   street_urchin: {
     id: 'street_urchin',
-    name: 'Street Urchin',
+    name: 'Salia',
     rarity: 1,
     classId: 'ranger',
     baseStats: { hp: 50, atk: 18, def: 8, spd: 14, mp: 30 },
@@ -303,13 +339,13 @@ export const heroTemplates = {
   },
   beggar_monk: {
     id: 'beggar_monk',
-    name: 'Beggar Monk',
+    name: 'Vagrant Bil',
     rarity: 1,
     classId: 'cleric',
     baseStats: { hp: 60, atk: 12, def: 15, spd: 9, mp: 45 },
     skill: {
       name: 'Minor Heal',
-      description: 'Heal one ally for 60% ATK',
+      description: 'Heal one ally for 80% ATK',
       mpCost: 10,
       targetType: 'ally'
     }

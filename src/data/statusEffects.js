@@ -21,7 +21,11 @@ export const EffectType = {
 
   // Special
   SHIELD: 'shield', // Absorbs damage
-  THORNS: 'thorns' // Damages attacker when hit
+  THORNS: 'thorns', // Damages attacker when hit
+
+  // Targeting manipulation
+  TAUNT: 'taunt', // Enemies must target this unit
+  UNTARGETABLE: 'untargetable' // Cannot be targeted by enemies
 }
 
 // Effect definitions with display info and default behavior
@@ -127,6 +131,22 @@ export const effectDefinitions = {
     color: '#a855f7',
     isBuff: true,
     isThorns: true,
+    stackable: false
+  },
+  [EffectType.TAUNT]: {
+    name: 'Taunt',
+    icon: '🎯',
+    color: '#ef4444',
+    isBuff: true,
+    isTaunt: true,
+    stackable: false
+  },
+  [EffectType.UNTARGETABLE]: {
+    name: 'Untargetable',
+    icon: '👻',
+    color: '#8b5cf6',
+    isBuff: true,
+    isUntargetable: true,
     stackable: false
   }
 }

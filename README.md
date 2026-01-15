@@ -129,6 +129,25 @@ dorf/
 - MP regenerates 10% per round
 - Basic attacks are free; skills cost MP
 - Status effects (buffs/debuffs) last for a set number of turns
+- Heroes unlock additional skills at levels 2 and 3
+
+### Status Effects
+
+| Type | Description |
+|------|-------------|
+| POISON | Damage over time (flat or ATK%) |
+| BURN | Damage over time (flat or ATK%) |
+| REGEN | Heal over time |
+| MP_REGEN | MP restoration over time |
+| ATK_UP/DOWN | Percentage modifier to attack |
+| DEF_UP/DOWN | Percentage modifier to defense |
+| SPD_UP/DOWN | Percentage modifier to speed |
+| STUN | Skip turn (control effect) |
+| THORNS | Reflect damage when attacked |
+
+- Stat modifiers stack additively (two 20% DEF downs = 40% reduction)
+- DoT/HoT effects can scale with caster's ATK via `atkPercent`
+- Cleanse effects can remove debuffs; some enemy skills remove buffs
 
 ### Progression
 
@@ -136,6 +155,26 @@ dorf/
 - Each node contains multiple battles with HP/MP carrying over
 - Earn gems and EXP as rewards
 - First-time node completion grants bonus gems
+
+### World Regions
+
+| Region | Difficulty | Enemies |
+|--------|------------|---------|
+| Whispering Woods | Early | Goblin Scout, Goblin Warrior, Forest Wolf, Dire Wolf, Forest Spider |
+| Echoing Caverns | Mid | Cave Bat, Rock Golem, Dark Cultist, Dark Caster, Cave Troll |
+| Stormwind Peaks | Late | Harpy, Frost Elemental, Storm Giant |
+
+Each region has a boss node with unique mechanics and better rewards.
+
+### Heroes
+
+| Rarity | Heroes |
+|--------|--------|
+| 5-star | Aurora the Dawn (Cleric), Shadow King (Berserker) |
+| 4-star | Sir Gallan (Knight), Ember Witch (Mage), Lady Moonwhisper (Cleric), Swift Arrow (Ranger) |
+| 3-star | Town Guard (Knight), Hedge Wizard (Mage), Village Healer (Cleric), Wandering Bard (Bard) |
+| 2-star | Militia Soldier (Knight), Apprentice Mage (Mage), Herb Gatherer (Druid) |
+| 1-star | Farm Hand (Knight), Street Urchin (Ranger), Beggar Monk (Cleric) |
 
 ## New Player Start
 

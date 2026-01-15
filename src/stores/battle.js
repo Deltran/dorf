@@ -695,11 +695,28 @@ export const useBattleStore = defineStore('battle', () => {
 
     state.value = BattleState.ANIMATING
 
-    const targets = aliveHeroes.value
+    let targets = aliveHeroes.value
     if (targets.length === 0) {
       advanceTurnIndex()
       startNextTurn()
       return
+    }
+
+    // Check for taunt - if any hero has taunt, they must be targeted
+    const tauntingHeroes = targets.filter(h =>
+      h.statusEffects?.some(e => e.definition?.isTaunt)
+    )
+    if (tauntingHeroes.length > 0) {
+      targets = tauntingHeroes
+    } else {
+      // Filter out untargetable heroes (only if no taunt)
+      const targetableHeroes = targets.filter(h =>
+        !h.statusEffects?.some(e => e.definition?.isUntargetable)
+      )
+      // If all heroes are untargetable, enemy can still attack (no valid targets edge case)
+      if (targetableHeroes.length > 0) {
+        targets = targetableHeroes
+      }
     }
 
     const target = targets[Math.floor(Math.random() * targets.length)]
