@@ -189,6 +189,13 @@ function getExpProgress(hero) {
       <button class="cancel-btn" @click="cancelPlacing">Cancel</button>
     </div>
 
+    <!-- Hero Detail Backdrop -->
+    <div
+      v-if="selectedHero && !placingHero"
+      class="detail-backdrop"
+      @click="selectedHero = null"
+    ></div>
+
     <!-- Hero Detail Panel -->
     <aside v-if="selectedHero && !placingHero" :class="['hero-detail', `rarity-${selectedHero.template.rarity}`]">
       <div class="detail-header">
@@ -260,8 +267,24 @@ function getExpProgress(hero) {
           </div>
         </div>
 
-        <h4>Skill</h4>
-        <div class="skill-info">
+        <h4>{{ selectedHero.template.skills ? 'Skills' : 'Skill' }}</h4>
+        <div v-if="selectedHero.template.skills" class="skills-list">
+          <div
+            v-for="(skill, index) in selectedHero.template.skills"
+            :key="index"
+            class="skill-info"
+          >
+            <div class="skill-name">
+              {{ skill.name }}
+              <span v-if="skill.skillUnlockLevel" class="skill-unlock">Lv.{{ skill.skillUnlockLevel }}</span>
+            </div>
+            <div class="skill-cost">
+              Cost: {{ skill.mpCost }} {{ selectedHero.class.resourceName }}
+            </div>
+            <div class="skill-desc">{{ skill.description }}</div>
+          </div>
+        </div>
+        <div v-else-if="selectedHero.template.skill" class="skill-info">
           <div class="skill-name">{{ selectedHero.template.skill.name }}</div>
           <div class="skill-cost">
             Cost: {{ selectedHero.template.skill.mpCost }} {{ selectedHero.class.resourceName }}
@@ -454,6 +477,16 @@ function getExpProgress(hero) {
   gap: 12px;
 }
 
+.detail-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+}
+
 .hero-detail {
   position: fixed;
   bottom: 0;
@@ -465,6 +498,7 @@ function getExpProgress(hero) {
   max-height: 60vh;
   overflow-y: auto;
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  z-index: 100;
 }
 
 .hero-detail::before {
@@ -588,6 +622,12 @@ function getExpProgress(hero) {
   color: #f3f4f6;
 }
 
+.skills-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .skill-info {
   background: #374151;
   padding: 12px;
@@ -598,6 +638,18 @@ function getExpProgress(hero) {
   font-weight: 600;
   color: #f3f4f6;
   margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skill-unlock {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .skill-cost {

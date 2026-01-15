@@ -145,14 +145,22 @@ export const enemyTemplates = {
     name: 'Goblin Chieftain',
     imageSize: 150,
     stats: { hp: 180, atk: 28, def: 18, spd: 10 },
-    skill: {
-      name: 'War Cry',
-      description: 'Deal 100% ATK damage to all heroes and increase own ATK by 25% for 3 turns',
-      cooldown: 4,
-      effects: [
-        { type: EffectType.ATK_UP, target: 'self', duration: 3, value: 25 }
-      ]
-    }
+    skills: [
+      {
+        name: 'War Cry',
+        description: 'Deal 100% ATK damage to all heroes and increase own ATK by 25% for 3 turns',
+        cooldown: 4,
+        effects: [
+          { type: EffectType.ATK_UP, target: 'self', duration: 3, value: 25 }
+        ]
+      },
+      {
+        name: 'Dominion',
+        description: 'Deal 120% ATK damage to one hero and remove all their buffs',
+        cooldown: 3,
+        cleanse: 'buffs'
+      }
+    ]
   },
   spider_queen: {
     id: 'spider_queen',

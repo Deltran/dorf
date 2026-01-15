@@ -29,11 +29,16 @@ const emit = defineEmits(['click'])
 
 const template = computed(() => props.enemy.template)
 
-const skillCooldown = computed(() => {
-  if (!template.value?.skill) return null
-  const skillName = template.value.skill.name
-  return props.enemy.currentCooldowns?.[skillName] ?? 0
+// Get all skills (supports both 'skill' and 'skills')
+const allSkills = computed(() => {
+  if (template.value?.skills) return template.value.skills
+  if (template.value?.skill) return [template.value.skill]
+  return []
 })
+
+function getSkillCooldown(skill) {
+  return props.enemy.currentCooldowns?.[skill.name] ?? 0
+}
 
 const isDead = computed(() => props.enemy.currentHp <= 0)
 
@@ -78,12 +83,14 @@ const statusEffects = computed(() => {
       </div>
     </div>
 
-    <div v-if="template?.skill" class="skill-info">
-      <span class="skill-name">{{ template.skill.name }}</span>
-      <span v-if="skillCooldown > 0" class="cooldown">
-        {{ skillCooldown }} turns
-      </span>
-      <span v-else class="ready">Ready!</span>
+    <div v-if="allSkills.length > 0" class="skills-info">
+      <div v-for="skill in allSkills" :key="skill.name" class="skill-info">
+        <span class="skill-name">{{ skill.name }}</span>
+        <span v-if="getSkillCooldown(skill) > 0" class="cooldown">
+          {{ getSkillCooldown(skill) }}
+        </span>
+        <span v-else class="ready">Ready</span>
+      </div>
     </div>
   </div>
 </template>
@@ -134,6 +141,12 @@ const statusEffects = computed(() => {
 
 .card-body {
   margin-bottom: 8px;
+}
+
+.skills-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .skill-info {

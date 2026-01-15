@@ -161,12 +161,20 @@ function getResultHeroData(result) {
       <div class="results-content">
         <h2>Summon Results!</h2>
         <div class="results-grid">
-          <HeroCard
+          <div
             v-for="result in pullResults"
             :key="result.instance.instanceId"
-            :hero="getResultHeroData(result)"
-            showStats
-          />
+            :class="[
+              'result-card-wrapper',
+              { 'glow-epic': result.template.rarity === 4 },
+              { 'glow-legendary': result.template.rarity === 5 }
+            ]"
+          >
+            <HeroCard
+              :hero="getResultHeroData(result)"
+              showStats
+            />
+          </div>
         </div>
         <button class="close-button" @click="closeResults">Continue</button>
       </div>
@@ -433,5 +441,35 @@ function getResultHeroData(result) {
 
 .close-button:hover {
   background: #2563eb;
+}
+
+.result-card-wrapper {
+  border-radius: 8px;
+}
+
+.glow-epic {
+  animation: glowPurple 1.5s ease-in-out infinite;
+}
+
+.glow-legendary {
+  animation: glowGolden 1.5s ease-in-out infinite;
+}
+
+@keyframes glowPurple {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.9));
+  }
+}
+
+@keyframes glowGolden {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.9));
+  }
 }
 </style>

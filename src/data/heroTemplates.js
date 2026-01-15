@@ -149,12 +149,27 @@ export const heroTemplates = {
     rarity: 3,
     classId: 'mage',
     baseStats: { hp: 70, atk: 35, def: 15, spd: 12, mp: 60 },
-    skill: {
-      name: 'Magic Missile',
-      description: 'Deal 120% ATK damage to one enemy',
-      mpCost: 14,
-      targetType: 'enemy'
-    }
+    skills: [
+      {
+        name: 'Destructive Charm',
+        description: 'Deal 100% ATK damage and reduce enemy DEF by 10% for 4 turns',
+        mpCost: 14,
+        targetType: 'enemy',
+        effects: [
+          { type: EffectType.DEF_DOWN, target: 'enemy', duration: 4, value: 10 }
+        ]
+      },
+      {
+        name: 'Retaliatory Protection',
+        description: 'Gain a barrier that deals 50% ATK damage to attackers for 4 turns',
+        mpCost: 16,
+        targetType: 'self',
+        noDamage: true,
+        effects: [
+          { type: EffectType.THORNS, target: 'self', duration: 4, value: 50 }
+        ]
+      }
+    ]
   },
   village_healer: {
     id: 'village_healer',
@@ -196,6 +211,13 @@ export const heroTemplates = {
         effects: [
           { type: EffectType.ATK_UP, target: 'all_allies', duration: 2, value: 15 }
         ]
+      },
+      {
+        name: 'Sing',
+        description: 'Restore 2 MP to all allies',
+        mpCost: 0,
+        targetType: 'all_allies',
+        mpRestore: 2
       },
       {
         name: 'Mana Melody',
@@ -246,7 +268,7 @@ export const heroTemplates = {
     baseStats: { hp: 65, atk: 15, def: 18, spd: 10, mp: 55 },
     skill: {
       name: 'Herbal Remedy',
-      description: 'Heal one ally for 80% ATK',
+      description: 'Heal one ally for 120% ATK',
       mpCost: 12,
       targetType: 'ally'
     }

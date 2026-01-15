@@ -279,7 +279,11 @@ export const useBattleStore = defineStore('battle', () => {
       if (!template) continue
 
       const cooldowns = {}
-      if (template.skill) {
+      if (template.skills) {
+        for (const skill of template.skills) {
+          cooldowns[skill.name] = 0
+        }
+      } else if (template.skill) {
         cooldowns[template.skill.name] = 0
       }
 
@@ -642,11 +646,15 @@ export const useBattleStore = defineStore('battle', () => {
               }
             }
           }
-          // MP restore
-          if (skill.mpRestore) {
+          // MP restore (flat or percentage)
+          if (skill.mpRestore || skill.mpRestorePercent) {
             for (const target of aliveHeroes.value) {
               const oldMp = target.currentMp
-              target.currentMp = Math.min(target.maxMp, target.currentMp + skill.mpRestore)
+              let restoreAmount = skill.mpRestore || 0
+              if (skill.mpRestorePercent) {
+                restoreAmount = Math.floor(target.maxMp * skill.mpRestorePercent / 100)
+              }
+              target.currentMp = Math.min(target.maxMp, target.currentMp + restoreAmount)
               const actualRestore = target.currentMp - oldMp
               if (actualRestore > 0) {
                 addLog(`${target.template.name} recovers ${actualRestore} MP!`)
@@ -696,18 +704,32 @@ export const useBattleStore = defineStore('battle', () => {
 
     const target = targets[Math.floor(Math.random() * targets.length)]
 
-    const skill = enemy.template.skill
-    const skillReady = skill && enemy.currentCooldowns[skill.name] === 0
+    // Get available skills (supports both 'skill' and 'skills')
+    const allSkills = enemy.template.skills || (enemy.template.skill ? [enemy.template.skill] : [])
+    const readySkills = allSkills.filter(s => enemy.currentCooldowns[s.name] === 0)
+    const skill = readySkills.length > 0 ? readySkills[Math.floor(Math.random() * readySkills.length)] : null
 
     const effectiveAtk = getEffectiveStat(enemy, 'atk')
     const effectiveDef = getEffectiveStat(target, 'def')
 
-    if (skillReady) {
+    if (skill) {
       const multiplier = parseSkillMultiplier(skill.description)
       const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
       target.currentHp = Math.max(0, target.currentHp - damage)
       addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
       emitCombatEffect(target.instanceId, 'hero', 'damage', damage)
+
+      // Remove buffs if skill has cleanse
+      if (skill.cleanse === 'buffs') {
+        const removedEffects = target.statusEffects?.filter(e => e.definition?.isBuff) || []
+        if (removedEffects.length > 0) {
+          target.statusEffects = target.statusEffects.filter(e => !e.definition?.isBuff)
+          for (const effect of removedEffects) {
+            addLog(`${target.template.name}'s ${effect.definition.name} was removed!`)
+          }
+          emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
+        }
+      }
 
       // Apply skill effects
       if (skill.effects) {
@@ -732,6 +754,21 @@ export const useBattleStore = defineStore('battle', () => {
 
     if (target.currentHp <= 0) {
       addLog(`${target.template.name} has fallen!`)
+    }
+
+    // Check for thorns effect on the target
+    const thornsEffect = target.statusEffects?.find(e => e.definition?.isThorns)
+    if (thornsEffect && enemy.currentHp > 0) {
+      const targetAtk = getEffectiveStat(target, 'atk')
+      const thornsDamage = Math.floor(targetAtk * thornsEffect.value / 100)
+      if (thornsDamage > 0) {
+        enemy.currentHp = Math.max(0, enemy.currentHp - thornsDamage)
+        addLog(`${enemy.template.name} takes ${thornsDamage} retaliation damage!`)
+        emitCombatEffect(enemy.id, 'enemy', 'damage', thornsDamage)
+        if (enemy.currentHp <= 0) {
+          addLog(`${enemy.template.name} defeated!`)
+        }
+      }
     }
 
     // Process end of turn effects for enemy

@@ -298,16 +298,14 @@ watch(() => battleStore.combatEffects.length, () => {
       heroImpactIcons.value[effect.targetId] = iconType
       heroHitEffects.value[effect.targetId] = effect.effectType
 
-      // Flip the attacking enemy when they deal damage to a hero
-      if (effect.effectType === 'damage') {
-        const attackingEnemy = battleStore.currentUnit
-        if (attackingEnemy && !attackingEnemy.instanceId) {
-          // It's an enemy (enemies don't have instanceId)
-          attackingEnemies.value[attackingEnemy.id] = true
-          setTimeout(() => {
-            delete attackingEnemies.value[attackingEnemy.id]
-          }, 400)
-        }
+      // Flip the attacking enemy when they act on a hero
+      const attackingEnemy = battleStore.currentUnit
+      if (attackingEnemy && !attackingEnemy.instanceId && !attackingEnemies.value[attackingEnemy.id]) {
+        // It's an enemy (enemies don't have instanceId)
+        attackingEnemies.value[attackingEnemy.id] = true
+        setTimeout(() => {
+          delete attackingEnemies.value[attackingEnemy.id]
+        }, 400)
       }
 
       setTimeout(() => {

@@ -20,7 +20,8 @@ export const EffectType = {
   STUN: 'stun',
 
   // Special
-  SHIELD: 'shield' // Absorbs damage
+  SHIELD: 'shield', // Absorbs damage
+  THORNS: 'thorns' // Damages attacker when hit
 }
 
 // Effect definitions with display info and default behavior
@@ -118,6 +119,14 @@ export const effectDefinitions = {
     icon: '🔰',
     color: '#60a5fa',
     isBuff: true,
+    stackable: false
+  },
+  [EffectType.THORNS]: {
+    name: 'Thorns',
+    icon: '🔄',
+    color: '#a855f7',
+    isBuff: true,
+    isThorns: true,
     stackable: false
   }
 }
