@@ -57,12 +57,29 @@ export const useBattleStore = defineStore('battle', () => {
     return state.value === BattleState.VICTORY || state.value === BattleState.DEFEAT
   })
 
+  // Get skill by index from current unit (supports both 'skill' and 'skills')
+  function getSkillByIndex(unit, index) {
+    const template = unit?.template
+    if (!template) return null
+    if (template.skills) return template.skills[index] || null
+    if (template.skill && index === 0) return template.skill
+    return null
+  }
+
+  // Parse skill index from action string (e.g., 'skill_0' -> 0)
+  function parseSkillIndex(action) {
+    if (!action?.startsWith('skill_')) return null
+    return parseInt(action.split('_')[1], 10)
+  }
+
   const currentTargetType = computed(() => {
     if (selectedAction.value === 'attack') {
       return 'enemy'
     }
-    if (selectedAction.value === 'skill' && currentUnit.value?.template?.skill) {
-      return currentUnit.value.template.skill.targetType || 'enemy'
+    const skillIndex = parseSkillIndex(selectedAction.value)
+    if (skillIndex !== null) {
+      const skill = getSkillByIndex(currentUnit.value, skillIndex)
+      return skill?.targetType || 'enemy'
     }
     return null
   })
@@ -374,8 +391,9 @@ export const useBattleStore = defineStore('battle', () => {
     if (state.value !== BattleState.PLAYER_TURN) return
     selectedAction.value = action
 
-    if (action === 'skill') {
-      const skill = currentUnit.value?.template?.skill
+    const skillIndex = parseSkillIndex(action)
+    if (skillIndex !== null) {
+      const skill = getSkillByIndex(currentUnit.value, skillIndex)
       if (!skill) return
 
       const targetType = skill.targetType || 'enemy'
@@ -418,9 +436,14 @@ export const useBattleStore = defineStore('battle', () => {
       if (target.currentHp <= 0) {
         addLog(`${target.template.name} defeated!`)
       }
-    } else if (selectedAction.value === 'skill') {
-      const skill = hero.template.skill
-      if (hero.currentMp < skill.mpCost) {
+    } else {
+      const skillIndex = parseSkillIndex(selectedAction.value)
+      if (skillIndex === null) {
+        state.value = BattleState.PLAYER_TURN
+        return
+      }
+      const skill = getSkillByIndex(hero, skillIndex)
+      if (!skill || hero.currentMp < skill.mpCost) {
         addLog(`Not enough ${hero.class.resourceName}!`)
         state.value = BattleState.PLAYER_TURN
         return
@@ -479,6 +502,16 @@ export const useBattleStore = defineStore('battle', () => {
             emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
           }
 
+          // MP restore
+          if (skill.mpRestore) {
+            const oldMp = target.currentMp
+            target.currentMp = Math.min(target.maxMp, target.currentMp + skill.mpRestore)
+            const actualRestore = target.currentMp - oldMp
+            if (actualRestore > 0) {
+              addLog(`${target.template.name} recovers ${actualRestore} MP!`)
+            }
+          }
+
           // Apply skill effects (buffs)
           if (skill.effects) {
             for (const effect of skill.effects) {
@@ -499,6 +532,15 @@ export const useBattleStore = defineStore('battle', () => {
                 applyEffect(hero, effect.type, { duration: effect.duration, value: effect.value, sourceId: hero.instanceId })
                 emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               }
+            }
+          }
+          // MP restore
+          if (skill.mpRestore) {
+            const oldMp = hero.currentMp
+            hero.currentMp = Math.min(hero.maxMp, hero.currentMp + skill.mpRestore)
+            const actualRestore = hero.currentMp - oldMp
+            if (actualRestore > 0) {
+              addLog(`${hero.template.name} recovers ${actualRestore} MP!`)
             }
           }
           break
@@ -541,6 +583,17 @@ export const useBattleStore = defineStore('battle', () => {
               const actualHeal = target.currentHp - oldHp
               if (actualHeal > 0) {
                 emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+              }
+            }
+          }
+          // MP restore
+          if (skill.mpRestore) {
+            for (const target of aliveHeroes.value) {
+              const oldMp = target.currentMp
+              target.currentMp = Math.min(target.maxMp, target.currentMp + skill.mpRestore)
+              const actualRestore = target.currentMp - oldMp
+              if (actualRestore > 0) {
+                addLog(`${target.template.name} recovers ${actualRestore} MP!`)
               }
             }
           }

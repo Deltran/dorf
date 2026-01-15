@@ -151,15 +151,25 @@ export const heroTemplates = {
     rarity: 3,
     classId: 'bard',
     baseStats: { hp: 75, atk: 20, def: 20, spd: 15, mp: 70 },
-    skill: {
-      name: 'Inspiring Song',
-      description: 'Increase all allies ATK by 15% for 2 turns',
-      mpCost: 18,
-      targetType: 'all_allies',
-      effects: [
-        { type: EffectType.ATK_UP, target: 'all_allies', duration: 2, value: 15 }
-      ]
-    }
+    skills: [
+      {
+        name: 'Inspiring Song',
+        description: 'Increase all allies ATK by 15% for 2 turns',
+        mpCost: 18,
+        targetType: 'all_allies',
+        effects: [
+          { type: EffectType.ATK_UP, target: 'all_allies', duration: 2, value: 15 }
+        ]
+      },
+      {
+        name: 'Mana Melody',
+        description: 'Restore 10 MP to all allies',
+        mpCost: 20,
+        skillUnlockLevel: 3,
+        targetType: 'all_allies',
+        mpRestore: 10
+      }
+    ]
   },
 
   // 2-star (Uncommon)

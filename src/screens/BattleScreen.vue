@@ -35,12 +35,30 @@ const currentHero = computed(() => {
   return battleStore.currentUnit
 })
 
-const canUseSkill = computed(() => {
-  if (!currentHero.value) return false
-  const skill = currentHero.value.template?.skill
-  if (!skill) return false
-  return currentHero.value.currentMp >= skill.mpCost
+// Get all skills for current hero (supports both 'skill' and 'skills')
+const heroSkills = computed(() => {
+  if (!currentHero.value) return []
+  const template = currentHero.value.template
+  if (template?.skills) return template.skills
+  if (template?.skill) return [template.skill]
+  return []
 })
+
+// Filter to only unlocked skills based on hero level
+const availableSkills = computed(() => {
+  if (!currentHero.value) return []
+  const heroLevel = currentHero.value.level
+  return heroSkills.value.filter(skill => {
+    const unlockLevel = skill.skillUnlockLevel ?? 1
+    return heroLevel >= unlockLevel
+  })
+})
+
+// Check if a specific skill can be used (has enough MP)
+function canUseSkill(skill) {
+  if (!currentHero.value || !skill) return false
+  return currentHero.value.currentMp >= skill.mpCost
+}
 
 // Check if we're waiting for target selection
 const isSelectingTarget = computed(() => {
@@ -418,14 +436,16 @@ function getEnemyHitEffect(enemyId) {
           @click="selectAction('attack')"
         />
         <ActionButton
-          :label="currentHero.template.skill.name"
-          :description="currentHero.template.skill.description"
-          :cost="currentHero.template.skill.mpCost"
+          v-for="(skill, index) in availableSkills"
+          :key="skill.name"
+          :label="skill.name"
+          :description="skill.description"
+          :cost="skill.mpCost"
           :costLabel="currentHero.class.resourceName"
-          :disabled="!canUseSkill"
-          :selected="battleStore.selectedAction === 'skill'"
+          :disabled="!canUseSkill(skill)"
+          :selected="battleStore.selectedAction === `skill_${index}`"
           variant="primary"
-          @click="selectAction('skill')"
+          @click="selectAction(`skill_${index}`)"
         />
       </div>
     </section>
