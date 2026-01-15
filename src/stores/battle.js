@@ -18,7 +18,7 @@ export const useBattleStore = defineStore('battle', () => {
   // State
   const state = ref(BattleState.IDLE)
   const heroes = ref([]) // { instanceId, templateId, currentHp, maxHp, currentMp, maxMp, stats, template, class }
-  const enemies = ref([]) // { id mod unique id, templateId, currentHp, maxHp, stats, template, currentCooldowns }
+  const enemies = ref([]) // { id, templateId, currentHp, maxHp, stats, template, currentCooldowns }
   const turnOrder = ref([]) // Array of { type: 'hero'|'enemy', id }
   const currentTurnIndex = ref(0)
   const roundNumber = ref(1)
@@ -53,6 +53,23 @@ export const useBattleStore = defineStore('battle', () => {
 
   const isBattleOver = computed(() => {
     return state.value === BattleState.VICTORY || state.value === BattleState.DEFEAT
+  })
+
+  // Get the target type for the currently selected action
+  const currentTargetType = computed(() => {
+    if (selectedAction.value === 'attack') {
+      return 'enemy'
+    }
+    if (selectedAction.value === 'skill' && currentUnit.value?.template?.skill) {
+      return currentUnit.value.template.skill.targetType || 'enemy'
+    }
+    return null
+  })
+
+  // Check if the current action needs manual target selection
+  const needsTargetSelection = computed(() => {
+    const targetType = currentTargetType.value
+    return targetType === 'enemy' || targetType === 'ally'
   })
 
   // Actions
@@ -220,13 +237,25 @@ export const useBattleStore = defineStore('battle', () => {
   function selectAction(action) {
     if (state.value !== BattleState.PLAYER_TURN) return
     selectedAction.value = action
+
+    // For skills that don't need target selection, execute immediately
+    if (action === 'skill') {
+      const skill = currentUnit.value?.template?.skill
+      if (!skill) return
+
+      const targetType = skill.targetType || 'enemy'
+
+      if (targetType === 'self' || targetType === 'all_enemies' || targetType === 'all_allies') {
+        executePlayerAction()
+      }
+    }
   }
 
-  function selectTarget(targetId) {
+  function selectTarget(targetId, targetType = 'enemy') {
     if (state.value !== BattleState.PLAYER_TURN) return
     if (!selectedAction.value) return
 
-    selectedTarget.value = targetId
+    selectedTarget.value = { id: targetId, type: targetType }
     executePlayerAction()
   }
 
@@ -234,19 +263,24 @@ export const useBattleStore = defineStore('battle', () => {
     const hero = currentUnit.value
     if (!hero || hero.currentHp <= 0) return
 
-    const target = enemies.value.find(e => e.id === selectedTarget.value)
-    if (!target || target.currentHp <= 0) {
-      addLog('Invalid target')
-      return
-    }
-
     state.value = BattleState.ANIMATING
 
     if (selectedAction.value === 'attack') {
-      // Basic attack: 100% ATK
+      // Basic attack always targets enemy
+      const target = enemies.value.find(e => e.id === selectedTarget.value?.id)
+      if (!target || target.currentHp <= 0) {
+        addLog('Invalid target')
+        state.value = BattleState.PLAYER_TURN
+        return
+      }
+
       const damage = calculateDamage(hero.stats.atk, 1.0, target.stats.def)
       target.currentHp = Math.max(0, target.currentHp - damage)
       addLog(`${hero.template.name} attacks ${target.template.name} for ${damage} damage!`)
+
+      if (target.currentHp <= 0) {
+        addLog(`${target.template.name} defeated!`)
+      }
     } else if (selectedAction.value === 'skill') {
       const skill = hero.template.skill
       if (hero.currentMp < skill.mpCost) {
@@ -256,17 +290,78 @@ export const useBattleStore = defineStore('battle', () => {
       }
 
       hero.currentMp -= skill.mpCost
+      const targetType = skill.targetType || 'enemy'
 
-      // Parse skill multiplier from description (simplified - assumes format "Deal X% ATK damage")
-      const multiplier = parseSkillMultiplier(skill.description)
-      const damage = calculateDamage(hero.stats.atk, multiplier, target.stats.def)
-      target.currentHp = Math.max(0, target.currentHp - damage)
-      addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
-    }
+      switch (targetType) {
+        case 'enemy': {
+          const target = enemies.value.find(e => e.id === selectedTarget.value?.id)
+          if (!target || target.currentHp <= 0) {
+            addLog('Invalid target')
+            hero.currentMp += skill.mpCost // Refund
+            state.value = BattleState.PLAYER_TURN
+            return
+          }
+          const multiplier = parseSkillMultiplier(skill.description)
+          const damage = calculateDamage(hero.stats.atk, multiplier, target.stats.def)
+          target.currentHp = Math.max(0, target.currentHp - damage)
+          addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
+          if (target.currentHp <= 0) {
+            addLog(`${target.template.name} defeated!`)
+          }
+          break
+        }
 
-    // Check if target died
-    if (target.currentHp <= 0) {
-      addLog(`${target.template.name} defeated!`)
+        case 'ally': {
+          const target = heroes.value.find(h => h.instanceId === selectedTarget.value?.id)
+          if (!target || target.currentHp <= 0) {
+            addLog('Invalid target')
+            hero.currentMp += skill.mpCost // Refund
+            state.value = BattleState.PLAYER_TURN
+            return
+          }
+          const healAmount = calculateHeal(hero.stats.atk, skill.description)
+          const oldHp = target.currentHp
+          target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
+          const actualHeal = target.currentHp - oldHp
+          addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}, healing for ${actualHeal} HP!`)
+          break
+        }
+
+        case 'self': {
+          // Self-targeting skills (buffs)
+          addLog(`${hero.template.name} uses ${skill.name}!`)
+          // For now, just log the skill use. Full buff implementation would require a status effect system.
+          break
+        }
+
+        case 'all_enemies': {
+          const multiplier = parseSkillMultiplier(skill.description)
+          let totalDamage = 0
+          for (const target of aliveEnemies.value) {
+            const damage = calculateDamage(hero.stats.atk, multiplier, target.stats.def)
+            target.currentHp = Math.max(0, target.currentHp - damage)
+            totalDamage += damage
+            if (target.currentHp <= 0) {
+              addLog(`${target.template.name} defeated!`)
+            }
+          }
+          addLog(`${hero.template.name} uses ${skill.name}, dealing ${totalDamage} total damage!`)
+          break
+        }
+
+        case 'all_allies': {
+          // Party-wide buff/heal
+          addLog(`${hero.template.name} uses ${skill.name} on all allies!`)
+          // Check if it's a heal
+          if (skill.description.toLowerCase().includes('heal')) {
+            const healAmount = calculateHeal(hero.stats.atk, skill.description)
+            for (const target of aliveHeroes.value) {
+              target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
+            }
+          }
+          break
+        }
+      }
     }
 
     // End turn
@@ -332,6 +427,15 @@ export const useBattleStore = defineStore('battle', () => {
     return Math.max(1, Math.floor(raw))
   }
 
+  function calculateHeal(atk, description) {
+    // Extract percentage from "Heal ... for X% ATK"
+    const match = description.match(/(\d+)%/)
+    if (match) {
+      return Math.floor(atk * parseInt(match[1]) / 100)
+    }
+    return Math.floor(atk) // Default to 100% ATK
+  }
+
   function parseSkillMultiplier(description) {
     // Extract percentage from "Deal X% ATK damage"
     const match = description.match(/(\d+)%/)
@@ -351,14 +455,14 @@ export const useBattleStore = defineStore('battle', () => {
 
   function getPartyState() {
     // Return current HP/MP for all heroes (for saving between battles)
-    const state = {}
+    const partyState = {}
     for (const hero of heroes.value) {
-      state[hero.instanceId] = {
+      partyState[hero.instanceId] = {
         currentHp: hero.currentHp,
         currentMp: hero.currentMp
       }
     }
-    return state
+    return partyState
   }
 
   function endBattle() {
@@ -386,6 +490,8 @@ export const useBattleStore = defineStore('battle', () => {
     aliveHeroes,
     aliveEnemies,
     isBattleOver,
+    currentTargetType,
+    needsTargetSelection,
     // Actions
     initBattle,
     selectAction,

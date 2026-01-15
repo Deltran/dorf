@@ -32,6 +32,31 @@ const canUseSkill = computed(() => {
   return currentHero.value.currentMp >= skill.mpCost
 })
 
+// Check if we're waiting for target selection
+const isSelectingTarget = computed(() => {
+  return battleStore.isPlayerTurn &&
+         battleStore.selectedAction !== null &&
+         battleStore.needsTargetSelection
+})
+
+// Check if enemies are targetable (for enemy-targeting actions)
+const enemiesTargetable = computed(() => {
+  return isSelectingTarget.value && battleStore.currentTargetType === 'enemy'
+})
+
+// Check if allies are targetable (for ally-targeting actions)
+const alliesTargetable = computed(() => {
+  return isSelectingTarget.value && battleStore.currentTargetType === 'ally'
+})
+
+// Prompt text based on current state
+const targetPrompt = computed(() => {
+  if (!battleStore.selectedAction) return 'Choose an action'
+  if (!battleStore.needsTargetSelection) return 'Executing...'
+  if (battleStore.currentTargetType === 'ally') return 'Select an ally'
+  return 'Select an enemy'
+})
+
 // Start battle when component mounts
 onMounted(() => {
   startCurrentBattle()
@@ -97,9 +122,15 @@ function selectAction(action) {
   battleStore.selectAction(action)
 }
 
-function selectTarget(enemy) {
-  if (battleStore.selectedAction && enemy.currentHp > 0) {
-    battleStore.selectTarget(enemy.id)
+function selectEnemyTarget(enemy) {
+  if (enemiesTargetable.value && enemy.currentHp > 0) {
+    battleStore.selectTarget(enemy.id, 'enemy')
+  }
+}
+
+function selectHeroTarget(hero) {
+  if (alliesTargetable.value && hero.currentHp > 0) {
+    battleStore.selectTarget(hero.instanceId, 'ally')
   }
 }
 
@@ -134,9 +165,9 @@ function returnHome() {
         :key="enemy.id"
         :enemy="enemy"
         :active="battleStore.currentUnit?.id === enemy.id"
-        :targetable="battleStore.isPlayerTurn && battleStore.selectedAction !== null"
-        :selected="battleStore.selectedTarget === enemy.id"
-        @click="selectTarget(enemy)"
+        :targetable="enemiesTargetable"
+        :selected="battleStore.selectedTarget?.id === enemy.id"
+        @click="selectEnemyTarget(enemy)"
       />
     </section>
 
@@ -151,22 +182,29 @@ function returnHome() {
 
     <!-- Hero Area -->
     <section class="hero-area">
-      <HeroCard
+      <div
         v-for="hero in battleStore.heroes"
         :key="hero.instanceId"
-        :hero="hero"
-        :active="battleStore.currentUnit?.instanceId === hero.instanceId"
-        showBars
-        compact
-      />
+        :class="['hero-wrapper', {
+          targetable: alliesTargetable && hero.currentHp > 0,
+          selected: battleStore.selectedTarget?.id === hero.instanceId
+        }]"
+        @click="selectHeroTarget(hero)"
+      >
+        <HeroCard
+          :hero="hero"
+          :active="battleStore.currentUnit?.instanceId === hero.instanceId"
+          showBars
+          compact
+        />
+      </div>
     </section>
 
     <!-- Action Area -->
     <section v-if="battleStore.isPlayerTurn && currentHero" class="action-area">
       <div class="action-prompt">
         <span>{{ currentHero.template.name }}'s turn</span>
-        <span v-if="!battleStore.selectedAction">Choose an action</span>
-        <span v-else>Select a target</span>
+        <span>{{ targetPrompt }}</span>
       </div>
 
       <div class="action-buttons">
@@ -321,6 +359,25 @@ function returnHome() {
   gap: 12px;
   padding: 12px;
   flex-wrap: wrap;
+}
+
+.hero-wrapper {
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.hero-wrapper.targetable {
+  cursor: pointer;
+  box-shadow: 0 0 0 2px transparent;
+}
+
+.hero-wrapper.targetable:hover {
+  box-shadow: 0 0 0 2px #22c55e;
+  transform: translateY(-2px);
+}
+
+.hero-wrapper.selected {
+  box-shadow: 0 0 0 2px #22c55e;
 }
 
 .action-area {

@@ -1,3 +1,10 @@
+// Skill target types:
+// 'enemy' - single enemy target
+// 'ally' - single ally target
+// 'self' - targets self only (no selection needed)
+// 'all_enemies' - all enemies (no selection needed)
+// 'all_allies' - all allies (no selection needed)
+
 export const heroTemplates = {
   // 5-star (Legendary)
   aurora_the_dawn: {
@@ -9,7 +16,8 @@ export const heroTemplates = {
     skill: {
       name: 'Divine Radiance',
       description: 'Deal 150% ATK damage to all enemies and heal all allies for 20% of damage dealt',
-      mpCost: 30
+      mpCost: 30,
+      targetType: 'all_enemies'
     }
   },
   shadow_king: {
@@ -21,7 +29,8 @@ export const heroTemplates = {
     skill: {
       name: 'Void Strike',
       description: 'Deal 200% ATK damage to one enemy, ignoring 50% of their DEF',
-      mpCost: 25
+      mpCost: 25,
+      targetType: 'enemy'
     }
   },
 
@@ -35,7 +44,8 @@ export const heroTemplates = {
     skill: {
       name: 'Shield Bash',
       description: 'Deal 80% ATK damage and reduce enemy ATK by 20% for 2 turns',
-      mpCost: 15
+      mpCost: 15,
+      targetType: 'enemy'
     }
   },
   ember_witch: {
@@ -47,7 +57,8 @@ export const heroTemplates = {
     skill: {
       name: 'Fireball',
       description: 'Deal 130% ATK damage to one enemy and 50% ATK damage to adjacent enemies',
-      mpCost: 20
+      mpCost: 20,
+      targetType: 'enemy'
     }
   },
   lady_moonwhisper: {
@@ -59,7 +70,8 @@ export const heroTemplates = {
     skill: {
       name: 'Lunar Blessing',
       description: 'Heal one ally for 150% ATK and grant them 20% DEF boost for 2 turns',
-      mpCost: 22
+      mpCost: 22,
+      targetType: 'ally'
     }
   },
   swift_arrow: {
@@ -71,7 +83,8 @@ export const heroTemplates = {
     skill: {
       name: 'Triple Shot',
       description: 'Deal 70% ATK damage three times to random enemies',
-      mpCost: 18
+      mpCost: 18,
+      targetType: 'all_enemies'
     }
   },
 
@@ -85,7 +98,8 @@ export const heroTemplates = {
     skill: {
       name: 'Defensive Stance',
       description: 'Increase own DEF by 50% for 2 turns',
-      mpCost: 12
+      mpCost: 12,
+      targetType: 'self'
     }
   },
   hedge_wizard: {
@@ -97,7 +111,8 @@ export const heroTemplates = {
     skill: {
       name: 'Magic Missile',
       description: 'Deal 120% ATK damage to one enemy',
-      mpCost: 14
+      mpCost: 14,
+      targetType: 'enemy'
     }
   },
   village_healer: {
@@ -109,7 +124,8 @@ export const heroTemplates = {
     skill: {
       name: 'Healing Touch',
       description: 'Heal one ally for 120% ATK',
-      mpCost: 15
+      mpCost: 15,
+      targetType: 'ally'
     }
   },
   wandering_bard: {
@@ -121,7 +137,8 @@ export const heroTemplates = {
     skill: {
       name: 'Inspiring Song',
       description: 'Increase all allies ATK by 15% for 2 turns',
-      mpCost: 18
+      mpCost: 18,
+      targetType: 'all_allies'
     }
   },
 
@@ -135,7 +152,8 @@ export const heroTemplates = {
     skill: {
       name: 'Shield Block',
       description: 'Increase own DEF by 30% for 1 turn',
-      mpCost: 10
+      mpCost: 10,
+      targetType: 'self'
     }
   },
   apprentice_mage: {
@@ -147,7 +165,8 @@ export const heroTemplates = {
     skill: {
       name: 'Spark',
       description: 'Deal 100% ATK damage to one enemy',
-      mpCost: 10
+      mpCost: 10,
+      targetType: 'enemy'
     }
   },
   herb_gatherer: {
@@ -159,7 +178,8 @@ export const heroTemplates = {
     skill: {
       name: 'Herbal Remedy',
       description: 'Heal one ally for 80% ATK',
-      mpCost: 12
+      mpCost: 12,
+      targetType: 'ally'
     }
   },
 
@@ -173,7 +193,8 @@ export const heroTemplates = {
     skill: {
       name: 'Pitchfork Jab',
       description: 'Deal 90% ATK damage to one enemy',
-      mpCost: 8
+      mpCost: 8,
+      targetType: 'enemy'
     }
   },
   street_urchin: {
@@ -185,7 +206,8 @@ export const heroTemplates = {
     skill: {
       name: 'Quick Throw',
       description: 'Deal 80% ATK damage to one enemy',
-      mpCost: 7
+      mpCost: 7,
+      targetType: 'enemy'
     }
   },
   beggar_monk: {
@@ -197,7 +219,8 @@ export const heroTemplates = {
     skill: {
       name: 'Minor Heal',
       description: 'Heal one ally for 60% ATK',
-      mpCost: 10
+      mpCost: 10,
+      targetType: 'ally'
     }
   }
 }
