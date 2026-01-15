@@ -32,6 +32,10 @@ const skillCooldown = computed(() => {
 })
 
 const isDead = computed(() => props.enemy.currentHp <= 0)
+
+const statusEffects = computed(() => {
+  return props.enemy.statusEffects || []
+})
 </script>
 
 <template>
@@ -53,6 +57,20 @@ const isDead = computed(() => props.enemy.currentHp <= 0)
         color="red"
         size="md"
       />
+    </div>
+
+    <div v-if="statusEffects.length > 0" class="status-effects">
+      <div
+        v-for="(effect, index) in statusEffects"
+        :key="index"
+        class="effect-badge"
+        :class="{ buff: effect.definition?.isBuff, debuff: !effect.definition?.isBuff }"
+        :style="{ backgroundColor: effect.definition?.color + '33' }"
+        :title="`${effect.definition?.name} (${effect.duration} turns)`"
+      >
+        <span class="effect-icon">{{ effect.definition?.icon }}</span>
+        <span class="effect-duration">{{ effect.duration }}</span>
+      </div>
     </div>
 
     <div v-if="template?.skill" class="skill-info">
@@ -133,6 +151,41 @@ const isDead = computed(() => props.enemy.currentHp <= 0)
 
 .ready {
   color: #f87171;
+  font-weight: 600;
+}
+
+.status-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+  justify-content: center;
+}
+
+.effect-badge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.effect-badge.buff {
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.effect-badge.debuff {
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.effect-icon {
+  font-size: 0.8rem;
+}
+
+.effect-duration {
+  color: #d1d5db;
+  font-size: 0.65rem;
   font-weight: 600;
 }
 </style>

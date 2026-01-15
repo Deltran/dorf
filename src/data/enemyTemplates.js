@@ -1,3 +1,5 @@
+import { EffectType } from './statusEffects.js'
+
 export const enemyTemplates = {
   // Forest enemies (early game)
   goblin_scout: {
@@ -37,7 +39,10 @@ export const enemyTemplates = {
     skill: {
       name: 'Rending Bite',
       description: 'Deal 150% ATK damage and reduce target DEF by 20% for 2 turns',
-      cooldown: 4
+      cooldown: 4,
+      effects: [
+        { type: EffectType.DEF_DOWN, target: 'hero', duration: 2, value: 20 }
+      ]
     }
   },
   forest_spider: {
@@ -47,7 +52,10 @@ export const enemyTemplates = {
     skill: {
       name: 'Venomous Bite',
       description: 'Deal 100% ATK damage and deal 10 damage at end of turn for 2 turns',
-      cooldown: 3
+      cooldown: 3,
+      effects: [
+        { type: EffectType.POISON, target: 'hero', duration: 2, value: 10 }
+      ]
     }
   },
 
@@ -89,7 +97,10 @@ export const enemyTemplates = {
     skill: {
       name: 'Crushing Blow',
       description: 'Deal 160% ATK damage and stun target for 1 turn',
-      cooldown: 5
+      cooldown: 5,
+      effects: [
+        { type: EffectType.STUN, target: 'hero', duration: 1, value: 0 }
+      ]
     }
   },
 
@@ -111,7 +122,10 @@ export const enemyTemplates = {
     skill: {
       name: 'Freezing Blast',
       description: 'Deal 120% ATK damage to all heroes and reduce SPD by 30% for 2 turns',
-      cooldown: 5
+      cooldown: 5,
+      effects: [
+        { type: EffectType.SPD_DOWN, target: 'hero', duration: 2, value: 30 }
+      ]
     }
   },
   mountain_giant: {
@@ -133,7 +147,10 @@ export const enemyTemplates = {
     skill: {
       name: 'War Cry',
       description: 'Deal 100% ATK damage to all heroes and increase own ATK by 25% for 3 turns',
-      cooldown: 4
+      cooldown: 4,
+      effects: [
+        { type: EffectType.ATK_UP, target: 'self', duration: 3, value: 25 }
+      ]
     }
   },
   spider_queen: {
@@ -143,7 +160,10 @@ export const enemyTemplates = {
     skill: {
       name: 'Web Trap',
       description: 'Deal 130% ATK damage and reduce target SPD by 50% for 2 turns',
-      cooldown: 3
+      cooldown: 3,
+      effects: [
+        { type: EffectType.SPD_DOWN, target: 'hero', duration: 2, value: 50 }
+      ]
     }
   },
   shadow_dragon: {

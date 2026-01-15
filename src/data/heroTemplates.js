@@ -5,6 +5,14 @@
 // 'all_enemies' - all enemies (no selection needed)
 // 'all_allies' - all allies (no selection needed)
 
+// Effect target types for skill effects:
+// 'enemy' - applies to targeted enemy
+// 'ally' - applies to targeted ally
+// 'self' - applies to the caster
+// 'all_allies' - applies to all allies (for AoE buffs)
+
+import { EffectType } from './statusEffects.js'
+
 export const heroTemplates = {
   // 5-star (Legendary)
   aurora_the_dawn: {
@@ -45,7 +53,10 @@ export const heroTemplates = {
       name: 'Shield Bash',
       description: 'Deal 80% ATK damage and reduce enemy ATK by 20% for 2 turns',
       mpCost: 15,
-      targetType: 'enemy'
+      targetType: 'enemy',
+      effects: [
+        { type: EffectType.ATK_DOWN, target: 'enemy', duration: 2, value: 20 }
+      ]
     }
   },
   ember_witch: {
@@ -71,7 +82,10 @@ export const heroTemplates = {
       name: 'Lunar Blessing',
       description: 'Heal one ally for 150% ATK and grant them 20% DEF boost for 2 turns',
       mpCost: 22,
-      targetType: 'ally'
+      targetType: 'ally',
+      effects: [
+        { type: EffectType.DEF_UP, target: 'ally', duration: 2, value: 20 }
+      ]
     }
   },
   swift_arrow: {
@@ -99,7 +113,10 @@ export const heroTemplates = {
       name: 'Defensive Stance',
       description: 'Increase own DEF by 50% for 2 turns',
       mpCost: 12,
-      targetType: 'self'
+      targetType: 'self',
+      effects: [
+        { type: EffectType.DEF_UP, target: 'self', duration: 2, value: 50 }
+      ]
     }
   },
   hedge_wizard: {
@@ -138,7 +155,10 @@ export const heroTemplates = {
       name: 'Inspiring Song',
       description: 'Increase all allies ATK by 15% for 2 turns',
       mpCost: 18,
-      targetType: 'all_allies'
+      targetType: 'all_allies',
+      effects: [
+        { type: EffectType.ATK_UP, target: 'all_allies', duration: 2, value: 15 }
+      ]
     }
   },
 
@@ -153,7 +173,10 @@ export const heroTemplates = {
       name: 'Shield Block',
       description: 'Increase own DEF by 30% for 1 turn',
       mpCost: 10,
-      targetType: 'self'
+      targetType: 'self',
+      effects: [
+        { type: EffectType.DEF_UP, target: 'self', duration: 1, value: 30 }
+      ]
     }
   },
   apprentice_mage: {

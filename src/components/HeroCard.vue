@@ -60,6 +60,10 @@ const roleIcon = computed(() => {
   }
   return icons[heroClass.value?.role] || '❓'
 })
+
+const statusEffects = computed(() => {
+  return props.hero.statusEffects || []
+})
 </script>
 
 <template>
@@ -97,6 +101,20 @@ const roleIcon = computed(() => {
         color="blue"
         size="sm"
       />
+    </div>
+
+    <div v-if="statusEffects.length > 0" class="status-effects">
+      <div
+        v-for="(effect, index) in statusEffects"
+        :key="index"
+        class="effect-badge"
+        :class="{ buff: effect.definition?.isBuff, debuff: !effect.definition?.isBuff }"
+        :style="{ backgroundColor: effect.definition?.color + '33' }"
+        :title="`${effect.definition?.name} (${effect.duration} turns)`"
+      >
+        <span class="effect-icon">{{ effect.definition?.icon }}</span>
+        <span class="effect-duration">{{ effect.duration }}</span>
+      </div>
     </div>
 
     <div v-if="showStats && hero.stats" class="card-stats">
@@ -207,5 +225,40 @@ const roleIcon = computed(() => {
   display: block;
   color: #6b7280;
   font-size: 0.6rem;
+}
+
+.status-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.effect-badge {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.effect-badge.buff {
+  border: 1px solid rgba(34, 197, 94, 0.5);
+}
+
+.effect-badge.debuff {
+  border: 1px solid rgba(239, 68, 68, 0.5);
+}
+
+.effect-icon {
+  font-size: 0.8rem;
+}
+
+.effect-duration {
+  color: #d1d5db;
+  font-size: 0.65rem;
+  font-weight: 600;
 }
 </style>
