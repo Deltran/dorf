@@ -249,13 +249,6 @@ export const heroTemplates = {
         ]
       },
       {
-        name: 'Sing',
-        description: 'Restore 2 MP to all allies',
-        mpCost: 0,
-        targetType: 'all_allies',
-        mpRestore: 2
-      },
-      {
         name: 'Mana Melody',
         description: 'Restore 10 MP to all allies',
         mpCost: 20,
