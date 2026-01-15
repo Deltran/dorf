@@ -6,6 +6,18 @@ import { getEnemyTemplate } from '../data/enemyTemplates.js'
 
 const emit = defineEmits(['navigate', 'startBattle'])
 
+// Battle backgrounds
+const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+
+function getNodeBackgroundUrl(nodeId) {
+  if (!nodeId) return null
+  const imagePath = `../assets/battle_backgrounds/${nodeId}.png`
+  if (battleBackgrounds[imagePath]) {
+    return battleBackgrounds[imagePath]
+  }
+  return null
+}
+
 const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
 
@@ -86,7 +98,12 @@ function startQuest() {
         :class="['region-tab', { active: selectedRegion === region.id }]"
         @click="selectedRegion = region.id"
       >
-        {{ region.name }}
+        <div
+          v-if="getNodeBackgroundUrl(region.startNode)"
+          class="region-tab-background"
+          :style="{ backgroundImage: `url(${getNodeBackgroundUrl(region.startNode)})` }"
+        ></div>
+        <span class="region-tab-label">{{ region.name }}</span>
       </button>
     </nav>
 
@@ -107,6 +124,11 @@ function startQuest() {
         :class="['node-item', { completed: node.isCompleted, selected: selectedNode?.id === node.id }]"
         @click="selectNode(node)"
       >
+        <div
+          v-if="getNodeBackgroundUrl(node.id)"
+          class="node-background"
+          :style="{ backgroundImage: `url(${getNodeBackgroundUrl(node.id)})` }"
+        ></div>
         <div class="node-status">
           <span v-if="node.isCompleted" class="status-icon">✓</span>
           <span v-else class="status-icon">○</span>
@@ -230,6 +252,7 @@ function startQuest() {
 }
 
 .region-tab {
+  position: relative;
   padding: 10px 16px;
   background: #1f2937;
   border: 2px solid #374151;
@@ -238,11 +261,33 @@ function startQuest() {
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.region-tab-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.region-tab-label {
+  position: relative;
+  z-index: 1;
 }
 
 .region-tab.active {
   border-color: #3b82f6;
   color: #f3f4f6;
+}
+
+.region-tab.active .region-tab-background {
+  opacity: 0.4;
 }
 
 .region-progress {
@@ -278,6 +323,7 @@ function startQuest() {
 }
 
 .node-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -287,6 +333,19 @@ function startQuest() {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
+  overflow: hidden;
+}
+
+.node-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.25;
+  pointer-events: none;
 }
 
 .node-item:hover {
@@ -307,6 +366,7 @@ function startQuest() {
 
 .node-status {
   font-size: 1.5rem;
+  z-index: 1;
 }
 
 .status-icon {
@@ -315,6 +375,7 @@ function startQuest() {
 
 .node-info {
   flex: 1;
+  z-index: 1;
 }
 
 .node-info h3 {
@@ -331,6 +392,7 @@ function startQuest() {
 
 .node-rewards {
   text-align: right;
+  z-index: 1;
 }
 
 .gem-reward {

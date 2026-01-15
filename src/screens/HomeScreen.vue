@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
+import summoningBg from '../assets/backgrounds/summoning.png'
 
 const emit = defineEmits(['navigate'])
 
@@ -53,7 +54,11 @@ const hasParty = computed(() => {
     </section>
 
     <nav class="main-nav">
-      <button class="nav-button" @click="emit('navigate', 'gacha')">
+      <button
+        class="nav-button summon-button"
+        :style="{ backgroundImage: `url(${summoningBg})` }"
+        @click="emit('navigate', 'gacha')"
+      >
         <span class="nav-icon">🎰</span>
         <span class="nav-label">Summon</span>
         <span class="nav-hint">Get new heroes</span>
@@ -209,6 +214,29 @@ const hasParty = computed(() => {
 .nav-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.nav-button.summon-button {
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.nav-button.summon-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.nav-button.summon-button > * {
+  position: relative;
+  z-index: 1;
 }
 
 .nav-icon {

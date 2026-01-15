@@ -465,6 +465,19 @@ export const useBattleStore = defineStore('battle', () => {
       if (target.currentHp <= 0) {
         addLog(`${target.template.name} defeated!`)
       }
+
+      // Check for thorns effect on the enemy
+      const thornsEffect = target.statusEffects?.find(e => e.type === EffectType.THORNS)
+      if (thornsEffect && target.currentHp > 0) {
+        const enemyAtk = getEffectiveStat(target, 'atk')
+        const thornsDamage = Math.max(1, Math.floor(enemyAtk * (thornsEffect.value || 40) / 100))
+        hero.currentHp = Math.max(0, hero.currentHp - thornsDamage)
+        addLog(`${hero.template.name} takes ${thornsDamage} thorns damage!`)
+        emitCombatEffect(hero.instanceId, 'hero', 'damage', thornsDamage)
+        if (hero.currentHp <= 0) {
+          addLog(`${hero.template.name} has fallen!`)
+        }
+      }
     } else {
       const skillIndex = parseSkillIndex(selectedAction.value)
       if (skillIndex === null) {
@@ -517,6 +530,21 @@ export const useBattleStore = defineStore('battle', () => {
 
           if (target.currentHp <= 0) {
             addLog(`${target.template.name} defeated!`)
+          }
+
+          // Check for thorns effect on the enemy (only if we dealt damage)
+          if (!skill.noDamage) {
+            const thornsEffect = target.statusEffects?.find(e => e.type === EffectType.THORNS)
+            if (thornsEffect && target.currentHp > 0) {
+              const enemyAtk = getEffectiveStat(target, 'atk')
+              const thornsDamage = Math.max(1, Math.floor(enemyAtk * (thornsEffect.value || 40) / 100))
+              hero.currentHp = Math.max(0, hero.currentHp - thornsDamage)
+              addLog(`${hero.template.name} takes ${thornsDamage} thorns damage!`)
+              emitCombatEffect(hero.instanceId, 'hero', 'damage', thornsDamage)
+              if (hero.currentHp <= 0) {
+                addLog(`${hero.template.name} has fallen!`)
+              }
+            }
           }
           break
         }
@@ -608,6 +636,7 @@ export const useBattleStore = defineStore('battle', () => {
         case 'all_enemies': {
           const multiplier = parseSkillMultiplier(skill.description)
           let totalDamage = 0
+          let totalThornsDamage = 0
           for (const target of aliveEnemies.value) {
             const effectiveDef = getEffectiveStat(target, 'def')
             const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
@@ -627,6 +656,23 @@ export const useBattleStore = defineStore('battle', () => {
 
             if (target.currentHp <= 0) {
               addLog(`${target.template.name} defeated!`)
+            }
+
+            // Check for thorns effect on the enemy
+            const thornsEffect = target.statusEffects?.find(e => e.type === EffectType.THORNS)
+            if (thornsEffect && target.currentHp > 0) {
+              const enemyAtk = getEffectiveStat(target, 'atk')
+              const thornsDamage = Math.max(1, Math.floor(enemyAtk * (thornsEffect.value || 40) / 100))
+              totalThornsDamage += thornsDamage
+            }
+          }
+          // Apply accumulated thorns damage
+          if (totalThornsDamage > 0) {
+            hero.currentHp = Math.max(0, hero.currentHp - totalThornsDamage)
+            addLog(`${hero.template.name} takes ${totalThornsDamage} thorns damage!`)
+            emitCombatEffect(hero.instanceId, 'hero', 'damage', totalThornsDamage)
+            if (hero.currentHp <= 0) {
+              addLog(`${hero.template.name} has fallen!`)
             }
           }
           addLog(`${hero.template.name} uses ${skill.name}, dealing ${totalDamage} total damage!`)
@@ -730,34 +776,124 @@ export const useBattleStore = defineStore('battle', () => {
     const effectiveDef = getEffectiveStat(target, 'def')
 
     if (skill) {
-      const multiplier = parseSkillMultiplier(skill.description)
-      const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
-      target.currentHp = Math.max(0, target.currentHp - damage)
-      addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
-      emitCombatEffect(target.instanceId, 'hero', 'damage', damage)
+      // Check if skill targets heroes at all or is self/ally only
+      const skillTargetType = skill.targetType || 'hero'
+      const isAoeSkill = skillTargetType === 'all_heroes'
 
-      // Remove buffs if skill has cleanse
-      if (skill.cleanse === 'buffs') {
-        const removedEffects = target.statusEffects?.filter(e => e.definition?.isBuff) || []
-        if (removedEffects.length > 0) {
-          target.statusEffects = target.statusEffects.filter(e => !e.definition?.isBuff)
-          for (const effect of removedEffects) {
-            addLog(`${target.template.name}'s ${effect.definition.name} was removed!`)
+      // Handle AoE skills that target all heroes
+      if (isAoeSkill) {
+        const multiplier = skill.damagePercent ? skill.damagePercent / 100 : parseSkillMultiplier(skill.description)
+        let totalDamage = 0
+        for (const heroTarget of aliveHeroes.value) {
+          const heroDef = getEffectiveStat(heroTarget, 'def')
+          const damage = calculateDamage(effectiveAtk, multiplier, heroDef)
+          heroTarget.currentHp = Math.max(0, heroTarget.currentHp - damage)
+          totalDamage += damage
+          emitCombatEffect(heroTarget.instanceId, 'hero', 'damage', damage)
+
+          // Apply debuffs to each hero if applicable
+          if (skill.effects) {
+            for (const effect of skill.effects) {
+              if (effect.target === 'enemy' || effect.target === 'hero') {
+                applyEffect(heroTarget, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+                emitCombatEffect(heroTarget.instanceId, 'hero', 'debuff', 0)
+              }
+            }
           }
-          emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
+
+          if (heroTarget.currentHp <= 0) {
+            addLog(`${heroTarget.template.name} has fallen!`)
+          }
         }
-      }
+        addLog(`${enemy.template.name} uses ${skill.name}, dealing ${totalDamage} total damage!`)
 
-      // Apply skill effects
-      if (skill.effects) {
-        for (const effect of skill.effects) {
-          if (effect.target === 'enemy' || effect.target === 'hero') {
-            applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
-            emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
-          } else if (effect.target === 'self') {
-            applyEffect(enemy, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
-            emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
+        // Apply self/ally buffs for AoE skills
+        if (skill.effects) {
+          for (const effect of skill.effects) {
+            if (effect.target === 'self') {
+              applyEffect(enemy, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
+            } else if (effect.target === 'all_allies') {
+              for (const ally of enemies.value.filter(e => e.currentHp > 0)) {
+                if (effect.excludeSelf && ally.id === enemy.id) continue
+                applyEffect(ally, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+                emitCombatEffect(ally.id, 'enemy', 'buff', 0)
+              }
+            }
           }
+        }
+      } else if (skill.noDamage) {
+        // Skills that don't deal damage (buffs, debuffs only)
+        addLog(`${enemy.template.name} uses ${skill.name}!`)
+
+        // Apply skill effects
+        if (skill.effects) {
+          for (const effect of skill.effects) {
+            if (effect.target === 'enemy' || effect.target === 'hero') {
+              applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
+            } else if (effect.target === 'self') {
+              applyEffect(enemy, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
+            } else if (effect.target === 'all_allies') {
+              for (const ally of enemies.value.filter(e => e.currentHp > 0)) {
+                if (effect.excludeSelf && ally.id === enemy.id) continue
+                applyEffect(ally, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+                emitCombatEffect(ally.id, 'enemy', 'buff', 0)
+              }
+            }
+          }
+        }
+
+        // noDamage skills don't attack heroes, so skip thorns check and end turn early
+        enemy.currentCooldowns[skill.name] = skill.cooldown
+        processEndOfTurnEffects(enemy)
+        setTimeout(() => {
+          advanceTurnIndex()
+          startNextTurn()
+        }, 600)
+        return
+      } else {
+        // Standard single-target damage skill
+        const multiplier = parseSkillMultiplier(skill.description)
+        const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+        target.currentHp = Math.max(0, target.currentHp - damage)
+        addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
+        emitCombatEffect(target.instanceId, 'hero', 'damage', damage)
+
+        // Remove buffs if skill has cleanse
+        if (skill.cleanse === 'buffs') {
+          const removedEffects = target.statusEffects?.filter(e => e.definition?.isBuff) || []
+          if (removedEffects.length > 0) {
+            target.statusEffects = target.statusEffects.filter(e => !e.definition?.isBuff)
+            for (const effect of removedEffects) {
+              addLog(`${target.template.name}'s ${effect.definition.name} was removed!`)
+            }
+            emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
+          }
+        }
+
+        // Apply skill effects
+        if (skill.effects) {
+          for (const effect of skill.effects) {
+            if (effect.target === 'enemy' || effect.target === 'hero') {
+              applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
+            } else if (effect.target === 'self') {
+              applyEffect(enemy, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
+            } else if (effect.target === 'all_allies') {
+              for (const ally of enemies.value.filter(e => e.currentHp > 0)) {
+                if (effect.excludeSelf && ally.id === enemy.id) continue
+                applyEffect(ally, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+                emitCombatEffect(ally.id, 'enemy', 'buff', 0)
+              }
+            }
+          }
+        }
+
+        if (target.currentHp <= 0) {
+          addLog(`${target.template.name} has fallen!`)
         }
       }
 

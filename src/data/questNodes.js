@@ -32,9 +32,10 @@ export const questNodes = {
     battles: [
       { enemies: ['forest_spider', 'forest_spider', 'forest_spider'] },
       { enemies: ['forest_spider', 'forest_spider', 'goblin_warrior'] },
-      { enemies: ['spider_queen'] }
+      { enemies: ['forest_spider', 'forest_spider', 'forest_spider', 'forest_spider'] },
+      { enemies: ['spider_queen', 'forest_spider', 'forest_spider'] }
     ],
-    connections: ['cave_01'],
+    connections: ['forest_05'],
     rewards: { gems: 80, exp: 150 },
     firstClearBonus: { gems: 50 }
   },
@@ -43,13 +44,29 @@ export const questNodes = {
     name: 'Goblin Camp',
     region: 'Whispering Woods',
     battles: [
-      { enemies: ['goblin_scout', 'goblin_warrior'] },
-      { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_scout'] },
-      { enemies: ['goblin_chieftain', 'goblin_warrior'] }
+      { enemies: ['goblin_scout', 'goblin_warrior', 'goblin_thrower'] },
+      { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_scout', 'goblin_thrower'] },
+      { enemies: ['goblin_thrower', 'goblin_thrower', 'goblin_warrior', 'goblin_warrior'] },
+      { enemies: ['goblin_chieftain', 'goblin_warrior', 'goblin_thrower'] }
     ],
-    connections: ['cave_01'],
+    connections: ['forest_05'],
     rewards: { gems: 80, exp: 150 },
     firstClearBonus: { gems: 50 }
+  },
+  forest_05: {
+    id: 'forest_05',
+    name: 'Goblin Cavern',
+    region: 'Whispering Woods',
+    battles: [
+      { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_shaman'] },
+      { enemies: ['goblin_thrower', 'goblin_thrower', 'goblin_bulwark', 'goblin_warrior', 'goblin_trapper'] },
+      { enemies: ['goblin_shaman', 'goblin_bulwark', 'goblin_thrower', 'goblin_thrower'] },
+      { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_shaman', 'goblin_bulwark', 'goblin_trapper'] },
+      { enemies: ['goblin_commander', 'goblin_shaman', 'goblin_bulwark', 'goblin_trapper', 'goblin_warrior'] }
+    ],
+    connections: ['cave_01'],
+    rewards: { gems: 100, exp: 200 },
+    firstClearBonus: { gems: 75 }
   },
 
   // Echoing Caverns (Mid Game)

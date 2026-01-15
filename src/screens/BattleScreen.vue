@@ -19,6 +19,9 @@ const showVictoryModal = ref(false)
 const showDefeatModal = ref(false)
 const rewards = ref(null)
 const levelUps = ref([])
+const displayedGems = ref(0)
+const displayedExp = ref(0)
+const showXpFloaters = ref(false)
 
 // Combat visual effects
 const damageNumbers = ref([])
@@ -173,8 +176,43 @@ function handleVictory() {
       gachaStore.addGems(rewards.value.gems)
       levelUps.value = heroesStore.addExpToParty(rewards.value.exp)
     }
+    displayedGems.value = 0
+    displayedExp.value = 0
+    showXpFloaters.value = false
     showVictoryModal.value = true
+    animateRewards()
+    // Show XP floaters after a short delay
+    setTimeout(() => {
+      showXpFloaters.value = true
+    }, 300)
   }
+}
+
+function animateRewards() {
+  if (!rewards.value) return
+
+  const targetGems = rewards.value.gems
+  const targetExp = rewards.value.exp
+  const duration = 1500 // 1.5 seconds
+  const steps = 60
+  const interval = duration / steps
+
+  let step = 0
+  const timer = setInterval(() => {
+    step++
+    const progress = step / steps
+    // Ease out cubic for satisfying deceleration
+    const eased = 1 - Math.pow(1 - progress, 3)
+
+    displayedGems.value = Math.floor(targetGems * eased)
+    displayedExp.value = Math.floor(targetExp * eased)
+
+    if (step >= steps) {
+      clearInterval(timer)
+      displayedGems.value = targetGems
+      displayedExp.value = targetExp
+    }
+  }, interval)
 }
 
 function handleDefeat() {
@@ -266,6 +304,12 @@ const partyHeroesForVictory = computed(() => {
 function heroLeveledUp(instanceId) {
   return levelUps.value.find(lu => lu.instanceId === instanceId)
 }
+
+const expPerHero = computed(() => {
+  if (!rewards.value) return 0
+  const partySize = partyHeroesForVictory.value.length
+  return partySize > 0 ? Math.floor(rewards.value.exp / partySize) : 0
+})
 
 function getHeroImageUrl(hero) {
   const templateId = hero.template?.id
@@ -569,11 +613,11 @@ function isEnemyAttacking(enemyId) {
         <div v-if="rewards" class="rewards">
           <div class="reward-item">
             <span>💎 Gems</span>
-            <span>+{{ rewards.gems }}</span>
+            <span class="reward-value">+{{ displayedGems }}</span>
           </div>
           <div class="reward-item">
             <span>⭐ EXP</span>
-            <span>+{{ rewards.exp }}</span>
+            <span class="reward-value">+{{ displayedExp }}</span>
           </div>
           <div v-if="rewards.isFirstClear" class="first-clear">
             First Clear Bonus!
@@ -587,6 +631,9 @@ function isEnemyAttacking(enemyId) {
             :class="['victory-hero', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
           >
             <HeroCard :hero="hero" compact />
+            <div v-if="showXpFloaters" class="xp-floater">
+              +{{ expPerHero }} XP
+            </div>
             <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-badge">
               Level Up!
             </div>
@@ -1097,6 +1144,13 @@ function isEnemyAttacking(enemyId) {
   border-top: 1px solid #4b5563;
 }
 
+.reward-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #22c55e;
+  font-variant-numeric: tabular-nums;
+}
+
 .first-clear {
   margin-top: 12px;
   color: #fbbf24;
@@ -1117,6 +1171,38 @@ function isEnemyAttacking(enemyId) {
 
 .victory-hero.leveled-up {
   animation: levelUpGlow 1.5s ease-in-out infinite;
+}
+
+.xp-floater {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 700;
+  font-size: 1rem;
+  color: #ffffff;
+  pointer-events: none;
+  z-index: 100;
+  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
+  animation: xpFloatUp 1.5s ease-out forwards;
+}
+
+@keyframes xpFloatUp {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1.1);
+  }
+  30% {
+    transform: translateX(-50%) translateY(-3px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-25px) scale(1);
+  }
 }
 
 .level-up-badge {
