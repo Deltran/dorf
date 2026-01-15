@@ -63,6 +63,7 @@ const emit = defineEmits(['click'])
   transition: all 0.2s ease;
   width: 100%;
   text-align: left;
+  user-select: none;
 }
 
 .action-button:hover:not(.disabled) {
