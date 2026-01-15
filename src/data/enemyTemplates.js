@@ -86,8 +86,25 @@ export const enemyTemplates = {
     stats: { hp: 65, atk: 28, def: 10, spd: 11 },
     skill: {
       name: 'Shadow Bolt',
-      description: 'Deal 140% ATK damage',
-      cooldown: 2
+      description: 'Deal 120% ATK damage and poison for 40% ATK per turn for 2 turns',
+      cooldown: 2,
+      damagePercent: 120,
+      effects: [
+        { type: EffectType.POISON, target: 'hero', duration: 2, atkPercent: 40 }
+      ]
+    }
+  },
+  dark_caster: {
+    id: 'dark_caster',
+    name: 'Dark Caster',
+    stats: { hp: 55, atk: 32, def: 8, spd: 12 },
+    skill: {
+      name: 'Curse of Weakness',
+      description: 'Deal 140% ATK damage and reduce ATK by 40% for 2 turns',
+      cooldown: 3,
+      effects: [
+        { type: EffectType.ATK_DOWN, target: 'hero', duration: 2, value: 40 }
+      ]
     }
   },
   cave_troll: {

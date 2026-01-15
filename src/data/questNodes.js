@@ -71,9 +71,9 @@ export const questNodes = {
     name: 'Cultist Shrine',
     region: 'Echoing Caverns',
     battles: [
-      { enemies: ['dark_cultist', 'dark_cultist'] },
-      { enemies: ['dark_cultist', 'dark_cultist', 'cave_bat'] },
-      { enemies: ['dark_cultist', 'dark_cultist', 'dark_cultist'] }
+      { enemies: ['dark_caster', 'dark_cultist'] },
+      { enemies: ['dark_caster', 'dark_cultist', 'cave_bat'] },
+      { enemies: ['dark_cultist', 'dark_caster', 'dark_cultist'] }
     ],
     connections: ['cave_04'],
     rewards: { gems: 100, exp: 200 },
