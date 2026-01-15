@@ -26,6 +26,7 @@ const heroHitEffects = ref({}) // { instanceId: 'damage' | 'heal' | 'buff' | 'de
 const enemyHitEffects = ref({}) // { id: 'damage' | 'heal' | 'buff' | 'debuff' }
 const heroImpactIcons = ref({}) // { instanceId: 'attack' | 'magic' | 'heal' | ... }
 const enemyImpactIcons = ref({}) // { id: 'attack' | 'magic' | 'heal' | ... }
+const attackingEnemies = ref({}) // { id: true } - enemies currently in attack animation
 
 const currentNode = computed(() => questsStore.currentNode)
 const currentBattleIndex = computed(() => questsStore.currentBattleIndex)
@@ -286,6 +287,19 @@ watch(() => battleStore.combatEffects.length, () => {
     if (effect.targetType === 'hero') {
       heroImpactIcons.value[effect.targetId] = iconType
       heroHitEffects.value[effect.targetId] = effect.effectType
+
+      // Flip the attacking enemy when they deal damage to a hero
+      if (effect.effectType === 'damage') {
+        const attackingEnemy = battleStore.currentUnit
+        if (attackingEnemy && !attackingEnemy.instanceId) {
+          // It's an enemy (enemies don't have instanceId)
+          attackingEnemies.value[attackingEnemy.id] = true
+          setTimeout(() => {
+            delete attackingEnemies.value[attackingEnemy.id]
+          }, 400)
+        }
+      }
+
       setTimeout(() => {
         delete heroHitEffects.value[effect.targetId]
         delete heroImpactIcons.value[effect.targetId]
@@ -325,6 +339,10 @@ function getHeroHitEffect(instanceId) {
 
 function getEnemyHitEffect(enemyId) {
   return enemyHitEffects.value[enemyId] || null
+}
+
+function isEnemyAttacking(enemyId) {
+  return attackingEnemies.value[enemyId] || false
 }
 </script>
 
@@ -369,7 +387,7 @@ function getEnemyHitEffect(enemyId) {
         :style="{ backgroundImage: `url(${battleBackgroundUrl})` }"
       ></div>
       <div
-        v-for="enemy in battleStore.enemies"
+        v-for="(enemy, enemyIndex) in battleStore.enemies"
         :key="enemy.id"
         :class="[
           'enemy-wrapper',
@@ -385,6 +403,7 @@ function getEnemyHitEffect(enemyId) {
             { targetable: enemiesTargetable || (battleStore.isPlayerTurn && !battleStore.selectedAction) },
             { selected: battleStore.selectedTarget?.id === enemy.id },
             { dead: enemy.currentHp <= 0 },
+            { attacking: isEnemyAttacking(enemy.id) },
             getEnemyHitEffect(enemy.id) ? `hit-${getEnemyHitEffect(enemy.id)}` : ''
           ]"
           @click="selectEnemyTarget(enemy)"
@@ -393,6 +412,7 @@ function getEnemyHitEffect(enemyId) {
             :src="getEnemyImageUrl(enemy)"
             :alt="enemy.template?.name"
             class="enemy-image"
+            :style="{ animationDelay: `${enemyIndex * 1.5}s` }"
           />
           <div class="enemy-image-stats">
             <StatBar
@@ -445,6 +465,7 @@ function getEnemyHitEffect(enemyId) {
         v-for="hero in battleStore.heroes"
         :key="hero.instanceId"
         :class="['hero-wrapper', {
+          active: battleStore.currentUnit?.instanceId === hero.instanceId,
           targetable: alliesTargetable && hero.currentHp > 0,
           selected: battleStore.selectedTarget?.id === hero.instanceId
         }]"
@@ -770,11 +791,35 @@ function getEnemyHitEffect(enemyId) {
   cursor: not-allowed;
 }
 
+.enemy-image-display.attacking {
+  animation: enemyAttackFlip 0.4s ease-out;
+}
+
+@keyframes enemyAttackFlip {
+  0% { transform: scaleX(1); }
+  30% { transform: scaleX(-1) translateX(10px); }
+  70% { transform: scaleX(-1) translateX(10px); }
+  100% { transform: scaleX(1); }
+}
+
 .enemy-image {
   width: 100px;
   height: 100px;
   object-fit: contain;
   image-rendering: pixelated;
+  animation: enemyIdle 6s ease-in-out infinite;
+}
+
+.enemy-image-display.attacking .enemy-image,
+.enemy-image-display.dead .enemy-image {
+  animation: none;
+}
+
+@keyframes enemyIdle {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(-2px, 1px); }
+  50% { transform: translate(1px, -2px); }
+  75% { transform: translate(2px, 1px); }
 }
 
 .enemy-image-stats {
@@ -904,11 +949,20 @@ function getEnemyHitEffect(enemyId) {
   transition: all 0.2s ease;
 }
 
+.hero-wrapper.active {
+  transform: translateY(-12px);
+}
+
+.hero-wrapper.active .hero-image-container {
+  height: 85px;
+}
+
 .hero-image-container {
   width: 100px;
   height: 67px; /* Shows top 2/3 of a 100x100 image */
   overflow: hidden;
   border-radius: 8px 8px 0 0;
+  transition: transform 0.2s ease, height 0.2s ease;
 }
 
 .hero-image {
