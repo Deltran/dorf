@@ -1,0 +1,5 @@
+export { default as HomeScreen } from './HomeScreen.vue'
+export { default as GachaScreen } from './GachaScreen.vue'
+export { default as HeroesScreen } from './HeroesScreen.vue'
+export { default as WorldMapScreen } from './WorldMapScreen.vue'
+export { default as BattleScreen } from './BattleScreen.vue'
