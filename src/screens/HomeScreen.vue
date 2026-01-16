@@ -140,6 +140,17 @@ const hasParty = computed(() => {
         </div>
         <div class="nav-arrow">›</div>
       </button>
+
+      <button class="nav-button inventory-button" @click="emit('navigate', 'inventory')">
+        <div class="nav-icon-wrapper inventory">
+          <span class="nav-icon">📦</span>
+        </div>
+        <div class="nav-content">
+          <span class="nav-label">Inventory</span>
+          <span class="nav-hint">Items & Equipment</span>
+        </div>
+        <div class="nav-arrow">›</div>
+      </button>
     </nav>
 
     <footer class="home-footer">
@@ -562,6 +573,11 @@ const hasParty = computed(() => {
 .nav-icon-wrapper.quests {
   background: linear-gradient(135deg, #059669 0%, #10b981 100%);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.nav-icon-wrapper.inventory {
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .nav-icon {
