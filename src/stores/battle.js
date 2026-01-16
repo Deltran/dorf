@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useHeroesStore } from './heroes.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import { EffectType, createEffect, getEffectDefinition } from '../data/statusEffects.js'
+import { getClass } from '../data/classes.js'
 
 // Battle states
 export const BattleState = {
@@ -70,6 +71,37 @@ export const useBattleStore = defineStore('battle', () => {
   function parseSkillIndex(action) {
     if (!action?.startsWith('skill_')) return null
     return parseInt(action.split('_')[1], 10)
+  }
+
+  // Check if a unit matches a leader skill condition
+  function matchesCondition(unit, condition) {
+    if (!condition) return true
+
+    const template = unit.template
+    if (!template) return false
+
+    // Class-based conditions
+    if (condition.classId) {
+      if (typeof condition.classId === 'string') {
+        if (template.classId !== condition.classId) return false
+      } else if (condition.classId.not) {
+        if (template.classId === condition.classId.not) return false
+      }
+    }
+
+    // Role-based conditions
+    if (condition.role) {
+      const heroClass = getClass(template.classId)
+      if (!heroClass) return false
+
+      if (typeof condition.role === 'string') {
+        if (heroClass.role !== condition.role) return false
+      } else if (condition.role.not) {
+        if (heroClass.role === condition.role.not) return false
+      }
+    }
+
+    return true
   }
 
   const currentTargetType = computed(() => {
