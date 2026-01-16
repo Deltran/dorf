@@ -25,6 +25,7 @@ const SOFT_PITY_RATE_INCREASE = 0.02
 export const useGachaStore = defineStore('gacha', () => {
   // State
   const gems = ref(1000) // Starting gems
+  const gold = ref(10000) // Starting gold for merging
   const pullsSince4Star = ref(0)
   const pullsSince5Star = ref(0)
   const totalPulls = ref(0)
@@ -176,9 +177,22 @@ export const useGachaStore = defineStore('gacha', () => {
     return true
   }
 
+  function addGold(amount) {
+    gold.value += amount
+  }
+
+  function spendGold(amount) {
+    if (gold.value >= amount) {
+      gold.value -= amount
+      return true
+    }
+    return false
+  }
+
   // Persistence
   function loadState(savedState) {
     if (savedState.gems !== undefined) gems.value = savedState.gems
+    if (savedState.gold !== undefined) gold.value = savedState.gold
     if (savedState.pullsSince4Star !== undefined) pullsSince4Star.value = savedState.pullsSince4Star
     if (savedState.pullsSince5Star !== undefined) pullsSince5Star.value = savedState.pullsSince5Star
     if (savedState.totalPulls !== undefined) totalPulls.value = savedState.totalPulls
@@ -187,6 +201,7 @@ export const useGachaStore = defineStore('gacha', () => {
   function saveState() {
     return {
       gems: gems.value,
+      gold: gold.value,
       pullsSince4Star: pullsSince4Star.value,
       pullsSince5Star: pullsSince5Star.value,
       totalPulls: totalPulls.value
@@ -196,6 +211,7 @@ export const useGachaStore = defineStore('gacha', () => {
   return {
     // State
     gems,
+    gold,
     pullsSince4Star,
     pullsSince5Star,
     totalPulls,
@@ -208,6 +224,8 @@ export const useGachaStore = defineStore('gacha', () => {
     tenPull,
     addGems,
     spendGems,
+    addGold,
+    spendGold,
     // Persistence
     loadState,
     saveState,

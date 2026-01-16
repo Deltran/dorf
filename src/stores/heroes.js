@@ -4,6 +4,7 @@ import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 import { getItem } from '../data/items.js'
 import { useInventoryStore } from './inventory.js'
+import { useGachaStore } from './gacha.js'
 
 export const useHeroesStore = defineStore('heroes', () => {
   // State
@@ -131,6 +132,9 @@ export const useHeroesStore = defineStore('heroes', () => {
     5: 1.50
   }
 
+  // Merge cost: targetStar * this value
+  const MERGE_GOLD_COST_PER_STAR = 1000
+
   function addExp(instanceId, amount) {
     const hero = collection.value.find(h => h.instanceId === instanceId)
     if (!hero) return
@@ -222,7 +226,13 @@ export const useHeroesStore = defineStore('heroes', () => {
 
   // Persistence
   function loadState(savedState) {
-    if (savedState.collection) collection.value = savedState.collection
+    if (savedState.collection) {
+      // Migration: add starLevel if missing (defaults to template rarity)
+      collection.value = savedState.collection.map(hero => ({
+        ...hero,
+        starLevel: hero.starLevel || getHeroTemplate(hero.templateId)?.rarity || 1
+      }))
+    }
     if (savedState.party) party.value = savedState.party
     if (savedState.partyLeader !== undefined) partyLeader.value = savedState.partyLeader
   }
@@ -261,6 +271,130 @@ export const useHeroesStore = defineStore('heroes', () => {
     }
   }
 
+  // Merge functions
+  function canMergeHero(instanceId) {
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    if (!hero) return { canMerge: false, reason: 'Hero not found' }
+
+    const template = getHeroTemplate(hero.templateId)
+    const starLevel = hero.starLevel || template?.rarity || 1
+
+    if (starLevel >= 5) {
+      return { canMerge: false, reason: 'Already at max star level' }
+    }
+
+    // Find duplicates (same templateId, different instanceId)
+    const duplicates = collection.value.filter(
+      h => h.templateId === hero.templateId && h.instanceId !== instanceId
+    )
+
+    const copiesNeeded = starLevel
+    if (duplicates.length < copiesNeeded) {
+      return {
+        canMerge: false,
+        reason: `Need ${copiesNeeded} copies (have ${duplicates.length})`,
+        copiesNeeded,
+        copiesHave: duplicates.length
+      }
+    }
+
+    const goldCost = (starLevel + 1) * MERGE_GOLD_COST_PER_STAR
+
+    return {
+      canMerge: true,
+      copiesNeeded,
+      copiesHave: duplicates.length,
+      duplicates,
+      goldCost,
+      targetStarLevel: starLevel + 1
+    }
+  }
+
+  function getMergeCandidates(instanceId, count) {
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    if (!hero) return []
+
+    // Get all duplicates sorted by level (ascending) - sacrifice lowest level first
+    const duplicates = collection.value
+      .filter(h => h.templateId === hero.templateId && h.instanceId !== instanceId)
+      .sort((a, b) => a.level - b.level)
+
+    return duplicates.slice(0, count)
+  }
+
+  function mergeHero(baseInstanceId, fodderInstanceIds) {
+    const gachaStore = useGachaStore()
+
+    const hero = collection.value.find(h => h.instanceId === baseInstanceId)
+    if (!hero) return { success: false, error: 'Base hero not found' }
+
+    const template = getHeroTemplate(hero.templateId)
+    const currentStar = hero.starLevel || template?.rarity || 1
+
+    if (currentStar >= 5) {
+      return { success: false, error: 'Already at max star level' }
+    }
+
+    const copiesNeeded = currentStar
+    if (fodderInstanceIds.length !== copiesNeeded) {
+      return { success: false, error: `Need exactly ${copiesNeeded} copies` }
+    }
+
+    // Validate all fodder heroes exist and are same template
+    const fodderHeroes = fodderInstanceIds.map(id =>
+      collection.value.find(h => h.instanceId === id)
+    )
+
+    if (fodderHeroes.some(h => !h)) {
+      return { success: false, error: 'One or more fodder heroes not found' }
+    }
+
+    if (fodderHeroes.some(h => h.templateId !== hero.templateId)) {
+      return { success: false, error: 'All heroes must be the same type' }
+    }
+
+    // Check gold cost
+    const goldCost = (currentStar + 1) * MERGE_GOLD_COST_PER_STAR
+    if (gachaStore.gold < goldCost) {
+      return { success: false, error: `Not enough gold (need ${goldCost})` }
+    }
+
+    // Find highest level among all heroes (base + fodder)
+    const allHeroes = [hero, ...fodderHeroes]
+    const highestLevel = Math.max(...allHeroes.map(h => h.level))
+    const highestExp = allHeroes.find(h => h.level === highestLevel)?.exp || 0
+
+    // Remove fodder from party if present
+    fodderInstanceIds.forEach(id => {
+      const slotIndex = party.value.indexOf(id)
+      if (slotIndex !== -1) {
+        party.value[slotIndex] = null
+      }
+      if (partyLeader.value === id) {
+        partyLeader.value = null
+      }
+    })
+
+    // Remove fodder heroes from collection
+    collection.value = collection.value.filter(
+      h => !fodderInstanceIds.includes(h.instanceId)
+    )
+
+    // Upgrade base hero
+    hero.starLevel = currentStar + 1
+    hero.level = highestLevel
+    hero.exp = highestExp
+
+    // Deduct gold
+    gachaStore.spendGold(goldCost)
+
+    return {
+      success: true,
+      newStarLevel: hero.starLevel,
+      goldSpent: goldCost
+    }
+  }
+
   return {
     // State
     collection,
@@ -284,6 +418,11 @@ export const useHeroesStore = defineStore('heroes', () => {
     getHeroStats,
     getHeroFull,
     useXpItem,
+    // Merge
+    canMergeHero,
+    getMergeCandidates,
+    mergeHero,
+    MERGE_GOLD_COST_PER_STAR,
     // Persistence
     loadState,
     saveState
