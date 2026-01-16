@@ -46,6 +46,7 @@ const displayValue = props.type === 'heal' ? `+${props.value}` : `-${props.value
   font-weight: 700;
   font-size: 1.25rem;
   pointer-events: none;
+  user-select: none;
   z-index: 100;
   text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
   animation: floatUp 1s ease-out forwards;

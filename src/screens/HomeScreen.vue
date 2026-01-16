@@ -1,14 +1,43 @@
 <script setup>
 import { computed } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore } from '../stores'
-import HeroCard from '../components/HeroCard.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
+import defaultBg from '../assets/battle_backgrounds/default.png'
 
 const emit = defineEmits(['navigate'])
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const questsStore = useQuestsStore()
+
+// Hero images (check for animated gif first, then static png)
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
+
+function getHeroImageUrl(heroId) {
+  // Prefer animated gif if available
+  const gifPath = `../assets/heroes/${heroId}.gif`
+  if (heroGifs[gifPath]) {
+    return heroGifs[gifPath]
+  }
+  // Fall back to static png
+  const pngPath = `../assets/heroes/${heroId}.png`
+  return heroImages[pngPath] || null
+}
+
+// Battle backgrounds for party section
+const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+
+const partyBackgroundUrl = computed(() => {
+  const nodeId = questsStore.lastVisitedNode
+  if (nodeId) {
+    const imagePath = `../assets/battle_backgrounds/${nodeId}.png`
+    if (battleBackgrounds[imagePath]) {
+      return battleBackgrounds[imagePath]
+    }
+  }
+  return defaultBg
+})
 
 const partyPreview = computed(() => {
   return heroesStore.partyHeroes.map(hero => {
@@ -24,32 +53,49 @@ const hasParty = computed(() => {
 
 <template>
   <div class="home-screen">
+    <!-- Animated background layers -->
+    <div class="bg-layer bg-gradient"></div>
+    <div class="bg-layer bg-pattern"></div>
+    <div class="bg-vignette"></div>
+
     <header class="home-header">
-      <h1>Dorf</h1>
+      <div class="title-container">
+        <h1 class="game-title">Dorf</h1>
+        <span class="title-subtitle">Heroes of the Realm</span>
+      </div>
       <div class="gem-display">
+        <div class="gem-glow"></div>
         <span class="gem-icon">💎</span>
-        <span class="gem-count">{{ gachaStore.gems }}</span>
+        <span class="gem-count">{{ gachaStore.gems.toLocaleString() }}</span>
       </div>
     </header>
 
     <section class="party-preview">
-      <h2>Your Party</h2>
-      <div v-if="hasParty" class="party-grid">
-        <template v-for="(hero, index) in partyPreview" :key="index">
-          <HeroCard
-            v-if="hero"
-            :hero="hero"
-            compact
-            @click="emit('navigate', 'heroes')"
-          />
-          <div v-else class="empty-slot" @click="emit('navigate', 'heroes')">
-            <span>Empty</span>
-          </div>
-        </template>
-      </div>
-      <div v-else class="no-party">
-        <p>No heroes in party!</p>
-        <button @click="emit('navigate', 'gacha')">Summon Heroes</button>
+      <div class="party-container" :style="{ backgroundImage: `url(${partyBackgroundUrl})` }">
+        <div class="party-container-overlay"></div>
+        <div class="party-title">Your Party</div>
+        <div v-if="hasParty" class="party-grid">
+          <template v-for="(hero, index) in partyPreview" :key="index">
+            <div class="party-slot" :class="{ filled: hero }" @click="emit('navigate', 'heroes')">
+              <img
+                v-if="hero"
+                :src="getHeroImageUrl(hero.templateId)"
+                :alt="hero.template?.name"
+                class="hero-portrait"
+              />
+              <div v-else class="empty-slot">
+                <span class="slot-number">{{ index + 1 }}</span>
+              </div>
+            </div>
+          </template>
+        </div>
+        <div v-else class="no-party">
+          <div class="no-party-icon">⚔️</div>
+          <p>No heroes in party!</p>
+          <button class="summon-cta" @click="emit('navigate', 'gacha')">
+            <span>Summon Heroes</span>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -59,179 +105,515 @@ const hasParty = computed(() => {
         :style="{ backgroundImage: `url(${summoningBg})` }"
         @click="emit('navigate', 'gacha')"
       >
-        <span class="nav-icon">🎰</span>
-        <span class="nav-label">Summon</span>
-        <span class="nav-hint">Get new heroes</span>
+        <div class="nav-icon-wrapper summon">
+          <span class="nav-icon">✨</span>
+        </div>
+        <div class="nav-content">
+          <span class="nav-label">Summon</span>
+          <span class="nav-hint">Get new heroes</span>
+        </div>
+        <div class="nav-arrow">›</div>
       </button>
 
-      <button class="nav-button" @click="emit('navigate', 'heroes')">
-        <span class="nav-icon">👥</span>
-        <span class="nav-label">Heroes</span>
-        <span class="nav-hint">{{ heroesStore.heroCount }} owned</span>
+      <button class="nav-button heroes-button" @click="emit('navigate', 'heroes')">
+        <div class="nav-icon-wrapper heroes">
+          <span class="nav-icon">⚔️</span>
+        </div>
+        <div class="nav-content">
+          <span class="nav-label">Heroes</span>
+          <span class="nav-hint">{{ heroesStore.heroCount }} owned</span>
+        </div>
+        <div class="nav-arrow">›</div>
       </button>
 
       <button
-        class="nav-button"
+        class="nav-button quests-button"
         :disabled="!hasParty"
         @click="emit('navigate', 'worldmap')"
       >
-        <span class="nav-icon">🗺️</span>
-        <span class="nav-label">Quests</span>
-        <span class="nav-hint">{{ questsStore.completedNodeCount }} cleared</span>
+        <div class="nav-icon-wrapper quests">
+          <span class="nav-icon">🗺️</span>
+        </div>
+        <div class="nav-content">
+          <span class="nav-label">Quests</span>
+          <span class="nav-hint">{{ questsStore.completedNodeCount }} cleared</span>
+        </div>
+        <div class="nav-arrow">›</div>
       </button>
     </nav>
 
     <footer class="home-footer">
-      <p>Total Pulls: {{ gachaStore.totalPulls }}</p>
+      <div class="footer-stats">
+        <div class="stat-item">
+          <span class="stat-value">{{ gachaStore.totalPulls }}</span>
+          <span class="stat-label">Total Pulls</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ heroesStore.heroCount }}</span>
+          <span class="stat-label">Heroes</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ questsStore.completedNodeCount }}</span>
+          <span class="stat-label">Quests</span>
+        </div>
+      </div>
     </footer>
   </div>
 </template>
 
 <style scoped>
+/* ===== Base Layout ===== */
 .home-screen {
   min-height: 100vh;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
+/* ===== Animated Background ===== */
+.bg-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.bg-gradient {
+  background: linear-gradient(
+    135deg,
+    #0f172a 0%,
+    #1e1b4b 25%,
+    #172554 50%,
+    #0f172a 75%,
+    #1e1b4b 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.bg-pattern {
+  opacity: 0.03;
+  background-image:
+    radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+.bg-vignette {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ===== Header ===== */
 .home-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  position: relative;
+  z-index: 1;
 }
 
-.home-header h1 {
-  font-size: 2rem;
-  color: #f3f4f6;
+.title-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-title {
+  font-size: 2.5rem;
+  font-weight: 800;
   margin: 0;
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #f59e0b 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+  text-shadow: 0 0 40px rgba(251, 191, 36, 0.3);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.title-subtitle {
+  font-size: 0.75rem;
+  color: #6b7280;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 2px;
 }
 
 .gem-display {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #1f2937;
-  padding: 8px 16px;
-  border-radius: 20px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  padding: 10px 18px;
+  border-radius: 24px;
+  border: 1px solid #334155;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.gem-glow {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(circle, rgba(96, 165, 250, 0.4) 0%, transparent 70%);
+  transform: translateY(-50%);
+  animation: gemPulse 2s ease-in-out infinite;
+}
+
+@keyframes gemPulse {
+  0%, 100% { opacity: 0.5; transform: translateY(-50%) scale(1); }
+  50% { opacity: 1; transform: translateY(-50%) scale(1.2); }
 }
 
 .gem-icon {
-  font-size: 1.2rem;
+  font-size: 1.3rem;
+  position: relative;
+  z-index: 1;
+  animation: gemBounce 2s ease-in-out infinite;
+}
+
+@keyframes gemBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
 }
 
 .gem-count {
   font-size: 1.1rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #60a5fa;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
 }
 
-.party-preview h2 {
-  font-size: 1rem;
+/* ===== Section Headers ===== */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  font-size: 0.85rem;
   color: #9ca3af;
-  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #374151 50%, transparent 100%);
+}
+
+/* ===== Party Preview ===== */
+.party-preview {
+  position: relative;
+  z-index: 1;
+}
+
+.party-container {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid #334155;
+}
+
+.party-container-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(15, 23, 42, 0.6) 0%,
+    rgba(15, 23, 42, 0.75) 100%
+  );
+  pointer-events: none;
+}
+
+.party-title {
+  position: relative;
+  z-index: 1;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 6px 12px 6px 12px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.5) 70%, transparent 100%);
+  border-radius: 6px;
+  width: fit-content;
+  padding-right: 32px;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  border-left: 3px solid rgba(251, 191, 36, 0.8);
 }
 
 .party-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px 0;
+}
+
+.party-slot {
+  width: 100px;
+  height: 100px;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.party-slot:hover {
+  transform: translateY(-6px) scale(1.05);
+}
+
+.party-slot.filled {
+  animation: slotAppear 0.5s ease backwards;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.party-slot:nth-child(1) { animation-delay: 0.1s; }
+.party-slot:nth-child(2) { animation-delay: 0.2s; }
+.party-slot:nth-child(3) { animation-delay: 0.3s; }
+.party-slot:nth-child(4) { animation-delay: 0.4s; }
+
+@keyframes slotAppear {
+  from { opacity: 0; transform: translateY(20px) scale(0.8); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.hero-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .empty-slot {
-  background: #1f2937;
-  border: 2px dashed #4b5563;
-  border-radius: 8px;
-  padding: 20px;
+  width: 100%;
+  height: 100%;
+  background: rgba(30, 41, 59, 0.6);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  min-height: 100px;
+  transition: all 0.3s ease;
 }
 
-.empty-slot:hover {
-  border-color: #6b7280;
+.party-slot:hover .empty-slot {
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(30, 41, 59, 0.8);
 }
 
-.empty-slot span {
-  color: #6b7280;
-  font-size: 0.9rem;
+.slot-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .no-party {
+  position: relative;
+  z-index: 1;
   text-align: center;
-  padding: 40px;
-  background: #1f2937;
-  border-radius: 8px;
+  padding: 48px 24px;
+}
+
+.no-party-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
 }
 
 .no-party p {
   color: #9ca3af;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  font-size: 1rem;
 }
 
-.no-party button {
-  background: #3b82f6;
+.summon-cta {
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
   color: white;
   border: none;
-  padding: 12px 24px;
-  border-radius: 8px;
+  padding: 14px 32px;
+  border-radius: 12px;
   font-size: 1rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
-.no-party button:hover {
-  background: #2563eb;
+.summon-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
 }
 
+/* ===== Navigation ===== */
 .main-nav {
   display: flex;
   flex-direction: column;
   gap: 12px;
   flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .nav-button {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 20px;
-  background: #1f2937;
-  border: 2px solid #374151;
-  border-radius: 12px;
+  padding: 16px 20px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+  transition: left 0.5s ease;
+}
+
+.nav-button:hover:not(:disabled)::before {
+  left: 100%;
 }
 
 .nav-button:hover:not(:disabled) {
   border-color: #4b5563;
-  transform: translateX(4px);
+  transform: translateX(6px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .nav-button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
+.nav-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.nav-icon-wrapper.summon {
+  background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+}
+
+.nav-icon-wrapper.heroes {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.nav-icon-wrapper.quests {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.nav-icon {
+  font-size: 1.5rem;
+}
+
+.nav-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.nav-label {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.nav-hint {
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.nav-arrow {
+  font-size: 1.5rem;
+  color: #4b5563;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+.nav-button:hover:not(:disabled) .nav-arrow {
+  transform: translateX(4px);
+  color: #6b7280;
+}
+
+/* Summon button special styling */
 .nav-button.summon-button {
   background-size: cover;
   background-position: center;
-  position: relative;
+  border-color: #6366f1;
 }
 
-.nav-button.summon-button::before {
+.nav-button.summon-button::after {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: 10px;
-  pointer-events: none;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.7) 0%, rgba(139, 92, 246, 0.5) 100%);
+  border-radius: 13px;
+  z-index: 0;
 }
 
 .nav-button.summon-button > * {
@@ -239,25 +621,52 @@ const hasParty = computed(() => {
   z-index: 1;
 }
 
-.nav-icon {
-  font-size: 2rem;
+.nav-button.summon-button:hover:not(:disabled) {
+  border-color: #818cf8;
+  box-shadow: 0 4px 25px rgba(99, 102, 241, 0.4);
 }
 
-.nav-label {
+/* ===== Footer ===== */
+.home-footer {
+  position: relative;
+  z-index: 1;
+  padding-top: 16px;
+}
+
+.footer-stats {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  padding: 16px 24px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.5) 100%);
+  border-radius: 12px;
+  border: 1px solid #1e293b;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-value {
   font-size: 1.2rem;
-  font-weight: 600;
+  font-weight: 700;
   color: #f3f4f6;
 }
 
-.nav-hint {
-  margin-left: auto;
+.stat-label {
+  font-size: 0.65rem;
   color: #6b7280;
-  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.home-footer {
-  text-align: center;
-  color: #4b5563;
-  font-size: 0.8rem;
+.stat-divider {
+  width: 1px;
+  height: 30px;
+  background: linear-gradient(180deg, transparent 0%, #374151 50%, transparent 100%);
 }
 </style>

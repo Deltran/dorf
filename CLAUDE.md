@@ -8,17 +8,22 @@ Dorf is a Vue 3 gacha hero battler with turn-based combat. See `README.md` for f
 
 ## Hero Images
 
-Located in `src/assets/heroes/{hero_id}.png`. Not all heroes have images.
+Located in `src/assets/heroes/{hero_id}.png` (static) or `{hero_id}.gif` (animated). Not all heroes have images.
 
 **Heroes with images:** `militia_soldier`, `apprentice_mage`, `herb_gatherer`, `farm_hand`, `street_urchin`, `beggar_monk`, `wandering_bard`
 
-**Loading pattern (Vite glob import):**
+**Heroes with animated GIFs:** `shadow_king`, `aurora_the_dawn`
+
+**Loading pattern (Vite glob import with GIF priority):**
 ```js
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
 
 function getHeroImageUrl(heroId) {
-  const path = `../assets/heroes/${heroId}.png`
-  return heroImages[path] || null
+  const gifPath = `../assets/heroes/${heroId}.gif`
+  if (heroGifs[gifPath]) return heroGifs[gifPath]
+  const pngPath = `../assets/heroes/${heroId}.png`
+  return heroImages[pngPath] || null
 }
 ```
 
@@ -67,6 +72,99 @@ When adding a hero to party:
 - `src/stores/heroes.js` - Hero collection, party management
 - `src/stores/battle.js` - Combat state machine
 - `src/stores/gacha.js` - Pull logic, pity counters
+- `src/stores/quests.js` - Quest progress, node unlocks, `lastVisitedNode` tracking
 - `src/data/heroTemplates.js` - Hero definitions
 - `src/data/classes.js` - Class definitions (role, resource name)
 - `src/data/statusEffects.js` - Buff/debuff definitions
+- `src/data/questNodes.js` - Quest node definitions, region data
+
+## World Map System
+
+The world map displays quest nodes as an interactive graph with dotted trail connections.
+
+### Components
+
+- `src/components/MapCanvas.vue` - Main map container with SVG trails and scaling
+- `src/components/NodeMarker.vue` - Clickable node markers with pulse animation
+
+### Region Data Structure
+
+```js
+{
+  id: 'whispering_woods',
+  name: 'Whispering Woods',
+  startNode: 'forest_01',
+  width: 800,              // Native canvas size
+  height: 500,
+  backgroundColor: '#1a2f1a',
+  backgroundImage: whisperingWoodsMap  // Imported asset
+}
+```
+
+### Quest Node Structure
+
+```js
+{
+  id: 'forest_01',
+  name: 'Dark Thicket',
+  region: 'Whispering Woods',
+  x: 100,                  // Position on region map (native coordinates)
+  y: 250,
+  battles: [...],
+  connections: ['forest_02'],  // Drives trail rendering
+  rewards: { gems: 50, exp: 80 },
+  firstClearBonus: { gems: 30 }
+}
+```
+
+### Map Background Images
+
+Located in `src/assets/maps/{region_id}.png`. Import and assign to region's `backgroundImage` property.
+
+```js
+import whisperingWoodsMap from '../assets/maps/whispering_woods.png'
+// Then in regions array:
+backgroundImage: whisperingWoodsMap
+```
+
+Recommended size: 800x500 pixels (matches region width/height).
+
+### Trail Visibility Logic
+
+- Both nodes unlocked: Full visibility trail
+- One node unlocked: Faded trail (teaser effect)
+- Neither unlocked: Hidden
+
+## Battle Backgrounds
+
+Located in `src/assets/backgrounds/{node_id}.png`. Loaded via glob import in BattleScreen.
+
+The `quests.js` store tracks `lastVisitedNode` to show the most recent battle background on the home screen party section.
+
+## UI Patterns
+
+### Non-Selectable Floating Text
+
+Damage numbers, healing numbers, and XP floaters use `user-select: none` to prevent accidental text selection during combat.
+
+### Sequential Reveal Animation (GachaScreen)
+
+Summon results appear one at a time with a "pop" animation:
+```js
+const revealedCount = ref(0)
+
+watch(showResults, (show) => {
+  if (show) {
+    revealedCount.value = 0
+    const revealNext = () => {
+      if (revealedCount.value < lastPullResults.value.length) {
+        revealedCount.value++
+        setTimeout(revealNext, 200)
+      }
+    }
+    setTimeout(revealNext, 300)
+  }
+})
+```
+
+Template uses `v-if="index < revealedCount"` to control visibility.

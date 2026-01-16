@@ -1182,6 +1182,7 @@ function isEnemyAttacking(enemyId) {
   font-size: 1rem;
   color: #ffffff;
   pointer-events: none;
+  user-select: none;
   z-index: 100;
   text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
   animation: xpFloatUp 1.5s ease-out forwards;

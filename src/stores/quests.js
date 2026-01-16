@@ -7,6 +7,7 @@ export const useQuestsStore = defineStore('quests', () => {
   const unlockedNodes = ref(['forest_01']) // Start with first node unlocked
   const completedNodes = ref([])
   const currentRun = ref(null) // { nodeId, battleIndex, partyState }
+  const lastVisitedNode = ref(null) // Track last node for background display
 
   // Getters
   const isNodeUnlocked = computed(() => {
@@ -77,6 +78,9 @@ export const useQuestsStore = defineStore('quests', () => {
       battleIndex: 0,
       partyState // { [instanceId]: { currentHp, currentMp } }
     }
+
+    // Track for home screen background
+    lastVisitedNode.value = nodeId
 
     return true
   }
@@ -168,13 +172,15 @@ export const useQuestsStore = defineStore('quests', () => {
   function loadState(savedState) {
     if (savedState.unlockedNodes) unlockedNodes.value = savedState.unlockedNodes
     if (savedState.completedNodes) completedNodes.value = savedState.completedNodes
+    if (savedState.lastVisitedNode) lastVisitedNode.value = savedState.lastVisitedNode
     // Don't restore currentRun - player should restart quests on reload
   }
 
   function saveState() {
     return {
       unlockedNodes: unlockedNodes.value,
-      completedNodes: completedNodes.value
+      completedNodes: completedNodes.value,
+      lastVisitedNode: lastVisitedNode.value
     }
   }
 
@@ -183,6 +189,7 @@ export const useQuestsStore = defineStore('quests', () => {
     unlockedNodes,
     completedNodes,
     currentRun,
+    lastVisitedNode,
     // Getters
     isNodeUnlocked,
     isNodeCompleted,
