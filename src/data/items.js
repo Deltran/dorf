@@ -1,0 +1,67 @@
+// src/data/items.js
+
+export const items = {
+  tome_small: {
+    id: 'tome_small',
+    name: 'Faded Tome',
+    description: 'A worn book of basic knowledge.',
+    type: 'xp',
+    rarity: 1,
+    xpValue: 50,
+    sellReward: { gems: 10 }
+  },
+  tome_medium: {
+    id: 'tome_medium',
+    name: 'Knowledge Tome',
+    description: 'A well-preserved collection of teachings.',
+    type: 'xp',
+    rarity: 2,
+    xpValue: 200,
+    sellReward: { gems: 40 }
+  },
+  tome_large: {
+    id: 'tome_large',
+    name: 'Ancient Codex',
+    description: 'Centuries of wisdom bound in leather.',
+    type: 'xp',
+    rarity: 3,
+    xpValue: 500,
+    sellReward: { gems: 100 }
+  },
+  useless_rock: {
+    id: 'useless_rock',
+    name: 'Useless Rock',
+    description: "It's a rock. Completely useless.",
+    type: 'junk',
+    rarity: 1,
+    sellReward: { gems: 5 }
+  },
+  shiny_pebble: {
+    id: 'shiny_pebble',
+    name: 'Shiny Pebble',
+    description: 'At least it sparkles a little.',
+    type: 'junk',
+    rarity: 1,
+    sellReward: { gems: 8 }
+  },
+  goblin_trinket: {
+    id: 'goblin_trinket',
+    name: 'Goblin Trinket',
+    description: 'A crude charm made from bone and string.',
+    type: 'junk',
+    rarity: 2,
+    sellReward: { gems: 15 }
+  }
+}
+
+export function getItem(itemId) {
+  return items[itemId] || null
+}
+
+export function getAllItems() {
+  return Object.values(items)
+}
+
+export function getItemsByType(type) {
+  return Object.values(items).filter(item => item.type === type)
+}
