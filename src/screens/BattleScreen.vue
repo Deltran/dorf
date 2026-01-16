@@ -30,6 +30,8 @@ const enemyHitEffects = ref({}) // { id: 'damage' | 'heal' | 'buff' | 'debuff' }
 const heroImpactIcons = ref({}) // { instanceId: 'attack' | 'magic' | 'heal' | ... }
 const enemyImpactIcons = ref({}) // { id: 'attack' | 'magic' | 'heal' | ... }
 const attackingEnemies = ref({}) // { id: true } - enemies currently in attack animation
+const leaderActivating = ref(null) // instanceId of leader during skill activation
+const leaderSkillName = ref(null) // name of activating leader skill
 
 const currentNode = computed(() => questsStore.currentNode)
 const currentBattleIndex = computed(() => questsStore.currentBattleIndex)
@@ -381,6 +383,20 @@ watch(() => battleStore.combatEffects.length, () => {
   battleStore.clearCombatEffects()
 })
 
+// Watch for leader skill activation
+watch(() => battleStore.leaderSkillActivation, (activation) => {
+  if (!activation) return
+
+  leaderActivating.value = activation.leaderId
+  leaderSkillName.value = activation.skillName
+
+  setTimeout(() => {
+    leaderActivating.value = null
+    leaderSkillName.value = null
+    battleStore.leaderSkillActivation = null
+  }, 1500)
+})
+
 function removeDamageNumber(id) {
   damageNumbers.value = damageNumbers.value.filter(d => d.id !== id)
 }
@@ -522,10 +538,15 @@ function isEnemyAttacking(enemyId) {
         :class="['hero-wrapper', {
           active: battleStore.currentUnit?.instanceId === hero.instanceId,
           targetable: alliesTargetable && hero.currentHp > 0,
-          selected: battleStore.selectedTarget?.id === hero.instanceId
+          selected: battleStore.selectedTarget?.id === hero.instanceId,
+          'leader-activating': leaderActivating === hero.instanceId
         }]"
         @click="selectHeroTarget(hero)"
       >
+        <!-- Leader Skill Announcement -->
+        <div v-if="leaderActivating === hero.instanceId" class="leader-skill-announce">
+          {{ leaderSkillName }}
+        </div>
         <div class="hero-image-container">
           <img
             v-if="getHeroImageUrl(hero)"
@@ -1275,5 +1296,65 @@ function isEnemyAttacking(enemyId) {
 .defeat-modal p {
   color: #9ca3af;
   margin-bottom: 24px;
+}
+
+/* ===== Leader Skill Activation ===== */
+.hero-wrapper.leader-activating {
+  animation: leaderGlow 1.5s ease-out;
+  z-index: 20;
+}
+
+@keyframes leaderGlow {
+  0% {
+    filter: drop-shadow(0 0 0 transparent);
+    transform: scale(1);
+  }
+  30% {
+    filter: drop-shadow(0 0 20px #f59e0b) drop-shadow(0 0 40px #f59e0b);
+    transform: scale(1.05);
+  }
+  70% {
+    filter: drop-shadow(0 0 15px #f59e0b) drop-shadow(0 0 30px #f59e0b);
+    transform: scale(1.03);
+  }
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+    transform: scale(1);
+  }
+}
+
+.leader-skill-announce {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fbbf24;
+  text-shadow: 0 0 10px #f59e0b, 0 2px 4px rgba(0, 0, 0, 0.8);
+  z-index: 30;
+  animation: skillNameFloat 1.5s ease-out forwards;
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes skillNameFloat {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-15px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-30px);
+  }
 }
 </style>

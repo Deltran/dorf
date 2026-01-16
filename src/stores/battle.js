@@ -28,6 +28,7 @@ export const useBattleStore = defineStore('battle', () => {
   const selectedAction = ref(null)
   const selectedTarget = ref(null)
   const combatEffects = ref([]) // For visual feedback: { id, targetId, targetType, effectType, value }
+  const leaderSkillActivation = ref(null) // { skillName, leaderId } - for visual announcement
 
   // Getters
   const currentUnit = computed(() => {
@@ -158,6 +159,19 @@ export const useBattleStore = defineStore('battle', () => {
     if (!leaderSkill) return
 
     const heroesStore = useHeroesStore()
+
+    // Check if any timed effects will trigger this round
+    const willTrigger = leaderSkill.effects.some(e =>
+      e.type === 'timed' && e.triggerRound === round
+    )
+
+    if (willTrigger) {
+      // Trigger visual announcement
+      leaderSkillActivation.value = {
+        skillName: leaderSkill.name,
+        leaderId: heroesStore.partyLeader
+      }
+    }
 
     for (const effect of leaderSkill.effects) {
       if (effect.type !== 'timed') continue
@@ -1142,6 +1156,7 @@ export const useBattleStore = defineStore('battle', () => {
     selectedAction,
     selectedTarget,
     combatEffects,
+    leaderSkillActivation,
     // Getters
     currentUnit,
     isPlayerTurn,
