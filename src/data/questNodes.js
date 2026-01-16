@@ -215,8 +215,8 @@ export const questNodes = {
     id: 'lake_01',
     name: 'Misty Shore',
     region: 'Whisper Lake',
-    x: 120,
-    y: 280,
+    x: 450,
+    y: 80,
     battles: [
       { enemies: ['forest_wolf', 'forest_wolf', 'giant_frog'] },
       { enemies: ['lake_serpent', 'lake_serpent'] },
@@ -230,8 +230,8 @@ export const questNodes = {
     id: 'lake_02',
     name: 'Drowned Hollow',
     region: 'Whisper Lake',
-    x: 380,
-    y: 180,
+    x: 470,
+    y: 280,
     battles: [
       { enemies: ['lake_serpent', 'giant_frog', 'giant_frog'] },
       { enemies: ['dire_wolf', 'dire_wolf', 'lake_serpent'] },

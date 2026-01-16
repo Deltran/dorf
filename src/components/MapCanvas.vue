@@ -57,6 +57,9 @@ const trails = computed(() => {
       const connectedNode = getQuestNode(connectedId)
       if (!connectedNode) continue
 
+      // Skip cross-region connections (these open new world maps)
+      if (connectedNode.region !== node.region) continue
+
       const isConnectedUnlocked = props.unlockedNodes.includes(connectedId)
 
       // Determine trail visibility

@@ -5,6 +5,8 @@ import { regions, getQuestNode, getNodesByRegion, getRegion } from '../data/ques
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import MapCanvas from '../components/MapCanvas.vue'
 
+const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+
 const emit = defineEmits(['navigate', 'startBattle'])
 
 const questsStore = useQuestsStore()
@@ -27,6 +29,11 @@ const currentRegionNodes = computed(() => {
 const regionProgress = computed(() => {
   return questsStore.regionProgress[selectedRegion.value] || { completed: 0, total: 0 }
 })
+
+function getRegionBackground(region) {
+  const path = `../assets/battle_backgrounds/${region.startNode}.png`
+  return battleBackgrounds[path] || null
+}
 
 // Clear selection when changing regions
 watch(selectedRegion, () => {
@@ -112,8 +119,10 @@ function startQuest() {
           v-for="region in regions"
           :key="region.id"
           :class="['region-tab', { active: selectedRegion === region.id }]"
+          :style="getRegionBackground(region) ? { backgroundImage: `url(${getRegionBackground(region)})` } : {}"
           @click="selectedRegion = region.id"
         >
+          <div class="region-tab-overlay"></div>
           <span class="region-tab-label">{{ region.name }}</span>
         </button>
       </nav>
@@ -359,8 +368,10 @@ function startQuest() {
 
 .region-tab {
   position: relative;
-  padding: 12px 20px;
-  background: rgba(0, 0, 0, 0.3);
+  padding: 16px 24px;
+  background-color: rgba(0, 0, 0, 0.5);
+  background-size: cover;
+  background-position: center;
   border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
   color: #94a3b8;
@@ -368,13 +379,25 @@ function startQuest() {
   white-space: nowrap;
   transition: all 0.3s ease;
   overflow: hidden;
-  min-width: 100px;
+  min-width: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.region-tab-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  transition: background 0.3s ease;
 }
 
 .region-tab-label {
   position: relative;
   z-index: 1;
-  font-weight: 500;
+  font-weight: 600;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 .region-tab:hover {
@@ -383,10 +406,17 @@ function startQuest() {
   transform: translateY(-2px);
 }
 
+.region-tab:hover .region-tab-overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
 .region-tab.active {
   border-color: #fbbf24;
-  background: rgba(251, 191, 36, 0.15);
   color: #fbbf24;
+}
+
+.region-tab.active .region-tab-overlay {
+  background: rgba(251, 191, 36, 0.25);
 }
 
 /* Region Progress */
