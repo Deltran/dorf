@@ -120,6 +120,15 @@ export const useHeroesStore = defineStore('heroes', () => {
 
   const MAX_LEVEL = 250
 
+  // Stat growth multiplier per star level (applied per level-up)
+  const STAR_GROWTH_MULTIPLIERS = {
+    1: 1.00,
+    2: 1.10,
+    3: 1.20,
+    4: 1.35,
+    5: 1.50
+  }
+
   function addExp(instanceId, amount) {
     const hero = collection.value.find(h => h.instanceId === instanceId)
     if (!hero) return
@@ -173,14 +182,21 @@ export const useHeroesStore = defineStore('heroes', () => {
     const template = getHeroTemplate(hero.templateId)
     if (!template) return null
 
-    const levelMultiplier = 1 + 0.05 * (hero.level - 1)
+    const starLevel = hero.starLevel || template.rarity
+    const starMultiplier = STAR_GROWTH_MULTIPLIERS[starLevel] || 1
+    const starBonus = starLevel - template.rarity  // +1 base stats per star gained
+
+    // Base level multiplier: 5% per level
+    const baseLevelGrowth = 0.05
+    // Star level increases growth rate
+    const levelMultiplier = 1 + (baseLevelGrowth * starMultiplier) * (hero.level - 1)
 
     return {
-      hp: Math.floor(template.baseStats.hp * levelMultiplier),
-      atk: Math.floor(template.baseStats.atk * levelMultiplier),
-      def: Math.floor(template.baseStats.def * levelMultiplier),
-      spd: Math.floor(template.baseStats.spd * levelMultiplier),
-      mp: Math.floor(template.baseStats.mp * levelMultiplier)
+      hp: Math.floor((template.baseStats.hp + starBonus) * levelMultiplier),
+      atk: Math.floor((template.baseStats.atk + starBonus) * levelMultiplier),
+      def: Math.floor((template.baseStats.def + starBonus) * levelMultiplier),
+      spd: Math.floor((template.baseStats.spd + starBonus) * levelMultiplier),
+      mp: Math.floor((template.baseStats.mp + starBonus) * levelMultiplier)
     }
   }
 
