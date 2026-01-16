@@ -26,6 +26,18 @@ export const heroTemplates = {
       description: 'Deal 150% ATK damage to all enemies and heal all allies for 20% of damage dealt',
       mpCost: 30,
       targetType: 'all_enemies'
+    },
+    leaderSkill: {
+      name: "Dawn's Protection",
+      description: 'Non-knight allies gain +15% DEF',
+      effects: [
+        {
+          type: 'passive',
+          stat: 'def',
+          value: 15,
+          condition: { classId: { not: 'knight' } }
+        }
+      ]
     }
   },
   shadow_king: {
@@ -39,6 +51,22 @@ export const heroTemplates = {
       description: 'Deal 200% ATK damage to one enemy, ignoring 50% of their DEF',
       mpCost: 25,
       targetType: 'enemy'
+    },
+    leaderSkill: {
+      name: 'Lord of Shadows',
+      description: 'On round 1, all allies gain +25% ATK for 2 turns',
+      effects: [
+        {
+          type: 'timed',
+          triggerRound: 1,
+          target: 'all_allies',
+          apply: {
+            effectType: 'atk_up',
+            duration: 2,
+            value: 25
+          }
+        }
+      ]
     }
   },
 

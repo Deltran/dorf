@@ -7,6 +7,7 @@ export const useHeroesStore = defineStore('heroes', () => {
   // State
   const collection = ref([]) // Array of hero instances
   const party = ref([null, null, null, null]) // 4 slots for party
+  const partyLeader = ref(null) // instanceId of the party leader
 
   // Getters
   const heroCount = computed(() => collection.value.length)
@@ -25,6 +26,11 @@ export const useHeroesStore = defineStore('heroes', () => {
   const availableForParty = computed(() => {
     const partyIds = new Set(party.value.filter(Boolean))
     return collection.value.filter(h => !partyIds.has(h.instanceId))
+  })
+
+  const leaderHero = computed(() => {
+    if (!partyLeader.value) return null
+    return collection.value.find(h => h.instanceId === partyLeader.value) || null
   })
 
   // Actions
@@ -47,6 +53,10 @@ export const useHeroesStore = defineStore('heroes', () => {
   }
 
   function removeHero(instanceId) {
+    // Clear leader if this hero was leader
+    if (instanceId === partyLeader.value) {
+      partyLeader.value = null
+    }
     // Remove from party if present
     party.value = party.value.map(id => id === instanceId ? null : id)
     // Remove from collection
@@ -69,7 +79,20 @@ export const useHeroesStore = defineStore('heroes', () => {
 
   function clearPartySlot(slotIndex) {
     if (slotIndex < 0 || slotIndex > 3) return false
+    const removedId = party.value[slotIndex]
+    if (removedId === partyLeader.value) {
+      partyLeader.value = null
+    }
     party.value[slotIndex] = null
+    return true
+  }
+
+  function setPartyLeader(instanceId) {
+    // Allow null to clear leader, or valid party member
+    if (instanceId && !party.value.includes(instanceId)) {
+      return false
+    }
+    partyLeader.value = instanceId
     return true
   }
 
@@ -182,12 +205,14 @@ export const useHeroesStore = defineStore('heroes', () => {
   function loadState(savedState) {
     if (savedState.collection) collection.value = savedState.collection
     if (savedState.party) party.value = savedState.party
+    if (savedState.partyLeader !== undefined) partyLeader.value = savedState.partyLeader
   }
 
   function saveState() {
     return {
       collection: collection.value,
-      party: party.value
+      party: party.value,
+      partyLeader: partyLeader.value
     }
   }
 
@@ -195,16 +220,19 @@ export const useHeroesStore = defineStore('heroes', () => {
     // State
     collection,
     party,
+    partyLeader,
     // Getters
     heroCount,
     partyHeroes,
     partyIsFull,
     availableForParty,
+    leaderHero,
     // Actions
     addHero,
     removeHero,
     setPartySlot,
     clearPartySlot,
+    setPartyLeader,
     autoFillParty,
     addExp,
     addExpToParty,

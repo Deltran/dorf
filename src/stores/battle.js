@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useHeroesStore } from './heroes.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import { EffectType, createEffect, getEffectDefinition } from '../data/statusEffects.js'
+import { getClass } from '../data/classes.js'
 
 // Battle states
 export const BattleState = {
@@ -72,6 +73,108 @@ export const useBattleStore = defineStore('battle', () => {
     return parseInt(action.split('_')[1], 10)
   }
 
+  // Check if a unit matches a leader skill condition
+  function matchesCondition(unit, condition) {
+    if (!condition) return true
+
+    const template = unit.template
+    if (!template) return false
+
+    // Class-based conditions
+    if (condition.classId) {
+      if (typeof condition.classId === 'string') {
+        if (template.classId !== condition.classId) return false
+      } else if (condition.classId.not) {
+        if (template.classId === condition.classId.not) return false
+      }
+    }
+
+    // Role-based conditions
+    if (condition.role) {
+      const heroClass = getClass(template.classId)
+      if (!heroClass) return false
+
+      if (typeof condition.role === 'string') {
+        if (heroClass.role !== condition.role) return false
+      } else if (condition.role.not) {
+        if (heroClass.role === condition.role.not) return false
+      }
+    }
+
+    return true
+  }
+
+  // Get the active leader skill from the party leader
+  function getActiveLeaderSkill() {
+    const heroesStore = useHeroesStore()
+    const leaderId = heroesStore.partyLeader
+    if (!leaderId) return null
+
+    const leader = heroes.value.find(h => h.instanceId === leaderId)
+    if (!leader) return null
+
+    return leader.template?.leaderSkill || null
+  }
+
+  // Get targets for a leader skill effect
+  function getLeaderEffectTargets(targetType, condition) {
+    let targets = []
+
+    if (targetType === 'all_allies') {
+      targets = [...aliveHeroes.value]
+    } else if (targetType === 'all_enemies') {
+      targets = [...aliveEnemies.value]
+    }
+
+    if (condition) {
+      targets = targets.filter(t => matchesCondition(t, condition))
+    }
+
+    return targets
+  }
+
+  // Apply passive leader skill effects at battle start
+  function applyPassiveLeaderEffects() {
+    const leaderSkill = getActiveLeaderSkill()
+    if (!leaderSkill) return
+
+    for (const effect of leaderSkill.effects) {
+      if (effect.type !== 'passive') continue
+
+      for (const hero of heroes.value) {
+        if (matchesCondition(hero, effect.condition)) {
+          if (!hero.leaderBonuses) hero.leaderBonuses = {}
+          hero.leaderBonuses[effect.stat] = (hero.leaderBonuses[effect.stat] || 0) + effect.value
+        }
+      }
+    }
+
+    addLog(`Leader skill: ${leaderSkill.name} is active!`)
+  }
+
+  // Apply timed leader skill effects at round start
+  function applyTimedLeaderEffects(round) {
+    const leaderSkill = getActiveLeaderSkill()
+    if (!leaderSkill) return
+
+    for (const effect of leaderSkill.effects) {
+      if (effect.type !== 'timed') continue
+      if (effect.triggerRound !== round) continue
+
+      const targets = getLeaderEffectTargets(effect.target, effect.condition)
+
+      for (const target of targets) {
+        applyEffect(target, effect.apply.effectType, {
+          duration: effect.apply.duration,
+          value: effect.apply.value,
+          sourceId: 'leader_skill'
+        })
+      }
+
+      addLog(`Leader skill: ${leaderSkill.name} activates!`)
+    }
+  }
+
   const currentTargetType = computed(() => {
     if (selectedAction.value === 'attack') {
       return 'enemy'
@@ -106,6 +209,11 @@ export const useBattleStore = defineStore('battle', () => {
           modifier -= effect.value
         }
       }
+    }
+
+    // Add passive leader bonuses
+    if (unit.leaderBonuses?.[statName]) {
+      modifier += unit.leaderBonuses[statName]
     }
 
     return Math.max(1, Math.floor(baseStat * (1 + modifier / 100)))
@@ -299,6 +407,12 @@ export const useBattleStore = defineStore('battle', () => {
       })
     }
 
+    // Apply passive leader skill effects
+    applyPassiveLeaderEffects()
+
+    // Apply round 1 timed effects
+    applyTimedLeaderEffects(1)
+
     calculateTurnOrder()
 
     state.value = BattleState.STARTING
@@ -394,6 +508,9 @@ export const useBattleStore = defineStore('battle', () => {
       currentTurnIndex.value = 0
       roundNumber.value++
       addLog(`--- Round ${roundNumber.value} ---`)
+
+      // Check for round-triggered leader effects
+      applyTimedLeaderEffects(roundNumber.value)
 
       // MP recovery at start of round
       for (const hero of heroes.value) {
