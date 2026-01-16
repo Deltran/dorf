@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
+import { getItem } from '../data/items.js'
+import { useInventoryStore } from './inventory.js'
 
 export const useHeroesStore = defineStore('heroes', () => {
   // State
@@ -216,6 +218,32 @@ export const useHeroesStore = defineStore('heroes', () => {
     }
   }
 
+  function useXpItem(instanceId, itemId) {
+    const inventoryStore = useInventoryStore()
+
+    const item = getItem(itemId)
+    if (!item || item.type !== 'xp') return { success: false, reason: 'invalid_item' }
+    if (!inventoryStore.removeItem(itemId)) return { success: false, reason: 'no_item' }
+
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    if (!hero) {
+      inventoryStore.addItem(itemId) // refund
+      return { success: false, reason: 'hero_not_found' }
+    }
+
+    const oldLevel = hero.level
+    addExp(instanceId, item.xpValue)
+    const newLevel = hero.level
+
+    return {
+      success: true,
+      xpGained: item.xpValue,
+      leveledUp: newLevel > oldLevel,
+      oldLevel,
+      newLevel
+    }
+  }
+
   return {
     // State
     collection,
@@ -238,6 +266,7 @@ export const useHeroesStore = defineStore('heroes', () => {
     addExpToParty,
     getHeroStats,
     getHeroFull,
+    useXpItem,
     // Persistence
     loadState,
     saveState
