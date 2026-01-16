@@ -1,9 +1,15 @@
+import whisperingWoodsMap from '../assets/maps/whispering_woods.png'
+import whisperLakeMap from '../assets/maps/whisper_lake.png'
+
 export const questNodes = {
   // Whispering Woods (Tutorial / Early Game)
+  // Layout: forest_01 -> forest_02 -> (forest_03 OR forest_04) -> forest_05
   forest_01: {
     id: 'forest_01',
     name: 'Dark Thicket',
     region: 'Whispering Woods',
+    x: 100,
+    y: 320,
     battles: [
       { enemies: ['goblin_scout', 'goblin_scout'] },
       { enemies: ['goblin_scout', 'forest_wolf'] }
@@ -16,6 +22,8 @@ export const questNodes = {
     id: 'forest_02',
     name: 'Wolf Den',
     region: 'Whispering Woods',
+    x: 280,
+    y: 250,
     battles: [
       { enemies: ['forest_wolf', 'forest_wolf'] },
       { enemies: ['forest_wolf', 'goblin_scout', 'goblin_scout'] },
@@ -29,13 +37,15 @@ export const questNodes = {
     id: 'forest_03',
     name: 'Spider Nest',
     region: 'Whispering Woods',
+    x: 480,
+    y: 400,
     battles: [
       { enemies: ['forest_spider', 'forest_spider', 'forest_spider'] },
       { enemies: ['forest_spider', 'forest_spider', 'goblin_warrior'] },
       { enemies: ['forest_spider', 'forest_spider', 'forest_spider', 'forest_spider'] },
       { enemies: ['spider_queen', 'forest_spider', 'forest_spider'] }
     ],
-    connections: ['forest_05'],
+    connections: ['lake_01'],
     rewards: { gems: 80, exp: 150 },
     firstClearBonus: { gems: 50 }
   },
@@ -43,6 +53,8 @@ export const questNodes = {
     id: 'forest_04',
     name: 'Goblin Camp',
     region: 'Whispering Woods',
+    x: 550,
+    y: 270,
     battles: [
       { enemies: ['goblin_scout', 'goblin_warrior', 'goblin_thrower'] },
       { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_scout', 'goblin_thrower'] },
@@ -57,6 +69,8 @@ export const questNodes = {
     id: 'forest_05',
     name: 'Goblin Cavern',
     region: 'Whispering Woods',
+    x: 570,
+    y: 210,
     battles: [
       { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_shaman'] },
       { enemies: ['goblin_thrower', 'goblin_thrower', 'goblin_bulwark', 'goblin_warrior', 'goblin_trapper'] },
@@ -70,10 +84,13 @@ export const questNodes = {
   },
 
   // Echoing Caverns (Mid Game)
+  // Layout: cave_01 -> (cave_02 OR cave_03) -> cave_04
   cave_01: {
     id: 'cave_01',
     name: 'Cavern Entrance',
     region: 'Echoing Caverns',
+    x: 100,
+    y: 250,
     battles: [
       { enemies: ['cave_bat', 'cave_bat', 'cave_bat'] },
       { enemies: ['cave_bat', 'dark_cultist'] },
@@ -87,6 +104,8 @@ export const questNodes = {
     id: 'cave_02',
     name: 'Cultist Shrine',
     region: 'Echoing Caverns',
+    x: 380,
+    y: 100,
     battles: [
       { enemies: ['dark_caster', 'dark_cultist'] },
       { enemies: ['dark_caster', 'dark_cultist', 'cave_bat'] },
@@ -100,6 +119,8 @@ export const questNodes = {
     id: 'cave_03',
     name: 'Troll Bridge',
     region: 'Echoing Caverns',
+    x: 380,
+    y: 400,
     battles: [
       { enemies: ['rock_golem', 'cave_bat', 'cave_bat'] },
       { enemies: ['cave_troll'] },
@@ -113,6 +134,8 @@ export const questNodes = {
     id: 'cave_04',
     name: 'Deep Chasm',
     region: 'Echoing Caverns',
+    x: 700,
+    y: 250,
     battles: [
       { enemies: ['rock_golem', 'rock_golem'] },
       { enemies: ['cave_troll', 'dark_cultist', 'dark_cultist'] },
@@ -124,10 +147,13 @@ export const questNodes = {
   },
 
   // Stormwind Peaks (Late Game)
+  // Layout: mountain_01 -> (mountain_02 OR mountain_03) -> mountain_04
   mountain_01: {
     id: 'mountain_01',
     name: 'Mountain Pass',
     region: 'Stormwind Peaks',
+    x: 100,
+    y: 250,
     battles: [
       { enemies: ['harpy', 'harpy'] },
       { enemies: ['harpy', 'harpy', 'harpy'] },
@@ -141,6 +167,8 @@ export const questNodes = {
     id: 'mountain_02',
     name: 'Frozen Lake',
     region: 'Stormwind Peaks',
+    x: 380,
+    y: 100,
     battles: [
       { enemies: ['frost_elemental', 'harpy'] },
       { enemies: ['frost_elemental', 'frost_elemental'] },
@@ -154,6 +182,8 @@ export const questNodes = {
     id: 'mountain_03',
     name: 'Giant\'s Path',
     region: 'Stormwind Peaks',
+    x: 380,
+    y: 400,
     battles: [
       { enemies: ['mountain_giant'] },
       { enemies: ['harpy', 'harpy', 'harpy', 'harpy'] },
@@ -167,6 +197,8 @@ export const questNodes = {
     id: 'mountain_04',
     name: 'Dragon\'s Lair',
     region: 'Stormwind Peaks',
+    x: 700,
+    y: 250,
     battles: [
       { enemies: ['frost_elemental', 'frost_elemental', 'harpy', 'harpy'] },
       { enemies: ['mountain_giant', 'mountain_giant'] },
@@ -175,13 +207,78 @@ export const questNodes = {
     connections: [],
     rewards: { gems: 200, exp: 500 },
     firstClearBonus: { gems: 150 }
+  },
+
+  // Whisper Lake (Branching from Spider Nest)
+  // Layout: lake_01 -> lake_02
+  lake_01: {
+    id: 'lake_01',
+    name: 'Misty Shore',
+    region: 'Whisper Lake',
+    x: 120,
+    y: 280,
+    battles: [
+      { enemies: ['forest_wolf', 'forest_wolf', 'giant_frog'] },
+      { enemies: ['lake_serpent', 'lake_serpent'] },
+      { enemies: ['dire_wolf', 'giant_frog', 'giant_frog'] }
+    ],
+    connections: ['lake_02'],
+    rewards: { gems: 90, exp: 170 },
+    firstClearBonus: { gems: 55 }
+  },
+  lake_02: {
+    id: 'lake_02',
+    name: 'Drowned Hollow',
+    region: 'Whisper Lake',
+    x: 380,
+    y: 180,
+    battles: [
+      { enemies: ['lake_serpent', 'giant_frog', 'giant_frog'] },
+      { enemies: ['dire_wolf', 'dire_wolf', 'lake_serpent'] },
+      { enemies: ['forest_wolf', 'forest_wolf', 'dire_wolf', 'giant_frog'] },
+      { enemies: ['marsh_hag', 'lake_serpent', 'giant_frog'] }
+    ],
+    connections: [],
+    rewards: { gems: 110, exp: 220 },
+    firstClearBonus: { gems: 70 }
   }
 }
 
 export const regions = [
-  { id: 'whispering_woods', name: 'Whispering Woods', startNode: 'forest_01' },
-  { id: 'echoing_caverns', name: 'Echoing Caverns', startNode: 'cave_01' },
-  { id: 'stormwind_peaks', name: 'Stormwind Peaks', startNode: 'mountain_01' }
+  {
+    id: 'whispering_woods',
+    name: 'Whispering Woods',
+    startNode: 'forest_01',
+    width: 800,
+    height: 500,
+    backgroundColor: '#1a2f1a',
+    backgroundImage: whisperingWoodsMap
+  },
+  {
+    id: 'echoing_caverns',
+    name: 'Echoing Caverns',
+    startNode: 'cave_01',
+    width: 800,
+    height: 500,
+    backgroundColor: '#1a1a2f' // Dark cave blue, placeholder for background image
+  },
+  {
+    id: 'stormwind_peaks',
+    name: 'Stormwind Peaks',
+    startNode: 'mountain_01',
+    width: 800,
+    height: 500,
+    backgroundColor: '#2a2a3a' // Dark mountain gray, placeholder for background image
+  },
+  {
+    id: 'whisper_lake',
+    name: 'Whisper Lake',
+    startNode: 'lake_01',
+    width: 500,
+    height: 450,
+    backgroundColor: '#1a2a2f',
+    backgroundImage: whisperLakeMap
+  }
 ]
 
 export function getQuestNode(nodeId) {
@@ -194,4 +291,8 @@ export function getNodesByRegion(regionName) {
 
 export function getAllQuestNodes() {
   return Object.values(questNodes)
+}
+
+export function getRegion(regionId) {
+  return regions.find(r => r.id === regionId) || null
 }
