@@ -104,6 +104,77 @@ export const useBattleStore = defineStore('battle', () => {
     return true
   }
 
+  // Get the active leader skill from the party leader
+  function getActiveLeaderSkill() {
+    const heroesStore = useHeroesStore()
+    const leaderId = heroesStore.partyLeader
+    if (!leaderId) return null
+
+    const leader = heroes.value.find(h => h.instanceId === leaderId)
+    if (!leader) return null
+
+    return leader.template?.leaderSkill || null
+  }
+
+  // Get targets for a leader skill effect
+  function getLeaderEffectTargets(targetType, condition) {
+    let targets = []
+
+    if (targetType === 'all_allies') {
+      targets = [...aliveHeroes.value]
+    } else if (targetType === 'all_enemies') {
+      targets = [...aliveEnemies.value]
+    }
+
+    if (condition) {
+      targets = targets.filter(t => matchesCondition(t, condition))
+    }
+
+    return targets
+  }
+
+  // Apply passive leader skill effects at battle start
+  function applyPassiveLeaderEffects() {
+    const leaderSkill = getActiveLeaderSkill()
+    if (!leaderSkill) return
+
+    for (const effect of leaderSkill.effects) {
+      if (effect.type !== 'passive') continue
+
+      for (const hero of heroes.value) {
+        if (matchesCondition(hero, effect.condition)) {
+          if (!hero.leaderBonuses) hero.leaderBonuses = {}
+          hero.leaderBonuses[effect.stat] = (hero.leaderBonuses[effect.stat] || 0) + effect.value
+        }
+      }
+    }
+
+    addLog(`Leader skill: ${leaderSkill.name} is active!`)
+  }
+
+  // Apply timed leader skill effects at round start
+  function applyTimedLeaderEffects(round) {
+    const leaderSkill = getActiveLeaderSkill()
+    if (!leaderSkill) return
+
+    for (const effect of leaderSkill.effects) {
+      if (effect.type !== 'timed') continue
+      if (effect.triggerRound !== round) continue
+
+      const targets = getLeaderEffectTargets(effect.target, effect.condition)
+
+      for (const target of targets) {
+        applyEffect(target, effect.apply.effectType, {
+          duration: effect.apply.duration,
+          value: effect.apply.value,
+          sourceId: 'leader_skill'
+        })
+      }
+
+      addLog(`Leader skill: ${leaderSkill.name} activates!`)
+    }
+  }
+
   const currentTargetType = computed(() => {
     if (selectedAction.value === 'attack') {
       return 'enemy'
