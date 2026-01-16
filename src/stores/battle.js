@@ -211,6 +211,11 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Add passive leader bonuses
+    if (unit.leaderBonuses?.[statName]) {
+      modifier += unit.leaderBonuses[statName]
+    }
+
     return Math.max(1, Math.floor(baseStat * (1 + modifier / 100)))
   }
 
@@ -402,6 +407,12 @@ export const useBattleStore = defineStore('battle', () => {
       })
     }
 
+    // Apply passive leader skill effects
+    applyPassiveLeaderEffects()
+
+    // Apply round 1 timed effects
+    applyTimedLeaderEffects(1)
+
     calculateTurnOrder()
 
     state.value = BattleState.STARTING
@@ -497,6 +508,9 @@ export const useBattleStore = defineStore('battle', () => {
       currentTurnIndex.value = 0
       roundNumber.value++
       addLog(`--- Round ${roundNumber.value} ---`)
+
+      // Check for round-triggered leader effects
+      applyTimedLeaderEffects(roundNumber.value)
 
       // MP recovery at start of round
       for (const hero of heroes.value) {
