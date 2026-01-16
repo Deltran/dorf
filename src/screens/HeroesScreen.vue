@@ -98,6 +98,18 @@ function getExpProgress(hero) {
   const percent = Math.floor((hero.exp / needed) * 100)
   return { current: hero.exp, needed, percent }
 }
+
+function isLeader(instanceId) {
+  return heroesStore.partyLeader === instanceId
+}
+
+function toggleLeader(hero) {
+  if (isLeader(hero.instanceId)) {
+    heroesStore.setPartyLeader(null)
+  } else {
+    heroesStore.setPartyLeader(hero.instanceId)
+  }
+}
 </script>
 
 <template>
@@ -329,11 +341,34 @@ function getExpProgress(hero) {
           </div>
         </div>
 
+        <!-- Leader Skill Section (5-star only) -->
+        <template v-if="selectedHero.template.rarity === 5 && selectedHero.template.leaderSkill">
+          <div class="section-header leader-header">
+            <div class="section-line"></div>
+            <h4>Leader Skill</h4>
+            <div class="section-line"></div>
+          </div>
+          <div class="leader-skill-info">
+            <div class="leader-skill-name">{{ selectedHero.template.leaderSkill.name }}</div>
+            <div class="leader-skill-desc">{{ selectedHero.template.leaderSkill.description }}</div>
+          </div>
+        </template>
+
         <div class="detail-actions">
-          <span v-if="isInParty(selectedHero.instanceId)" class="in-party-badge">
-            <span class="badge-icon">✓</span>
-            <span>In Party</span>
-          </span>
+          <template v-if="isInParty(selectedHero.instanceId)">
+            <button
+              v-if="selectedHero.template.rarity === 5 && selectedHero.template.leaderSkill"
+              :class="['leader-btn', { active: isLeader(selectedHero.instanceId) }]"
+              @click="toggleLeader(selectedHero)"
+            >
+              <span class="leader-icon">👑</span>
+              <span>{{ isLeader(selectedHero.instanceId) ? 'Leader' : 'Set as Leader' }}</span>
+            </button>
+            <span v-else class="in-party-badge">
+              <span class="badge-icon">✓</span>
+              <span>In Party</span>
+            </span>
+          </template>
           <button
             v-else
             class="add-to-party-btn"
@@ -1054,5 +1089,61 @@ function getExpProgress(hero) {
 
 .cancel-btn:hover {
   background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+}
+
+/* ===== Leader Skill ===== */
+.leader-header {
+  margin-top: 20px;
+}
+
+.leader-skill-info {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(55, 65, 81, 0.3) 100%);
+  padding: 14px;
+  border-radius: 12px;
+  border-left: 3px solid #f59e0b;
+}
+
+.leader-skill-name {
+  font-weight: 600;
+  color: #fbbf24;
+  font-size: 0.95rem;
+  margin-bottom: 6px;
+}
+
+.leader-skill-desc {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+.leader-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  border: 2px solid #4b5563;
+  color: #f3f4f6;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.leader-btn:hover {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+}
+
+.leader-btn.active {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: #f59e0b;
+  color: #0f172a;
+}
+
+.leader-icon {
+  font-size: 1rem;
 }
 </style>
