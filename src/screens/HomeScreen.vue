@@ -63,10 +63,16 @@ const hasParty = computed(() => {
         <h1 class="game-title">Dorf</h1>
         <span class="title-subtitle">Heroes of the Realm</span>
       </div>
-      <div class="gem-display">
-        <div class="gem-glow"></div>
-        <span class="gem-icon">💎</span>
-        <span class="gem-count">{{ gachaStore.gems.toLocaleString() }}</span>
+      <div class="currency-row">
+        <div class="gem-display">
+          <div class="gem-glow"></div>
+          <span class="gem-icon">💎</span>
+          <span class="gem-count">{{ gachaStore.gems.toLocaleString() }}</span>
+        </div>
+        <div class="gold-display">
+          <span class="gold-icon">🪙</span>
+          <span class="gold-count">{{ gachaStore.gold.toLocaleString() }}</span>
+        </div>
       </div>
     </header>
 
@@ -323,6 +329,31 @@ const hasParty = computed(() => {
   position: relative;
   z-index: 1;
   text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
+}
+
+.currency-row {
+  display: flex;
+  gap: 8px;
+}
+
+.gold-display {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #302a1f 0%, #1f2937 100%);
+  padding: 10px 14px;
+  border-radius: 24px;
+  border: 1px solid #f59e0b33;
+}
+
+.gold-icon {
+  font-size: 1rem;
+}
+
+.gold-count {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #f59e0b;
 }
 
 /* ===== Section Headers ===== */

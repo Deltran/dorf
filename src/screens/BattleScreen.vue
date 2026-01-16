@@ -23,6 +23,7 @@ const rewards = ref(null)
 const levelUps = ref([])
 const displayedGems = ref(0)
 const displayedExp = ref(0)
+const displayedGold = ref(0)
 const showXpFloaters = ref(false)
 const revealedItemCount = ref(0)
 
@@ -179,10 +180,12 @@ function handleVictory() {
     rewards.value = questsStore.completeRun()
     if (rewards.value) {
       gachaStore.addGems(rewards.value.gems)
+      gachaStore.addGold(rewards.value.gold || 0)
       levelUps.value = heroesStore.addExpToParty(rewards.value.exp)
     }
     displayedGems.value = 0
     displayedExp.value = 0
+    displayedGold.value = 0
     showXpFloaters.value = false
     showVictoryModal.value = true
     animateRewards()
@@ -209,6 +212,7 @@ function animateRewards() {
 
   const targetGems = rewards.value.gems
   const targetExp = rewards.value.exp
+  const targetGold = rewards.value.gold || 0
   const duration = 1500 // 1.5 seconds
   const steps = 60
   const interval = duration / steps
@@ -222,11 +226,13 @@ function animateRewards() {
 
     displayedGems.value = Math.floor(targetGems * eased)
     displayedExp.value = Math.floor(targetExp * eased)
+    displayedGold.value = Math.floor(targetGold * eased)
 
     if (step >= steps) {
       clearInterval(timer)
       displayedGems.value = targetGems
       displayedExp.value = targetExp
+      displayedGold.value = targetGold
     }
   }, interval)
 }
@@ -657,6 +663,10 @@ function isEnemyAttacking(enemyId) {
           <div class="reward-item">
             <span>💎 Gems</span>
             <span class="reward-value">+{{ displayedGems }}</span>
+          </div>
+          <div class="reward-item gold-reward">
+            <span>🪙 Gold</span>
+            <span class="reward-value">+{{ displayedGold }}</span>
           </div>
           <div class="reward-item">
             <span>⭐ EXP</span>
@@ -1198,6 +1208,10 @@ function isEnemyAttacking(enemyId) {
 
 .reward-item + .reward-item {
   border-top: 1px solid #4b5563;
+}
+
+.reward-item.gold-reward .reward-value {
+  color: #f59e0b;
 }
 
 .reward-value {

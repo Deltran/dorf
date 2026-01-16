@@ -160,10 +160,12 @@ export const useQuestsStore = defineStore('quests', () => {
       inventoryStore.addItem(drop.itemId, drop.count)
     }
 
-    // Calculate rewards
+    // Calculate rewards (gold is based on exp value or explicit node.rewards.gold)
+    const baseGold = node.rewards.gold || Math.floor(node.rewards.exp * 2)
     const rewards = {
       gems: node.rewards.gems,
       exp: node.rewards.exp,
+      gold: baseGold,
       isFirstClear,
       items: itemDrops
     }
@@ -171,6 +173,7 @@ export const useQuestsStore = defineStore('quests', () => {
     if (isFirstClear && node.firstClearBonus) {
       rewards.gems += node.firstClearBonus.gems || 0
       rewards.exp += node.firstClearBonus.exp || 0
+      rewards.gold += node.firstClearBonus.gold || Math.floor(baseGold * 0.5)
     }
 
     // Clear current run

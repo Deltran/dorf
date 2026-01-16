@@ -1,6 +1,6 @@
 <script setup>
-import { ref, computed } from 'vue'
-import { useHeroesStore, useInventoryStore } from '../stores'
+import { ref, computed, watch } from 'vue'
+import { useHeroesStore, useInventoryStore, useGachaStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
@@ -11,6 +11,7 @@ const emit = defineEmits(['navigate'])
 
 const heroesStore = useHeroesStore()
 const inventoryStore = useInventoryStore()
+const gachaStore = useGachaStore()
 
 const selectedHero = ref(null)
 const viewMode = ref('collection') // 'collection' or 'party'
@@ -18,6 +19,11 @@ const placingHero = ref(null) // hero being placed into party
 const heroImageError = ref(false)
 const showItemPicker = ref(false)
 const xpGainAnimation = ref(null) // { value: number }
+
+// Merge state
+const showMergeModal = ref(false)
+const mergeInfo = ref(null)
+const selectedFodder = ref([])
 
 // Import all hero images
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
@@ -146,6 +152,98 @@ function useItemOnHero(item) {
     }
   }
 }
+
+// Merge functions
+const canShowMergeButton = computed(() => {
+  if (!selectedHero.value) return false
+  const starLevel = selectedHero.value.starLevel || selectedHero.value.template.rarity
+  return starLevel < 5
+})
+
+// Watch selectedHero to update mergeInfo
+watch(selectedHero, (hero) => {
+  if (hero) {
+    mergeInfo.value = heroesStore.canMergeHero(hero.instanceId)
+  } else {
+    mergeInfo.value = null
+  }
+}, { immediate: true })
+
+const availableFodder = computed(() => {
+  if (!selectedHero.value) return []
+  return heroesStore.collection
+    .filter(h =>
+      h.templateId === selectedHero.value.templateId &&
+      h.instanceId !== selectedHero.value.instanceId
+    )
+    .sort((a, b) => a.level - b.level)
+})
+
+const hasEnoughGold = computed(() => {
+  return gachaStore.gold >= (mergeInfo.value?.goldCost || 0)
+})
+
+const canConfirmMerge = computed(() => {
+  return selectedFodder.value.length === mergeInfo.value?.copiesNeeded && hasEnoughGold.value
+})
+
+function isFodderInParty(instanceId) {
+  return heroesStore.party.includes(instanceId)
+}
+
+function openMergeModal() {
+  if (!selectedHero.value || !mergeInfo.value?.canMerge) return
+
+  const candidates = heroesStore.getMergeCandidates(
+    selectedHero.value.instanceId,
+    mergeInfo.value.copiesNeeded
+  )
+  selectedFodder.value = candidates.map(h => h.instanceId)
+  showMergeModal.value = true
+}
+
+function closeMergeModal() {
+  showMergeModal.value = false
+  selectedFodder.value = []
+}
+
+function toggleFodder(instanceId) {
+  const index = selectedFodder.value.indexOf(instanceId)
+  if (index === -1) {
+    if (selectedFodder.value.length < mergeInfo.value?.copiesNeeded) {
+      selectedFodder.value.push(instanceId)
+    }
+  } else {
+    selectedFodder.value.splice(index, 1)
+  }
+}
+
+function confirmMerge() {
+  if (!canConfirmMerge.value) return
+
+  // Show party warning if any fodder is in party
+  const partyFodder = selectedFodder.value.filter(id => isFodderInParty(id))
+  if (partyFodder.length > 0) {
+    if (!confirm('Some selected heroes are in your party and will be removed. Continue?')) {
+      return
+    }
+  }
+
+  const result = heroesStore.mergeHero(selectedHero.value.instanceId, selectedFodder.value)
+
+  if (result.success) {
+    closeMergeModal()
+    // Refresh selected hero and merge info
+    selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
+    mergeInfo.value = heroesStore.canMergeHero(selectedHero.value.instanceId)
+  } else {
+    alert(result.error)
+  }
+}
+
+function getStarLevel(hero) {
+  return hero.starLevel || hero.template?.rarity || 1
+}
 </script>
 
 <template>
@@ -181,6 +279,13 @@ function useItemOnHero(item) {
       >
         <span class="tab-icon">⚔️</span>
         <span class="tab-label">Party</span>
+      </button>
+      <button
+        class="tab merge-tab"
+        @click="emit('navigate', 'merge')"
+      >
+        <span class="tab-icon">⭐</span>
+        <span class="tab-label">Fusion</span>
       </button>
     </div>
 
@@ -283,7 +388,10 @@ function useItemOnHero(item) {
           />
           <div class="header-info">
             <h3>{{ selectedHero.template.name }}</h3>
-            <StarRating :rating="selectedHero.template.rarity" />
+            <StarRating :rating="getStarLevel(selectedHero)" />
+            <div v-if="selectedHero.starLevel > selectedHero.template.rarity" class="origin-badge">
+              {{ selectedHero.template.rarity }}★ origin
+            </div>
           </div>
         </div>
         <button class="close-detail" @click="selectedHero = null">×</button>
@@ -417,6 +525,18 @@ function useItemOnHero(item) {
           </button>
         </div>
 
+        <!-- Merge Button -->
+        <div v-if="canShowMergeButton" class="merge-section">
+          <button
+            class="merge-btn"
+            :disabled="!mergeInfo?.canMerge"
+            @click="openMergeModal"
+          >
+            <span class="merge-icon">⭐</span>
+            <span>{{ mergeInfo?.canMerge ? 'Merge' : mergeInfo?.reason }}</span>
+          </button>
+        </div>
+
         <!-- Use XP Item Button -->
         <div v-if="selectedHero.level < 250 && xpItems.length > 0" class="use-item-section">
           <button class="use-item-btn" @click="openItemPicker">
@@ -452,6 +572,72 @@ function useItemOnHero(item) {
               </div>
               <span class="picker-item-count">×{{ item.count }}</span>
             </div>
+          </div>
+        </div>
+
+        <!-- Merge Modal -->
+        <div v-if="showMergeModal" class="merge-modal-backdrop" @click="closeMergeModal"></div>
+        <div v-if="showMergeModal" class="merge-modal">
+          <div class="merge-modal-header">
+            <h4>Merge {{ selectedHero?.template.name }}</h4>
+            <button class="close-merge" @click="closeMergeModal">×</button>
+          </div>
+
+          <div class="merge-preview">
+            <div class="merge-base">
+              <span class="label">Base Hero</span>
+              <div class="hero-preview">
+                <span class="stars">{{ '★'.repeat(getStarLevel(selectedHero)) }}</span>
+                <span class="name">Lv.{{ selectedHero?.level }} {{ selectedHero?.template.name }}</span>
+              </div>
+            </div>
+
+            <div class="merge-arrow">→</div>
+
+            <div class="merge-result">
+              <span class="label">Result</span>
+              <div class="hero-preview result">
+                <span class="stars">{{ '★'.repeat(mergeInfo?.targetStarLevel || 1) }}</span>
+                <span class="name">{{ selectedHero?.template.name }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="fodder-section">
+            <h5>Select {{ mergeInfo?.copiesNeeded }} copies to consume:</h5>
+            <div class="fodder-grid">
+              <div
+                v-for="hero in availableFodder"
+                :key="hero.instanceId"
+                class="fodder-item"
+                :class="{
+                  selected: selectedFodder.includes(hero.instanceId),
+                  'in-party': isFodderInParty(hero.instanceId)
+                }"
+                @click="toggleFodder(hero.instanceId)"
+              >
+                <span class="fodder-level">Lv.{{ hero.level }}</span>
+                <span v-if="isFodderInParty(hero.instanceId)" class="party-warning">⚠️ In Party</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="merge-cost">
+            <span>Cost: {{ mergeInfo?.goldCost }} Gold</span>
+            <span :class="{ insufficient: !hasEnoughGold }">
+              (You have: {{ gachaStore.gold }})
+            </span>
+          </div>
+
+          <div class="merge-modal-actions">
+            <button class="merge-cancel-btn" @click="closeMergeModal">Cancel</button>
+            <button
+              class="merge-confirm-btn"
+              :disabled="!canConfirmMerge"
+              @click="confirmMerge"
+            >
+              Merge
+            </button>
           </div>
         </div>
       </div>
@@ -613,6 +799,17 @@ function useItemOnHero(item) {
   border-color: #3b82f6;
   color: #f3f4f6;
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(30, 41, 59, 0.8) 100%);
+}
+
+.tab.merge-tab {
+  border-color: #f59e0b;
+  color: #f59e0b;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(30, 41, 59, 0.8) 100%);
+}
+
+.tab.merge-tab:hover {
+  border-color: #fbbf24;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(30, 41, 59, 0.8) 100%);
 }
 
 .tab-icon {
@@ -1445,5 +1642,267 @@ function useItemOnHero(item) {
   background: rgba(55, 65, 81, 0.5);
   padding: 4px 10px;
   border-radius: 8px;
+}
+
+/* ===== Origin Badge ===== */
+.origin-badge {
+  font-size: 0.7rem;
+  color: #9ca3af;
+  opacity: 0.8;
+  font-style: italic;
+  margin-top: 2px;
+}
+
+/* ===== Merge Section ===== */
+.merge-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #374151;
+}
+
+.merge-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.merge-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);
+}
+
+.merge-btn:disabled {
+  background: #4b5563;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+.merge-icon {
+  font-size: 1.1rem;
+}
+
+/* ===== Merge Modal ===== */
+.merge-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 200;
+}
+
+.merge-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 400px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #374151;
+  border-radius: 16px;
+  padding: 20px;
+  z-index: 201;
+  animation: modalPop 0.2s ease;
+}
+
+.merge-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.merge-modal-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+.close-merge {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.close-merge:hover {
+  color: #f3f4f6;
+}
+
+.merge-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: #111827;
+  border-radius: 8px;
+}
+
+.merge-base, .merge-result {
+  text-align: center;
+}
+
+.merge-preview .label {
+  display: block;
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.hero-preview .stars {
+  color: #f59e0b;
+  display: block;
+  font-size: 1rem;
+}
+
+.hero-preview .name {
+  display: block;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+.hero-preview.result {
+  color: #22c55e;
+}
+
+.hero-preview.result .stars {
+  color: #22c55e;
+}
+
+.merge-arrow {
+  font-size: 1.5rem;
+  color: #f59e0b;
+}
+
+.fodder-section {
+  margin-bottom: 16px;
+}
+
+.fodder-section h5 {
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-weight: 500;
+}
+
+.fodder-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.fodder-item {
+  padding: 10px 8px;
+  background: #374151;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.fodder-item:hover {
+  background: #4b5563;
+}
+
+.fodder-item.selected {
+  border-color: #f59e0b;
+  background: #4b5563;
+}
+
+.fodder-item.in-party {
+  background: #7c2d12;
+}
+
+.fodder-level {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.party-warning {
+  display: block;
+  font-size: 0.65rem;
+  color: #fbbf24;
+  margin-top: 4px;
+}
+
+.merge-cost {
+  text-align: center;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: #f3f4f6;
+}
+
+.merge-cost .insufficient {
+  color: #ef4444;
+}
+
+.merge-modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.merge-cancel-btn {
+  padding: 10px 20px;
+  background: #4b5563;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.merge-cancel-btn:hover {
+  background: #6b7280;
+}
+
+.merge-confirm-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.merge-confirm-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.merge-confirm-btn:disabled {
+  background: #4b5563;
+  cursor: not-allowed;
 }
 </style>

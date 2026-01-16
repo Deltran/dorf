@@ -9,6 +9,7 @@ import HeroesScreen from './screens/HeroesScreen.vue'
 import WorldMapScreen from './screens/WorldMapScreen.vue'
 import BattleScreen from './screens/BattleScreen.vue'
 import InventoryScreen from './screens/InventoryScreen.vue'
+import MergeScreen from './screens/MergeScreen.vue'
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
@@ -44,6 +45,7 @@ watch(
     heroesStore.collection.length,
     heroesStore.party,
     gachaStore.gems,
+    gachaStore.gold,
     gachaStore.totalPulls,
     questsStore.completedNodes.length,
     inventoryStore.totalItemCount
@@ -91,6 +93,10 @@ function startBattle() {
       />
       <InventoryScreen
         v-else-if="currentScreen === 'inventory'"
+        @navigate="navigate"
+      />
+      <MergeScreen
+        v-else-if="currentScreen === 'merge'"
         @navigate="navigate"
       />
     </template>

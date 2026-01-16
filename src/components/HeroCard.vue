@@ -81,6 +81,29 @@ const levelDisplay = computed(() => {
   const level = props.hero.level || 1
   return level >= 250 ? 'Master' : `Lv.${level}`
 })
+
+// Star level (can be upgraded through merging)
+const starLevel = computed(() => {
+  return props.hero.starLevel || template.value?.rarity || 1
+})
+
+// Base rarity from template (origin)
+const baseRarity = computed(() => {
+  return template.value?.rarity || 1
+})
+
+// Has been merged if star level exceeds base rarity
+const isMerged = computed(() => {
+  return starLevel.value > baseRarity.value
+})
+
+const rarityNames = {
+  1: 'Common',
+  2: 'Uncommon',
+  3: 'Rare',
+  4: 'Epic',
+  5: 'Legendary'
+}
 </script>
 
 <template>
@@ -107,7 +130,10 @@ const levelDisplay = computed(() => {
     <div class="card-body">
       <div class="hero-name">{{ template?.name || 'Unknown' }}</div>
       <div class="hero-class">{{ heroClass?.title || 'Unknown' }}</div>
-      <StarRating :rating="template?.rarity || 1" size="sm" />
+      <StarRating :rating="starLevel" size="sm" />
+      <div v-if="isMerged" class="origin-badge">
+        {{ rarityNames[baseRarity] }} origin
+      </div>
     </div>
 
     <div v-if="showBars && hero.currentHp !== undefined" class="card-bars">
@@ -233,6 +259,14 @@ const levelDisplay = computed(() => {
   font-size: 0.75rem;
   color: #9ca3af;
   margin-bottom: 4px;
+}
+
+.origin-badge {
+  font-size: 0.65rem;
+  color: #9ca3af;
+  opacity: 0.7;
+  font-style: italic;
+  margin-top: 2px;
 }
 
 .card-bars {
