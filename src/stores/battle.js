@@ -157,6 +157,8 @@ export const useBattleStore = defineStore('battle', () => {
     const leaderSkill = getActiveLeaderSkill()
     if (!leaderSkill) return
 
+    const heroesStore = useHeroesStore()
+
     for (const effect of leaderSkill.effects) {
       if (effect.type !== 'timed') continue
       if (effect.triggerRound !== round) continue
@@ -164,11 +166,27 @@ export const useBattleStore = defineStore('battle', () => {
       const targets = getLeaderEffectTargets(effect.target, effect.condition)
 
       for (const target of targets) {
-        applyEffect(target, effect.apply.effectType, {
-          duration: effect.apply.duration,
-          value: effect.apply.value,
-          sourceId: 'leader_skill'
-        })
+        if (effect.apply.effectType === 'heal') {
+          // Heal based on leader's ATK
+          const leader = heroes.value.find(h => h.instanceId === heroesStore.partyLeader)
+          if (leader) {
+            const leaderAtk = getEffectiveStat(leader, 'atk')
+            const healAmount = Math.floor(leaderAtk * effect.apply.value / 100)
+            const oldHp = target.currentHp
+            target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
+            const actualHeal = target.currentHp - oldHp
+            if (actualHeal > 0) {
+              emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+            }
+          }
+        } else {
+          // Apply status effect
+          applyEffect(target, effect.apply.effectType, {
+            duration: effect.apply.duration,
+            value: effect.apply.value,
+            sourceId: 'leader_skill'
+          })
+        }
       }
 
       addLog(`Leader skill: ${leaderSkill.name} activates!`)

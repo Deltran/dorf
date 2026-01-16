@@ -69,6 +69,34 @@ export const heroTemplates = {
       ]
     }
   },
+  yggra_world_root: {
+    id: 'yggra_world_root',
+    name: 'Yggra, the World Root',
+    rarity: 5,
+    classId: 'druid',
+    baseStats: { hp: 120, atk: 40, def: 35, spd: 10, mp: 75 },
+    skill: {
+      name: 'Blessing of the World Root',
+      description: 'Channel the life force of the world tree to restore all allies for 100% ATK',
+      mpCost: 25,
+      targetType: 'all_allies'
+    },
+    leaderSkill: {
+      name: 'Ancient Awakening',
+      description: "On round 1, all allies are healed for 10% of Yggra's ATK",
+      effects: [
+        {
+          type: 'timed',
+          triggerRound: 1,
+          target: 'all_allies',
+          apply: {
+            effectType: 'heal',
+            value: 10
+          }
+        }
+      ]
+    }
+  },
 
   // 4-star (Epic)
   sir_gallan: {
