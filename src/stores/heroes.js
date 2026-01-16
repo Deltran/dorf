@@ -45,7 +45,8 @@ export const useHeroesStore = defineStore('heroes', () => {
       instanceId: crypto.randomUUID(),
       templateId,
       level: 1,
-      exp: 0
+      exp: 0,
+      starLevel: template.rarity  // Starts at base rarity, upgradeable through merging
     }
 
     collection.value.push(heroInstance)
