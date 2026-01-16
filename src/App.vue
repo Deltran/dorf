@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 
 import HomeScreen from './screens/HomeScreen.vue'
@@ -8,10 +8,12 @@ import GachaScreen from './screens/GachaScreen.vue'
 import HeroesScreen from './screens/HeroesScreen.vue'
 import WorldMapScreen from './screens/WorldMapScreen.vue'
 import BattleScreen from './screens/BattleScreen.vue'
+import InventoryScreen from './screens/InventoryScreen.vue'
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const questsStore = useQuestsStore()
+const inventoryStore = useInventoryStore()
 
 const currentScreen = ref('home')
 const isLoaded = ref(false)
@@ -21,7 +23,7 @@ onMounted(() => {
   const hasData = hasSaveData()
 
   if (hasData) {
-    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore })
+    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore })
   } else {
     // New player: give them a starter hero
     initNewPlayer()
@@ -43,11 +45,12 @@ watch(
     heroesStore.party,
     gachaStore.gems,
     gachaStore.totalPulls,
-    questsStore.completedNodes.length
+    questsStore.completedNodes.length,
+    inventoryStore.totalItemCount
   ],
   () => {
     if (isLoaded.value) {
-      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore })
+      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore })
     }
   },
   { deep: true }
@@ -84,6 +87,10 @@ function startBattle() {
       />
       <BattleScreen
         v-else-if="currentScreen === 'battle'"
+        @navigate="navigate"
+      />
+      <InventoryScreen
+        v-else-if="currentScreen === 'inventory'"
         @navigate="navigate"
       />
     </template>

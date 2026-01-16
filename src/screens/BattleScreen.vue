@@ -7,6 +7,8 @@ import ActionButton from '../components/ActionButton.vue'
 import DamageNumber from '../components/DamageNumber.vue'
 import ImpactIcon from '../components/ImpactIcon.vue'
 import StatBar from '../components/StatBar.vue'
+import ItemCard from '../components/ItemCard.vue'
+import { getItem } from '../data/items.js'
 
 const emit = defineEmits(['navigate', 'battleEnd'])
 
@@ -22,6 +24,7 @@ const levelUps = ref([])
 const displayedGems = ref(0)
 const displayedExp = ref(0)
 const showXpFloaters = ref(false)
+const revealedItemCount = ref(0)
 
 // Combat visual effects
 const damageNumbers = ref([])
@@ -187,6 +190,17 @@ function handleVictory() {
     setTimeout(() => {
       showXpFloaters.value = true
     }, 300)
+    // Reveal items sequentially
+    revealedItemCount.value = 0
+    if (rewards.value?.items?.length > 0) {
+      const revealNext = () => {
+        if (revealedItemCount.value < rewards.value.items.length) {
+          revealedItemCount.value++
+          setTimeout(revealNext, 200)
+        }
+      }
+      setTimeout(revealNext, 800) // Start after gems/exp animate
+    }
   }
 }
 
@@ -301,6 +315,14 @@ const partyHeroesForVictory = computed(() => {
     .filter(Boolean)
     .map(instanceId => heroesStore.getHeroFull(instanceId))
     .filter(Boolean)
+})
+
+const itemDropsWithData = computed(() => {
+  if (!rewards.value?.items) return []
+  return rewards.value.items.map(drop => ({
+    ...getItem(drop.itemId),
+    count: drop.count
+  }))
 })
 
 function heroLeveledUp(instanceId) {
@@ -642,6 +664,19 @@ function isEnemyAttacking(enemyId) {
           </div>
           <div v-if="rewards.isFirstClear" class="first-clear">
             First Clear Bonus!
+          </div>
+        </div>
+
+        <div v-if="itemDropsWithData.length > 0" class="item-drops">
+          <div class="drops-header">Items Found</div>
+          <div class="drops-grid">
+            <div
+              v-for="(item, index) in itemDropsWithData"
+              :key="item.id"
+              :class="['drop-item', { revealed: index < revealedItemCount }]"
+            >
+              <ItemCard :item="item" compact />
+            </div>
           </div>
         </div>
 
@@ -1356,5 +1391,43 @@ function isEnemyAttacking(enemyId) {
     opacity: 0;
     transform: translateX(-50%) translateY(-30px);
   }
+}
+
+/* ===== Item Drops ===== */
+.item-drops {
+  margin-bottom: 20px;
+}
+
+.drops-header {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+}
+
+.drops-grid {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.drop-item {
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s ease;
+}
+
+.drop-item.revealed {
+  opacity: 1;
+  transform: scale(1);
+  animation: itemPop 0.3s ease;
+}
+
+@keyframes itemPop {
+  0% { transform: scale(0.5); }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 </style>

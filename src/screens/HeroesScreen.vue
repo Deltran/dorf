@@ -1,19 +1,23 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useHeroesStore } from '../stores'
+import { useHeroesStore, useInventoryStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
+import { getItem } from '../data/items.js'
 
 const emit = defineEmits(['navigate'])
 
 const heroesStore = useHeroesStore()
+const inventoryStore = useInventoryStore()
 
 const selectedHero = ref(null)
 const viewMode = ref('collection') // 'collection' or 'party'
 const placingHero = ref(null) // hero being placed into party
 const heroImageError = ref(false)
+const showItemPicker = ref(false)
+const xpGainAnimation = ref(null) // { value: number }
 
 // Import all hero images
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
@@ -42,6 +46,10 @@ const partySlots = computed(() => {
     if (!instanceId) return { index, hero: null }
     return { index, hero: heroesStore.getHeroFull(instanceId) }
   })
+})
+
+const xpItems = computed(() => {
+  return inventoryStore.itemList.filter(item => item.type === 'xp')
 })
 
 function selectHero(hero) {
@@ -108,6 +116,34 @@ function toggleLeader(hero) {
     heroesStore.setPartyLeader(null)
   } else {
     heroesStore.setPartyLeader(hero.instanceId)
+  }
+}
+
+function openItemPicker() {
+  showItemPicker.value = true
+}
+
+function closeItemPicker() {
+  showItemPicker.value = false
+}
+
+function useItemOnHero(item) {
+  if (!selectedHero.value) return
+  const result = heroesStore.useXpItem(selectedHero.value.instanceId, item.id)
+  if (result.success) {
+    // Show XP gain animation
+    xpGainAnimation.value = { value: result.xpGained }
+    setTimeout(() => {
+      xpGainAnimation.value = null
+    }, 1500)
+
+    // Refresh selected hero data
+    selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
+
+    // Close picker if no more XP items
+    if (xpItems.value.length === 0) {
+      closeItemPicker()
+    }
   }
 }
 </script>
@@ -379,6 +415,44 @@ function toggleLeader(hero) {
           >
             <span>Add to Party</span>
           </button>
+        </div>
+
+        <!-- Use XP Item Button -->
+        <div v-if="selectedHero.level < 250 && xpItems.length > 0" class="use-item-section">
+          <button class="use-item-btn" @click="openItemPicker">
+            <span class="btn-icon">📖</span>
+            <span>Use XP Item</span>
+            <span class="item-badge">{{ xpItems.length }}</span>
+          </button>
+        </div>
+
+        <!-- XP Gain Animation -->
+        <div v-if="xpGainAnimation" class="xp-gain-floater">
+          +{{ xpGainAnimation.value }} XP
+        </div>
+
+        <!-- Item Picker Modal -->
+        <div v-if="showItemPicker" class="item-picker-backdrop" @click="closeItemPicker"></div>
+        <div v-if="showItemPicker" class="item-picker-modal">
+          <div class="picker-header">
+            <h4>Use XP Item</h4>
+            <button class="close-picker" @click="closeItemPicker">×</button>
+          </div>
+          <div class="picker-items">
+            <div
+              v-for="item in xpItems"
+              :key="item.id"
+              class="picker-item"
+              @click="useItemOnHero(item)"
+            >
+              <span class="picker-item-icon">📖</span>
+              <div class="picker-item-info">
+                <span class="picker-item-name">{{ item.name }}</span>
+                <span class="picker-item-xp">+{{ item.xpValue }} XP</span>
+              </div>
+              <span class="picker-item-count">×{{ item.count }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </aside>
@@ -1169,5 +1243,207 @@ function toggleLeader(hero) {
 @keyframes crownBob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
+}
+
+/* ===== Use XP Item Section ===== */
+.use-item-section {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #374151;
+}
+
+.use-item-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+}
+
+.use-item-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+}
+
+.use-item-btn .btn-icon {
+  font-size: 1.1rem;
+}
+
+.item-badge {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  margin-left: 4px;
+}
+
+/* ===== XP Gain Floater ===== */
+.xp-gain-floater {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #a78bfa;
+  text-shadow: 0 2px 8px rgba(167, 139, 250, 0.5);
+  pointer-events: none;
+  user-select: none;
+  animation: xpFloat 1.5s ease-out forwards;
+  z-index: 200;
+}
+
+@keyframes xpFloat {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  20% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  40% {
+    transform: translate(-50%, -60%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -100%) scale(1);
+  }
+}
+
+/* ===== Item Picker Modal ===== */
+.item-picker-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 150;
+}
+
+.item-picker-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 360px;
+  max-height: 70vh;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #374151;
+  border-radius: 16px;
+  overflow: hidden;
+  z-index: 151;
+  animation: modalPop 0.2s ease;
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #374151;
+  background: rgba(55, 65, 81, 0.3);
+}
+
+.picker-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.close-picker {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.close-picker:hover {
+  color: #f3f4f6;
+}
+
+.picker-items {
+  padding: 12px;
+  overflow-y: auto;
+  max-height: calc(70vh - 60px);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: rgba(55, 65, 81, 0.4);
+  border: 1px solid #4b5563;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.picker-item:hover {
+  background: rgba(124, 58, 237, 0.2);
+  border-color: #7c3aed;
+  transform: translateX(4px);
+}
+
+.picker-item-icon {
+  font-size: 1.8rem;
+}
+
+.picker-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.picker-item-name {
+  font-weight: 600;
+  color: #f3f4f6;
+  font-size: 0.95rem;
+}
+
+.picker-item-xp {
+  font-size: 0.8rem;
+  color: #a78bfa;
+}
+
+.picker-item-count {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #9ca3af;
+  background: rgba(55, 65, 81, 0.5);
+  padding: 4px 10px;
+  border-radius: 8px;
 }
 </style>

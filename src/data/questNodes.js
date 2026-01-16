@@ -16,7 +16,11 @@ export const questNodes = {
     ],
     connections: ['forest_02'],
     rewards: { gems: 50, exp: 80 },
-    firstClearBonus: { gems: 30 }
+    firstClearBonus: { gems: 30 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 1, chance: 0.8 },
+      { itemId: 'useless_rock', min: 1, max: 1, chance: 0.3 }
+    ]
   },
   forest_02: {
     id: 'forest_02',
@@ -31,7 +35,12 @@ export const questNodes = {
     ],
     connections: ['forest_03', 'forest_04'],
     rewards: { gems: 60, exp: 120 },
-    firstClearBonus: { gems: 40 }
+    firstClearBonus: { gems: 40 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 0.9 },
+      { itemId: 'useless_rock', min: 1, max: 1, chance: 0.25 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 }
+    ]
   },
   forest_03: {
     id: 'forest_03',
@@ -47,7 +56,13 @@ export const questNodes = {
     ],
     connections: ['lake_01'],
     rewards: { gems: 80, exp: 150 },
-    firstClearBonus: { gems: 50 }
+    firstClearBonus: { gems: 50 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.3 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.25 },
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.15 }
+    ]
   },
   forest_04: {
     id: 'forest_04',
@@ -63,7 +78,13 @@ export const questNodes = {
     ],
     connections: ['forest_05'],
     rewards: { gems: 80, exp: 150 },
-    firstClearBonus: { gems: 50 }
+    firstClearBonus: { gems: 50 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.3 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.4 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 }
+    ]
   },
   forest_05: {
     id: 'forest_05',
@@ -80,7 +101,13 @@ export const questNodes = {
     ],
     connections: ['cave_01'],
     rewards: { gems: 100, exp: 200 },
-    firstClearBonus: { gems: 75 }
+    firstClearBonus: { gems: 75 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.5 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.5 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.15 }
+    ]
   },
 
   // Echoing Caverns (Mid Game)
@@ -98,7 +125,13 @@ export const questNodes = {
     ],
     connections: ['cave_02', 'cave_03'],
     rewards: { gems: 90, exp: 180 },
-    firstClearBonus: { gems: 60 }
+    firstClearBonus: { gems: 60 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.4 },
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.35 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 }
+    ]
   },
   cave_02: {
     id: 'cave_02',
@@ -113,7 +146,13 @@ export const questNodes = {
     ],
     connections: ['cave_04'],
     rewards: { gems: 100, exp: 200 },
-    firstClearBonus: { gems: 70 }
+    firstClearBonus: { gems: 70 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.5 },
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.4 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.15 }
+    ]
   },
   cave_03: {
     id: 'cave_03',
@@ -128,7 +167,13 @@ export const questNodes = {
     ],
     connections: ['cave_04'],
     rewards: { gems: 100, exp: 200 },
-    firstClearBonus: { gems: 70 }
+    firstClearBonus: { gems: 70 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.5 },
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.4 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.15 }
+    ]
   },
   cave_04: {
     id: 'cave_04',
@@ -143,7 +188,13 @@ export const questNodes = {
     ],
     connections: ['mountain_01'],
     rewards: { gems: 120, exp: 250 },
-    firstClearBonus: { gems: 80 }
+    firstClearBonus: { gems: 80 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.2 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.5 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.1 }
+    ]
   },
 
   // Stormwind Peaks (Late Game)
@@ -161,7 +212,12 @@ export const questNodes = {
     ],
     connections: ['mountain_02', 'mountain_03'],
     rewards: { gems: 130, exp: 280 },
-    firstClearBonus: { gems: 90 }
+    firstClearBonus: { gems: 90 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.3 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.5 }
+    ]
   },
   mountain_02: {
     id: 'mountain_02',
@@ -176,7 +232,12 @@ export const questNodes = {
     ],
     connections: ['mountain_04'],
     rewards: { gems: 150, exp: 320 },
-    firstClearBonus: { gems: 100 }
+    firstClearBonus: { gems: 100 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.4 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 }
+    ]
   },
   mountain_03: {
     id: 'mountain_03',
@@ -191,7 +252,12 @@ export const questNodes = {
     ],
     connections: ['mountain_04'],
     rewards: { gems: 150, exp: 320 },
-    firstClearBonus: { gems: 100 }
+    firstClearBonus: { gems: 100 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.4 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 }
+    ]
   },
   mountain_04: {
     id: 'mountain_04',
@@ -206,7 +272,12 @@ export const questNodes = {
     ],
     connections: [],
     rewards: { gems: 200, exp: 500 },
-    firstClearBonus: { gems: 150 }
+    firstClearBonus: { gems: 150 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 2, chance: 0.6 },
+      { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.7 }
+    ]
   },
 
   // Whisper Lake (Branching from Spider Nest)
@@ -224,7 +295,13 @@ export const questNodes = {
     ],
     connections: ['lake_02'],
     rewards: { gems: 90, exp: 170 },
-    firstClearBonus: { gems: 55 }
+    firstClearBonus: { gems: 55 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.35 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.3 },
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.2 }
+    ]
   },
   lake_02: {
     id: 'lake_02',
@@ -240,7 +317,13 @@ export const questNodes = {
     ],
     connections: [],
     rewards: { gems: 110, exp: 220 },
-    firstClearBonus: { gems: 70 }
+    firstClearBonus: { gems: 70 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.45 },
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.35 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 }
+    ]
   }
 }
 

@@ -1,15 +1,16 @@
 const SAVE_KEY = 'dorf_save'
-const SAVE_VERSION = 1
+const SAVE_VERSION = 2  // Bump version for inventory addition
 
 export function saveGame(stores) {
-  const { heroes, gacha, quests } = stores
+  const { heroes, gacha, quests, inventory } = stores
 
   const saveData = {
     version: SAVE_VERSION,
     timestamp: Date.now(),
     heroes: heroes.saveState(),
     gacha: gacha.saveState(),
-    quests: quests.saveState()
+    quests: quests.saveState(),
+    inventory: inventory?.saveState() || { items: {} }
   }
 
   try {
@@ -22,7 +23,7 @@ export function saveGame(stores) {
 }
 
 export function loadGame(stores) {
-  const { heroes, gacha, quests } = stores
+  const { heroes, gacha, quests, inventory } = stores
 
   try {
     const saved = localStorage.getItem(SAVE_KEY)
@@ -39,6 +40,7 @@ export function loadGame(stores) {
     if (saveData.heroes) heroes.loadState(saveData.heroes)
     if (saveData.gacha) gacha.loadState(saveData.gacha)
     if (saveData.quests) quests.loadState(saveData.quests)
+    if (saveData.inventory && inventory) inventory.loadState(saveData.inventory)
 
     return true
   } catch (e) {
