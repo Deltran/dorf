@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getQuestNode, getAllQuestNodes, regions } from '../data/questNodes.js'
+import { useInventoryStore } from './inventory.js'
 
 export const useQuestsStore = defineStore('quests', () => {
   // State
@@ -120,6 +121,16 @@ export const useQuestsStore = defineStore('quests', () => {
     return recovered
   }
 
+  function rollItemDrops(node) {
+    const drops = []
+    for (const drop of node.itemDrops || []) {
+      if (Math.random() > drop.chance) continue
+      const count = Math.floor(Math.random() * (drop.max - drop.min + 1)) + drop.min
+      drops.push({ itemId: drop.itemId, count })
+    }
+    return drops
+  }
+
   function completeRun() {
     if (!currentRun.value) return null
 
@@ -140,11 +151,21 @@ export const useQuestsStore = defineStore('quests', () => {
       }
     }
 
+    // Roll item drops
+    const itemDrops = rollItemDrops(node)
+
+    // Grant items
+    const inventoryStore = useInventoryStore()
+    for (const drop of itemDrops) {
+      inventoryStore.addItem(drop.itemId, drop.count)
+    }
+
     // Calculate rewards
     const rewards = {
       gems: node.rewards.gems,
       exp: node.rewards.exp,
-      isFirstClear
+      isFirstClear,
+      items: itemDrops
     }
 
     if (isFirstClear && node.firstClearBonus) {
