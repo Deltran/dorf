@@ -162,11 +162,14 @@ function toggleLeader(hero) {
           :class="['party-slot', { filled: slot.hero }]"
         >
           <template v-if="slot.hero">
-            <HeroCard
-              :hero="slot.hero"
-              showStats
-              @click="selectHero(slot.hero)"
-            />
+            <div class="party-slot-content">
+              <div v-if="isLeader(slot.hero.instanceId)" class="leader-crown">👑</div>
+              <HeroCard
+                :hero="slot.hero"
+                showStats
+                @click="selectHero(slot.hero)"
+              />
+            </div>
             <button
               class="remove-btn"
               @click.stop="removeFromParty(slot.index)"
@@ -1145,5 +1148,26 @@ function toggleLeader(hero) {
 
 .leader-icon {
   font-size: 1rem;
+}
+
+/* ===== Party Slot Leader Crown ===== */
+.party-slot-content {
+  position: relative;
+  flex: 1;
+}
+
+.leader-crown {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  font-size: 1.5rem;
+  z-index: 10;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  animation: crownBob 2s ease-in-out infinite;
+}
+
+@keyframes crownBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
 }
 </style>
