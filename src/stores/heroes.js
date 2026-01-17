@@ -271,30 +271,38 @@ export const useHeroesStore = defineStore('heroes', () => {
     }
   }
 
+  // Helper to get a hero's current star level
+  function getHeroStarLevel(hero) {
+    const template = getHeroTemplate(hero.templateId)
+    return hero.starLevel || template?.rarity || 1
+  }
+
   // Merge functions
   function canMergeHero(instanceId) {
     const hero = collection.value.find(h => h.instanceId === instanceId)
     if (!hero) return { canMerge: false, reason: 'Hero not found' }
 
-    const template = getHeroTemplate(hero.templateId)
-    const starLevel = hero.starLevel || template?.rarity || 1
+    const starLevel = getHeroStarLevel(hero)
 
     if (starLevel >= 5) {
       return { canMerge: false, reason: 'Already at max star level' }
     }
 
-    // Find duplicates (same templateId, different instanceId)
+    // Find duplicates (same templateId, same star level, different instanceId)
     const duplicates = collection.value.filter(
-      h => h.templateId === hero.templateId && h.instanceId !== instanceId
+      h => h.templateId === hero.templateId &&
+           h.instanceId !== instanceId &&
+           getHeroStarLevel(h) === starLevel
     )
 
     const copiesNeeded = starLevel
     if (duplicates.length < copiesNeeded) {
       return {
         canMerge: false,
-        reason: `Need ${copiesNeeded} copies (have ${duplicates.length})`,
+        reason: `Need ${copiesNeeded} ${starLevel}-star copies (have ${duplicates.length})`,
         copiesNeeded,
-        copiesHave: duplicates.length
+        copiesHave: duplicates.length,
+        requiredStarLevel: starLevel
       }
     }
 
@@ -306,7 +314,8 @@ export const useHeroesStore = defineStore('heroes', () => {
       copiesHave: duplicates.length,
       duplicates,
       goldCost,
-      targetStarLevel: starLevel + 1
+      targetStarLevel: starLevel + 1,
+      requiredStarLevel: starLevel
     }
   }
 
@@ -314,9 +323,13 @@ export const useHeroesStore = defineStore('heroes', () => {
     const hero = collection.value.find(h => h.instanceId === instanceId)
     if (!hero) return []
 
-    // Get all duplicates sorted by level (ascending) - sacrifice lowest level first
+    const starLevel = getHeroStarLevel(hero)
+
+    // Get all duplicates with same star level, sorted by level (ascending) - sacrifice lowest level first
     const duplicates = collection.value
-      .filter(h => h.templateId === hero.templateId && h.instanceId !== instanceId)
+      .filter(h => h.templateId === hero.templateId &&
+                   h.instanceId !== instanceId &&
+                   getHeroStarLevel(h) === starLevel)
       .sort((a, b) => a.level - b.level)
 
     return duplicates.slice(0, count)
@@ -328,8 +341,7 @@ export const useHeroesStore = defineStore('heroes', () => {
     const hero = collection.value.find(h => h.instanceId === baseInstanceId)
     if (!hero) return { success: false, error: 'Base hero not found' }
 
-    const template = getHeroTemplate(hero.templateId)
-    const currentStar = hero.starLevel || template?.rarity || 1
+    const currentStar = getHeroStarLevel(hero)
 
     if (currentStar >= 5) {
       return { success: false, error: 'Already at max star level' }
@@ -351,6 +363,11 @@ export const useHeroesStore = defineStore('heroes', () => {
 
     if (fodderHeroes.some(h => h.templateId !== hero.templateId)) {
       return { success: false, error: 'All heroes must be the same type' }
+    }
+
+    // Validate all fodder heroes have the same star level as base
+    if (fodderHeroes.some(h => getHeroStarLevel(h) !== currentStar)) {
+      return { success: false, error: `All fodder heroes must be ${currentStar}-star` }
     }
 
     // Check gold cost

@@ -73,6 +73,9 @@ export const useInventoryStore = defineStore('inventory', () => {
     if (reward.gems) {
       gachaStore.addGems(reward.gems * count)
     }
+    if (reward.gold) {
+      gachaStore.addGold(reward.gold * count)
+    }
     if (reward.items) {
       for (const r of reward.items) {
         addItem(r.itemId, r.count * count)

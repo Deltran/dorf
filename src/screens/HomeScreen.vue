@@ -82,7 +82,7 @@ const hasParty = computed(() => {
         <div class="party-title">Your Party</div>
         <div v-if="hasParty" class="party-grid">
           <template v-for="(hero, index) in partyPreview" :key="index">
-            <div class="party-slot" :class="{ filled: hero }" @click="emit('navigate', 'heroes')">
+            <div class="party-slot" :class="{ filled: hero }" @click="emit('navigate', 'heroes', hero?.instanceId)">
               <img
                 v-if="hero"
                 :src="getHeroImageUrl(hero.templateId)"

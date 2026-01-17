@@ -268,21 +268,33 @@ export const useBattleStore = defineStore('battle', () => {
     const definition = getEffectDefinition(effectType)
     if (!definition) return
 
-    // Check if effect already exists
+    const newEffect = createEffect(effectType, { duration, value, sourceId })
+    if (!newEffect) return
+
+    // Check if effect of the EXACT same type already exists
     const existingIndex = unit.statusEffects.findIndex(e => e.type === effectType)
 
     if (existingIndex !== -1) {
       if (definition.stackable) {
-        // Add another stack
-        unit.statusEffects.push(createEffect(effectType, { duration, value, sourceId }))
+        // Add another stack - reassign array for Vue reactivity
+        unit.statusEffects = [...unit.statusEffects, newEffect]
       } else {
         // Refresh duration and update value if higher
-        const existing = unit.statusEffects[existingIndex]
-        existing.duration = Math.max(existing.duration, duration)
-        existing.value = Math.max(existing.value, value)
+        // Create new array with updated effect for Vue reactivity
+        unit.statusEffects = unit.statusEffects.map((effect, index) => {
+          if (index === existingIndex) {
+            return {
+              ...effect,
+              duration: Math.max(effect.duration, duration),
+              value: Math.max(effect.value, value)
+            }
+          }
+          return effect
+        })
       }
     } else {
-      unit.statusEffects.push(createEffect(effectType, { duration, value, sourceId }))
+      // New effect type - add to array (reassign for Vue reactivity)
+      unit.statusEffects = [...unit.statusEffects, newEffect]
     }
 
     const unitName = unit.template?.name || 'Unknown'
@@ -944,7 +956,8 @@ export const useBattleStore = defineStore('battle', () => {
           if (skill.effects) {
             for (const effect of skill.effects) {
               if (effect.target === 'enemy' || effect.target === 'hero') {
-                applyEffect(heroTarget, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+                const effectValue = calculateEffectValue(effect, effectiveAtk)
+                applyEffect(heroTarget, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
                 emitCombatEffect(heroTarget.instanceId, 'hero', 'debuff', 0)
               }
             }
@@ -959,13 +972,14 @@ export const useBattleStore = defineStore('battle', () => {
         // Apply self/ally buffs for AoE skills
         if (skill.effects) {
           for (const effect of skill.effects) {
+            const effectValue = calculateEffectValue(effect, effectiveAtk)
             if (effect.target === 'self') {
-              applyEffect(enemy, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              applyEffect(enemy, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
               emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
             } else if (effect.target === 'all_allies') {
               for (const ally of enemies.value.filter(e => e.currentHp > 0)) {
                 if (effect.excludeSelf && ally.id === enemy.id) continue
-                applyEffect(ally, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+                applyEffect(ally, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
                 emitCombatEffect(ally.id, 'enemy', 'buff', 0)
               }
             }
@@ -978,16 +992,17 @@ export const useBattleStore = defineStore('battle', () => {
         // Apply skill effects
         if (skill.effects) {
           for (const effect of skill.effects) {
+            const effectValue = calculateEffectValue(effect, effectiveAtk)
             if (effect.target === 'enemy' || effect.target === 'hero') {
-              applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
               emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
             } else if (effect.target === 'self') {
-              applyEffect(enemy, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              applyEffect(enemy, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
               emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
             } else if (effect.target === 'all_allies') {
               for (const ally of enemies.value.filter(e => e.currentHp > 0)) {
                 if (effect.excludeSelf && ally.id === enemy.id) continue
-                applyEffect(ally, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+                applyEffect(ally, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
                 emitCombatEffect(ally.id, 'enemy', 'buff', 0)
               }
             }
@@ -1025,16 +1040,17 @@ export const useBattleStore = defineStore('battle', () => {
         // Apply skill effects
         if (skill.effects) {
           for (const effect of skill.effects) {
+            const effectValue = calculateEffectValue(effect, effectiveAtk)
             if (effect.target === 'enemy' || effect.target === 'hero') {
-              applyEffect(target, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
               emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
             } else if (effect.target === 'self') {
-              applyEffect(enemy, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+              applyEffect(enemy, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
               emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
             } else if (effect.target === 'all_allies') {
               for (const ally of enemies.value.filter(e => e.currentHp > 0)) {
                 if (effect.excludeSelf && ally.id === enemy.id) continue
-                applyEffect(ally, effect.type, { duration: effect.duration, value: effect.value, sourceId: enemy.id })
+                applyEffect(ally, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
                 emitCombatEffect(ally.id, 'enemy', 'buff', 0)
               }
             }

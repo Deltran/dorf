@@ -117,12 +117,12 @@ export const heroTemplates = {
       },
       {
         name: 'Challenge',
-        description: 'Force all enemies to target Sir Gallan for 1 turn',
+        description: 'Force all enemies to target Sir Gallan until the end of his next turn',
         mpCost: 12,
         targetType: 'self',
         noDamage: true,
         effects: [
-          { type: EffectType.TAUNT, target: 'self', duration: 1 }
+          { type: EffectType.TAUNT, target: 'self', duration: 2 }
         ]
       }
     ]

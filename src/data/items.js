@@ -8,7 +8,7 @@ export const items = {
     type: 'xp',
     rarity: 1,
     xpValue: 50,
-    sellReward: { gems: 10 }
+    sellReward: { gold: 50 }
   },
   tome_medium: {
     id: 'tome_medium',
@@ -17,7 +17,7 @@ export const items = {
     type: 'xp',
     rarity: 2,
     xpValue: 200,
-    sellReward: { gems: 40 }
+    sellReward: { gold: 200 }
   },
   tome_large: {
     id: 'tome_large',
@@ -26,7 +26,7 @@ export const items = {
     type: 'xp',
     rarity: 3,
     xpValue: 500,
-    sellReward: { gems: 100 }
+    sellReward: { gold: 500 }
   },
   useless_rock: {
     id: 'useless_rock',

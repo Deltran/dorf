@@ -61,9 +61,18 @@ function sellAll() {
   }
 }
 
+const sellRewardType = computed(() => {
+  if (!selectedItem.value?.sellReward) return null
+  if (selectedItem.value.sellReward.gold) return 'gold'
+  if (selectedItem.value.sellReward.gems) return 'gems'
+  return null
+})
+
 const sellValue = computed(() => {
-  if (!selectedItem.value?.sellReward?.gems) return 0
-  return selectedItem.value.sellReward.gems * sellCount.value
+  if (!selectedItem.value?.sellReward) return 0
+  const reward = selectedItem.value.sellReward
+  const baseValue = reward.gold || reward.gems || 0
+  return baseValue * sellCount.value
 })
 </script>
 
@@ -141,9 +150,11 @@ const sellValue = computed(() => {
             <span class="stat-label">XP Value</span>
             <span class="stat-value xp">+{{ selectedItem.xpValue }}</span>
           </div>
-          <div v-if="selectedItem.sellReward?.gems" class="stat-row">
+          <div v-if="sellRewardType" class="stat-row">
             <span class="stat-label">Sell Value</span>
-            <span class="stat-value sell">{{ selectedItem.sellReward.gems }} 💎</span>
+            <span :class="['stat-value', sellRewardType === 'gold' ? 'sell-gold' : 'sell']">
+              {{ selectedItem.sellReward.gold || selectedItem.sellReward.gems }} {{ sellRewardType === 'gold' ? '🪙' : '💎' }}
+            </span>
           </div>
         </div>
 
@@ -158,8 +169,8 @@ const sellValue = computed(() => {
               <span class="count-display">{{ sellCount }}</span>
               <button class="count-btn" @click="incrementSellCount" :disabled="sellCount >= selectedItem.count">+</button>
             </div>
-            <button class="sell-btn" @click="sellSelected">
-              Sell for {{ sellValue }} 💎
+            <button class="sell-btn" :class="{ 'sell-for-gold': sellRewardType === 'gold' }" @click="sellSelected">
+              Sell for {{ sellValue }} {{ sellRewardType === 'gold' ? '🪙' : '💎' }}
             </button>
             <button v-if="selectedItem.count > 1" class="sell-all-btn" @click="sellAll">
               Sell All ({{ selectedItem.count }})
@@ -500,6 +511,10 @@ const sellValue = computed(() => {
   color: #60a5fa;
 }
 
+.stat-value.sell-gold {
+  color: #f59e0b;
+}
+
 .detail-actions {
   display: flex;
   flex-direction: column;
@@ -573,6 +588,14 @@ const sellValue = computed(() => {
 .sell-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.sell-btn.sell-for-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+}
+
+.sell-btn.sell-for-gold:hover {
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
 }
 
 .sell-all-btn {

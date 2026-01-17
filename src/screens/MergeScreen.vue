@@ -8,6 +8,14 @@ const emit = defineEmits(['navigate'])
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 
+// Hero images
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+
+function getHeroImageUrl(heroId) {
+  const path = `../assets/heroes/${heroId}.png`
+  return heroImages[path] || null
+}
+
 const heroGroups = computed(() => {
   // Group heroes by templateId
   const groups = {}
@@ -80,20 +88,33 @@ function selectGroup(group) {
         v-for="group in heroGroups"
         :key="group.templateId"
         class="hero-group"
-        :class="{ 'can-merge': group.canMerge }"
+        :class="[`rarity-${group.highestStar}`, { 'can-merge': group.canMerge }]"
         @click="selectGroup(group)"
       >
-        <div class="group-header">
-          <span class="hero-name">{{ group.template.name }}</span>
-          <span class="hero-stars">{{ '★'.repeat(group.highestStar) }}</span>
+        <div class="group-image">
+          <img
+            v-if="getHeroImageUrl(group.templateId)"
+            :src="getHeroImageUrl(group.templateId)"
+            :alt="group.template.name"
+            class="hero-portrait"
+          />
+          <div v-else class="hero-portrait-placeholder">
+            {{ group.template.name.charAt(0) }}
+          </div>
         </div>
+        <div class="group-content">
+          <div class="group-header">
+            <span class="hero-name">{{ group.template.name }}</span>
+            <span class="hero-stars">{{ '★'.repeat(group.highestStar) }}</span>
+          </div>
 
-        <div class="group-info">
-          <span class="copy-count">{{ group.copies.length }} copies</span>
-          <span v-if="group.canMerge" class="merge-ready">Ready to merge!</span>
-          <span v-else class="merge-progress">
-            {{ group.copiesHave }}/{{ group.copiesNeeded }} for next ★
-          </span>
+          <div class="group-info">
+            <span class="copy-count">{{ group.copies.length }} copies</span>
+            <span v-if="group.canMerge" class="merge-ready">Ready to merge!</span>
+            <span v-else class="merge-progress">
+              {{ group.copiesHave }}/{{ group.copiesNeeded }} for next ★
+            </span>
+          </div>
         </div>
       </div>
 
@@ -180,13 +201,46 @@ function selectGroup(group) {
 }
 
 .hero-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px 16px;
   border-left: 4px solid #4b5563;
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid #374151;
+}
+
+.group-image {
+  flex-shrink: 0;
+}
+
+.hero-portrait {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #374151;
+}
+
+.hero-portrait-placeholder {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #374151;
+  border-radius: 8px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #6b7280;
+}
+
+.group-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .hero-group:hover {
@@ -198,9 +252,29 @@ function selectGroup(group) {
   transform: scale(0.98);
 }
 
+/* Rarity backgrounds */
+.hero-group.rarity-1 {
+  background: linear-gradient(135deg, #1f2937 0%, #262d36 100%);
+  border-left-color: #9ca3af;
+}
+
+.hero-group.rarity-2 {
+  background: linear-gradient(135deg, #1f2937 0%, #1f3329 100%);
+  border-left-color: #22c55e;
+}
+
+.hero-group.rarity-3 {
+  background: linear-gradient(135deg, #1f2937 0%, #1f2a3d 100%);
+  border-left-color: #3b82f6;
+}
+
+.hero-group.rarity-4 {
+  background: linear-gradient(135deg, #1f2937 0%, #2a2340 100%);
+  border-left-color: #a855f7;
+}
+
 .hero-group.can-merge {
-  border-left-color: #f59e0b;
-  background: linear-gradient(135deg, #302a1f 0%, #1e293b 100%);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.3);
 }
 
 .hero-group.can-merge:hover {

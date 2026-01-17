@@ -18,6 +18,7 @@ const inventoryStore = useInventoryStore()
 
 const currentScreen = ref('home')
 const isLoaded = ref(false)
+const initialHeroId = ref(null)
 
 // Load game on mount
 onMounted(() => {
@@ -58,8 +59,9 @@ watch(
   { deep: true }
 )
 
-function navigate(screen) {
+function navigate(screen, heroId = null) {
   currentScreen.value = screen
+  initialHeroId.value = heroId
 }
 
 function startBattle() {
@@ -80,6 +82,7 @@ function startBattle() {
       />
       <HeroesScreen
         v-else-if="currentScreen === 'heroes'"
+        :initial-hero-id="initialHeroId"
         @navigate="navigate"
       />
       <WorldMapScreen

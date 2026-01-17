@@ -202,7 +202,20 @@ function startQuest() {
                 <span class="reward-icon">💎</span>
                 <div class="reward-info">
                   <span class="reward-label">Gems</span>
-                  <span class="reward-value">{{ selectedNode.rewards.gems }}</span>
+                  <span class="reward-value">
+                    {{ selectedNode.rewards.gems }}
+                    <span
+                      v-if="!selectedNode.isCompleted && selectedNode.firstClearBonus"
+                      class="first-clear-bonus-badge"
+                    >+{{ selectedNode.firstClearBonus.gems }} first time bonus!</span>
+                  </span>
+                </div>
+              </div>
+              <div v-if="selectedNode.rewards.gold" class="reward-card">
+                <span class="reward-icon">🪙</span>
+                <div class="reward-info">
+                  <span class="reward-label">Gold</span>
+                  <span class="reward-value gold">{{ selectedNode.rewards.gold }}</span>
                 </div>
               </div>
               <div class="reward-card">
@@ -212,11 +225,6 @@ function startQuest() {
                   <span class="reward-value">{{ selectedNode.rewards.exp }}</span>
                 </div>
               </div>
-            </div>
-            <div v-if="!selectedNode.isCompleted && selectedNode.firstClearBonus" class="first-clear-bonus">
-              <span class="bonus-icon">🎁</span>
-              <span class="bonus-text">First Clear Bonus</span>
-              <span class="bonus-value">+{{ selectedNode.firstClearBonus.gems }} 💎</span>
             </div>
           </div>
 
@@ -674,29 +682,30 @@ function startQuest() {
   font-size: 1.1rem;
 }
 
-.first-clear-bonus {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%);
-  border: 1px solid rgba(251, 191, 36, 0.4);
-  border-radius: 10px;
+.reward-value.gold {
+  color: #f59e0b;
 }
 
-.bonus-icon {
-  font-size: 1.3rem;
-}
-
-.bonus-text {
-  flex: 1;
-  color: #fcd34d;
-  font-weight: 500;
-}
-
-.bonus-value {
+.first-clear-bonus-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: #fbbf24;
-  font-weight: 600;
+  background: rgba(251, 191, 36, 0.2);
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  border-radius: 8px;
+  animation: bonusGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes bonusGlow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(251, 191, 36, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
+  }
 }
 
 /* Start Quest Button */

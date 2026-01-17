@@ -9,6 +9,7 @@ import ImpactIcon from '../components/ImpactIcon.vue'
 import StatBar from '../components/StatBar.vue'
 import ItemCard from '../components/ItemCard.vue'
 import { getItem } from '../data/items.js'
+import { getQuestNode } from '../data/questNodes.js'
 
 const emit = defineEmits(['navigate', 'battleEnd'])
 
@@ -26,6 +27,10 @@ const displayedExp = ref(0)
 const displayedGold = ref(0)
 const showXpFloaters = ref(false)
 const revealedItemCount = ref(0)
+const selectedItem = ref(null) // For item detail popup
+const victoryStep = ref(1) // 1 = rewards, 2 = xp/level ups
+const inspectedHero = ref(null) // For hero stats popup
+const lastClickedHero = ref(null) // Track for double-click detection
 
 // Combat visual effects
 const damageNumbers = ref([])
@@ -187,6 +192,7 @@ function handleVictory() {
     displayedExp.value = 0
     displayedGold.value = 0
     showXpFloaters.value = false
+    victoryStep.value = 1
     showVictoryModal.value = true
     animateRewards()
     // Show XP floaters after a short delay
@@ -274,6 +280,39 @@ function returnToMap() {
 function returnHome() {
   battleStore.endBattle()
   emit('navigate', 'home')
+}
+
+function replayStage() {
+  // Use lastVisitedNode since currentRun is null after completeRun()
+  const nodeId = questsStore.lastVisitedNode
+  if (!nodeId) return
+
+  // Hide modal and reset victory state first
+  showVictoryModal.value = false
+  rewards.value = null
+  levelUps.value = []
+  victoryStep.value = 1
+
+  // End current battle
+  battleStore.endBattle()
+
+  // Start fresh run after state settles
+  setTimeout(() => {
+    questsStore.startRun(nodeId)
+    startCurrentBattle()
+  }, 50)
+}
+
+function nextVictoryStep() {
+  victoryStep.value = 2
+  showXpFloaters.value = false
+  setTimeout(() => {
+    showXpFloaters.value = true
+  }, 300)
+}
+
+function prevVictoryStep() {
+  victoryStep.value = 1
 }
 
 // Hero images
@@ -440,6 +479,55 @@ function getEnemyHitEffect(enemyId) {
 function isEnemyAttacking(enemyId) {
   return attackingEnemies.value[enemyId] || false
 }
+
+function showItemDetail(item) {
+  selectedItem.value = item
+}
+
+function closeItemDetail() {
+  selectedItem.value = null
+}
+
+function handleHeroClick(hero) {
+  // If clicking same hero twice, show stats
+  if (lastClickedHero.value === hero.instanceId) {
+    inspectedHero.value = hero
+    lastClickedHero.value = null
+  } else {
+    lastClickedHero.value = hero.instanceId
+    // Clear after a short delay if no second click
+    setTimeout(() => {
+      if (lastClickedHero.value === hero.instanceId) {
+        lastClickedHero.value = null
+      }
+    }, 500)
+  }
+
+  // Also handle ally targeting if applicable
+  if (alliesTargetable.value && hero.currentHp > 0) {
+    selectHeroTarget(hero)
+  }
+}
+
+function closeHeroInspect() {
+  inspectedHero.value = null
+}
+
+function getHeroEffectiveStats(hero) {
+  if (!hero) return null
+  return {
+    atk: battleStore.getEffectiveStat(hero, 'atk'),
+    def: battleStore.getEffectiveStat(hero, 'def'),
+    spd: battleStore.getEffectiveStat(hero, 'spd')
+  }
+}
+
+function getStatChange(hero, stat) {
+  if (!hero) return 0
+  const base = hero.stats[stat] || 0
+  const effective = battleStore.getEffectiveStat(hero, stat)
+  return effective - base
+}
 </script>
 
 <template>
@@ -569,7 +657,7 @@ function isEnemyAttacking(enemyId) {
           selected: battleStore.selectedTarget?.id === hero.instanceId,
           'leader-activating': leaderActivating === hero.instanceId
         }]"
-        @click="selectHeroTarget(hero)"
+        @click="handleHeroClick(hero)"
       >
         <!-- Leader Skill Announcement -->
         <div v-if="leaderActivating === hero.instanceId" class="leader-skill-announce">
@@ -657,57 +745,74 @@ function isEnemyAttacking(enemyId) {
     <div v-if="showVictoryModal" class="modal-overlay">
       <div class="modal victory-modal">
         <h2>Victory!</h2>
-        <p class="node-complete">{{ currentNode?.name }} Complete!</p>
+        <p class="node-complete">
+          {{ questsStore.lastVisitedNode ? getQuestNode(questsStore.lastVisitedNode)?.name : '' }} Complete!
+          <span v-if="rewards?.isFirstClear" class="first-clear-badge">First Clear!</span>
+        </p>
 
-        <div v-if="rewards" class="rewards">
-          <div class="reward-item">
-            <span>💎 Gems</span>
-            <span class="reward-value">+{{ displayedGems }}</span>
+        <!-- Step 1: Rewards -->
+        <div v-if="victoryStep === 1" class="victory-step">
+          <div v-if="rewards" class="rewards">
+            <div class="reward-item">
+              <span>💎 Gems</span>
+              <span class="reward-value">+{{ displayedGems }}</span>
+            </div>
+            <div class="reward-item gold-reward">
+              <span>🪙 Gold</span>
+              <span class="reward-value">+{{ displayedGold }}</span>
+            </div>
+            <div class="reward-item">
+              <span>⭐ EXP</span>
+              <span class="reward-value">+{{ displayedExp }}</span>
+            </div>
           </div>
-          <div class="reward-item gold-reward">
-            <span>🪙 Gold</span>
-            <span class="reward-value">+{{ displayedGold }}</span>
+
+          <div v-if="itemDropsWithData.length > 0" class="item-drops">
+            <div class="drops-header">Items Found</div>
+            <div class="drops-grid">
+              <div
+                v-for="(item, index) in itemDropsWithData"
+                :key="item.id"
+                :class="['drop-item', { revealed: index < revealedItemCount }]"
+                @click="showItemDetail(item)"
+              >
+                <ItemCard :item="item" compact />
+              </div>
+            </div>
           </div>
-          <div class="reward-item">
-            <span>⭐ EXP</span>
-            <span class="reward-value">+{{ displayedExp }}</span>
-          </div>
-          <div v-if="rewards.isFirstClear" class="first-clear">
-            First Clear Bonus!
-          </div>
+
+          <button class="btn-next" @click="nextVictoryStep">
+            Party Results →
+          </button>
         </div>
 
-        <div v-if="itemDropsWithData.length > 0" class="item-drops">
-          <div class="drops-header">Items Found</div>
-          <div class="drops-grid">
+        <!-- Step 2: XP & Level Ups -->
+        <div v-if="victoryStep === 2" class="victory-step">
+          <div class="step-header">Party Results</div>
+          <div class="victory-party">
             <div
-              v-for="(item, index) in itemDropsWithData"
-              :key="item.id"
-              :class="['drop-item', { revealed: index < revealedItemCount }]"
+              v-for="hero in partyHeroesForVictory"
+              :key="hero.instanceId"
+              :class="['victory-hero', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
             >
-              <ItemCard :item="item" compact />
+              <HeroCard :hero="hero" compact />
+              <div v-if="showXpFloaters" class="xp-floater">
+                +{{ expPerHero }} XP
+              </div>
+              <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-badge">
+                Level Up!
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="victory-party">
-          <div
-            v-for="hero in partyHeroesForVictory"
-            :key="hero.instanceId"
-            :class="['victory-hero', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
-          >
-            <HeroCard :hero="hero" compact />
-            <div v-if="showXpFloaters" class="xp-floater">
-              +{{ expPerHero }} XP
-            </div>
-            <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-badge">
-              Level Up!
-            </div>
-          </div>
+          <button class="btn-back" @click="prevVictoryStep">
+            ← Rewards
+          </button>
         </div>
 
         <div class="modal-actions">
           <button class="btn-primary" @click="returnToMap">Continue</button>
+          <button v-if="rewards && !rewards.isFirstClear" class="btn-secondary" @click="replayStage">Replay</button>
           <button class="btn-secondary" @click="returnHome">Home</button>
         </div>
       </div>
@@ -722,6 +827,119 @@ function isEnemyAttacking(enemyId) {
         <div class="modal-actions">
           <button class="btn-primary" @click="returnToMap">Try Again</button>
           <button class="btn-secondary" @click="returnHome">Home</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item Detail Dialog -->
+    <div v-if="selectedItem" class="item-dialog-overlay" @click="closeItemDetail">
+      <div class="item-dialog" @click.stop>
+        <button class="item-dialog-close" @click="closeItemDetail">×</button>
+        <div class="item-dialog-header">
+          <span class="item-dialog-name">{{ selectedItem.name }}</span>
+          <span class="item-dialog-stars">{{ '★'.repeat(selectedItem.rarity) }}</span>
+        </div>
+        <p class="item-dialog-description">{{ selectedItem.description }}</p>
+        <div class="item-dialog-stats">
+          <div v-if="selectedItem.xpValue" class="item-stat">
+            <span class="stat-label">XP Value</span>
+            <span class="stat-value">+{{ selectedItem.xpValue }}</span>
+          </div>
+          <div v-if="selectedItem.sellReward?.gems" class="item-stat">
+            <span class="stat-label">Sell Value</span>
+            <span class="stat-value">💎 {{ selectedItem.sellReward.gems }}</span>
+          </div>
+          <div v-if="selectedItem.sellReward?.gold" class="item-stat">
+            <span class="stat-label">Sell Value</span>
+            <span class="stat-value sell-gold">🪙 {{ selectedItem.sellReward.gold }}</span>
+          </div>
+          <div v-if="selectedItem.count > 1" class="item-stat">
+            <span class="stat-label">Quantity</span>
+            <span class="stat-value">×{{ selectedItem.count }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Inspect Dialog -->
+    <div v-if="inspectedHero" class="hero-inspect-overlay" @click="closeHeroInspect">
+      <div class="hero-inspect-dialog" @click.stop>
+        <button class="hero-inspect-close" @click="closeHeroInspect">×</button>
+
+        <div class="hero-inspect-header">
+          <span class="hero-inspect-name">{{ inspectedHero.template?.name }}</span>
+          <span class="hero-inspect-level">Lv. {{ inspectedHero.level }}</span>
+        </div>
+
+        <div class="hero-inspect-bars">
+          <div class="inspect-bar-row">
+            <span class="bar-label">HP</span>
+            <StatBar
+              :current="inspectedHero.currentHp"
+              :max="inspectedHero.maxHp"
+              color="green"
+              size="md"
+            />
+            <span class="bar-numbers">{{ inspectedHero.currentHp }} / {{ inspectedHero.maxHp }}</span>
+          </div>
+          <div class="inspect-bar-row">
+            <span class="bar-label">{{ inspectedHero.class?.resourceName || 'MP' }}</span>
+            <StatBar
+              :current="inspectedHero.currentMp"
+              :max="inspectedHero.maxMp"
+              color="blue"
+              size="md"
+            />
+            <span class="bar-numbers">{{ inspectedHero.currentMp }} / {{ inspectedHero.maxMp }}</span>
+          </div>
+        </div>
+
+        <div class="hero-inspect-stats">
+          <div class="inspect-stat">
+            <span class="inspect-stat-label">ATK</span>
+            <span :class="['inspect-stat-value', { buffed: getStatChange(inspectedHero, 'atk') > 0, debuffed: getStatChange(inspectedHero, 'atk') < 0 }]">
+              {{ getHeroEffectiveStats(inspectedHero)?.atk }}
+              <span v-if="getStatChange(inspectedHero, 'atk') !== 0" class="stat-change">
+                ({{ getStatChange(inspectedHero, 'atk') > 0 ? '+' : '' }}{{ getStatChange(inspectedHero, 'atk') }})
+              </span>
+            </span>
+          </div>
+          <div class="inspect-stat">
+            <span class="inspect-stat-label">DEF</span>
+            <span :class="['inspect-stat-value', { buffed: getStatChange(inspectedHero, 'def') > 0, debuffed: getStatChange(inspectedHero, 'def') < 0 }]">
+              {{ getHeroEffectiveStats(inspectedHero)?.def }}
+              <span v-if="getStatChange(inspectedHero, 'def') !== 0" class="stat-change">
+                ({{ getStatChange(inspectedHero, 'def') > 0 ? '+' : '' }}{{ getStatChange(inspectedHero, 'def') }})
+              </span>
+            </span>
+          </div>
+          <div class="inspect-stat">
+            <span class="inspect-stat-label">SPD</span>
+            <span :class="['inspect-stat-value', { buffed: getStatChange(inspectedHero, 'spd') > 0, debuffed: getStatChange(inspectedHero, 'spd') < 0 }]">
+              {{ getHeroEffectiveStats(inspectedHero)?.spd }}
+              <span v-if="getStatChange(inspectedHero, 'spd') !== 0" class="stat-change">
+                ({{ getStatChange(inspectedHero, 'spd') > 0 ? '+' : '' }}{{ getStatChange(inspectedHero, 'spd') }})
+              </span>
+            </span>
+          </div>
+        </div>
+
+        <div v-if="inspectedHero.statusEffects?.length > 0" class="hero-inspect-effects">
+          <div class="effects-header">Status Effects</div>
+          <div class="effects-list">
+            <div
+              v-for="(effect, index) in inspectedHero.statusEffects"
+              :key="index"
+              :class="['effect-item', { buff: effect.definition?.isBuff, debuff: !effect.definition?.isBuff }]"
+            >
+              <span class="effect-icon">{{ effect.definition?.icon }}</span>
+              <span class="effect-name">{{ effect.definition?.name }}</span>
+              <span class="effect-duration">{{ effect.duration }} turns</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="hero-inspect-no-effects">
+          No active effects
         </div>
       </div>
     </div>
@@ -1168,10 +1386,45 @@ function isEnemyAttacking(enemyId) {
 .modal {
   background: #1f2937;
   border-radius: 16px;
-  padding: 32px;
+  padding: 24px;
   text-align: center;
   max-width: 400px;
   width: 100%;
+}
+
+.victory-step {
+  min-height: 200px;
+}
+
+.step-header {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn-next,
+.btn-back {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 16px;
+  border: 1px solid #4b5563;
+  border-radius: 8px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-next:hover,
+.btn-back:hover {
+  background: #374151;
+  color: #f3f4f6;
+  border-color: #6b7280;
 }
 
 .modal h2 {
@@ -1196,7 +1449,7 @@ function isEnemyAttacking(enemyId) {
   background: #374151;
   border-radius: 8px;
   padding: 16px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .reward-item {
@@ -1221,17 +1474,32 @@ function isEnemyAttacking(enemyId) {
   font-variant-numeric: tabular-nums;
 }
 
-.first-clear {
-  margin-top: 12px;
+.first-clear-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
   color: #fbbf24;
-  font-weight: 600;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  border-radius: 10px;
+  animation: firstClearGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes firstClearGlow {
+  0%, 100% {
+    box-shadow: 0 0 4px rgba(251, 191, 36, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.8);
+  }
 }
 
 .victory-party {
   display: flex;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 24px;
   flex-wrap: wrap;
 }
 
@@ -1312,6 +1580,9 @@ function isEnemyAttacking(enemyId) {
 .modal-actions {
   display: flex;
   gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #374151;
 }
 
 .btn-primary, .btn-secondary {
@@ -1409,7 +1680,7 @@ function isEnemyAttacking(enemyId) {
 
 /* ===== Item Drops ===== */
 .item-drops {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .drops-header {
@@ -1443,5 +1714,305 @@ function isEnemyAttacking(enemyId) {
   0% { transform: scale(0.5); }
   70% { transform: scale(1.1); }
   100% { transform: scale(1); }
+}
+
+/* ===== Item Detail Dialog ===== */
+.item-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.item-dialog {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 280px;
+  max-width: 320px;
+  border: 1px solid #374151;
+  position: relative;
+}
+
+.item-dialog-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.item-dialog-close:hover {
+  color: #f3f4f6;
+}
+
+.item-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.item-dialog-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.item-dialog-stars {
+  color: #f59e0b;
+  font-size: 0.9rem;
+}
+
+.item-dialog-description {
+  color: #d1d5db;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 12px 0 16px 0;
+  font-style: italic;
+}
+
+.item-dialog-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #374151;
+}
+
+.item-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.stat-label {
+  color: #9ca3af;
+}
+
+.stat-value {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.stat-value.sell-gold {
+  color: #f59e0b;
+}
+
+.drop-item {
+  cursor: pointer;
+}
+
+.drop-item:hover {
+  transform: scale(1.05);
+}
+
+/* ===== Hero Inspect Dialog ===== */
+.hero-inspect-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+}
+
+.hero-inspect-dialog {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 300px;
+  max-width: 360px;
+  border: 1px solid #374151;
+  position: relative;
+}
+
+.hero-inspect-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.hero-inspect-close:hover {
+  color: #f3f4f6;
+}
+
+.hero-inspect-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #374151;
+}
+
+.hero-inspect-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.hero-inspect-level {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  background: #374151;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.hero-inspect-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.inspect-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bar-label {
+  width: 30px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+}
+
+.inspect-bar-row .stat-bar {
+  flex: 1;
+}
+
+.bar-numbers {
+  font-size: 0.8rem;
+  color: #d1d5db;
+  min-width: 70px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.hero-inspect-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.inspect-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.inspect-stat-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.inspect-stat-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.inspect-stat-value.buffed {
+  color: #22c55e;
+}
+
+.inspect-stat-value.debuffed {
+  color: #ef4444;
+}
+
+.stat-change {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.hero-inspect-effects {
+  border-top: 1px solid #374151;
+  padding-top: 12px;
+}
+
+.effects-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+.effects-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.effect-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+.effect-item.buff {
+  background: rgba(34, 197, 94, 0.15);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.effect-item.debuff {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.effect-icon {
+  font-size: 1.1rem;
+}
+
+.effect-name {
+  flex: 1;
+  color: #f3f4f6;
+  font-weight: 500;
+}
+
+.effect-duration {
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.hero-inspect-no-effects {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.85rem;
+  padding: 12px;
+  border-top: 1px solid #374151;
+  margin-top: 12px;
 }
 </style>

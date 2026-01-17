@@ -15,7 +15,7 @@ export const questNodes = {
       { enemies: ['goblin_scout', 'forest_wolf'] }
     ],
     connections: ['forest_02'],
-    rewards: { gems: 50, exp: 80 },
+    rewards: { gems: 50, gold: 100, exp: 80 },
     firstClearBonus: { gems: 30 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 1, chance: 0.8 },
@@ -34,7 +34,7 @@ export const questNodes = {
       { enemies: ['dire_wolf'] }
     ],
     connections: ['forest_03', 'forest_04'],
-    rewards: { gems: 60, exp: 120 },
+    rewards: { gems: 60, gold: 150, exp: 120 },
     firstClearBonus: { gems: 40 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 2, chance: 0.9 },
@@ -55,7 +55,7 @@ export const questNodes = {
       { enemies: ['spider_queen', 'forest_spider', 'forest_spider'] }
     ],
     connections: ['lake_01'],
-    rewards: { gems: 80, exp: 150 },
+    rewards: { gems: 80, gold: 200, exp: 150 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
@@ -77,7 +77,7 @@ export const questNodes = {
       { enemies: ['goblin_chieftain', 'goblin_warrior', 'goblin_thrower'] }
     ],
     connections: ['forest_05'],
-    rewards: { gems: 80, exp: 150 },
+    rewards: { gems: 80, gold: 200, exp: 150 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
@@ -100,7 +100,7 @@ export const questNodes = {
       { enemies: ['goblin_commander', 'goblin_shaman', 'goblin_bulwark', 'goblin_trapper', 'goblin_warrior'] }
     ],
     connections: ['cave_01'],
-    rewards: { gems: 100, exp: 200 },
+    rewards: { gems: 100, gold: 250, exp: 200 },
     firstClearBonus: { gems: 75 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
@@ -124,7 +124,7 @@ export const questNodes = {
       { enemies: ['rock_golem'] }
     ],
     connections: ['cave_02', 'cave_03'],
-    rewards: { gems: 90, exp: 180 },
+    rewards: { gems: 90, gold: 220, exp: 180 },
     firstClearBonus: { gems: 60 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
@@ -145,7 +145,7 @@ export const questNodes = {
       { enemies: ['dark_cultist', 'dark_caster', 'dark_cultist'] }
     ],
     connections: ['cave_04'],
-    rewards: { gems: 100, exp: 200 },
+    rewards: { gems: 100, gold: 250, exp: 200 },
     firstClearBonus: { gems: 70 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
@@ -166,7 +166,7 @@ export const questNodes = {
       { enemies: ['cave_troll', 'rock_golem'] }
     ],
     connections: ['cave_04'],
-    rewards: { gems: 100, exp: 200 },
+    rewards: { gems: 100, gold: 250, exp: 200 },
     firstClearBonus: { gems: 70 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
@@ -187,7 +187,7 @@ export const questNodes = {
       { enemies: ['cave_troll', 'cave_troll'] }
     ],
     connections: ['mountain_01'],
-    rewards: { gems: 120, exp: 250 },
+    rewards: { gems: 120, gold: 300, exp: 250 },
     firstClearBonus: { gems: 80 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
@@ -211,7 +211,7 @@ export const questNodes = {
       { enemies: ['frost_elemental'] }
     ],
     connections: ['mountain_02', 'mountain_03'],
-    rewards: { gems: 130, exp: 280 },
+    rewards: { gems: 130, gold: 350, exp: 280 },
     firstClearBonus: { gems: 90 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
@@ -231,7 +231,7 @@ export const questNodes = {
       { enemies: ['frost_elemental', 'frost_elemental', 'harpy'] }
     ],
     connections: ['mountain_04'],
-    rewards: { gems: 150, exp: 320 },
+    rewards: { gems: 150, gold: 400, exp: 320 },
     firstClearBonus: { gems: 100 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
@@ -251,7 +251,7 @@ export const questNodes = {
       { enemies: ['mountain_giant', 'frost_elemental'] }
     ],
     connections: ['mountain_04'],
-    rewards: { gems: 150, exp: 320 },
+    rewards: { gems: 150, gold: 400, exp: 320 },
     firstClearBonus: { gems: 100 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
@@ -271,7 +271,7 @@ export const questNodes = {
       { enemies: ['shadow_dragon'] }
     ],
     connections: [],
-    rewards: { gems: 200, exp: 500 },
+    rewards: { gems: 200, gold: 500, exp: 500 },
     firstClearBonus: { gems: 150 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
@@ -294,7 +294,7 @@ export const questNodes = {
       { enemies: ['dire_wolf', 'giant_frog', 'giant_frog'] }
     ],
     connections: ['lake_02'],
-    rewards: { gems: 90, exp: 170 },
+    rewards: { gems: 90, gold: 220, exp: 170 },
     firstClearBonus: { gems: 55 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
@@ -316,7 +316,7 @@ export const questNodes = {
       { enemies: ['marsh_hag', 'lake_serpent', 'giant_frog'] }
     ],
     connections: [],
-    rewards: { gems: 110, exp: 220 },
+    rewards: { gems: 110, gold: 280, exp: 220 },
     firstClearBonus: { gems: 70 },
     itemDrops: [
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },

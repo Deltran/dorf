@@ -1,11 +1,18 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useHeroesStore, useInventoryStore, useGachaStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 import { getItem } from '../data/items.js'
+
+const props = defineProps({
+  initialHeroId: {
+    type: String,
+    default: null
+  }
+})
 
 const emit = defineEmits(['navigate'])
 
@@ -24,6 +31,16 @@ const xpGainAnimation = ref(null) // { value: number }
 const showMergeModal = ref(false)
 const mergeInfo = ref(null)
 const selectedFodder = ref([])
+
+// Auto-select hero if passed from another screen
+onMounted(() => {
+  if (props.initialHeroId) {
+    const hero = heroesStore.getHeroFull(props.initialHeroId)
+    if (hero) {
+      selectedHero.value = hero
+    }
+  }
+})
 
 // Import all hero images
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
@@ -171,11 +188,15 @@ watch(selectedHero, (hero) => {
 
 const availableFodder = computed(() => {
   if (!selectedHero.value) return []
+  const selectedStarLevel = selectedHero.value.starLevel || selectedHero.value.template?.rarity || 1
   return heroesStore.collection
-    .filter(h =>
-      h.templateId === selectedHero.value.templateId &&
-      h.instanceId !== selectedHero.value.instanceId
-    )
+    .filter(h => {
+      if (h.templateId !== selectedHero.value.templateId) return false
+      if (h.instanceId === selectedHero.value.instanceId) return false
+      // Only show fodder with matching star level
+      const fodderStarLevel = h.starLevel || heroesStore.getHeroFull(h.instanceId)?.template?.rarity || 1
+      return fodderStarLevel === selectedStarLevel
+    })
     .sort((a, b) => a.level - b.level)
 })
 
@@ -616,6 +637,13 @@ function getStarLevel(hero) {
                 }"
                 @click="toggleFodder(hero.instanceId)"
               >
+                <img
+                  v-if="getHeroImageUrl(hero.templateId)"
+                  :src="getHeroImageUrl(hero.templateId)"
+                  :alt="hero.templateId"
+                  class="fodder-image"
+                />
+                <div v-else class="fodder-image-placeholder"></div>
                 <span class="fodder-level">Lv.{{ hero.level }}</span>
                 <span v-if="isFodderInParty(hero.instanceId)" class="party-warning">⚠️ In Party</span>
               </div>
@@ -1817,13 +1845,32 @@ function getStarLevel(hero) {
 }
 
 .fodder-item {
-  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
   background: #374151;
   border: 2px solid transparent;
   border-radius: 8px;
   cursor: pointer;
   text-align: center;
   transition: all 0.2s ease;
+}
+
+.fodder-image {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.fodder-image-placeholder {
+  width: 48px;
+  height: 48px;
+  background: #4b5563;
+  border-radius: 4px;
+  margin-bottom: 4px;
 }
 
 .fodder-item:hover {

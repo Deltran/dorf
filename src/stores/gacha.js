@@ -86,15 +86,20 @@ export const useGachaStore = defineStore('gacha', () => {
   function rollRarity(rates) {
     const roll = Math.random()
     let cumulative = 0
+    let highestRarityWithRate = 1
 
     for (const [rarity, rate] of Object.entries(rates)) {
+      if (rate > 0) {
+        highestRarityWithRate = parseInt(rarity)
+      }
       cumulative += rate
       if (roll < cumulative) {
         return parseInt(rarity)
       }
     }
 
-    return 1 // Fallback
+    // Fallback to highest available rarity (handles floating point edge cases)
+    return highestRarityWithRate
   }
 
   // Internal: Get random hero of rarity
