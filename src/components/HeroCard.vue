@@ -4,6 +4,7 @@ import StarRating from './StarRating.vue'
 import StatBar from './StatBar.vue'
 import FocusIndicator from './FocusIndicator.vue'
 import ValorBar from './ValorBar.vue'
+import RageBar from './RageBar.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 
@@ -66,6 +67,10 @@ const isRangerHero = computed(() => {
 
 const isKnightHero = computed(() => {
   return heroClass.value?.resourceType === 'valor'
+})
+
+const isBerserkerHero = computed(() => {
+  return heroClass.value?.resourceType === 'rage'
 })
 
 const isDead = computed(() => {
@@ -168,6 +173,12 @@ const rarityNames = {
       <ValorBar
         v-else-if="isKnightHero"
         :currentValor="hero.currentValor || 0"
+        size="sm"
+      />
+      <!-- Rage bar for Berserkers -->
+      <RageBar
+        v-else-if="isBerserkerHero"
+        :currentRage="hero.currentRage || 0"
         size="sm"
       />
       <!-- MP bar for others -->
