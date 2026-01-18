@@ -109,7 +109,7 @@ export const heroTemplates = {
       {
         name: 'Shield Bash',
         description: 'Deal 80% ATK damage and reduce enemy ATK by 20% for 2 turns',
-        mpCost: 15,
+        valorRequired: 0,
         targetType: 'enemy',
         effects: [
           { type: EffectType.ATK_DOWN, target: 'enemy', duration: 2, value: 20 }
@@ -118,7 +118,7 @@ export const heroTemplates = {
       {
         name: 'Challenge',
         description: 'Force all enemies to target Sir Gallan until the end of his next turn',
-        mpCost: 12,
+        valorRequired: 0,
         targetType: 'self',
         noDamage: true,
         defensive: true,
@@ -129,10 +129,10 @@ export const heroTemplates = {
       {
         name: 'Valorous Strike',
         description: 'Deal damage that scales with Valor',
-        mpCost: 0,
-        valorRequired: 50,
+        skillUnlockLevel: 3,
+        valorRequired: 25,
         targetType: 'enemy',
-        damage: { base: 80, at50: 100, at75: 130, at100: 180 }
+        damage: { base: 80, at25: 100, at50: 130, at75: 160, at100: 200 }
       }
     ]
   },
