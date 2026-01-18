@@ -136,7 +136,9 @@ const rotatedTurnOrder = computed(() => {
         id: turn.id,
         type: 'hero',
         name: hero?.template?.name || 'Unknown',
+        templateId: hero?.template?.id || null,
         rarity: hero?.template?.rarity || 1,
+        isDead: hero?.currentHp <= 0,
         isCurrent
       }
     } else {
@@ -145,7 +147,9 @@ const rotatedTurnOrder = computed(() => {
         id: turn.id,
         type: 'enemy',
         name: enemy?.template?.name || 'Unknown',
+        templateId: enemy?.template?.id || null,
         rarity: null,
+        isDead: enemy?.currentHp <= 0,
         isCurrent
       }
     }
@@ -334,9 +338,33 @@ function prevVictoryStep() {
 
 // Hero images
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+const heroPortraits = import.meta.glob('../assets/heroes/*_portrait.png', { eager: true, import: 'default' })
 
 // Enemy images
 const enemyImages = import.meta.glob('../assets/enemies/*.png', { eager: true, import: 'default' })
+const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
+
+// Get portrait for turn order display with fallback chain
+function getTurnOrderPortrait(unit) {
+  const templateId = unit.templateId
+  if (!templateId) return null
+
+  if (unit.type === 'hero') {
+    // Check for portrait first
+    const portraitPath = `../assets/heroes/${templateId}_portrait.png`
+    if (heroPortraits[portraitPath]) return heroPortraits[portraitPath]
+    // Fall back to full image
+    const imagePath = `../assets/heroes/${templateId}.png`
+    return heroImages[imagePath] || null
+  } else {
+    // Check for portrait first
+    const portraitPath = `../assets/enemies/${templateId}_portrait.png`
+    if (enemyPortraits[portraitPath]) return enemyPortraits[portraitPath]
+    // Fall back to full image
+    const imagePath = `../assets/enemies/${templateId}.png`
+    return enemyImages[imagePath] || null
+  }
+}
 
 function getEnemyImageUrl(enemy) {
   const templateId = enemy.template?.id || enemy.templateId
@@ -549,22 +577,30 @@ function getStatChange(hero, stat) {
 
 <template>
   <div class="battle-screen">
-    <!-- Turn Order Panel -->
-    <aside class="turn-order-panel">
-      <div class="turn-order-header">Turn Order</div>
-      <div class="turn-order-list">
-        <div
-          v-for="unit in rotatedTurnOrder"
-          :key="unit.id"
-          :class="[
-            'turn-order-entry',
-            unit.type,
-            { current: unit.isCurrent },
-            unit.type === 'hero' ? `rarity-${unit.rarity}` : ''
-          ]"
-        >
-          <span v-if="unit.isCurrent" class="current-indicator">►</span>
-          <span class="unit-name">{{ unit.name }}</span>
+    <!-- Turn Order Portrait Strip -->
+    <aside class="turn-order-strip">
+      <div
+        v-for="unit in rotatedTurnOrder"
+        :key="unit.id"
+        :class="[
+          'turn-order-entry',
+          unit.type,
+          { current: unit.isCurrent, dead: unit.isDead }
+        ]"
+      >
+        <div class="portrait-wrapper">
+          <img
+            v-if="getTurnOrderPortrait(unit)"
+            :src="getTurnOrderPortrait(unit)"
+            :alt="unit.name"
+            class="portrait"
+          />
+          <div
+            v-else
+            :class="['portrait-fallback', unit.type]"
+          >
+            <span class="fallback-icon">{{ unit.type === 'hero' ? '⚔' : '💀' }}</span>
+          </div>
         </div>
       </div>
     </aside>
@@ -972,90 +1008,107 @@ function getStatChange(hero, stat) {
 .battle-screen {
   min-height: 100vh;
   padding: 16px;
-  padding-left: 130px;
+  padding-left: 70px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-/* Turn Order Panel */
-.turn-order-panel {
+/* Turn Order Portrait Strip */
+.turn-order-strip {
   position: fixed;
   left: 12px;
   top: 16px;
-  width: 110px;
-  background: #1f2937;
-  border-radius: 8px;
-  padding: 8px;
-  z-index: 50;
-}
-
-.turn-order-header {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #374151;
-  margin-bottom: 8px;
-}
-
-.turn-order-list {
+  width: 50px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  z-index: 50;
 }
 
 .turn-order-entry {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 6px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
   transition: all 0.2s ease;
 }
 
 .turn-order-entry.current {
-  background: #374151;
+  transform: translateX(8px);
 }
 
-.current-indicator {
-  color: #fbbf24;
-  font-size: 0.7rem;
-}
-
-.unit-name {
-  white-space: nowrap;
+.portrait-wrapper {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   overflow: hidden;
-  text-overflow: ellipsis;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
 }
 
-/* Enemy styling */
-.turn-order-entry.enemy .unit-name {
-  color: #f87171;
+/* Hero/Enemy border colors */
+.turn-order-entry.hero .portrait-wrapper {
+  border-color: #3b82f6;
 }
 
-/* Hero rarity gradients */
-.turn-order-entry.rarity-1 .unit-name {
-  color: #9ca3af;
+.turn-order-entry.enemy .portrait-wrapper {
+  border-color: #ef4444;
 }
 
-.turn-order-entry.rarity-2 .unit-name {
-  color: #60a5fa;
+/* Current unit styling */
+.turn-order-entry.current .portrait-wrapper {
+  border-color: #fbbf24;
+  transform: scale(1.1);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
 }
 
-.turn-order-entry.rarity-3 .unit-name {
-  color: #c084fc;
+.turn-order-entry.current::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 40px;
+  background: rgba(251, 191, 36, 0.15);
+  border-radius: 20px;
+  z-index: -1;
 }
 
-.turn-order-entry.rarity-4 .unit-name {
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #fcd34d 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  font-weight: 600;
+/* Dead unit styling */
+.turn-order-entry.dead .portrait-wrapper {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+/* Portrait image */
+.portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* Fallback when no image */
+.portrait-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.portrait-fallback.hero {
+  background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%);
+}
+
+.portrait-fallback.enemy {
+  background: linear-gradient(135deg, #5f1e1e 0%, #dc2626 100%);
+}
+
+.fallback-icon {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .battle-header {
