@@ -655,12 +655,45 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // Process end-of-round Valor gains for all Knights
+  function processRoundEndValor() {
+    const livingAllies = aliveHeroes.value.length
+
+    for (const hero of heroes.value) {
+      if (!isKnight(hero) || hero.currentHp <= 0) continue
+
+      const oldValor = hero.currentValor || 0
+      let gained = 0
+
+      // +5 passive per round
+      gained += 5
+
+      // +5 per living ally (not counting self)
+      gained += (livingAllies - 1) * 5
+
+      // +10 if below 50% HP
+      if (hero.currentHp < hero.maxHp * 0.5) {
+        gained += 10
+      }
+
+      gainValor(hero, gained)
+
+      if (hero.currentValor > oldValor) {
+        const heroName = hero.template?.name || 'Knight'
+        addLog(`${heroName} gains ${hero.currentValor - oldValor} Valor! (${hero.currentValor}/100)`)
+      }
+    }
+  }
+
   function advanceTurnIndex() {
     currentTurnIndex.value++
     if (currentTurnIndex.value >= turnOrder.value.length) {
       currentTurnIndex.value = 0
       roundNumber.value++
       addLog(`--- Round ${roundNumber.value} ---`)
+
+      // Valor gains at round end for Knights
+      processRoundEndValor()
 
       // Check for round-triggered leader effects
       applyTimedLeaderEffects(roundNumber.value)
