@@ -435,6 +435,11 @@ export const useBattleStore = defineStore('battle', () => {
       removeFocus(unit)
     }
 
+    // Clear all status effects on death
+    if (unit.currentHp <= 0 && unit.statusEffects?.length > 0) {
+      unit.statusEffects = []
+    }
+
     return actualDamage
   }
 

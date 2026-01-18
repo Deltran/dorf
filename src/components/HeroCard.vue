@@ -63,6 +63,10 @@ const isRangerHero = computed(() => {
   return heroClass.value?.resourceType === 'focus'
 })
 
+const isDead = computed(() => {
+  return props.showBars && props.hero.currentHp !== undefined && props.hero.currentHp <= 0
+})
+
 const rarityClass = computed(() => {
   const rarity = template.value?.rarity || 1
   return `rarity-${rarity}`
@@ -116,7 +120,7 @@ const rarityNames = {
     :class="[
       'hero-card',
       rarityClass,
-      { selected, active, compact },
+      { selected, active, compact, dead: isDead },
       hitEffect ? `hit-${hitEffect}` : ''
     ]"
     @click="emit('click', hero)"
@@ -216,6 +220,16 @@ const rarityNames = {
 .hero-card.active {
   border-color: #fbbf24;
   box-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+}
+
+.hero-card.dead {
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+.hero-card.dead:hover {
+  transform: none;
+  box-shadow: none;
 }
 
 /* Rarity borders and backgrounds */
