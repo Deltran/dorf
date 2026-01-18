@@ -9,6 +9,7 @@ import ImpactIcon from '../components/ImpactIcon.vue'
 import StatBar from '../components/StatBar.vue'
 import ItemCard from '../components/ItemCard.vue'
 import FocusIndicator from '../components/FocusIndicator.vue'
+import ValorBar from '../components/ValorBar.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode } from '../data/questNodes.js'
 
@@ -84,6 +85,11 @@ const isCurrentHeroKnight = computed(() => {
 // Check if inspected hero is a ranger (uses Focus)
 const isInspectedHeroRanger = computed(() => {
   return inspectedHero.value?.class?.resourceType === 'focus'
+})
+
+// Check if inspected hero is a knight (uses Valor)
+const isInspectedHeroKnight = computed(() => {
+  return inspectedHero.value?.class?.resourceType === 'valor'
 })
 
 // Helper functions for skill display
@@ -947,6 +953,10 @@ function getStatChange(hero, stat) {
           <div v-if="isInspectedHeroRanger" class="inspect-bar-row">
             <span class="bar-label">Focus</span>
             <FocusIndicator :hasFocus="inspectedHero.hasFocus" size="md" />
+          </div>
+          <div v-else-if="isInspectedHeroKnight" class="inspect-bar-row">
+            <span class="bar-label">Valor</span>
+            <ValorBar :currentValor="inspectedHero.currentValor || 0" size="md" />
           </div>
           <div v-else class="inspect-bar-row">
             <span class="bar-label">{{ inspectedHero.class?.resourceName || 'MP' }}</span>
