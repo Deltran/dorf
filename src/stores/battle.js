@@ -795,8 +795,15 @@ export const useBattleStore = defineStore('battle', () => {
         return
       }
 
-      // Check resource availability: Focus for rangers, MP for others
-      if (isRanger(hero)) {
+      // Check resource availability: Valor for knights, Focus for rangers, MP for others
+      if (isKnight(hero)) {
+        if (skill.valorRequired && (hero.currentValor || 0) < skill.valorRequired) {
+          addLog(`Requires ${skill.valorRequired} Valor!`)
+          state.value = BattleState.PLAYER_TURN
+          return
+        }
+        // Knights don't spend MP
+      } else if (isRanger(hero)) {
         if (!hero.hasFocus) {
           addLog(`Not enough ${hero.class.resourceName}!`)
           state.value = BattleState.PLAYER_TURN
