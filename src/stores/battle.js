@@ -386,6 +386,33 @@ export const useBattleStore = defineStore('battle', () => {
     })
   }
 
+  // ========== FOCUS HELPERS (Rangers) ==========
+
+  // Check if a unit is a Ranger (uses Focus)
+  function isRanger(unit) {
+    return unit.class?.resourceType === 'focus'
+  }
+
+  // Grant focus to a ranger
+  function grantFocus(unit) {
+    if (!isRanger(unit)) return
+    if (unit.hasFocus) return // Already has focus
+    unit.hasFocus = true
+    const unitName = unit.template?.name || 'Unknown'
+    addLog(`${unitName} gains Focus!`)
+  }
+
+  // Remove focus from a ranger
+  function removeFocus(unit, silent = false) {
+    if (!isRanger(unit)) return
+    if (!unit.hasFocus) return // Already no focus
+    unit.hasFocus = false
+    if (!silent) {
+      const unitName = unit.template?.name || 'Unknown'
+      addLog(`${unitName} loses Focus!`)
+    }
+  }
+
   // ========== BATTLE FUNCTIONS ==========
 
   function initBattle(partyState, enemyTemplateIds) {
