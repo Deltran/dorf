@@ -701,13 +701,26 @@ export const useBattleStore = defineStore('battle', () => {
         return
       }
       const skill = getSkillByIndex(hero, skillIndex)
-      if (!skill || hero.currentMp < skill.mpCost) {
-        addLog(`Not enough ${hero.class.resourceName}!`)
+      if (!skill) {
         state.value = BattleState.PLAYER_TURN
         return
       }
 
-      hero.currentMp -= skill.mpCost
+      // Check resource availability: Focus for rangers, MP for others
+      if (isRanger(hero)) {
+        if (!hero.hasFocus) {
+          addLog(`Not enough ${hero.class.resourceName}!`)
+          state.value = BattleState.PLAYER_TURN
+          return
+        }
+      } else {
+        if (hero.currentMp < skill.mpCost) {
+          addLog(`Not enough ${hero.class.resourceName}!`)
+          state.value = BattleState.PLAYER_TURN
+          return
+        }
+        hero.currentMp -= skill.mpCost
+      }
       usedSkill = true
 
       // Rangers lose focus when using a skill
@@ -723,7 +736,12 @@ export const useBattleStore = defineStore('battle', () => {
           const target = enemies.value.find(e => e.id === selectedTarget.value?.id)
           if (!target || target.currentHp <= 0) {
             addLog('Invalid target')
-            hero.currentMp += skill.mpCost
+            // Refund resource: Focus for rangers, MP for others
+            if (isRanger(hero)) {
+              grantFocus(hero)
+            } else {
+              hero.currentMp += skill.mpCost
+            }
             state.value = BattleState.PLAYER_TURN
             return
           }
@@ -776,7 +794,12 @@ export const useBattleStore = defineStore('battle', () => {
           const target = heroes.value.find(h => h.instanceId === selectedTarget.value?.id)
           if (!target || target.currentHp <= 0) {
             addLog('Invalid target')
-            hero.currentMp += skill.mpCost
+            // Refund resource: Focus for rangers, MP for others
+            if (isRanger(hero)) {
+              grantFocus(hero)
+            } else {
+              hero.currentMp += skill.mpCost
+            }
             state.value = BattleState.PLAYER_TURN
             return
           }
