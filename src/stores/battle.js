@@ -923,13 +923,23 @@ export const useBattleStore = defineStore('battle', () => {
           return
         }
       } else if (isBerserker(hero)) {
-        const rageCost = skill.rageCost ?? 0
-        if (hero.currentRage < rageCost) {
-          addLog(`Not enough ${hero.class.resourceName}!`)
-          state.value = BattleState.PLAYER_TURN
-          return
+        // Handle 'all' rage cost (consume all rage)
+        if (skill.rageCost === 'all') {
+          if (hero.currentRage <= 0) {
+            addLog(`Not enough ${hero.class.resourceName}!`)
+            state.value = BattleState.PLAYER_TURN
+            return
+          }
+          // Store consumed rage for damage calculation, will be consumed after skill execution
+        } else {
+          const rageCost = skill.rageCost ?? 0
+          if (hero.currentRage < rageCost) {
+            addLog(`Not enough ${hero.class.resourceName}!`)
+            state.value = BattleState.PLAYER_TURN
+            return
+          }
+          hero.currentRage -= rageCost
         }
-        hero.currentRage -= rageCost
       } else {
         if (hero.currentMp < skill.mpCost) {
           addLog(`Not enough ${hero.class.resourceName}!`)
@@ -969,7 +979,10 @@ export const useBattleStore = defineStore('battle', () => {
             if (isRanger(hero)) {
               grantFocus(hero)
             } else if (isBerserker(hero)) {
-              hero.currentRage += skill.rageCost ?? 0
+              // Don't refund 'all' cost skills (rage wasn't deducted yet)
+              if (typeof skill.rageCost === 'number') {
+                hero.currentRage += skill.rageCost
+              }
             } else {
               hero.currentMp += skill.mpCost
             }
@@ -995,19 +1008,73 @@ export const useBattleStore = defineStore('battle', () => {
           // Recalculate damage stat after pre-buff (in case pre-buff affects the stat used for damage)
           const finalDamageStat = skill.useStat ? getEffectiveStat(hero, skill.useStat) : effectiveAtk
 
-          // Deal damage unless skill is effect-only
-          if (!skill.noDamage) {
+          // Handle multi-hit rage-consuming skills (e.g., Crushing Eternity)
+          if (skill.rageCost === 'all' && skill.multiHit && skill.baseDamage !== undefined && skill.damagePerRage !== undefined) {
+            const rageConsumed = hero.currentRage || 0
+            hero.currentRage = 0 // Consume all rage
+
             const effectiveDef = getEffectiveStat(target, 'def')
+            // Apply ignoreDef if present
+            const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
+            const reducedDef = effectiveDef * (1 - defReduction)
+
+            const multiplier = (skill.baseDamage + skill.damagePerRage * rageConsumed) / 100
+            let totalDamage = 0
+
+            addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}! (${rageConsumed} rage consumed)`)
+
+            for (let i = 0; i < skill.multiHit && target.currentHp > 0; i++) {
+              const hitDamage = calculateDamage(finalDamageStat, multiplier, reducedDef)
+              applyDamage(target, hitDamage, 'attack', hero)
+              totalDamage += hitDamage
+              emitCombatEffect(target.id, 'enemy', 'damage', hitDamage)
+            }
+
+            addLog(`${hero.template.name} deals ${totalDamage} total damage in ${skill.multiHit} hits!`)
+
+            if (target.currentHp <= 0) {
+              addLog(`${target.template.name} defeated!`)
+            }
+          }
+          // Handle regular multi-hit skills (e.g., Toad Strangler)
+          else if (skill.multiHit && !skill.noDamage) {
+            const effectiveDef = getEffectiveStat(target, 'def')
+            const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
+            const reducedDef = effectiveDef * (1 - defReduction)
+            const multiplier = parseSkillMultiplier(skill.description)
+            let totalDamage = 0
+
+            addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
+
+            for (let i = 0; i < skill.multiHit && target.currentHp > 0; i++) {
+              const hitDamage = calculateDamage(finalDamageStat, multiplier, reducedDef)
+              applyDamage(target, hitDamage, 'attack', hero)
+              totalDamage += hitDamage
+              emitCombatEffect(target.id, 'enemy', 'damage', hitDamage)
+            }
+
+            addLog(`${hero.template.name} deals ${totalDamage} total damage in ${skill.multiHit} hits!`)
+
+            if (target.currentHp <= 0) {
+              addLog(`${target.template.name} defeated!`)
+            }
+          }
+          // Deal damage unless skill is effect-only
+          else if (!skill.noDamage) {
+            const effectiveDef = getEffectiveStat(target, 'def')
+            // Apply ignoreDef if present
+            const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
+            const reducedDef = effectiveDef * (1 - defReduction)
             let damage
 
             // Check for Valor-scaled damage
             const scaledDamage = getSkillDamage(skill, hero)
             if (scaledDamage !== null) {
               const multiplier = scaledDamage / 100
-              damage = calculateDamage(finalDamageStat, multiplier, effectiveDef)
+              damage = calculateDamage(finalDamageStat, multiplier, reducedDef)
             } else {
               const multiplier = parseSkillMultiplier(skill.description)
-              damage = calculateDamage(finalDamageStat, multiplier, effectiveDef)
+              damage = calculateDamage(finalDamageStat, multiplier, reducedDef)
             }
 
             applyDamage(target, damage, 'attack', hero)
@@ -1058,7 +1125,10 @@ export const useBattleStore = defineStore('battle', () => {
             if (isRanger(hero)) {
               grantFocus(hero)
             } else if (isBerserker(hero)) {
-              hero.currentRage += skill.rageCost ?? 0
+              // Don't refund 'all' cost skills (rage wasn't deducted yet)
+              if (typeof skill.rageCost === 'number') {
+                hero.currentRage += skill.rageCost
+              }
             } else {
               hero.currentMp += skill.mpCost
             }
@@ -1103,6 +1173,57 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
+          // Selective cleanse: { types: ['atk', 'def'], at100Types: ['atk', 'def', 'spd'] }
+          if (skill.cleanse && typeof skill.cleanse === 'object' && skill.cleanse.types) {
+            const valorTier = getValorTier(hero)
+            const cleansableStats = valorTier >= 100 && skill.cleanse.at100Types
+              ? skill.cleanse.at100Types
+              : skill.cleanse.types
+
+            const isTargetedDebuff = (e) => {
+              if (e.definition?.isBuff) return false
+              if (!e.definition?.stat) return false
+              // Check if this debuff's stat is in our cleansable list
+              return cleansableStats.includes(e.definition.stat)
+            }
+
+            const removedEffects = target.statusEffects?.filter(isTargetedDebuff) || []
+            if (removedEffects.length > 0) {
+              target.statusEffects = target.statusEffects.filter(e => !isTargetedDebuff(e))
+              for (const effect of removedEffects) {
+                addLog(`${target.template.name}'s ${effect.definition.name} was cleansed!`)
+              }
+              emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              if (isRanger(target)) {
+                grantFocus(target)
+              }
+            } else {
+              addLog(`${target.template.name} has no debuffs to cleanse.`)
+            }
+          }
+
+          // Heal from stat (e.g., heal based on caster's DEF)
+          if (skill.healFromStat) {
+            const { stat, percent } = skill.healFromStat
+            const valorTier = getValorTier(hero)
+            const healPercent = resolveValorScaling(percent, valorTier)
+            const statValue = getEffectiveStat(hero, stat)
+            const healAmount = Math.floor(statValue * healPercent / 100)
+
+            if (healAmount > 0) {
+              const oldHp = target.currentHp
+              target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
+              const actualHeal = target.currentHp - oldHp
+              if (actualHeal > 0) {
+                addLog(`${target.template.name} is healed for ${actualHeal} HP!`)
+                emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+                if (isRanger(target)) {
+                  grantFocus(target)
+                }
+              }
+            }
+          }
+
           // MP restore
           if (skill.mpRestore) {
             const oldMp = target.currentMp
@@ -1124,6 +1245,20 @@ export const useBattleStore = defineStore('battle', () => {
               }
             }
           }
+
+          // Buff per debuff on target (e.g., Despair - gain ATK buff per debuff on ally)
+          if (skill.buffPerDebuff) {
+            const debuffCount = target.statusEffects?.filter(e => !e.definition?.isBuff).length || 0
+            if (debuffCount > 0) {
+              const buff = skill.buffPerDebuff
+              const buffValue = buff.valuePerDebuff * debuffCount
+              applyEffect(hero, buff.type, { duration: buff.duration, value: buffValue, sourceId: hero.instanceId, fromAllySkill: true })
+              emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+              addLog(`${hero.template.name} gains ${buffValue}% ATK from ${debuffCount} debuff(s)!`)
+            } else {
+              addLog(`${target.template.name} has no debuffs.`)
+            }
+          }
           break
         }
 
@@ -1139,6 +1274,17 @@ export const useBattleStore = defineStore('battle', () => {
               }
             }
           }
+          // Self heal (percentage of max HP)
+          if (skill.selfHealPercent) {
+            const healAmount = Math.floor(hero.maxHp * skill.selfHealPercent / 100)
+            const oldHp = hero.currentHp
+            hero.currentHp = Math.min(hero.maxHp, hero.currentHp + healAmount)
+            const actualHeal = hero.currentHp - oldHp
+            if (actualHeal > 0) {
+              addLog(`${hero.template.name} heals for ${actualHeal} HP!`)
+              emitCombatEffect(hero.instanceId, 'hero', 'heal', actualHeal)
+            }
+          }
           // MP restore
           if (skill.mpRestore) {
             const oldMp = hero.currentMp
@@ -1151,11 +1297,59 @@ export const useBattleStore = defineStore('battle', () => {
           break
         }
 
-        case 'all_enemies': {
+        case 'random_enemies': {
+          const numHits = skill.hits || 1
           const multiplier = parseSkillMultiplier(skill.description)
           let totalDamage = 0
+
+          addLog(`${hero.template.name} uses ${skill.name}!`)
+
+          for (let i = 0; i < numHits; i++) {
+            // Pick a random alive enemy for each hit
+            const targets = aliveEnemies.value
+            if (targets.length === 0) break
+
+            const target = targets[Math.floor(Math.random() * targets.length)]
+            const effectiveDef = getEffectiveStat(target, 'def')
+            const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+            applyDamage(target, damage, 'attack', hero)
+            totalDamage += damage
+            emitCombatEffect(target.id, 'enemy', 'damage', damage)
+
+            if (target.currentHp <= 0) {
+              addLog(`${target.template.name} defeated!`)
+            }
+          }
+
+          addLog(`${hero.template.name} deals ${totalDamage} total damage!`)
+          break
+        }
+
+        case 'all_enemies': {
+          // Filter targets based on targetFilter
+          let targets = aliveEnemies.value
+          if (skill.targetFilter === 'not_acted') {
+            // Get enemies that haven't acted yet this round (appear after current turn in turn order)
+            const notActedEnemyIds = new Set()
+            for (let i = currentTurnIndex.value + 1; i < turnOrder.value.length; i++) {
+              const turn = turnOrder.value[i]
+              if (turn.type === 'enemy') {
+                notActedEnemyIds.add(turn.id)
+              }
+            }
+            targets = aliveEnemies.value.filter(e => notActedEnemyIds.has(e.id))
+            if (targets.length === 0) {
+              addLog(`${hero.template.name} uses ${skill.name}, but all enemies have already acted!`)
+              break
+            }
+          }
+
+          // Use Valor-scaled damage if available
+          const scaledDamage = getSkillDamage(skill, hero)
+          const multiplier = scaledDamage !== null ? scaledDamage / 100 : parseSkillMultiplier(skill.description)
+          let totalDamage = 0
           let totalThornsDamage = 0
-          for (const target of aliveEnemies.value) {
+          for (const target of targets) {
             const effectiveDef = getEffectiveStat(target, 'def')
             const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
             applyDamage(target, damage, 'attack', hero)
@@ -1456,6 +1650,26 @@ export const useBattleStore = defineStore('battle', () => {
         emitCombatEffect(enemy.id, 'enemy', 'damage', thornsDamage)
         if (enemy.currentHp <= 0) {
           addLog(`${enemy.template.name} defeated!`)
+        }
+      }
+    }
+
+    // Check for riposte effect on the target (counter-attack if enemy has lower DEF)
+    const riposteEffect = target.statusEffects?.find(e => e.definition?.isRiposte)
+    if (riposteEffect && enemy.currentHp > 0 && target.currentHp > 0) {
+      const targetDef = getEffectiveStat(target, 'def')
+      const enemyDef = getEffectiveStat(enemy, 'def')
+
+      if (enemyDef < targetDef) {
+        const targetAtk = getEffectiveStat(target, 'atk')
+        const riposteDamage = Math.floor(targetAtk * (riposteEffect.value || 100) / 100)
+        if (riposteDamage > 0) {
+          applyDamage(enemy, riposteDamage, 'riposte')
+          addLog(`${target.template.name} ripostes ${enemy.template.name} for ${riposteDamage} damage!`)
+          emitCombatEffect(enemy.id, 'enemy', 'damage', riposteDamage)
+          if (enemy.currentHp <= 0) {
+            addLog(`${enemy.template.name} defeated!`)
+          }
         }
       }
     }

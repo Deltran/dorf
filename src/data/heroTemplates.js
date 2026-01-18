@@ -46,12 +46,56 @@ export const heroTemplates = {
     rarity: 5,
     classId: 'berserker',
     baseStats: { hp: 110, atk: 55, def: 25, spd: 18 },
-    skill: {
-      name: 'Void Strike',
-      description: 'Deal 200% ATK damage to one enemy, ignoring 50% of their DEF',
-      rageCost: 50,
-      targetType: 'enemy'
-    },
+    skills: [
+      {
+        name: 'Void Strike',
+        description: 'Deal 200% ATK damage to one enemy, ignoring 50% of their DEF',
+        rageCost: 50,
+        targetType: 'enemy',
+        skillUnlockLevel: 1,
+        ignoreDef: 50
+      },
+      {
+        name: 'Mantle of Empty Hate',
+        description: 'Raise own ATK by 30% for 3 turns. Poison self for 3 turns at 15% ATK.',
+        rageCost: 30,
+        targetType: 'self',
+        skillUnlockLevel: 1,
+        effects: [
+          { type: EffectType.ATK_UP, target: 'self', duration: 3, value: 30 },
+          { type: EffectType.POISON, target: 'self', duration: 3, atkPercent: 15 }
+        ]
+      },
+      {
+        name: 'Despair',
+        description: 'Gain a 10% ATK buff for 2 turns for each debuff on the target ally.',
+        rageCost: 10,
+        targetType: 'ally',
+        skillUnlockLevel: 3,
+        noDamage: true,
+        buffPerDebuff: { type: EffectType.ATK_UP, target: 'self', duration: 2, valuePerDebuff: 10 }
+      },
+      {
+        name: 'Stares Back',
+        description: 'Gain Thorns of 100% for 3 turns.',
+        rageCost: 30,
+        targetType: 'self',
+        skillUnlockLevel: 6,
+        effects: [
+          { type: EffectType.THORNS, target: 'self', duration: 3, value: 100 }
+        ]
+      },
+      {
+        name: 'Crushing Eternity',
+        description: 'Consume ALL rage. Three attacks to one target equal to 50% ATK + 1% per rage consumed.',
+        rageCost: 'all',
+        targetType: 'enemy',
+        skillUnlockLevel: 12,
+        multiHit: 3,
+        baseDamage: 50,
+        damagePerRage: 1
+      }
+    ],
     leaderSkill: {
       name: 'Lord of Shadows',
       description: 'On round 1, all allies gain +25% ATK for 2 turns',
@@ -244,29 +288,53 @@ export const heroTemplates = {
     name: 'Kensin, Squire',
     rarity: 3,
     classId: 'knight',
-    baseStats: { hp: 110, atk: 22, def: 35, spd: 8, mp: 40 },
+    baseStats: { hp: 110, atk: 22, def: 35, spd: 8 },
     skills: [
       {
         name: 'Defensive Stance',
-        description: 'Increase own DEF by 50% for 2 turns',
-        mpCost: 12,
+        description: 'Increase own DEF by 50% for 2 turns. At 50 Valor: 3 turns. At 75 Valor: 65% DEF.',
+        valorRequired: 25,
         targetType: 'self',
-        unlockLevel: 1,
-        defensive: true,
-        effects: [
-          { type: EffectType.DEF_UP, target: 'self', duration: 2, value: 50 }
-        ]
-      },
-      {
-        name: 'Shield Ally',
-        description: 'Increase ally DEF by 35% for 2 turns',
-        mpCost: 10,
-        targetType: 'ally',
-        unlockLevel: 1,
+        skillUnlockLevel: 1,
         noDamage: true,
         defensive: true,
         effects: [
-          { type: EffectType.DEF_UP, target: 'ally', duration: 2, value: 35 }
+          { type: EffectType.DEF_UP, target: 'self', duration: { base: 2, at50: 3 }, value: { base: 50, at75: 65 } }
+        ]
+      },
+      {
+        name: 'Shield Allies',
+        description: 'Increase ally DEF by 15% for 2 turns. At 50 Valor: 30% DEF. At 100 Valor: 3 turns.',
+        valorRequired: 0,
+        targetType: 'ally',
+        skillUnlockLevel: 1,
+        noDamage: true,
+        defensive: true,
+        effects: [
+          { type: EffectType.DEF_UP, target: 'ally', duration: { base: 2, at100: 3 }, value: { base: 15, at50: 30 } }
+        ]
+      },
+      {
+        name: 'Reinforce',
+        description: 'Remove ATK/DEF debuffs from ally and heal 10% of your DEF as HP. At 75 Valor: 15% heal. At 100 Valor: also removes SPD debuffs.',
+        valorRequired: 50,
+        targetType: 'ally',
+        skillUnlockLevel: 3,
+        noDamage: true,
+        defensive: true,
+        cleanse: { types: ['atk', 'def'], at100Types: ['atk', 'def', 'spd'] },
+        healFromStat: { stat: 'def', percent: { base: 10, at75: 15 } }
+      },
+      {
+        name: 'Riposte Strike',
+        description: 'Gain Riposte for 3 turns: retaliate with 100% ATK when attacked by enemies with lower DEF. At 75 Valor: 4 turns. At 100 Valor: 5 turns.',
+        valorRequired: 50,
+        targetType: 'self',
+        skillUnlockLevel: 6,
+        noDamage: true,
+        defensive: true,
+        effects: [
+          { type: EffectType.RIPOSTE, target: 'self', duration: { base: 3, at75: 4, at100: 5 }, value: 100 }
         ]
       }
     ]
@@ -357,17 +425,40 @@ export const heroTemplates = {
     name: 'Sorju, Gate Guard',
     rarity: 2,
     classId: 'knight',
-    baseStats: { hp: 90, atk: 18, def: 28, spd: 7, mp: 35 },
-    skill: {
-      name: 'Shield Block',
-      description: 'Increase own DEF by 30% for 1 turn',
-      mpCost: 10,
-      targetType: 'self',
-      defensive: true,
-      effects: [
-        { type: EffectType.DEF_UP, target: 'self', duration: 1, value: 30 }
-      ]
-    }
+    baseStats: { hp: 90, atk: 18, def: 28, spd: 13 },
+    skills: [
+      {
+        name: 'High Initiative',
+        description: 'Deal 70% ATK damage and buff own SPD by 2 for 2 turns. Scales with Valor.',
+        valorRequired: 0,
+        targetType: 'enemy',
+        skillUnlockLevel: 1,
+        damage: { base: 70, at50: 85, at100: 100 },
+        effects: [
+          { type: EffectType.SPD_UP, target: 'self', duration: 2, value: { base: 2, at25: 3, at75: 4, at100: 5 } }
+        ]
+      },
+      {
+        name: 'Blitz Strike',
+        description: 'Deal 100% ATK damage to all enemies that have not acted yet this round. Scales with Valor.',
+        valorRequired: 25,
+        targetType: 'all_enemies',
+        skillUnlockLevel: 3,
+        targetFilter: 'not_acted',
+        damage: { base: 100, at50: 105, at75: 110, at100: 115 }
+      },
+      {
+        name: 'Pinning Advance',
+        description: 'Deal 100% ATK damage and reduce target SPD by 5 for 2 turns. Scales with Valor.',
+        valorRequired: 50,
+        targetType: 'enemy',
+        skillUnlockLevel: 6,
+        damage: { base: 100, at75: 115 },
+        effects: [
+          { type: EffectType.SPD_DOWN, target: 'enemy', duration: { base: 2, at100: 3 }, value: { base: 5, at100: 6 } }
+        ]
+      }
+    ]
   },
   apprentice_mage: {
     id: 'apprentice_mage',
@@ -403,12 +494,46 @@ export const heroTemplates = {
     rarity: 1,
     classId: 'berserker',
     baseStats: { hp: 70, atk: 20, def: 12, spd: 8 },
-    skill: {
-      name: 'Pitchfork Jab',
-      description: 'Deal 90% ATK damage to one enemy',
-      rageCost: 25,
-      targetType: 'enemy'
-    }
+    skills: [
+      {
+        name: 'Pitchfork Jabs',
+        description: 'Deal 40% ATK damage to three random targets',
+        skillUnlockLevel: 1,
+        rageCost: 25,
+        targetType: 'random_enemies',
+        hits: 3
+      },
+      {
+        name: 'Twine and Prayer',
+        description: 'Heal 10% HP and gain +10% ATK for 2 turns',
+        skillUnlockLevel: 3,
+        rageCost: 10,
+        targetType: 'self',
+        noDamage: true,
+        selfHealPercent: 10,
+        effects: [
+          { type: EffectType.ATK_UP, target: 'self', duration: 2, value: 10 }
+        ]
+      },
+      {
+        name: 'Toad Strangler',
+        description: 'Deal 4 attacks of 30% ATK damage to one enemy',
+        skillUnlockLevel: 6,
+        rageCost: 35,
+        targetType: 'enemy',
+        multiHit: 4
+      },
+      {
+        name: 'Burndown',
+        description: 'Deal 110% ATK damage to all enemies and poison them for 10% damage for 1 turn',
+        skillUnlockLevel: 12,
+        rageCost: 65,
+        targetType: 'all_enemies',
+        effects: [
+          { type: EffectType.POISON, target: 'enemy', duration: 1, atkPercent: 10 }
+        ]
+      }
+    ]
   },
   street_urchin: {
     id: 'street_urchin',
