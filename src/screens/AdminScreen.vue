@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import ItemsAdmin from './admin/ItemsAdmin.vue'
 import ClassesAdmin from './admin/ClassesAdmin.vue'
 import StatusEffectsAdmin from './admin/StatusEffectsAdmin.vue'
+import EnemiesAdmin from './admin/EnemiesAdmin.vue'
 
 const activeSection = ref('heroes')
 
@@ -50,6 +51,7 @@ function exitAdmin() {
         <ItemsAdmin v-if="activeSection === 'items'" />
         <ClassesAdmin v-else-if="activeSection === 'classes'" />
         <StatusEffectsAdmin v-else-if="activeSection === 'statusEffects'" />
+        <EnemiesAdmin v-else-if="activeSection === 'enemies'" />
         <p v-else class="placeholder">{{ activeSection }} admin coming soon...</p>
       </div>
     </main>
