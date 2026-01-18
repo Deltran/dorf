@@ -9,7 +9,8 @@ export const classes = {
     id: 'knight',
     title: 'Knight',
     role: 'tank',
-    resourceName: 'Valor'
+    resourceName: 'Valor',
+    resourceType: 'valor'
   },
   mage: {
     id: 'mage',
