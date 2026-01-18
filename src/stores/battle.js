@@ -659,6 +659,8 @@ export const useBattleStore = defineStore('battle', () => {
     const hero = currentUnit.value
     if (!hero || hero.currentHp <= 0) return
 
+    let usedSkill = false
+
     state.value = BattleState.ANIMATING
 
     if (selectedAction.value === 'attack') {
@@ -706,6 +708,13 @@ export const useBattleStore = defineStore('battle', () => {
       }
 
       hero.currentMp -= skill.mpCost
+      usedSkill = true
+
+      // Rangers lose focus when using a skill
+      if (isRanger(hero)) {
+        removeFocus(hero, true)  // silent - skill use is implied
+      }
+
       const targetType = skill.targetType || 'enemy'
       const effectiveAtk = getEffectiveStat(hero, 'atk')
 
@@ -947,6 +956,11 @@ export const useBattleStore = defineStore('battle', () => {
           break
         }
       }
+    }
+
+    // Rangers regain focus if they didn't use a skill this turn
+    if (isRanger(hero) && !usedSkill) {
+      grantFocus(hero)
     }
 
     // Process end of turn effects
