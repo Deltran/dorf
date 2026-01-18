@@ -82,6 +82,11 @@ const isCurrentHeroKnight = computed(() => {
   return currentHero.value?.class?.resourceType === 'valor'
 })
 
+// Check if current hero is a berserker (uses Rage)
+const isCurrentHeroBerserker = computed(() => {
+  return currentHero.value?.class?.resourceType === 'rage'
+})
+
 // Check if inspected hero is a ranger (uses Focus)
 const isInspectedHeroRanger = computed(() => {
   return inspectedHero.value?.class?.resourceType === 'focus'
@@ -100,6 +105,12 @@ function getSkillDescription(skill) {
   if (isCurrentHeroRanger.value && !currentHero.value.hasFocus) {
     return 'Requires Focus'
   }
+  if (isCurrentHeroBerserker.value) {
+    const rageCost = skill.rageCost ?? 0
+    if ((currentHero.value.currentRage || 0) < rageCost) {
+      return `Requires ${rageCost} Rage`
+    }
+  }
   return skill.description
 }
 
@@ -110,6 +121,9 @@ function getSkillCost(skill) {
   if (isCurrentHeroRanger.value) {
     return null
   }
+  if (isCurrentHeroBerserker.value) {
+    return skill.rageCost || 0
+  }
   return skill.mpCost
 }
 
@@ -119,6 +133,9 @@ function getSkillCostLabel(skill) {
   }
   if (isCurrentHeroRanger.value) {
     return null
+  }
+  if (isCurrentHeroBerserker.value) {
+    return 'Rage'
   }
   return currentHero.value?.class?.resourceName
 }
@@ -138,6 +155,12 @@ function canUseSkill(skill) {
   // Rangers use Focus instead of MP
   if (isCurrentHeroRanger.value) {
     return currentHero.value.hasFocus === true
+  }
+
+  // Berserkers check Rage cost
+  if (isCurrentHeroBerserker.value) {
+    const rageCost = skill.rageCost ?? 0
+    return (currentHero.value.currentRage || 0) >= rageCost
   }
 
   return currentHero.value.currentMp >= skill.mpCost
