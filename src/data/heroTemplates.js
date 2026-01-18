@@ -133,6 +133,14 @@ export const heroTemplates = {
         valorRequired: 25,
         targetType: 'enemy',
         damage: { base: 80, at25: 100, at50: 130, at75: 160, at100: 200 }
+      },
+      {
+        name: 'Bulwark Slam',
+        description: 'Deal 100% DEF damage to one enemy',
+        skillUnlockLevel: 6,
+        valorRequired: 25,
+        targetType: 'enemy',
+        useStat: 'def'
       }
     ]
   },

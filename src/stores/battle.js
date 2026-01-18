@@ -912,6 +912,9 @@ export const useBattleStore = defineStore('battle', () => {
 
       const targetType = skill.targetType || 'enemy'
       const effectiveAtk = getEffectiveStat(hero, 'atk')
+      // Support useStat property for skills that use a different stat for damage (e.g., DEF)
+      const damageStat = skill.useStat || 'atk'
+      const effectiveDamageStat = skill.useStat ? getEffectiveStat(hero, skill.useStat) : effectiveAtk
 
       switch (targetType) {
         case 'enemy': {
@@ -939,10 +942,10 @@ export const useBattleStore = defineStore('battle', () => {
             const scaledDamage = getSkillDamage(skill, hero)
             if (scaledDamage !== null) {
               const multiplier = scaledDamage / 100
-              damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+              damage = calculateDamage(effectiveDamageStat, multiplier, effectiveDef)
             } else {
               const multiplier = parseSkillMultiplier(skill.description)
-              damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+              damage = calculateDamage(effectiveDamageStat, multiplier, effectiveDef)
             }
 
             applyDamage(target, damage, 'attack', hero)
