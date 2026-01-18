@@ -27,7 +27,14 @@ const currentTier = computed(() => {
 </script>
 
 <template>
-  <div :class="['valor-bar', size]">
+  <div
+    :class="['valor-bar', size]"
+    role="progressbar"
+    :aria-valuenow="currentValor"
+    aria-valuemin="0"
+    aria-valuemax="100"
+    :aria-label="`Valor: ${currentValor} out of 100`"
+  >
     <div class="valor-container">
       <div class="valor-fill" :style="{ width: percentage + '%' }"></div>
       <!-- Threshold markers -->
@@ -86,6 +93,7 @@ const currentTier = computed(() => {
   font-weight: 600;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  user-select: none;
 }
 
 .valor-bar.md .valor-text {
@@ -102,6 +110,7 @@ const currentTier = computed(() => {
   font-size: 0.5rem;
   color: #4b5563;
   transition: all 0.3s ease;
+  user-select: none;
 }
 
 .valor-bar.md .tier-pip {
