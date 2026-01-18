@@ -524,6 +524,44 @@ export const useBattleStore = defineStore('battle', () => {
     return null // Use standard multiplier parsing
   }
 
+  // Check if an effect should be applied based on valorThreshold
+  function shouldApplyEffect(effect, hero) {
+    if (effect.valorThreshold === undefined) return true
+    if (!isKnight(hero)) return false
+    const valor = hero.currentValor || 0
+    return valor >= effect.valorThreshold
+  }
+
+  // Resolve effect duration, handling both number and Valor-scaled object
+  function resolveEffectDuration(effect, hero) {
+    if (typeof effect.duration === 'number') {
+      return effect.duration
+    }
+    if (typeof effect.duration === 'object' && effect.duration !== null) {
+      const tier = getValorTier(hero)
+      return resolveValorScaling(effect.duration, tier)
+    }
+    return 2 // Default duration
+  }
+
+  // Resolve effect value, handling both number and Valor-scaled object
+  function resolveEffectValue(effect, hero, casterAtk = 0) {
+    // First check for atkPercent (ATK-based effect value)
+    if (effect.atkPercent) {
+      return Math.floor(casterAtk * effect.atkPercent / 100)
+    }
+
+    const rawValue = effect.value
+    if (typeof rawValue === 'number') {
+      return rawValue
+    }
+    if (typeof rawValue === 'object' && rawValue !== null) {
+      const tier = getValorTier(hero)
+      return resolveValorScaling(rawValue, tier)
+    }
+    return 0 // Default value
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
@@ -545,6 +583,11 @@ export const useBattleStore = defineStore('battle', () => {
     // Grant rage to berserker defenders
     if (isBerserker(unit)) {
       gainRage(unit, 5)
+    }
+
+    // Track that this hero was attacked (for conditional skills like Defensive Footwork)
+    if (unit.wasAttacked !== undefined) {
+      unit.wasAttacked = true
     }
 
     // Clear all status effects on death
@@ -598,7 +641,8 @@ export const useBattleStore = defineStore('battle', () => {
         statusEffects: [],
         hasFocus: heroFull.class?.resourceType === 'focus' ? true : undefined,
         currentValor: heroFull.class?.resourceType === 'valor' ? 0 : undefined,
-        currentRage: heroFull.class?.resourceType === 'rage' ? (savedState?.currentRage ?? 0) : undefined
+        currentRage: heroFull.class?.resourceType === 'rage' ? (savedState?.currentRage ?? 0) : undefined,
+        wasAttacked: false
       })
     }
 
@@ -933,6 +977,24 @@ export const useBattleStore = defineStore('battle', () => {
             return
           }
 
+          // Process conditionalPreBuff (e.g., Defensive Footwork grants DEF buff if attacked)
+          if (skill.conditionalPreBuff) {
+            const { condition, effect: preBuff } = skill.conditionalPreBuff
+            let conditionMet = false
+            if (condition === 'wasAttacked' && hero.wasAttacked) {
+              conditionMet = true
+            }
+            if (conditionMet && preBuff) {
+              const buffDuration = resolveEffectDuration(preBuff, hero)
+              const buffValue = resolveEffectValue(preBuff, hero, effectiveAtk)
+              applyEffect(hero, preBuff.type, { duration: buffDuration, value: buffValue, sourceId: hero.instanceId, fromAllySkill: true })
+              emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+            }
+          }
+
+          // Recalculate damage stat after pre-buff (in case pre-buff affects the stat used for damage)
+          const finalDamageStat = skill.useStat ? getEffectiveStat(hero, skill.useStat) : effectiveAtk
+
           // Deal damage unless skill is effect-only
           if (!skill.noDamage) {
             const effectiveDef = getEffectiveStat(target, 'def')
@@ -942,10 +1004,10 @@ export const useBattleStore = defineStore('battle', () => {
             const scaledDamage = getSkillDamage(skill, hero)
             if (scaledDamage !== null) {
               const multiplier = scaledDamage / 100
-              damage = calculateDamage(effectiveDamageStat, multiplier, effectiveDef)
+              damage = calculateDamage(finalDamageStat, multiplier, effectiveDef)
             } else {
               const multiplier = parseSkillMultiplier(skill.description)
-              damage = calculateDamage(effectiveDamageStat, multiplier, effectiveDef)
+              damage = calculateDamage(finalDamageStat, multiplier, effectiveDef)
             }
 
             applyDamage(target, damage, 'attack', hero)
@@ -958,9 +1020,10 @@ export const useBattleStore = defineStore('battle', () => {
           // Apply skill effects
           if (skill.effects) {
             for (const effect of skill.effects) {
-              if (effect.target === 'enemy') {
-                const effectValue = calculateEffectValue(effect, effectiveAtk)
-                applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId })
+              if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
+                const effectDuration = resolveEffectDuration(effect, hero)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
+                applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
                 emitCombatEffect(target.id, 'enemy', 'debuff', 0)
               }
             }
@@ -1053,9 +1116,10 @@ export const useBattleStore = defineStore('battle', () => {
           // Apply skill effects (buffs)
           if (skill.effects) {
             for (const effect of skill.effects) {
-              if (effect.target === 'ally') {
-                const effectValue = calculateEffectValue(effect, effectiveAtk)
-                applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
+              if (effect.target === 'ally' && shouldApplyEffect(effect, hero)) {
+                const effectDuration = resolveEffectDuration(effect, hero)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
+                applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
                 emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
               }
             }
@@ -1067,9 +1131,10 @@ export const useBattleStore = defineStore('battle', () => {
           addLog(`${hero.template.name} uses ${skill.name}!`)
           if (skill.effects) {
             for (const effect of skill.effects) {
-              if (effect.target === 'self') {
-                const effectValue = calculateEffectValue(effect, effectiveAtk)
-                applyEffect(hero, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
+              if (effect.target === 'self' && shouldApplyEffect(effect, hero)) {
+                const effectDuration = resolveEffectDuration(effect, hero)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
+                applyEffect(hero, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
                 emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               }
             }
@@ -1099,9 +1164,10 @@ export const useBattleStore = defineStore('battle', () => {
 
             if (skill.effects) {
               for (const effect of skill.effects) {
-                if (effect.target === 'enemy') {
-                  const effectValue = calculateEffectValue(effect, effectiveAtk)
-                  applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId })
+                if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
+                  const effectDuration = resolveEffectDuration(effect, hero)
+                  const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
+                  applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
                   emitCombatEffect(target.id, 'enemy', 'debuff', 0)
                 }
               }
@@ -1166,10 +1232,11 @@ export const useBattleStore = defineStore('battle', () => {
           }
           if (skill.effects) {
             for (const effect of skill.effects) {
-              if (effect.target === 'ally' || effect.target === 'all_allies') {
-                const effectValue = calculateEffectValue(effect, effectiveAtk)
+              if ((effect.target === 'ally' || effect.target === 'all_allies') && shouldApplyEffect(effect, hero)) {
+                const effectDuration = resolveEffectDuration(effect, hero)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
                 for (const target of aliveHeroes.value) {
-                  applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
+                  applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
                   emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
                 }
               }
@@ -1187,6 +1254,9 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Process end of turn effects
     processEndOfTurnEffects(hero)
+
+    // Reset wasAttacked flag after the hero's turn ends
+    hero.wasAttacked = false
 
     setTimeout(() => {
       advanceTurnIndex()

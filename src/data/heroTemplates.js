@@ -107,40 +107,57 @@ export const heroTemplates = {
     baseStats: { hp: 130, atk: 30, def: 45, spd: 10, mp: 50 },
     skills: [
       {
-        name: 'Shield Bash',
-        description: 'Deal 80% ATK damage and reduce enemy ATK by 20% for 2 turns',
-        valorRequired: 0,
-        targetType: 'enemy',
-        effects: [
-          { type: EffectType.ATK_DOWN, target: 'enemy', duration: 2, value: 20 }
-        ]
-      },
-      {
         name: 'Challenge',
-        description: 'Force all enemies to target Sir Gallan until the end of his next turn',
+        description: 'Force all enemies to target Sir Gallan until the end of his next turn. At 100 Valor, also gain +10% DEF.',
+        skillUnlockLevel: 1,
         valorRequired: 0,
         targetType: 'self',
         noDamage: true,
         defensive: true,
         effects: [
-          { type: EffectType.TAUNT, target: 'self', duration: 2 }
+          { type: EffectType.TAUNT, target: 'self', duration: 2 },
+          { type: EffectType.DEF_UP, target: 'self', duration: 2, value: 10, valorThreshold: 100 }
+        ]
+      },
+      {
+        name: 'Shield Bash',
+        description: 'Deal 80% ATK damage and debuff enemy ATK. Debuff strength and duration scale with Valor.',
+        skillUnlockLevel: 1,
+        valorRequired: 25,
+        targetType: 'enemy',
+        effects: [
+          {
+            type: EffectType.ATK_DOWN,
+            target: 'enemy',
+            duration: { base: 2, at50: 3 },
+            value: { base: 20, at25: 25 }
+          }
         ]
       },
       {
         name: 'Valorous Strike',
         description: 'Deal damage that scales with Valor',
         skillUnlockLevel: 3,
-        valorRequired: 25,
+        valorRequired: 50,
         targetType: 'enemy',
-        damage: { base: 80, at25: 100, at50: 130, at75: 160, at100: 200 }
+        damage: { base: 110, at75: 125, at100: 140 }
       },
       {
-        name: 'Bulwark Slam',
-        description: 'Deal 100% DEF damage to one enemy',
+        name: 'Defensive Footwork',
+        description: 'Deal 100% DEF damage. If attacked since last turn, gain DEF buff first (scales with Valor).',
         skillUnlockLevel: 6,
         valorRequired: 25,
         targetType: 'enemy',
-        useStat: 'def'
+        useStat: 'def',
+        conditionalPreBuff: {
+          condition: 'wasAttacked',
+          effect: {
+            type: EffectType.DEF_UP,
+            target: 'self',
+            duration: 2,
+            value: { base: 10, at50: 15, at75: 20, at100: 25 }
+          }
+        }
       }
     ]
   },
