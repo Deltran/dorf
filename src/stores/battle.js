@@ -429,6 +429,50 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== VALOR HELPERS (Knights) ==========
+
+  // Check if a unit is a Knight (uses Valor)
+  function isKnight(unit) {
+    return unit.class?.resourceType === 'valor'
+  }
+
+  // Gain valor for a knight (clamped to 100)
+  function gainValor(unit, amount) {
+    if (!isKnight(unit)) return
+    if (unit.currentValor === undefined) unit.currentValor = 0
+    unit.currentValor = Math.min(100, unit.currentValor + amount)
+  }
+
+  // Get current valor tier (0, 25, 50, 75, or 100)
+  function getValorTier(unit) {
+    if (!isKnight(unit)) return 0
+    const valor = unit.currentValor || 0
+    if (valor >= 100) return 100
+    if (valor >= 75) return 75
+    if (valor >= 50) return 50
+    if (valor >= 25) return 25
+    return 0
+  }
+
+  // Resolve a valor-scaled value to its current tier value
+  function resolveValorScaling(scalingObj, valorTier) {
+    if (typeof scalingObj !== 'object' || scalingObj === null) {
+      return scalingObj // Not a scaling object, return as-is
+    }
+    if (scalingObj.base === undefined) {
+      return scalingObj // Not a scaling object, return as-is
+    }
+
+    // Find the highest tier at or below current
+    const tiers = [100, 75, 50, 25]
+    for (const tier of tiers) {
+      if (valorTier >= tier && scalingObj[`at${tier}`] !== undefined) {
+        return scalingObj[`at${tier}`]
+      }
+    }
+    return scalingObj.base
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   function applyDamage(unit, damage, source = 'attack') {
     if (damage <= 0) return 0
@@ -1308,6 +1352,9 @@ export const useBattleStore = defineStore('battle', () => {
     isRanger,
     grantFocus,
     removeFocus,
+    // Valor helpers (for UI)
+    isKnight,
+    getValorTier,
     // Constants
     BattleState,
     EffectType
