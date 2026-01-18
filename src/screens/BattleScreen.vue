@@ -70,9 +70,20 @@ const availableSkills = computed(() => {
   })
 })
 
-// Check if a specific skill can be used (has enough MP)
+// Check if current hero is a ranger (uses Focus)
+const isCurrentHeroRanger = computed(() => {
+  return currentHero.value?.class?.resourceType === 'focus'
+})
+
+// Check if a specific skill can be used (has enough MP or Focus)
 function canUseSkill(skill) {
   if (!currentHero.value || !skill) return false
+
+  // Rangers use Focus instead of MP
+  if (isCurrentHeroRanger.value) {
+    return currentHero.value.hasFocus === true
+  }
+
   return currentHero.value.currentMp >= skill.mpCost
 }
 
@@ -711,9 +722,9 @@ function getStatChange(hero, stat) {
           v-for="(skill, index) in availableSkills"
           :key="skill.name"
           :label="skill.name"
-          :description="skill.description"
-          :cost="skill.mpCost"
-          :costLabel="currentHero.class.resourceName"
+          :description="isCurrentHeroRanger && !currentHero.hasFocus ? 'Requires Focus' : skill.description"
+          :cost="isCurrentHeroRanger ? null : skill.mpCost"
+          :costLabel="isCurrentHeroRanger ? null : currentHero.class?.resourceName"
           :disabled="!canUseSkill(skill)"
           :selected="battleStore.selectedAction === `skill_${index}`"
           variant="primary"
