@@ -170,4 +170,42 @@ describe('battle store - rage helpers', () => {
       expect(berserker.currentRage).toBe(10)
     })
   })
+
+  describe('skill availability for berserkers', () => {
+    it('allows skill when currentRage >= rageCost', () => {
+      const hero = heroesStore.addHero('shadow_king')
+      heroesStore.setPartySlot(0, hero.instanceId)
+      store.initBattle({}, ['goblin_scout'])
+
+      const berserker = store.heroes[0]
+      berserker.currentRage = 30
+      berserker.skill = { rageCost: 25 }
+
+      expect(store.canUseSkill(berserker)).toBe(true)
+    })
+
+    it('blocks skill when currentRage < rageCost', () => {
+      const hero = heroesStore.addHero('shadow_king')
+      heroesStore.setPartySlot(0, hero.instanceId)
+      store.initBattle({}, ['goblin_scout'])
+
+      const berserker = store.heroes[0]
+      berserker.currentRage = 10
+      berserker.skill = { rageCost: 25 }
+
+      expect(store.canUseSkill(berserker)).toBe(false)
+    })
+
+    it('allows skill with 0 rageCost regardless of rage', () => {
+      const hero = heroesStore.addHero('shadow_king')
+      heroesStore.setPartySlot(0, hero.instanceId)
+      store.initBattle({}, ['goblin_scout'])
+
+      const berserker = store.heroes[0]
+      berserker.currentRage = 0
+      berserker.skill = { rageCost: 0 }
+
+      expect(store.canUseSkill(berserker)).toBe(true)
+    })
+  })
 })

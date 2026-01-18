@@ -450,6 +450,26 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // Check if a unit can use their skill based on resource type
+  function canUseSkill(unit) {
+    if (!unit.skill) return false
+
+    // Rangers check focus
+    if (isRanger(unit)) {
+      return unit.hasFocus === true
+    }
+
+    // Berserkers check rage cost
+    if (isBerserker(unit)) {
+      const rageCost = unit.skill.rageCost ?? 0
+      return unit.currentRage >= rageCost
+    }
+
+    // MP-based classes
+    const mpCost = unit.skill.mpCost ?? 0
+    return unit.currentMp >= mpCost
+  }
+
   // ========== VALOR HELPERS (Knights) ==========
 
   // Check if a unit is a Knight (uses Valor)
@@ -1460,6 +1480,7 @@ export const useBattleStore = defineStore('battle', () => {
     isBerserker,
     gainRage,
     spendRage,
+    canUseSkill,
     // Valor helpers (for UI)
     isKnight,
     getValorTier,
