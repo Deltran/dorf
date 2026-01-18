@@ -473,6 +473,16 @@ export const useBattleStore = defineStore('battle', () => {
     return scalingObj.base
   }
 
+  // Get skill damage value, applying Valor scaling for Knights
+  function getSkillDamage(skill, hero) {
+    if (skill.damage && typeof skill.damage === 'object' && skill.damage.base !== undefined) {
+      // This is a Valor-scaling damage value
+      const tier = getValorTier(hero)
+      return resolveValorScaling(skill.damage, tier)
+    }
+    return null // Use standard multiplier parsing
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   function applyDamage(unit, damage, source = 'attack') {
     if (damage <= 0) return 0
@@ -854,8 +864,18 @@ export const useBattleStore = defineStore('battle', () => {
           // Deal damage unless skill is effect-only
           if (!skill.noDamage) {
             const effectiveDef = getEffectiveStat(target, 'def')
-            const multiplier = parseSkillMultiplier(skill.description)
-            const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+            let damage
+
+            // Check for Valor-scaled damage
+            const scaledDamage = getSkillDamage(skill, hero)
+            if (scaledDamage !== null) {
+              const multiplier = scaledDamage / 100
+              damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+            } else {
+              const multiplier = parseSkillMultiplier(skill.description)
+              damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+            }
+
             applyDamage(target, damage)
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
