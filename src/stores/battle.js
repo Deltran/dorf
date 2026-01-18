@@ -342,7 +342,7 @@ export const useBattleStore = defineStore('battle', () => {
       if (effect.definition.isDot) {
         // DoT damage
         const damage = effect.value
-        unit.currentHp = Math.max(0, unit.currentHp - damage)
+        applyDamage(unit, damage, 'dot')
         addLog(`${unitName} takes ${damage} ${effect.definition.name} damage!`)
         emitCombatEffect(targetId, targetType, 'damage', damage)
 
@@ -411,6 +411,21 @@ export const useBattleStore = defineStore('battle', () => {
       const unitName = unit.template?.name || 'Unknown'
       addLog(`${unitName} loses Focus!`)
     }
+  }
+
+  // Apply damage to a unit and handle focus loss for rangers
+  function applyDamage(unit, damage, source = 'attack') {
+    if (damage <= 0) return 0
+
+    const actualDamage = Math.min(unit.currentHp, damage)
+    unit.currentHp = Math.max(0, unit.currentHp - actualDamage)
+
+    // Rangers lose focus when taking damage
+    if (isRanger(unit) && actualDamage > 0) {
+      removeFocus(unit)
+    }
+
+    return actualDamage
   }
 
   // ========== BATTLE FUNCTIONS ==========
@@ -647,7 +662,7 @@ export const useBattleStore = defineStore('battle', () => {
       const effectiveAtk = getEffectiveStat(hero, 'atk')
       const effectiveDef = getEffectiveStat(target, 'def')
       const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
-      target.currentHp = Math.max(0, target.currentHp - damage)
+      applyDamage(target, damage)
       addLog(`${hero.template.name} attacks ${target.template.name} for ${damage} damage!`)
       emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
@@ -660,7 +675,7 @@ export const useBattleStore = defineStore('battle', () => {
       if (thornsEffect && target.currentHp > 0) {
         const enemyAtk = getEffectiveStat(target, 'atk')
         const thornsDamage = Math.max(1, Math.floor(enemyAtk * (thornsEffect.value || 40) / 100))
-        hero.currentHp = Math.max(0, hero.currentHp - thornsDamage)
+        applyDamage(hero, thornsDamage, 'thorns')
         addLog(`${hero.template.name} takes ${thornsDamage} thorns damage!`)
         emitCombatEffect(hero.instanceId, 'hero', 'damage', thornsDamage)
         if (hero.currentHp <= 0) {
@@ -699,7 +714,7 @@ export const useBattleStore = defineStore('battle', () => {
             const effectiveDef = getEffectiveStat(target, 'def')
             const multiplier = parseSkillMultiplier(skill.description)
             const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
-            target.currentHp = Math.max(0, target.currentHp - damage)
+            applyDamage(target, damage)
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
           } else {
@@ -727,7 +742,7 @@ export const useBattleStore = defineStore('battle', () => {
             if (thornsEffect && target.currentHp > 0) {
               const enemyAtk = getEffectiveStat(target, 'atk')
               const thornsDamage = Math.max(1, Math.floor(enemyAtk * (thornsEffect.value || 40) / 100))
-              hero.currentHp = Math.max(0, hero.currentHp - thornsDamage)
+              applyDamage(hero, thornsDamage, 'thorns')
               addLog(`${hero.template.name} takes ${thornsDamage} thorns damage!`)
               emitCombatEffect(hero.instanceId, 'hero', 'damage', thornsDamage)
               if (hero.currentHp <= 0) {
@@ -829,7 +844,7 @@ export const useBattleStore = defineStore('battle', () => {
           for (const target of aliveEnemies.value) {
             const effectiveDef = getEffectiveStat(target, 'def')
             const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
-            target.currentHp = Math.max(0, target.currentHp - damage)
+            applyDamage(target, damage)
             totalDamage += damage
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
@@ -857,7 +872,7 @@ export const useBattleStore = defineStore('battle', () => {
           }
           // Apply accumulated thorns damage
           if (totalThornsDamage > 0) {
-            hero.currentHp = Math.max(0, hero.currentHp - totalThornsDamage)
+            applyDamage(hero, totalThornsDamage, 'thorns')
             addLog(`${hero.template.name} takes ${totalThornsDamage} thorns damage!`)
             emitCombatEffect(hero.instanceId, 'hero', 'damage', totalThornsDamage)
             if (hero.currentHp <= 0) {
@@ -976,7 +991,7 @@ export const useBattleStore = defineStore('battle', () => {
         for (const heroTarget of aliveHeroes.value) {
           const heroDef = getEffectiveStat(heroTarget, 'def')
           const damage = calculateDamage(effectiveAtk, multiplier, heroDef)
-          heroTarget.currentHp = Math.max(0, heroTarget.currentHp - damage)
+          applyDamage(heroTarget, damage)
           totalDamage += damage
           emitCombatEffect(heroTarget.instanceId, 'hero', 'damage', damage)
 
@@ -1049,7 +1064,7 @@ export const useBattleStore = defineStore('battle', () => {
         // Standard single-target damage skill
         const multiplier = parseSkillMultiplier(skill.description)
         const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
-        target.currentHp = Math.max(0, target.currentHp - damage)
+        applyDamage(target, damage)
         addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
         emitCombatEffect(target.instanceId, 'hero', 'damage', damage)
 
@@ -1093,7 +1108,7 @@ export const useBattleStore = defineStore('battle', () => {
       enemy.currentCooldowns[skill.name] = skill.cooldown
     } else {
       const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
-      target.currentHp = Math.max(0, target.currentHp - damage)
+      applyDamage(target, damage)
       addLog(`${enemy.template.name} attacks ${target.template.name} for ${damage} damage!`)
       emitCombatEffect(target.instanceId, 'hero', 'damage', damage)
     }
@@ -1108,7 +1123,7 @@ export const useBattleStore = defineStore('battle', () => {
       const targetAtk = getEffectiveStat(target, 'atk')
       const thornsDamage = Math.floor(targetAtk * thornsEffect.value / 100)
       if (thornsDamage > 0) {
-        enemy.currentHp = Math.max(0, enemy.currentHp - thornsDamage)
+        applyDamage(enemy, thornsDamage, 'thorns')
         addLog(`${enemy.template.name} takes ${thornsDamage} retaliation damage!`)
         emitCombatEffect(enemy.id, 'enemy', 'damage', thornsDamage)
         if (enemy.currentHp <= 0) {
