@@ -107,4 +107,38 @@ describe('battle store - rage helpers', () => {
       expect(battleHero.currentRage).toBe(45)
     })
   })
+
+  describe('rage gain on damage dealt', () => {
+    it('grants +5 rage when berserker deals damage', () => {
+      // Add berserker to party
+      const hero = heroesStore.addHero('shadow_king')
+      heroesStore.setPartySlot(0, hero.instanceId)
+
+      // Start battle with an enemy
+      store.initBattle({}, ['goblin'])
+
+      const berserker = store.heroes[0]
+      expect(berserker.currentRage).toBe(0)
+
+      // Berserker deals damage to enemy
+      store.applyDamage(store.enemies[0], 10, 'attack', berserker)
+
+      expect(berserker.currentRage).toBe(5)
+    })
+
+    it('grants rage for each damage instance', () => {
+      const hero = heroesStore.addHero('shadow_king')
+      heroesStore.setPartySlot(0, hero.instanceId)
+      store.initBattle({}, ['goblin'])
+
+      const berserker = store.heroes[0]
+
+      // Multiple hits
+      store.applyDamage(store.enemies[0], 10, 'attack', berserker)
+      store.applyDamage(store.enemies[0], 10, 'attack', berserker)
+      store.applyDamage(store.enemies[0], 10, 'attack', berserker)
+
+      expect(berserker.currentRage).toBe(15)
+    })
+  })
 })

@@ -505,7 +505,8 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   // Apply damage to a unit and handle focus loss for rangers
-  function applyDamage(unit, damage, source = 'attack') {
+  // attacker: optional unit object for the attacker (used for rage gain)
+  function applyDamage(unit, damage, source = 'attack', attacker = null) {
     if (damage <= 0) return 0
 
     const actualDamage = Math.min(unit.currentHp, damage)
@@ -514,6 +515,11 @@ export const useBattleStore = defineStore('battle', () => {
     // Rangers lose focus when taking damage
     if (isRanger(unit) && actualDamage > 0) {
       removeFocus(unit)
+    }
+
+    // Grant rage to berserker attackers
+    if (attacker && isBerserker(attacker)) {
+      gainRage(attacker, 5)
     }
 
     // Clear all status effects on death
@@ -795,7 +801,7 @@ export const useBattleStore = defineStore('battle', () => {
       const effectiveAtk = getEffectiveStat(hero, 'atk')
       const effectiveDef = getEffectiveStat(target, 'def')
       const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
-      applyDamage(target, damage)
+      applyDamage(target, damage, 'attack', hero)
       addLog(`${hero.template.name} attacks ${target.template.name} for ${damage} damage!`)
       emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
@@ -898,7 +904,7 @@ export const useBattleStore = defineStore('battle', () => {
               damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
             }
 
-            applyDamage(target, damage)
+            applyDamage(target, damage, 'attack', hero)
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
           } else {
@@ -1041,7 +1047,7 @@ export const useBattleStore = defineStore('battle', () => {
           for (const target of aliveEnemies.value) {
             const effectiveDef = getEffectiveStat(target, 'def')
             const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
-            applyDamage(target, damage)
+            applyDamage(target, damage, 'attack', hero)
             totalDamage += damage
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
@@ -1437,6 +1443,7 @@ export const useBattleStore = defineStore('battle', () => {
     getPartyState,
     endBattle,
     clearCombatEffects,
+    applyDamage,
     // Effect helpers (for UI)
     getEffectiveStat,
     hasEffect,
