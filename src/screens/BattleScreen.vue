@@ -672,7 +672,8 @@ function getStatChange(hero, stat) {
           active: battleStore.currentUnit?.instanceId === hero.instanceId,
           targetable: alliesTargetable && hero.currentHp > 0,
           selected: battleStore.selectedTarget?.id === hero.instanceId,
-          'leader-activating': leaderActivating === hero.instanceId
+          'leader-activating': leaderActivating === hero.instanceId,
+          dead: hero.currentHp <= 0
         }]"
         @click="handleHeroClick(hero)"
       >
@@ -1336,6 +1337,11 @@ function getStatChange(hero, stat) {
   width: 100%;
   height: 100%;
   background: #374151;
+}
+
+.hero-wrapper.dead .hero-image-container {
+  filter: grayscale(100%);
+  opacity: 0.6;
 }
 
 .hero-wrapper.targetable {

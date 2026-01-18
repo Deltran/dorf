@@ -340,6 +340,11 @@ export const useBattleStore = defineStore('battle', () => {
   // Process effects at end of turn (DoT damage, tick durations)
   function processEndOfTurnEffects(unit) {
     if (!unit.statusEffects || unit.statusEffects.length === 0) return
+    if (unit.currentHp <= 0) {
+      // Dead units lose all effects
+      unit.statusEffects = []
+      return
+    }
 
     const unitName = unit.template?.name || 'Unknown'
 
@@ -358,6 +363,7 @@ export const useBattleStore = defineStore('battle', () => {
 
         if (unit.currentHp <= 0) {
           addLog(`${unitName} ${unit.instanceId ? 'has fallen' : 'defeated'}!`)
+          return // Stop processing - unit is dead, effects already cleared by applyDamage
         }
       }
 
