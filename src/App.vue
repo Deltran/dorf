@@ -10,6 +10,7 @@ import WorldMapScreen from './screens/WorldMapScreen.vue'
 import BattleScreen from './screens/BattleScreen.vue'
 import InventoryScreen from './screens/InventoryScreen.vue'
 import MergeScreen from './screens/MergeScreen.vue'
+import AdminScreen from './screens/AdminScreen.vue'
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
@@ -32,6 +33,15 @@ onMounted(() => {
   }
 
   isLoaded.value = true
+
+  // Dev-only: Ctrl+Shift+A opens admin
+  if (import.meta.env.DEV) {
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+        currentScreen.value = 'admin'
+      }
+    })
+  }
 })
 
 function initNewPlayer() {
@@ -100,6 +110,10 @@ function startBattle() {
       />
       <MergeScreen
         v-else-if="currentScreen === 'merge'"
+        @navigate="navigate"
+      />
+      <AdminScreen
+        v-else-if="currentScreen === 'admin'"
         @navigate="navigate"
       />
     </template>
