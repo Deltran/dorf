@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import StarRating from './StarRating.vue'
 import StatBar from './StatBar.vue'
 import FocusIndicator from './FocusIndicator.vue'
+import ValorBar from './ValorBar.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 
@@ -61,6 +62,10 @@ const heroClass = computed(() => {
 
 const isRangerHero = computed(() => {
   return heroClass.value?.resourceType === 'focus'
+})
+
+const isKnightHero = computed(() => {
+  return heroClass.value?.resourceType === 'valor'
 })
 
 const isDead = computed(() => {
@@ -153,12 +158,19 @@ const rarityNames = {
         color="green"
         size="sm"
       />
-      <!-- Focus indicator for Rangers, MP bar for others -->
+      <!-- Focus indicator for Rangers -->
       <FocusIndicator
         v-if="isRangerHero"
         :hasFocus="hero.hasFocus"
         size="sm"
       />
+      <!-- Valor bar for Knights -->
+      <ValorBar
+        v-else-if="isKnightHero"
+        :currentValor="hero.currentValor || 0"
+        size="sm"
+      />
+      <!-- MP bar for others -->
       <StatBar
         v-else
         :current="hero.currentMp"

@@ -429,7 +429,7 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
-  // ========== RAGE HELPERS (Berserkers) ==========
+// ========== RAGE HELPERS (Berserkers) ==========
 
   // Check if a unit is a Berserker (uses Rage)
   function isBerserker(unit) {
@@ -448,6 +448,60 @@ export const useBattleStore = defineStore('battle', () => {
     if (unit.currentRage !== undefined) {
       unit.currentRage = Math.max(0, unit.currentRage - amount)
     }
+  }
+
+  // ========== VALOR HELPERS (Knights) ==========
+
+  // Check if a unit is a Knight (uses Valor)
+  function isKnight(unit) {
+    return unit.class?.resourceType === 'valor'
+  }
+
+  // Gain valor for a knight (clamped to 100)
+  function gainValor(unit, amount) {
+    if (!isKnight(unit)) return
+    if (unit.currentValor === undefined) unit.currentValor = 0
+    unit.currentValor = Math.min(100, unit.currentValor + amount)
+  }
+
+  // Get current valor tier (0, 25, 50, 75, or 100)
+  function getValorTier(unit) {
+    if (!isKnight(unit)) return 0
+    const valor = unit.currentValor || 0
+    if (valor >= 100) return 100
+    if (valor >= 75) return 75
+    if (valor >= 50) return 50
+    if (valor >= 25) return 25
+    return 0
+  }
+
+  // Resolve a valor-scaled value to its current tier value
+  function resolveValorScaling(scalingObj, valorTier) {
+    if (typeof scalingObj !== 'object' || scalingObj === null) {
+      return scalingObj // Not a scaling object, return as-is
+    }
+    if (scalingObj.base === undefined) {
+      return scalingObj // Not a scaling object, return as-is
+    }
+
+    // Find the highest tier at or below current
+    const tiers = [100, 75, 50, 25]
+    for (const tier of tiers) {
+      if (valorTier >= tier && scalingObj[`at${tier}`] !== undefined) {
+        return scalingObj[`at${tier}`]
+      }
+    }
+    return scalingObj.base
+  }
+
+  // Get skill damage value, applying Valor scaling for Knights
+  function getSkillDamage(skill, hero) {
+    if (skill.damage && typeof skill.damage === 'object' && skill.damage.base !== undefined) {
+      // This is a Valor-scaling damage value
+      const tier = getValorTier(hero)
+      return resolveValorScaling(skill.damage, tier)
+    }
+    return null // Use standard multiplier parsing
   }
 
   // Apply damage to a unit and handle focus loss for rangers
@@ -505,7 +559,8 @@ export const useBattleStore = defineStore('battle', () => {
         template: heroFull.template,
         class: heroFull.class,
         statusEffects: [],
-        hasFocus: heroFull.class?.resourceType === 'focus' ? true : undefined
+        hasFocus: heroFull.class?.resourceType === 'focus' ? true : undefined,
+        currentValor: heroFull.class?.resourceType === 'valor' ? 0 : undefined
       })
     }
 
@@ -631,12 +686,45 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // Process end-of-round Valor gains for all Knights
+  function processRoundEndValor() {
+    const livingAllies = aliveHeroes.value.length
+
+    for (const hero of heroes.value) {
+      if (!isKnight(hero) || hero.currentHp <= 0) continue
+
+      const oldValor = hero.currentValor || 0
+      let gained = 0
+
+      // +5 passive per round
+      gained += 5
+
+      // +5 per living ally (not counting self)
+      gained += (livingAllies - 1) * 5
+
+      // +10 if below 50% HP
+      if (hero.currentHp < hero.maxHp * 0.5) {
+        gained += 10
+      }
+
+      gainValor(hero, gained)
+
+      if (hero.currentValor > oldValor) {
+        const heroName = hero.template?.name || 'Knight'
+        addLog(`${heroName} gains ${hero.currentValor - oldValor} Valor! (${hero.currentValor}/100)`)
+      }
+    }
+  }
+
   function advanceTurnIndex() {
     currentTurnIndex.value++
     if (currentTurnIndex.value >= turnOrder.value.length) {
       currentTurnIndex.value = 0
       roundNumber.value++
       addLog(`--- Round ${roundNumber.value} ---`)
+
+      // Valor gains at round end for Knights
+      processRoundEndValor()
 
       // Check for round-triggered leader effects
       applyTimedLeaderEffects(roundNumber.value)
@@ -738,8 +826,15 @@ export const useBattleStore = defineStore('battle', () => {
         return
       }
 
-      // Check resource availability: Focus for rangers, MP for others
-      if (isRanger(hero)) {
+      // Check resource availability: Valor for knights, Focus for rangers, MP for others
+      if (isKnight(hero)) {
+        if (skill.valorRequired && (hero.currentValor || 0) < skill.valorRequired) {
+          addLog(`Requires ${skill.valorRequired} Valor!`)
+          state.value = BattleState.PLAYER_TURN
+          return
+        }
+        // Knights don't spend MP
+      } else if (isRanger(hero)) {
         if (!hero.hasFocus) {
           addLog(`Not enough ${hero.class.resourceName}!`)
           state.value = BattleState.PLAYER_TURN
@@ -754,6 +849,15 @@ export const useBattleStore = defineStore('battle', () => {
         hero.currentMp -= skill.mpCost
       }
       usedSkill = true
+
+      // Knights gain Valor for using defensive skills
+      if (isKnight(hero) && skill.defensive) {
+        const oldValor = hero.currentValor || 0
+        gainValor(hero, 5)
+        if (hero.currentValor > oldValor) {
+          addLog(`${hero.template.name} gains 5 Valor from defensive action! (${hero.currentValor}/100)`)
+        }
+      }
 
       // Rangers lose focus when using a skill
       if (isRanger(hero)) {
@@ -781,8 +885,18 @@ export const useBattleStore = defineStore('battle', () => {
           // Deal damage unless skill is effect-only
           if (!skill.noDamage) {
             const effectiveDef = getEffectiveStat(target, 'def')
-            const multiplier = parseSkillMultiplier(skill.description)
-            const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+            let damage
+
+            // Check for Valor-scaled damage
+            const scaledDamage = getSkillDamage(skill, hero)
+            if (scaledDamage !== null) {
+              const multiplier = scaledDamage / 100
+              damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+            } else {
+              const multiplier = parseSkillMultiplier(skill.description)
+              damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+            }
+
             applyDamage(target, damage)
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
@@ -1329,10 +1443,13 @@ export const useBattleStore = defineStore('battle', () => {
     isRanger,
     grantFocus,
     removeFocus,
-    // Rage helpers (for UI)
+// Rage helpers (for UI)
     isBerserker,
     gainRage,
     spendRage,
+    // Valor helpers (for UI)
+    isKnight,
+    getValorTier,
     // Constants
     BattleState,
     EffectType
