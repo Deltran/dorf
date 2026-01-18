@@ -812,6 +812,15 @@ export const useBattleStore = defineStore('battle', () => {
       }
       usedSkill = true
 
+      // Knights gain Valor for using defensive skills
+      if (isKnight(hero) && skill.defensive) {
+        const oldValor = hero.currentValor || 0
+        gainValor(hero, 5)
+        if (hero.currentValor > oldValor) {
+          addLog(`${hero.template.name} gains 5 Valor from defensive action! (${hero.currentValor}/100)`)
+        }
+      }
+
       // Rangers lose focus when using a skill
       if (isRanger(hero)) {
         removeFocus(hero, true)  // silent - skill use is implied
