@@ -125,6 +125,14 @@ export const heroTemplates = {
         effects: [
           { type: EffectType.TAUNT, target: 'self', duration: 2 }
         ]
+      },
+      {
+        name: 'Valorous Strike',
+        description: 'Deal damage that scales with Valor',
+        mpCost: 0,
+        valorRequired: 50,
+        targetType: 'enemy',
+        damage: { base: 80, at50: 100, at75: 130, at100: 180 }
       }
     ]
   },
