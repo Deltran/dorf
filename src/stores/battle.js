@@ -429,6 +429,27 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== RAGE HELPERS (Berserkers) ==========
+
+  // Check if a unit is a Berserker (uses Rage)
+  function isBerserker(unit) {
+    return unit.class?.resourceType === 'rage'
+  }
+
+  // Gain rage for a berserker
+  function gainRage(unit, amount) {
+    if (unit.currentRage !== undefined) {
+      unit.currentRage = Math.min(100, unit.currentRage + amount)
+    }
+  }
+
+  // Spend rage for a berserker
+  function spendRage(unit, amount) {
+    if (unit.currentRage !== undefined) {
+      unit.currentRage = Math.max(0, unit.currentRage - amount)
+    }
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   function applyDamage(unit, damage, source = 'attack') {
     if (damage <= 0) return 0
@@ -1308,6 +1329,10 @@ export const useBattleStore = defineStore('battle', () => {
     isRanger,
     grantFocus,
     removeFocus,
+    // Rage helpers (for UI)
+    isBerserker,
+    gainRage,
+    spendRage,
     // Constants
     BattleState,
     EffectType
