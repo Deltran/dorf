@@ -548,8 +548,14 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     // Clear all status effects on death
-    if (unit.currentHp <= 0 && unit.statusEffects?.length > 0) {
-      unit.statusEffects = []
+    if (unit.currentHp <= 0) {
+      if (unit.statusEffects?.length > 0) {
+        unit.statusEffects = []
+      }
+      // Reset rage on death for berserkers
+      if (isBerserker(unit)) {
+        unit.currentRage = 0
+      }
     }
 
     return actualDamage
