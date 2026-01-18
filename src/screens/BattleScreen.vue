@@ -8,6 +8,7 @@ import DamageNumber from '../components/DamageNumber.vue'
 import ImpactIcon from '../components/ImpactIcon.vue'
 import StatBar from '../components/StatBar.vue'
 import ItemCard from '../components/ItemCard.vue'
+import FocusIndicator from '../components/FocusIndicator.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode } from '../data/questNodes.js'
 
@@ -73,6 +74,11 @@ const availableSkills = computed(() => {
 // Check if current hero is a ranger (uses Focus)
 const isCurrentHeroRanger = computed(() => {
   return currentHero.value?.class?.resourceType === 'focus'
+})
+
+// Check if inspected hero is a ranger (uses Focus)
+const isInspectedHeroRanger = computed(() => {
+  return inspectedHero.value?.class?.resourceType === 'focus'
 })
 
 // Check if a specific skill can be used (has enough MP or Focus)
@@ -893,7 +899,11 @@ function getStatChange(hero, stat) {
             />
             <span class="bar-numbers">{{ inspectedHero.currentHp }} / {{ inspectedHero.maxHp }}</span>
           </div>
-          <div class="inspect-bar-row">
+          <div v-if="isInspectedHeroRanger" class="inspect-bar-row">
+            <span class="bar-label">Focus</span>
+            <FocusIndicator :hasFocus="inspectedHero.hasFocus" size="md" />
+          </div>
+          <div v-else class="inspect-bar-row">
             <span class="bar-label">{{ inspectedHero.class?.resourceName || 'MP' }}</span>
             <StatBar
               :current="inspectedHero.currentMp"
