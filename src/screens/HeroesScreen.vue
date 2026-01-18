@@ -265,6 +265,120 @@ function confirmMerge() {
 function getStarLevel(hero) {
   return hero.starLevel || hero.template?.rarity || 1
 }
+
+// Check if selected hero is a Knight (uses Valor)
+const isKnightHero = computed(() => {
+  return selectedHero.value?.class?.resourceType === 'valor'
+})
+
+// Get skill cost display (handles both mpCost and valorRequired)
+function getSkillCostDisplay(skill, heroClass) {
+  if (skill.valorRequired !== undefined) {
+    return `${skill.valorRequired} Valor required`
+  }
+  if (skill.rageCost !== undefined) {
+    return `${skill.rageCost} Rage`
+  }
+  if (skill.mpCost !== undefined) {
+    return `${skill.mpCost} ${heroClass?.resourceName || 'MP'}`
+  }
+  return null
+}
+
+// Extract Valor scaling breakdown from a skill
+function getValorBreakdown(skill) {
+  const breakdown = []
+
+  // Check damage scaling
+  if (skill.damage && typeof skill.damage === 'object' && skill.damage.base !== undefined) {
+    const dmg = skill.damage
+    const tiers = []
+    if (dmg.base !== undefined) tiers.push({ valor: 0, label: 'Base', value: `${dmg.base}% ATK` })
+    if (dmg.at25 !== undefined) tiers.push({ valor: 25, label: '25+', value: `${dmg.at25}% ATK` })
+    if (dmg.at50 !== undefined) tiers.push({ valor: 50, label: '50+', value: `${dmg.at50}% ATK` })
+    if (dmg.at75 !== undefined) tiers.push({ valor: 75, label: '75+', value: `${dmg.at75}% ATK` })
+    if (dmg.at100 !== undefined) tiers.push({ valor: 100, label: '100', value: `${dmg.at100}% ATK` })
+    if (tiers.length > 1) {
+      breakdown.push({ type: 'Damage', tiers })
+    }
+  }
+
+  // Check effects for Valor scaling
+  if (skill.effects) {
+    for (const effect of skill.effects) {
+      // valorThreshold effects (only apply at certain Valor)
+      if (effect.valorThreshold !== undefined) {
+        breakdown.push({
+          type: getEffectTypeName(effect.type),
+          tiers: [{ valor: effect.valorThreshold, label: `${effect.valorThreshold}+`, value: `+${effect.value}%` }]
+        })
+      }
+
+      // Object-based value scaling
+      if (typeof effect.value === 'object' && effect.value !== null && effect.value.base !== undefined) {
+        const val = effect.value
+        const tiers = []
+        if (val.base !== undefined) tiers.push({ valor: 0, label: 'Base', value: `${val.base}%` })
+        if (val.at25 !== undefined) tiers.push({ valor: 25, label: '25+', value: `${val.at25}%` })
+        if (val.at50 !== undefined) tiers.push({ valor: 50, label: '50+', value: `${val.at50}%` })
+        if (val.at75 !== undefined) tiers.push({ valor: 75, label: '75+', value: `${val.at75}%` })
+        if (val.at100 !== undefined) tiers.push({ valor: 100, label: '100', value: `${val.at100}%` })
+        if (tiers.length > 1) {
+          breakdown.push({ type: `${getEffectTypeName(effect.type)} Strength`, tiers })
+        }
+      }
+
+      // Object-based duration scaling
+      if (typeof effect.duration === 'object' && effect.duration !== null && effect.duration.base !== undefined) {
+        const dur = effect.duration
+        const tiers = []
+        if (dur.base !== undefined) tiers.push({ valor: 0, label: 'Base', value: `${dur.base} turns` })
+        if (dur.at25 !== undefined) tiers.push({ valor: 25, label: '25+', value: `${dur.at25} turns` })
+        if (dur.at50 !== undefined) tiers.push({ valor: 50, label: '50+', value: `${dur.at50} turns` })
+        if (dur.at75 !== undefined) tiers.push({ valor: 75, label: '75+', value: `${dur.at75} turns` })
+        if (dur.at100 !== undefined) tiers.push({ valor: 100, label: '100', value: `${dur.at100} turns` })
+        if (tiers.length > 1) {
+          breakdown.push({ type: `${getEffectTypeName(effect.type)} Duration`, tiers })
+        }
+      }
+    }
+  }
+
+  // Check conditionalPreBuff scaling
+  if (skill.conditionalPreBuff?.effect) {
+    const preBuff = skill.conditionalPreBuff.effect
+    if (typeof preBuff.value === 'object' && preBuff.value !== null && preBuff.value.base !== undefined) {
+      const val = preBuff.value
+      const tiers = []
+      if (val.base !== undefined) tiers.push({ valor: 0, label: 'Base', value: `+${val.base}%` })
+      if (val.at25 !== undefined) tiers.push({ valor: 25, label: '25+', value: `+${val.at25}%` })
+      if (val.at50 !== undefined) tiers.push({ valor: 50, label: '50+', value: `+${val.at50}%` })
+      if (val.at75 !== undefined) tiers.push({ valor: 75, label: '75+', value: `+${val.at75}%` })
+      if (val.at100 !== undefined) tiers.push({ valor: 100, label: '100', value: `+${val.at100}%` })
+      if (tiers.length > 1) {
+        const conditionLabel = skill.conditionalPreBuff.condition === 'wasAttacked' ? 'If Attacked' : 'Conditional'
+        breakdown.push({ type: `${conditionLabel}: ${getEffectTypeName(preBuff.type)}`, tiers })
+      }
+    }
+  }
+
+  return breakdown
+}
+
+function getEffectTypeName(type) {
+  const names = {
+    atk_up: 'ATK Buff',
+    atk_down: 'ATK Debuff',
+    def_up: 'DEF Buff',
+    def_down: 'DEF Debuff',
+    spd_up: 'SPD Buff',
+    spd_down: 'SPD Debuff',
+    taunt: 'Taunt',
+    poison: 'Poison',
+    burn: 'Burn'
+  }
+  return names[type] || type
+}
 </script>
 
 <template>
@@ -489,14 +603,34 @@ function getStarLevel(hero) {
           <div
             v-for="(skill, index) in selectedHero.template.skills"
             :key="index"
-            class="skill-info"
+            :class="['skill-info', { 'valor-skill': isKnightHero && skill.valorRequired !== undefined }]"
           >
             <div class="skill-header">
               <span class="skill-name">{{ skill.name }}</span>
               <span v-if="skill.skillUnlockLevel" class="skill-unlock">Lv.{{ skill.skillUnlockLevel }}</span>
             </div>
-            <div class="skill-cost">{{ skill.mpCost }} {{ selectedHero.class.resourceName }}</div>
+            <div v-if="getSkillCostDisplay(skill, selectedHero.class)" class="skill-cost">
+              {{ getSkillCostDisplay(skill, selectedHero.class) }}
+            </div>
             <div class="skill-desc">{{ skill.description }}</div>
+
+            <!-- Valor Breakdown for Knights -->
+            <div v-if="isKnightHero && getValorBreakdown(skill).length > 0" class="valor-breakdown">
+              <div class="valor-breakdown-header">Valor Scaling</div>
+              <div v-for="(item, idx) in getValorBreakdown(skill)" :key="idx" class="valor-row">
+                <span class="valor-type">{{ item.type }}:</span>
+                <div class="valor-tiers">
+                  <span
+                    v-for="tier in item.tiers"
+                    :key="tier.valor"
+                    class="valor-tier"
+                  >
+                    <span class="tier-label">{{ tier.label }}</span>
+                    <span class="tier-value">{{ tier.value }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div v-else-if="selectedHero.template.skill" class="skills-list">
@@ -504,7 +638,9 @@ function getStarLevel(hero) {
             <div class="skill-header">
               <span class="skill-name">{{ selectedHero.template.skill.name }}</span>
             </div>
-            <div class="skill-cost">{{ selectedHero.template.skill.mpCost }} {{ selectedHero.class.resourceName }}</div>
+            <div v-if="getSkillCostDisplay(selectedHero.template.skill, selectedHero.class)" class="skill-cost">
+              {{ getSkillCostDisplay(selectedHero.template.skill, selectedHero.class) }}
+            </div>
             <div class="skill-desc">{{ selectedHero.template.skill.description }}</div>
           </div>
         </div>
@@ -1303,6 +1439,68 @@ function getStarLevel(hero) {
   font-size: 0.85rem;
   color: #9ca3af;
   line-height: 1.4;
+}
+
+/* ===== Valor Skills ===== */
+.skill-info.valor-skill {
+  border-left-color: #f59e0b;
+}
+
+.valor-breakdown {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.valor-breakdown-header {
+  font-size: 0.7rem;
+  color: #f59e0b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.valor-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.valor-row:last-child {
+  margin-bottom: 0;
+}
+
+.valor-type {
+  font-size: 0.75rem;
+  color: #d1d5db;
+  font-weight: 500;
+}
+
+.valor-tiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.valor-tier {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+}
+
+.tier-label {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.tier-value {
+  color: #e5e7eb;
 }
 
 /* ===== Detail Actions ===== */
