@@ -76,14 +76,58 @@ const isCurrentHeroRanger = computed(() => {
   return currentHero.value?.class?.resourceType === 'focus'
 })
 
+// Check if current hero is a knight (uses Valor)
+const isCurrentHeroKnight = computed(() => {
+  return currentHero.value?.class?.resourceType === 'valor'
+})
+
 // Check if inspected hero is a ranger (uses Focus)
 const isInspectedHeroRanger = computed(() => {
   return inspectedHero.value?.class?.resourceType === 'focus'
 })
 
-// Check if a specific skill can be used (has enough MP or Focus)
+// Helper functions for skill display
+function getSkillDescription(skill) {
+  if (isCurrentHeroKnight.value && skill.valorRequired && (currentHero.value.currentValor || 0) < skill.valorRequired) {
+    return `Requires ${skill.valorRequired} Valor`
+  }
+  if (isCurrentHeroRanger.value && !currentHero.value.hasFocus) {
+    return 'Requires Focus'
+  }
+  return skill.description
+}
+
+function getSkillCost(skill) {
+  if (isCurrentHeroKnight.value) {
+    return skill.valorRequired || null
+  }
+  if (isCurrentHeroRanger.value) {
+    return null
+  }
+  return skill.mpCost
+}
+
+function getSkillCostLabel(skill) {
+  if (isCurrentHeroKnight.value && skill.valorRequired) {
+    return 'Valor'
+  }
+  if (isCurrentHeroRanger.value) {
+    return null
+  }
+  return currentHero.value?.class?.resourceName
+}
+
+// Check if a specific skill can be used (has enough MP, Focus, or Valor)
 function canUseSkill(skill) {
   if (!currentHero.value || !skill) return false
+
+  // Knights check Valor requirement
+  if (isCurrentHeroKnight.value) {
+    if (skill.valorRequired) {
+      return (currentHero.value.currentValor || 0) >= skill.valorRequired
+    }
+    return true // No valorRequired means always available
+  }
 
   // Rangers use Focus instead of MP
   if (isCurrentHeroRanger.value) {
@@ -729,9 +773,9 @@ function getStatChange(hero, stat) {
           v-for="(skill, index) in availableSkills"
           :key="skill.name"
           :label="skill.name"
-          :description="isCurrentHeroRanger && !currentHero.hasFocus ? 'Requires Focus' : skill.description"
-          :cost="isCurrentHeroRanger ? null : skill.mpCost"
-          :costLabel="isCurrentHeroRanger ? null : currentHero.class?.resourceName"
+          :description="getSkillDescription(skill)"
+          :cost="getSkillCost(skill)"
+          :costLabel="getSkillCostLabel(skill)"
           :disabled="!canUseSkill(skill)"
           :selected="battleStore.selectedAction === `skill_${index}`"
           variant="primary"
