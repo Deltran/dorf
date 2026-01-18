@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import ItemsAdmin from './admin/ItemsAdmin.vue'
+import ClassesAdmin from './admin/ClassesAdmin.vue'
 
 const activeSection = ref('heroes')
 
@@ -46,6 +47,7 @@ function exitAdmin() {
 
       <div class="content-body">
         <ItemsAdmin v-if="activeSection === 'items'" />
+        <ClassesAdmin v-else-if="activeSection === 'classes'" />
         <p v-else class="placeholder">{{ activeSection }} admin coming soon...</p>
       </div>
     </main>
