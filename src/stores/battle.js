@@ -872,6 +872,14 @@ export const useBattleStore = defineStore('battle', () => {
           state.value = BattleState.PLAYER_TURN
           return
         }
+      } else if (isBerserker(hero)) {
+        const rageCost = skill.rageCost ?? 0
+        if (hero.currentRage < rageCost) {
+          addLog(`Not enough ${hero.class.resourceName}!`)
+          state.value = BattleState.PLAYER_TURN
+          return
+        }
+        hero.currentRage -= rageCost
       } else {
         if (hero.currentMp < skill.mpCost) {
           addLog(`Not enough ${hero.class.resourceName}!`)
@@ -904,9 +912,11 @@ export const useBattleStore = defineStore('battle', () => {
           const target = enemies.value.find(e => e.id === selectedTarget.value?.id)
           if (!target || target.currentHp <= 0) {
             addLog('Invalid target')
-            // Refund resource: Focus for rangers, MP for others
+            // Refund resource: Focus for rangers, Rage for berserkers, MP for others
             if (isRanger(hero)) {
               grantFocus(hero)
+            } else if (isBerserker(hero)) {
+              hero.currentRage += skill.rageCost ?? 0
             } else {
               hero.currentMp += skill.mpCost
             }
@@ -972,9 +982,11 @@ export const useBattleStore = defineStore('battle', () => {
           const target = heroes.value.find(h => h.instanceId === selectedTarget.value?.id)
           if (!target || target.currentHp <= 0) {
             addLog('Invalid target')
-            // Refund resource: Focus for rangers, MP for others
+            // Refund resource: Focus for rangers, Rage for berserkers, MP for others
             if (isRanger(hero)) {
               grantFocus(hero)
+            } else if (isBerserker(hero)) {
+              hero.currentRage += skill.rageCost ?? 0
             } else {
               hero.currentMp += skill.mpCost
             }
