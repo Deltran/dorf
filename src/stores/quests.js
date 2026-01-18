@@ -108,14 +108,15 @@ export const useQuestsStore = defineStore('quests', () => {
   }
 
   function applyBetweenBattleRecovery(partyState, heroStats) {
-    // 10% HP and MP recovery between battles
+    // 10% HP and MP recovery between battles, preserve rage
     const recovered = {}
     for (const [instanceId, state] of Object.entries(partyState)) {
       const maxHp = heroStats[instanceId]?.hp || 100
       const maxMp = heroStats[instanceId]?.mp || 50
       recovered[instanceId] = {
         currentHp: Math.min(state.currentHp + Math.floor(maxHp * 0.1), maxHp),
-        currentMp: Math.min(state.currentMp + Math.floor(maxMp * 0.1), maxMp)
+        currentMp: Math.min(state.currentMp + Math.floor(maxMp * 0.1), maxMp),
+        currentRage: state.currentRage
       }
     }
     return recovered

@@ -1438,7 +1438,8 @@ export const useBattleStore = defineStore('battle', () => {
     for (const hero of heroes.value) {
       partyState[hero.instanceId] = {
         currentHp: hero.currentHp,
-        currentMp: hero.currentMp
+        currentMp: hero.currentMp,
+        currentRage: hero.currentRage
       }
     }
     return partyState
