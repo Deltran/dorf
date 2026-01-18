@@ -522,6 +522,11 @@ export const useBattleStore = defineStore('battle', () => {
       gainRage(attacker, 5)
     }
 
+    // Grant rage to berserker defenders
+    if (isBerserker(unit)) {
+      gainRage(unit, 5)
+    }
+
     // Clear all status effects on death
     if (unit.currentHp <= 0 && unit.statusEffects?.length > 0) {
       unit.statusEffects = []
