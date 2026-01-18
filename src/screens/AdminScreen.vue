@@ -50,13 +50,12 @@ function exitAdmin() {
       </div>
 
       <div class="content-body">
-        <ItemsAdmin v-if="activeSection === 'items'" />
+        <HeroesAdmin v-if="activeSection === 'heroes'" />
+        <EnemiesAdmin v-else-if="activeSection === 'enemies'" />
         <ClassesAdmin v-else-if="activeSection === 'classes'" />
         <StatusEffectsAdmin v-else-if="activeSection === 'statusEffects'" />
-        <EnemiesAdmin v-else-if="activeSection === 'enemies'" />
-        <HeroesAdmin v-else-if="activeSection === 'heroes'" />
         <QuestsAdmin v-else-if="activeSection === 'questNodes'" />
-        <p v-else class="placeholder">{{ activeSection }} admin coming soon...</p>
+        <ItemsAdmin v-else-if="activeSection === 'items'" />
       </div>
     </main>
   </div>
@@ -156,9 +155,5 @@ function exitAdmin() {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
-}
-
-.placeholder {
-  color: #6b7280;
 }
 </style>
