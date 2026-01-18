@@ -1270,6 +1270,10 @@ export const useBattleStore = defineStore('battle', () => {
     // Effect helpers (for UI)
     getEffectiveStat,
     hasEffect,
+    // Focus helpers (for UI)
+    isRanger,
+    grantFocus,
+    removeFocus,
     // Constants
     BattleState,
     EffectType
