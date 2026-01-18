@@ -27,7 +27,8 @@ export const classes = {
     id: 'ranger',
     title: 'Ranger',
     role: 'dps',
-    resourceName: 'Focus'
+    resourceName: 'Focus',
+    resourceType: 'focus'
   },
   cleric: {
     id: 'cleric',
