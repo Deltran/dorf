@@ -121,6 +121,7 @@ export const heroTemplates = {
         mpCost: 12,
         targetType: 'self',
         noDamage: true,
+        defensive: true,
         effects: [
           { type: EffectType.TAUNT, target: 'self', duration: 2 }
         ]
@@ -218,6 +219,7 @@ export const heroTemplates = {
         mpCost: 12,
         targetType: 'self',
         unlockLevel: 1,
+        defensive: true,
         effects: [
           { type: EffectType.DEF_UP, target: 'self', duration: 2, value: 50 }
         ]
@@ -229,6 +231,7 @@ export const heroTemplates = {
         targetType: 'ally',
         unlockLevel: 1,
         noDamage: true,
+        defensive: true,
         effects: [
           { type: EffectType.DEF_UP, target: 'ally', duration: 2, value: 35 }
         ]
@@ -327,6 +330,7 @@ export const heroTemplates = {
       description: 'Increase own DEF by 30% for 1 turn',
       mpCost: 10,
       targetType: 'self',
+      defensive: true,
       effects: [
         { type: EffectType.DEF_UP, target: 'self', duration: 1, value: 30 }
       ]
