@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import StarRating from './StarRating.vue'
 import StatBar from './StatBar.vue'
+import FocusIndicator from './FocusIndicator.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 
@@ -56,6 +57,10 @@ const template = computed(() => {
 const heroClass = computed(() => {
   if (props.hero.class) return props.hero.class
   return getClass(template.value?.classId)
+})
+
+const isRangerHero = computed(() => {
+  return heroClass.value?.resourceType === 'focus'
 })
 
 const rarityClass = computed(() => {
@@ -144,7 +149,14 @@ const rarityNames = {
         color="green"
         size="sm"
       />
+      <!-- Focus indicator for Rangers, MP bar for others -->
+      <FocusIndicator
+        v-if="isRangerHero"
+        :hasFocus="hero.hasFocus"
+        size="sm"
+      />
       <StatBar
+        v-else
         :current="hero.currentMp"
         :max="hero.maxMp"
         :label="heroClass?.resourceName || 'MP'"
