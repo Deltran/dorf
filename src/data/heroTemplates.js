@@ -45,11 +45,11 @@ export const heroTemplates = {
     name: 'The Shadow King',
     rarity: 5,
     classId: 'berserker',
-    baseStats: { hp: 110, atk: 55, def: 25, spd: 18, mp: 50 },
+    baseStats: { hp: 110, atk: 55, def: 25, spd: 18 },
     skill: {
       name: 'Void Strike',
       description: 'Deal 200% ATK damage to one enemy, ignoring 50% of their DEF',
-      mpCost: 25,
+      rageCost: 50,
       targetType: 'enemy'
     },
     leaderSkill: {
@@ -377,11 +377,11 @@ export const heroTemplates = {
     name: 'Darl',
     rarity: 1,
     classId: 'berserker',
-    baseStats: { hp: 70, atk: 20, def: 12, spd: 8, mp: 30 },
+    baseStats: { hp: 70, atk: 20, def: 12, spd: 8 },
     skill: {
       name: 'Pitchfork Jab',
       description: 'Deal 90% ATK damage to one enemy',
-      mpCost: 8,
+      rageCost: 25,
       targetType: 'enemy'
     }
   },
