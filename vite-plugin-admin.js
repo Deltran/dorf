@@ -3,12 +3,12 @@ import fs from 'fs'
 import path from 'path'
 
 const DATA_FILES = {
-  heroes: 'src/data/heroTemplates.js',
-  enemies: 'src/data/enemyTemplates.js',
-  classes: 'src/data/classes.js',
-  statusEffects: 'src/data/statusEffects.js',
-  questNodes: 'src/data/questNodes.js',
-  items: 'src/data/items.js'
+  heroes: { path: 'src/data/heroTemplates.js', exportName: 'heroTemplates' },
+  enemies: { path: 'src/data/enemyTemplates.js', exportName: 'enemyTemplates' },
+  classes: { path: 'src/data/classes.js', exportName: 'classes' },
+  statusEffects: { path: 'src/data/statusEffects.js', exportName: 'effectDefinitions' },
+  questNodes: { path: 'src/data/questNodes.js', exportName: 'questNodes' },
+  items: { path: 'src/data/items.js', exportName: 'items' }
 }
 
 // Extract the main export object from a JS file
@@ -92,16 +92,16 @@ export default function adminPlugin() {
         const match = req.url?.match(/^\/api\/admin\/(\w+)$/)
         if (req.method === 'GET' && match) {
           const contentType = match[1]
-          const filePath = DATA_FILES[contentType]
+          const fileConfig = DATA_FILES[contentType]
 
-          if (!filePath) {
+          if (!fileConfig) {
             res.statusCode = 404
             res.end(JSON.stringify({ error: `Unknown content type: ${contentType}` }))
             return
           }
 
           try {
-            const fullPath = path.resolve(process.cwd(), filePath)
+            const fullPath = path.resolve(process.cwd(), fileConfig.path)
             const { data } = parseDataFile(fullPath)
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify(data))
@@ -119,9 +119,9 @@ export default function adminPlugin() {
         const match = req.url?.match(/^\/api\/admin\/(\w+)$/)
         if (req.method === 'POST' && match) {
           const contentType = match[1]
-          const filePath = DATA_FILES[contentType]
+          const fileConfig = DATA_FILES[contentType]
 
-          if (!filePath) {
+          if (!fileConfig) {
             res.statusCode = 404
             res.end(JSON.stringify({ error: `Unknown content type: ${contentType}` }))
             return
@@ -141,7 +141,7 @@ export default function adminPlugin() {
               return
             }
 
-            const fullPath = path.resolve(process.cwd(), filePath)
+            const fullPath = path.resolve(process.cwd(), fileConfig.path)
             const { exportName, data, imports, suffix } = parseDataFile(fullPath)
 
             if (data[newEntry.id]) {
@@ -170,9 +170,9 @@ export default function adminPlugin() {
         if (req.method === 'PUT' && match) {
           const contentType = match[1]
           const entryId = decodeURIComponent(match[2])
-          const filePath = DATA_FILES[contentType]
+          const fileConfig = DATA_FILES[contentType]
 
-          if (!filePath) {
+          if (!fileConfig) {
             res.statusCode = 404
             res.end(JSON.stringify({ error: `Unknown content type: ${contentType}` }))
             return
@@ -185,7 +185,7 @@ export default function adminPlugin() {
 
           try {
             const updatedEntry = JSON.parse(body)
-            const fullPath = path.resolve(process.cwd(), filePath)
+            const fullPath = path.resolve(process.cwd(), fileConfig.path)
             const { exportName, data, imports, suffix } = parseDataFile(fullPath)
 
             if (!data[entryId]) {
@@ -218,16 +218,16 @@ export default function adminPlugin() {
         if (req.method === 'DELETE' && match) {
           const contentType = match[1]
           const entryId = decodeURIComponent(match[2])
-          const filePath = DATA_FILES[contentType]
+          const fileConfig = DATA_FILES[contentType]
 
-          if (!filePath) {
+          if (!fileConfig) {
             res.statusCode = 404
             res.end(JSON.stringify({ error: `Unknown content type: ${contentType}` }))
             return
           }
 
           try {
-            const fullPath = path.resolve(process.cwd(), filePath)
+            const fullPath = path.resolve(process.cwd(), fileConfig.path)
             const { exportName, data, imports, suffix } = parseDataFile(fullPath)
 
             if (!data[entryId]) {
