@@ -560,7 +560,8 @@ export const useBattleStore = defineStore('battle', () => {
         class: heroFull.class,
         statusEffects: [],
         hasFocus: heroFull.class?.resourceType === 'focus' ? true : undefined,
-        currentValor: heroFull.class?.resourceType === 'valor' ? 0 : undefined
+        currentValor: heroFull.class?.resourceType === 'valor' ? 0 : undefined,
+        currentRage: heroFull.class?.resourceType === 'rage' ? (savedState?.currentRage ?? 0) : undefined
       })
     }
 

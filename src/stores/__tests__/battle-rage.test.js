@@ -1,13 +1,16 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useBattleStore } from '../battle'
+import { useHeroesStore } from '../heroes'
 
 describe('battle store - rage helpers', () => {
   let store
+  let heroesStore
 
   beforeEach(() => {
     setActivePinia(createPinia())
     store = useBattleStore()
+    heroesStore = useHeroesStore()
   })
 
   describe('isBerserker', () => {
@@ -58,6 +61,50 @@ describe('battle store - rage helpers', () => {
       const unit = { currentRage: 10 }
       store.spendRage(unit, 25)
       expect(unit.currentRage).toBe(0)
+    })
+  })
+
+  describe('initBattle - berserker initialization', () => {
+    it('initializes berserkers with currentRage 0', () => {
+      // Add a berserker hero to the collection and party
+      const hero = heroesStore.addHero('shadow_king')
+      heroesStore.setPartySlot(0, hero.instanceId)
+
+      store.initBattle(null, [])
+
+      const battleHero = store.heroes[0]
+      expect(battleHero.currentRage).toBe(0)
+    })
+
+    it('does not add currentRage to non-berserkers', () => {
+      // Add a knight hero to the collection and party
+      const hero = heroesStore.addHero('sir_gallan')
+      heroesStore.setPartySlot(0, hero.instanceId)
+
+      store.initBattle(null, [])
+
+      const battleHero = store.heroes[0]
+      expect(battleHero.currentRage).toBeUndefined()
+    })
+
+    it('preserves existing currentRage from saved state', () => {
+      // Add a berserker hero to the collection and party
+      const hero = heroesStore.addHero('shadow_king')
+      heroesStore.setPartySlot(0, hero.instanceId)
+
+      // Create saved state with existing rage
+      const partyState = {
+        [hero.instanceId]: {
+          currentHp: 100,
+          currentMp: 50,
+          currentRage: 45
+        }
+      }
+
+      store.initBattle(partyState, [])
+
+      const battleHero = store.heroes[0]
+      expect(battleHero.currentRage).toBe(45)
     })
   })
 })
