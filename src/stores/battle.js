@@ -297,6 +297,11 @@ export const useBattleStore = defineStore('battle', () => {
       unit.statusEffects = [...unit.statusEffects, newEffect]
     }
 
+    // Rangers lose focus when debuffed
+    if (isRanger(unit) && !definition.isBuff) {
+      removeFocus(unit)
+    }
+
     const unitName = unit.template?.name || 'Unknown'
     addLog(`${unitName} gains ${definition.name}!`)
   }
