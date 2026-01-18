@@ -80,7 +80,7 @@ function startBattle() {
 </script>
 
 <template>
-  <div class="app">
+  <div :class="['app', { 'full-width': currentScreen === 'admin' }]">
     <template v-if="isLoaded">
       <HomeScreen
         v-if="currentScreen === 'home'"
@@ -143,6 +143,10 @@ body {
   min-height: 100vh;
   max-width: 600px;
   margin: 0 auto;
+}
+
+.app.full-width {
+  max-width: none;
 }
 
 .loading {

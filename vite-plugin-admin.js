@@ -11,6 +11,25 @@ const DATA_FILES = {
   items: { path: 'src/data/items.js', exportName: 'items' }
 }
 
+// EffectType enum - must match src/data/statusEffects.js
+const EffectType = {
+  ATK_UP: 'atk_up',
+  ATK_DOWN: 'atk_down',
+  DEF_UP: 'def_up',
+  DEF_DOWN: 'def_down',
+  SPD_UP: 'spd_up',
+  SPD_DOWN: 'spd_down',
+  POISON: 'poison',
+  BURN: 'burn',
+  REGEN: 'regen',
+  MP_REGEN: 'mp_regen',
+  STUN: 'stun',
+  SHIELD: 'shield',
+  THORNS: 'thorns',
+  TAUNT: 'taunt',
+  UNTARGETABLE: 'untargetable'
+}
+
 // Extract the main export object from a JS file
 function parseDataFile(filePath) {
   const content = fs.readFileSync(filePath, 'utf-8')
@@ -44,8 +63,9 @@ function parseDataFile(filePath) {
 
   // Use Function constructor to safely evaluate the object
   // Note: This is safe because we control the source files
+  // Inject EffectType for files that use it (heroTemplates, enemyTemplates)
   try {
-    const data = new Function(`return ${objectStr}`)()
+    const data = new Function('EffectType', `return ${objectStr}`)(EffectType)
     return {
       exportName,
       data,
