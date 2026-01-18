@@ -260,7 +260,7 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   // Apply a status effect to a unit
-  function applyEffect(unit, effectType, { duration = 2, value = 0, sourceId = null } = {}) {
+  function applyEffect(unit, effectType, { duration = 2, value = 0, sourceId = null, fromAllySkill = false } = {}) {
     if (!unit.statusEffects) {
       unit.statusEffects = []
     }
@@ -295,6 +295,11 @@ export const useBattleStore = defineStore('battle', () => {
     } else {
       // New effect type - add to array (reassign for Vue reactivity)
       unit.statusEffects = [...unit.statusEffects, newEffect]
+    }
+
+    // Rangers gain focus when receiving beneficial effect from ally skill
+    if (isRanger(unit) && definition.isBuff && fromAllySkill) {
+      grantFocus(unit)
     }
 
     // Rangers lose focus when debuffed
@@ -776,6 +781,10 @@ export const useBattleStore = defineStore('battle', () => {
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}, healing for ${actualHeal} HP!`)
             if (actualHeal > 0) {
               emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+              // Rangers gain focus when healed by ally
+              if (isRanger(target)) {
+                grantFocus(target)
+              }
             }
           } else {
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
@@ -791,6 +800,10 @@ export const useBattleStore = defineStore('battle', () => {
                 addLog(`${target.template.name}'s ${effect.definition.name} was cleansed!`)
               }
               emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              // Rangers gain focus when cleansed
+              if (isRanger(target)) {
+                grantFocus(target)
+              }
             } else {
               addLog(`${target.template.name} has no stat debuffs to cleanse.`)
             }
@@ -811,7 +824,7 @@ export const useBattleStore = defineStore('battle', () => {
             for (const effect of skill.effects) {
               if (effect.target === 'ally') {
                 const effectValue = calculateEffectValue(effect, effectiveAtk)
-                applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId })
+                applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
                 emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
               }
             }
@@ -825,7 +838,7 @@ export const useBattleStore = defineStore('battle', () => {
             for (const effect of skill.effects) {
               if (effect.target === 'self') {
                 const effectValue = calculateEffectValue(effect, effectiveAtk)
-                applyEffect(hero, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId })
+                applyEffect(hero, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
                 emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               }
             }
@@ -898,6 +911,10 @@ export const useBattleStore = defineStore('battle', () => {
               const actualHeal = target.currentHp - oldHp
               if (actualHeal > 0) {
                 emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+                // Rangers gain focus when healed by ally
+                if (isRanger(target)) {
+                  grantFocus(target)
+                }
               }
             }
           }
@@ -921,7 +938,7 @@ export const useBattleStore = defineStore('battle', () => {
               if (effect.target === 'ally' || effect.target === 'all_allies') {
                 const effectValue = calculateEffectValue(effect, effectiveAtk)
                 for (const target of aliveHeroes.value) {
-                  applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId })
+                  applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
                   emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
                 }
               }
