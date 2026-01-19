@@ -271,8 +271,20 @@ export const useBattleStore = defineStore('battle', () => {
     const newEffect = createEffect(effectType, { duration, value, sourceId })
     if (!newEffect) return
 
-    // Check if effect of the EXACT same type already exists
-    const existingIndex = unit.statusEffects.findIndex(e => e.type === effectType)
+    // Track whether this is a self-buff or ally-buff (for stat buff stacking)
+    newEffect.fromAllySkill = fromAllySkill
+
+    // For stat buffs/debuffs, self-applied and ally-applied can stack separately
+    // Check if effect of same type AND same source type (self vs ally) exists
+    const isStatEffect = definition.stat !== undefined
+    const existingIndex = unit.statusEffects.findIndex(e => {
+      if (e.type !== effectType) return false
+      // For stat effects, also check if source type matches (self vs ally)
+      if (isStatEffect && !definition.stackable) {
+        return e.fromAllySkill === fromAllySkill
+      }
+      return true
+    })
 
     if (existingIndex !== -1) {
       if (definition.stackable) {
@@ -293,7 +305,7 @@ export const useBattleStore = defineStore('battle', () => {
         })
       }
     } else {
-      // New effect type - add to array (reassign for Vue reactivity)
+      // New effect type (or new source type for stat effects) - add to array
       unit.statusEffects = [...unit.statusEffects, newEffect]
     }
 
@@ -577,12 +589,12 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Grant rage to berserker attackers
     if (attacker && isBerserker(attacker)) {
-      gainRage(attacker, 5)
+      gainRage(attacker, 10)
     }
 
     // Grant rage to berserker defenders
     if (isBerserker(unit)) {
-      gainRage(unit, 5)
+      gainRage(unit, 10)
     }
 
     // Track that this hero was attacked (for conditional skills like Defensive Footwork)
@@ -843,7 +855,7 @@ export const useBattleStore = defineStore('battle', () => {
 
       const targetType = skill.targetType || 'enemy'
 
-      if (targetType === 'self' || targetType === 'all_enemies' || targetType === 'all_allies') {
+      if (targetType === 'self' || targetType === 'all_enemies' || targetType === 'all_allies' || targetType === 'random_enemies') {
         executePlayerAction()
       }
     }
@@ -1002,6 +1014,7 @@ export const useBattleStore = defineStore('battle', () => {
               const buffValue = resolveEffectValue(preBuff, hero, effectiveAtk)
               applyEffect(hero, preBuff.type, { duration: buffDuration, value: buffValue, sourceId: hero.instanceId, fromAllySkill: true })
               emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+              addLog(`${hero.template.name} was attacked - gains +${buffValue}% DEF!`)
             }
           }
 
@@ -1269,7 +1282,7 @@ export const useBattleStore = defineStore('battle', () => {
               if (effect.target === 'self' && shouldApplyEffect(effect, hero)) {
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
-                applyEffect(hero, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
+                applyEffect(hero, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: false })
                 emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               }
             }

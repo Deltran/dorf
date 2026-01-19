@@ -493,7 +493,7 @@ export const heroTemplates = {
     name: 'Darl',
     rarity: 1,
     classId: 'berserker',
-    baseStats: { hp: 70, atk: 20, def: 12, spd: 8 },
+    baseStats: { hp: 70, atk: 25, def: 12, spd: 8 },
     skills: [
       {
         name: 'Pitchfork Jabs',

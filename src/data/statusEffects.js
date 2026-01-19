@@ -22,6 +22,7 @@ export const EffectType = {
   // Special
   SHIELD: 'shield', // Absorbs damage
   THORNS: 'thorns', // Damages attacker when hit
+  RIPOSTE: 'riposte', // Counter-attack when hit by enemy with lower DEF
 
   // Targeting manipulation
   TAUNT: 'taunt', // Enemies must target this unit
@@ -131,6 +132,14 @@ export const effectDefinitions = {
     color: '#a855f7',
     isBuff: true,
     isThorns: true,
+    stackable: false
+  },
+  [EffectType.RIPOSTE]: {
+    name: 'Riposte',
+    icon: '⚔️',
+    color: '#f59e0b',
+    isBuff: true,
+    isRiposte: true,
     stackable: false
   },
   [EffectType.TAUNT]: {

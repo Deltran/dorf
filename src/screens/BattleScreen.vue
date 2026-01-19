@@ -10,6 +10,7 @@ import StatBar from '../components/StatBar.vue'
 import ItemCard from '../components/ItemCard.vue'
 import FocusIndicator from '../components/FocusIndicator.vue'
 import ValorBar from '../components/ValorBar.vue'
+import RageBar from '../components/RageBar.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode } from '../data/questNodes.js'
 
@@ -95,6 +96,11 @@ const isInspectedHeroRanger = computed(() => {
 // Check if inspected hero is a knight (uses Valor)
 const isInspectedHeroKnight = computed(() => {
   return inspectedHero.value?.class?.resourceType === 'valor'
+})
+
+// Check if inspected hero is a berserker (uses Rage)
+const isInspectedHeroBerserker = computed(() => {
+  return inspectedHero.value?.class?.resourceType === 'rage'
 })
 
 // Helper functions for skill display
@@ -1016,6 +1022,10 @@ function getStatChange(hero, stat) {
           <div v-else-if="isInspectedHeroKnight" class="inspect-bar-row">
             <span class="bar-label">Valor</span>
             <ValorBar :currentValor="inspectedHero.currentValor || 0" size="md" />
+          </div>
+          <div v-else-if="isInspectedHeroBerserker" class="inspect-bar-row">
+            <span class="bar-label">Rage</span>
+            <RageBar :currentRage="inspectedHero.currentRage || 0" size="md" />
           </div>
           <div v-else class="inspect-bar-row">
             <span class="bar-label">{{ inspectedHero.class?.resourceName || 'MP' }}</span>
