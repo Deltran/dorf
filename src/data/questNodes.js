@@ -111,7 +111,7 @@ export const questNodes = {
   },
 
   // Echoing Caverns (Mid Game)
-  // Layout: cave_01 -> (cave_02 OR cave_03) -> cave_04
+  // Layout: cave_01 -> (cave_02 OR cave_03) -> cave_05 -> (cave_06 OR cave_07) -> cave_04
   cave_01: {
     id: 'cave_01',
     name: 'Cavern Entrance',
@@ -144,7 +144,7 @@ export const questNodes = {
       { enemies: ['dark_caster', 'dark_cultist', 'cave_bat'] },
       { enemies: ['dark_cultist', 'dark_caster', 'dark_cultist'] }
     ],
-    connections: ['cave_04'],
+    connections: ['cave_05'],
     rewards: { gems: 100, gold: 250, exp: 200 },
     firstClearBonus: { gems: 70 },
     itemDrops: [
@@ -165,7 +165,7 @@ export const questNodes = {
       { enemies: ['cave_troll'] },
       { enemies: ['cave_troll', 'rock_golem'] }
     ],
-    connections: ['cave_04'],
+    connections: ['cave_05'],
     rewards: { gems: 100, gold: 250, exp: 200 },
     firstClearBonus: { gems: 70 },
     itemDrops: [
@@ -187,7 +187,7 @@ export const questNodes = {
       { enemies: ['cave_troll', 'cave_troll'] }
     ],
     connections: ['mountain_01'],
-    rewards: { gems: 120, gold: 300, exp: 250 },
+    rewards: { gems: 100, gold: 300, exp: 250 },
     firstClearBonus: { gems: 80 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
@@ -196,9 +196,72 @@ export const questNodes = {
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.1 }
     ]
   },
+  cave_05: {
+    id: 'cave_05',
+    name: 'Ritual Chamber',
+    region: 'Echoing Caverns',
+    x: 480,
+    y: 250,
+    battles: [
+      { enemies: ['cultist_ritualist', 'dark_cultist', 'dark_cultist'] },
+      { enemies: ['corrupted_golem', 'dark_caster'] },
+      { enemies: ['cultist_ritualist', 'dark_caster', 'dark_cultist', 'dark_cultist'] }
+    ],
+    connections: ['cave_06', 'cave_07'],
+    rewards: { gems: 95, gold: 270, exp: 220 },
+    firstClearBonus: { gems: 75 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.45 },
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.4 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.15 }
+    ]
+  },
+  cave_06: {
+    id: 'cave_06',
+    name: 'Blood Altar',
+    region: 'Echoing Caverns',
+    x: 600,
+    y: 120,
+    battles: [
+      { enemies: ['dark_caster', 'dark_caster', 'cultist_ritualist'] },
+      { enemies: ['cultist_ritualist', 'cultist_ritualist', 'dark_cultist', 'dark_cultist'] },
+      { enemies: ['dark_caster', 'dark_caster', 'cultist_ritualist', 'corrupted_golem'] }
+    ],
+    connections: ['cave_04'],
+    rewards: { gems: 100, gold: 285, exp: 235 },
+    firstClearBonus: { gems: 75 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.25 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.45 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.1 }
+    ]
+  },
+  cave_07: {
+    id: 'cave_07',
+    name: 'Summoning Circle',
+    region: 'Echoing Caverns',
+    x: 600,
+    y: 380,
+    battles: [
+      { enemies: ['corrupted_golem', 'corrupted_golem'] },
+      { enemies: ['cave_troll', 'cultist_ritualist', 'dark_cultist'] },
+      { enemies: ['corrupted_golem', 'cave_troll', 'cultist_ritualist', 'dark_cultist'] }
+    ],
+    connections: ['cave_04'],
+    rewards: { gems: 100, gold: 285, exp: 235 },
+    firstClearBonus: { gems: 75 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.25 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.45 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.1 }
+    ]
+  },
 
   // Stormwind Peaks (Late Game)
-  // Layout: mountain_01 -> (mountain_02 OR mountain_03) -> mountain_04
+  // Layout: mountain_01 -> (mountain_02 OR mountain_03) -> mountain_05 -> (mountain_06 OR mountain_07) -> mountain_04
   mountain_01: {
     id: 'mountain_01',
     name: 'Mountain Pass',
@@ -211,7 +274,7 @@ export const questNodes = {
       { enemies: ['frost_elemental'] }
     ],
     connections: ['mountain_02', 'mountain_03'],
-    rewards: { gems: 130, gold: 350, exp: 280 },
+    rewards: { gems: 100, gold: 350, exp: 280 },
     firstClearBonus: { gems: 90 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
@@ -230,8 +293,8 @@ export const questNodes = {
       { enemies: ['frost_elemental', 'frost_elemental'] },
       { enemies: ['frost_elemental', 'frost_elemental', 'harpy'] }
     ],
-    connections: ['mountain_04'],
-    rewards: { gems: 150, gold: 400, exp: 320 },
+    connections: ['mountain_05'],
+    rewards: { gems: 100, gold: 400, exp: 320 },
     firstClearBonus: { gems: 100 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
@@ -250,8 +313,8 @@ export const questNodes = {
       { enemies: ['harpy', 'harpy', 'harpy', 'harpy'] },
       { enemies: ['mountain_giant', 'frost_elemental'] }
     ],
-    connections: ['mountain_04'],
-    rewards: { gems: 150, gold: 400, exp: 320 },
+    connections: ['mountain_05'],
+    rewards: { gems: 100, gold: 400, exp: 320 },
     firstClearBonus: { gems: 100 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
@@ -271,12 +334,72 @@ export const questNodes = {
       { enemies: ['shadow_dragon'] }
     ],
     connections: [],
-    rewards: { gems: 200, gold: 500, exp: 500 },
+    rewards: { gems: 100, gold: 500, exp: 500 },
     firstClearBonus: { gems: 150 },
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.6 },
       { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.7 }
+    ]
+  },
+  mountain_05: {
+    id: 'mountain_05',
+    name: 'Storm Plateau',
+    region: 'Stormwind Peaks',
+    x: 480,
+    y: 250,
+    battles: [
+      { enemies: ['storm_elemental', 'frost_elemental'] },
+      { enemies: ['thunder_hawk', 'thunder_hawk', 'harpy'] },
+      { enemies: ['storm_elemental', 'storm_elemental', 'thunder_hawk'] }
+    ],
+    connections: ['mountain_06', 'mountain_07'],
+    rewards: { gems: 95, gold: 420, exp: 350 },
+    firstClearBonus: { gems: 105 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.35 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.55 }
+    ]
+  },
+  mountain_06: {
+    id: 'mountain_06',
+    name: 'Lightning Spire',
+    region: 'Stormwind Peaks',
+    x: 600,
+    y: 100,
+    battles: [
+      { enemies: ['storm_elemental', 'storm_elemental'] },
+      { enemies: ['thunder_hawk', 'thunder_hawk', 'thunder_hawk'] },
+      { enemies: ['storm_elemental', 'storm_elemental', 'thunder_hawk', 'thunder_hawk'] }
+    ],
+    connections: ['mountain_04'],
+    rewards: { gems: 100, gold: 450, exp: 400 },
+    firstClearBonus: { gems: 115 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.45 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 }
+    ]
+  },
+  mountain_07: {
+    id: 'mountain_07',
+    name: 'Howling Cliffs',
+    region: 'Stormwind Peaks',
+    x: 600,
+    y: 400,
+    battles: [
+      { enemies: ['mountain_giant', 'storm_elemental'] },
+      { enemies: ['frost_elemental', 'frost_elemental', 'thunder_hawk', 'thunder_hawk'] },
+      { enemies: ['mountain_giant', 'storm_elemental', 'thunder_hawk'] }
+    ],
+    connections: ['mountain_04'],
+    rewards: { gems: 100, gold: 450, exp: 400 },
+    firstClearBonus: { gems: 115 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.45 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 }
     ]
   },
 

@@ -245,6 +245,34 @@ export const enemyTemplates = {
       ]
     }
   },
+  cultist_ritualist: {
+    id: 'cultist_ritualist',
+    name: 'Cultist Ritualist',
+    stats: { hp: 75, atk: 20, def: 12, spd: 10 },
+    skill: {
+      name: 'Dark Blessing',
+      description: 'Heal all allies for 30% of max HP and increase ATK by 20% for 2 turns',
+      cooldown: 4,
+      noDamage: true,
+      healAllAllies: 30,
+      effects: [
+        { type: EffectType.ATK_UP, target: 'all_allies', duration: 2, value: 20 }
+      ]
+    }
+  },
+  corrupted_golem: {
+    id: 'corrupted_golem',
+    name: 'Corrupted Golem',
+    stats: { hp: 180, atk: 35, def: 30, spd: 5 },
+    skill: {
+      name: 'Shadow Slam',
+      description: 'Deal 160% ATK damage and reduce target DEF by 30% for 2 turns',
+      cooldown: 4,
+      effects: [
+        { type: EffectType.DEF_DOWN, target: 'hero', duration: 2, value: 30 }
+      ]
+    }
+  },
 
   // Mountain enemies (late game)
   harpy: {
@@ -267,6 +295,30 @@ export const enemyTemplates = {
       cooldown: 5,
       effects: [
         { type: EffectType.SPD_DOWN, target: 'hero', duration: 2, value: 30 }
+      ]
+    }
+  },
+  storm_elemental: {
+    id: 'storm_elemental',
+    name: 'Storm Elemental',
+    stats: { hp: 90, atk: 38, def: 18, spd: 16 },
+    skill: {
+      name: 'Chain Lightning',
+      description: 'Deal 100% ATK damage to all heroes',
+      cooldown: 3,
+      targetType: 'all_heroes'
+    }
+  },
+  thunder_hawk: {
+    id: 'thunder_hawk',
+    name: 'Thunder Hawk',
+    stats: { hp: 70, atk: 35, def: 10, spd: 22 },
+    skill: {
+      name: 'Lightning Dive',
+      description: 'Deal 180% ATK damage and reduce target SPD by 40% for 1 turn',
+      cooldown: 3,
+      effects: [
+        { type: EffectType.SPD_DOWN, target: 'hero', duration: 1, value: 40 }
       ]
     }
   },
