@@ -13,6 +13,7 @@ import ValorBar from '../components/ValorBar.vue'
 import RageBar from '../components/RageBar.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode } from '../data/questNodes.js'
+import { getHeroTemplate } from '../data/heroTemplates.js'
 
 const emit = defineEmits(['navigate', 'battleEnd'])
 
@@ -32,6 +33,7 @@ const showXpFloaters = ref(false)
 const revealedItemCount = ref(0)
 const selectedItem = ref(null) // For item detail popup
 const victoryStep = ref(1) // 1 = rewards, 2 = xp/level ups
+const shardDropDisplay = ref(null) // For displaying shard drops in victory
 const inspectedHero = ref(null) // For hero stats popup
 const lastClickedHero = ref(null) // Track for double-click detection
 
@@ -287,6 +289,15 @@ function handleVictory() {
       gachaStore.addGems(rewards.value.gems)
       gachaStore.addGold(rewards.value.gold || 0)
       levelUps.value = heroesStore.addExpToParty(rewards.value.exp)
+      // Capture shard drop for display
+      if (rewards.value.shardDrop) {
+        shardDropDisplay.value = {
+          template: getHeroTemplate(rewards.value.shardDrop.templateId),
+          count: rewards.value.shardDrop.count
+        }
+      } else {
+        shardDropDisplay.value = null
+      }
     }
     displayedGems.value = 0
     displayedExp.value = 0
@@ -392,6 +403,7 @@ function replayStage() {
   rewards.value = null
   levelUps.value = []
   victoryStep.value = 1
+  shardDropDisplay.value = null
 
   // End current battle
   battleStore.endBattle()
@@ -911,6 +923,15 @@ function getStatChange(hero, stat) {
               >
                 <ItemCard :item="item" compact />
               </div>
+            </div>
+          </div>
+
+          <!-- Shard Drop -->
+          <div v-if="shardDropDisplay" class="shard-drop-section">
+            <div class="shard-drop">
+              <span class="shard-icon">💎</span>
+              <span class="shard-hero">{{ shardDropDisplay.template.name }}</span>
+              <span class="shard-count">x{{ shardDropDisplay.count }}</span>
             </div>
           </div>
 
@@ -1881,6 +1902,37 @@ function getStatChange(hero, stat) {
   0% { transform: scale(0.5); }
   70% { transform: scale(1.1); }
   100% { transform: scale(1); }
+}
+
+/* ===== Shard Drop ===== */
+.shard-drop-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #374151;
+}
+
+.shard-drop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #1f2937, #2a2340);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #a855f7;
+}
+
+.shard-icon {
+  font-size: 1.25rem;
+}
+
+.shard-hero {
+  flex: 1;
+  color: #a855f7;
+  font-weight: 500;
+}
+
+.shard-count {
+  color: #a855f7;
 }
 
 /* ===== Item Detail Dialog ===== */
