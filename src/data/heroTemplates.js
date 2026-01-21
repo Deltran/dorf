@@ -483,6 +483,13 @@ export const heroTemplates = {
         effects: [
           { type: EffectType.STUN, target: 'enemy', duration: 1 }
         ]
+      },
+      {
+        name: 'Tempest',
+        description: 'Deal 130% ATK damage to all enemies',
+        mpCost: 26,
+        skillUnlockLevel: 12,
+        targetType: 'all_enemies'
       }
     ]
   },
