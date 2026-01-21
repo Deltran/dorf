@@ -157,6 +157,17 @@ const hasParty = computed(() => {
         </div>
         <div class="nav-arrow">›</div>
       </button>
+
+      <button class="nav-button shards-button" @click="emit('navigate', 'shards')">
+        <div class="nav-icon-wrapper shards">
+          <span class="nav-icon">💎</span>
+        </div>
+        <div class="nav-content">
+          <span class="nav-label">Shards</span>
+          <span class="nav-hint">Hero fragments</span>
+        </div>
+        <div class="nav-arrow">›</div>
+      </button>
     </nav>
 
     <footer class="home-footer">
@@ -609,6 +620,11 @@ const hasParty = computed(() => {
 .nav-icon-wrapper.inventory {
   background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.nav-icon-wrapper.shards {
+  background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
+  box-shadow: 0 4px 12px rgba(192, 38, 211, 0.4);
 }
 
 .nav-icon {
