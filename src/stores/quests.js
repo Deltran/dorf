@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getQuestNode, getAllQuestNodes, regions } from '../data/questNodes.js'
+import { getQuestNode, getAllQuestNodes, regions, superRegions, getRegionsBySuperRegion, getNodesByRegion } from '../data/questNodes.js'
 import { useInventoryStore } from './inventory.js'
 
 export const useQuestsStore = defineStore('quests', () => {
@@ -59,6 +59,27 @@ export const useQuestsStore = defineStore('quests', () => {
       }
     }
     return progress
+  })
+
+  const superRegionProgress = computed(() => {
+    const progress = {}
+    for (const sr of superRegions) {
+      const srRegions = getRegionsBySuperRegion(sr.id)
+      const srNodeIds = srRegions.flatMap(r => getNodesByRegion(r.name).map(n => n.id))
+      progress[sr.id] = {
+        completed: srNodeIds.filter(id => completedNodes.value.includes(id)).length,
+        total: srNodeIds.length
+      }
+    }
+    return progress
+  })
+
+  const unlockedSuperRegions = computed(() => {
+    return superRegions.filter(sr =>
+      sr.unlockedByDefault ||
+      (sr.unlockCondition?.completedNode &&
+       completedNodes.value.includes(sr.unlockCondition.completedNode))
+    )
   })
 
   // Actions
@@ -152,6 +173,11 @@ export const useQuestsStore = defineStore('quests', () => {
       }
     }
 
+    // Unlock Coral Depths when aqua_08 is completed
+    if (node.id === 'aqua_08' && !unlockedNodes.value.includes('coral_01')) {
+      unlockedNodes.value.push('coral_01')
+    }
+
     // Roll item drops
     const itemDrops = rollItemDrops(node)
 
@@ -226,6 +252,8 @@ export const useQuestsStore = defineStore('quests', () => {
     currentBattle,
     totalBattlesInCurrentNode,
     regionProgress,
+    superRegionProgress,
+    unlockedSuperRegions,
     // Actions
     startRun,
     advanceBattle,
