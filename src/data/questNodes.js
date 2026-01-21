@@ -1,4 +1,5 @@
 import whisperingWoodsMap from '../assets/maps/whispering_woods.png'
+import echoingCavernsMap from '../assets/maps/echoing_caverns.png'
 import whisperLakeMap from '../assets/maps/whisper_lake.png'
 
 export const questNodes = {
@@ -1541,7 +1542,8 @@ export const regions = [
     startNode: 'cave_01',
     width: 800,
     height: 500,
-    backgroundColor: '#1a1a2f' // Dark cave blue, placeholder for background image
+    backgroundColor: '#1a1a2f',
+    backgroundImage: echoingCavernsMap
   },
   {
     id: 'stormwind_peaks',
