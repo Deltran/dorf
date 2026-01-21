@@ -473,6 +473,16 @@ export const heroTemplates = {
         mpCost: 10,
         skillUnlockLevel: 1,
         targetType: 'enemy'
+      },
+      {
+        name: 'Jolt',
+        description: 'Deal 70% ATK damage and stun the target for 1 turn',
+        mpCost: 18,
+        skillUnlockLevel: 6,
+        targetType: 'enemy',
+        effects: [
+          { type: EffectType.STUN, target: 'enemy', duration: 1 }
+        ]
       }
     ]
   },
