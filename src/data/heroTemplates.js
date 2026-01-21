@@ -592,12 +592,47 @@ export const heroTemplates = {
     rarity: 1,
     classId: 'cleric',
     baseStats: { hp: 60, atk: 12, def: 15, spd: 9, mp: 45 },
-    skill: {
-      name: 'Minor Heal',
-      description: 'Heal one ally for 80% ATK',
-      mpCost: 10,
-      targetType: 'ally'
-    }
+    skills: [
+      {
+        name: 'Minor Heal',
+        description: 'Heal one ally for 80% ATK',
+        mpCost: 10,
+        skillUnlockLevel: 1,
+        targetType: 'ally'
+      },
+      {
+        name: 'Worthless Words',
+        description: 'Apply -10% ATK to one enemy for 2 turns',
+        mpCost: 8,
+        skillUnlockLevel: 3,
+        targetType: 'enemy',
+        noDamage: true,
+        effects: [
+          { type: EffectType.ATK_DOWN, target: 'enemy', duration: 2, value: 10 }
+        ]
+      },
+      {
+        name: "Nobody's Curse",
+        description: 'Apply -10% DEF to one enemy for 3 turns',
+        mpCost: 8,
+        skillUnlockLevel: 6,
+        targetType: 'enemy',
+        noDamage: true,
+        effects: [
+          { type: EffectType.DEF_DOWN, target: 'enemy', duration: 3, value: 10 }
+        ]
+      },
+      {
+        name: "Beggar's Prayer",
+        description: 'Heal all allies for 50% ATK. Apply -10% ATK to all enemies for 2 turns.',
+        mpCost: 16,
+        skillUnlockLevel: 12,
+        targetType: 'all_allies',
+        effects: [
+          { type: EffectType.ATK_DOWN, target: 'all_enemies', duration: 2, value: 10 }
+        ]
+      }
+    ]
   }
 }
 

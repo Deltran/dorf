@@ -1490,6 +1490,15 @@ export const useBattleStore = defineStore('battle', () => {
                   emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
                 }
               }
+              // Handle effects that target all enemies (e.g., Beggar's Prayer debuff)
+              if (effect.target === 'all_enemies' && shouldApplyEffect(effect, hero)) {
+                const effectDuration = resolveEffectDuration(effect, hero)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
+                for (const target of aliveEnemies.value) {
+                  applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
+                  emitCombatEffect(target.id, 'enemy', 'debuff', 0)
+                }
+              }
             }
           }
           break
