@@ -14,8 +14,14 @@ const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
 
 const selectedNode = ref(null)
-const selectedRegion = ref(regions[0].id)
+const selectedRegion = ref(questsStore.lastVisitedRegion || regions[0].id)
 const selectedSuperRegion = ref(null)
+
+// Initialize super-region based on restored region
+const initRegion = getRegion(selectedRegion.value)
+if (initRegion) {
+  selectedSuperRegion.value = initRegion.superRegion
+}
 
 // Check if we should show super-region selection
 const showSuperRegionSelect = computed(() => {

@@ -10,6 +10,7 @@ export const useQuestsStore = defineStore('quests', () => {
   const completedNodes = ref([])
   const currentRun = ref(null) // { nodeId, battleIndex, partyState }
   const lastVisitedNode = ref(null) // Track last node for background display
+  const lastVisitedRegion = ref(null) // Track last region for map navigation
 
   // Getters
   const isNodeUnlocked = computed(() => {
@@ -102,8 +103,13 @@ export const useQuestsStore = defineStore('quests', () => {
       partyState // { [instanceId]: { currentHp, currentMp } }
     }
 
-    // Track for home screen background
+    // Track for home screen background and map navigation
     lastVisitedNode.value = nodeId
+    // Find and store the region for this node
+    const nodeRegion = regions.find(r => r.name === node.region)
+    if (nodeRegion) {
+      lastVisitedRegion.value = nodeRegion.id
+    }
 
     return true
   }
@@ -241,6 +247,7 @@ export const useQuestsStore = defineStore('quests', () => {
     if (savedState.unlockedNodes) unlockedNodes.value = savedState.unlockedNodes
     if (savedState.completedNodes) completedNodes.value = savedState.completedNodes
     if (savedState.lastVisitedNode) lastVisitedNode.value = savedState.lastVisitedNode
+    if (savedState.lastVisitedRegion) lastVisitedRegion.value = savedState.lastVisitedRegion
     // Don't restore currentRun - player should restart quests on reload
   }
 
@@ -248,7 +255,8 @@ export const useQuestsStore = defineStore('quests', () => {
     return {
       unlockedNodes: unlockedNodes.value,
       completedNodes: completedNodes.value,
-      lastVisitedNode: lastVisitedNode.value
+      lastVisitedNode: lastVisitedNode.value,
+      lastVisitedRegion: lastVisitedRegion.value
     }
   }
 
@@ -258,6 +266,7 @@ export const useQuestsStore = defineStore('quests', () => {
     completedNodes,
     currentRun,
     lastVisitedNode,
+    lastVisitedRegion,
     // Getters
     isNodeUnlocked,
     isNodeCompleted,
