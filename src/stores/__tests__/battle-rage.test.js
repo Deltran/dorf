@@ -109,7 +109,7 @@ describe('battle store - rage helpers', () => {
   })
 
   describe('rage gain on damage dealt', () => {
-    it('grants +5 rage when berserker deals damage', () => {
+    it('grants +10 rage when berserker deals damage', () => {
       // Add berserker to party
       const hero = heroesStore.addHero('shadow_king')
       heroesStore.setPartySlot(0, hero.instanceId)
@@ -123,7 +123,7 @@ describe('battle store - rage helpers', () => {
       // Berserker deals damage to enemy
       store.applyDamage(store.enemies[0], 10, 'attack', berserker)
 
-      expect(berserker.currentRage).toBe(5)
+      expect(berserker.currentRage).toBe(10)
     })
 
     it('grants rage for each damage instance', () => {
@@ -138,12 +138,12 @@ describe('battle store - rage helpers', () => {
       store.applyDamage(store.enemies[0], 10, 'attack', berserker)
       store.applyDamage(store.enemies[0], 10, 'attack', berserker)
 
-      expect(berserker.currentRage).toBe(15)
+      expect(berserker.currentRage).toBe(30)
     })
   })
 
   describe('rage gain on damage taken', () => {
-    it('grants +5 rage when berserker takes damage', () => {
+    it('grants +10 rage when berserker takes damage', () => {
       const hero = heroesStore.addHero('shadow_king')
       heroesStore.setPartySlot(0, hero.instanceId)
       store.initBattle({}, ['goblin_scout'])
@@ -154,7 +154,7 @@ describe('battle store - rage helpers', () => {
       // Berserker takes damage from enemy
       store.applyDamage(berserker, 10, 'attack')
 
-      expect(berserker.currentRage).toBe(5)
+      expect(berserker.currentRage).toBe(10)
     })
 
     it('grants rage for each damage instance taken', () => {
@@ -167,7 +167,7 @@ describe('battle store - rage helpers', () => {
       store.applyDamage(berserker, 10, 'attack')
       store.applyDamage(berserker, 10, 'attack')
 
-      expect(berserker.currentRage).toBe(10)
+      expect(berserker.currentRage).toBe(20)
     })
   })
 
