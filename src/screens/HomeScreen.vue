@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore } from '../stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useGenusLokiStore } from '../stores'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 
@@ -9,6 +9,7 @@ const emit = defineEmits(['navigate'])
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const questsStore = useQuestsStore()
+const genusLokiStore = useGenusLokiStore()
 
 // Hero images (check for animated gif first, then static png)
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
@@ -49,6 +50,9 @@ const partyPreview = computed(() => {
 const hasParty = computed(() => {
   return heroesStore.party.some(id => id !== null)
 })
+
+const unlockedGenusLoki = computed(() => genusLokiStore.unlockedBosses)
+const hasAnyGenusLoki = computed(() => unlockedGenusLoki.value.length > 0)
 </script>
 
 <template>
@@ -102,6 +106,34 @@ const hasParty = computed(() => {
             <span>Summon Heroes</span>
           </button>
         </div>
+      </div>
+    </section>
+
+    <!-- Genus Loki Section -->
+    <section class="genus-loki-section">
+      <div class="genus-loki-header">
+        <span class="genus-loki-title">Genus Loki</span>
+      </div>
+
+      <div v-if="hasAnyGenusLoki" class="genus-loki-grid">
+        <div
+          v-for="boss in unlockedGenusLoki"
+          :key="boss.id"
+          class="genus-loki-card"
+          @click="emit('navigate', 'genusLoki', boss.id)"
+        >
+          <div class="boss-icon">👹</div>
+          <div class="boss-info">
+            <span class="boss-name">{{ boss.name }}</span>
+            <span class="boss-level">Highest: Lv.{{ boss.highestCleared }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="genus-loki-empty" @click="emit('navigate', 'worldmap')">
+        <div class="empty-icon">🏰</div>
+        <p class="empty-text">Powerful guardians await in the world.</p>
+        <p class="empty-hint">Seek them out on your quest.</p>
       </div>
     </section>
 
@@ -731,5 +763,109 @@ const hasParty = computed(() => {
   width: 1px;
   height: 30px;
   background: linear-gradient(180deg, transparent 0%, #374151 50%, transparent 100%);
+}
+
+/* ===== Genus Loki Section ===== */
+.genus-loki-section {
+  position: relative;
+  z-index: 1;
+}
+
+.genus-loki-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.genus-loki-title {
+  font-size: 0.85rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.genus-loki-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.genus-loki-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #2a1f3d 0%, #1f2937 100%);
+  border: 1px solid #6b21a8;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genus-loki-card:hover {
+  transform: translateX(4px);
+  border-color: #9333ea;
+  box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+}
+
+.boss-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(147, 51, 234, 0.2);
+  border-radius: 8px;
+}
+
+.boss-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.boss-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.boss-level {
+  font-size: 0.75rem;
+  color: #9ca3af;
+}
+
+.genus-loki-empty {
+  text-align: center;
+  padding: 24px 16px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px dashed #374151;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.genus-loki-empty:hover {
+  border-color: #6b21a8;
+  background: linear-gradient(135deg, #2a1f3d 0%, #0f172a 100%);
+}
+
+.empty-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.empty-text {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  margin: 0 0 4px 0;
+}
+
+.empty-hint {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin: 0;
 }
 </style>
