@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, watchEffect } from 'vue'
+import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import { useQuestsStore, useHeroesStore } from '../stores'
 import { regions, superRegions, getQuestNode, getNodesByRegion, getRegion, getRegionsBySuperRegion } from '../data/questNodes.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
@@ -14,16 +14,25 @@ const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
 
 const selectedNode = ref(null)
+const selectedRegion = ref(regions[0].id)
+const selectedSuperRegion = ref(null)
 
-// Restore last visited region, or default to first region
-const restoredRegion = questsStore.lastVisitedRegion || regions[0].id
-const restoredRegionData = getRegion(restoredRegion)
+// Track if we should skip the region reset on super-region change
+let skipNextRegionReset = false
 
-const selectedRegion = ref(restoredRegion)
-const selectedSuperRegion = ref(restoredRegionData?.superRegion || null)
-
-// Track if we're in initial load to prevent watch from resetting the region
-let isInitialLoad = true
+// Restore last visited region on mount
+onMounted(() => {
+  const savedRegion = questsStore.lastVisitedRegion
+  if (savedRegion) {
+    const regionData = getRegion(savedRegion)
+    if (regionData) {
+      // Set flag to skip the watch reset
+      skipNextRegionReset = true
+      selectedSuperRegion.value = regionData.superRegion
+      selectedRegion.value = savedRegion
+    }
+  }
+})
 
 // Check if we should show super-region selection
 const showSuperRegionSelect = computed(() => {
@@ -75,10 +84,10 @@ watch([selectedRegion, selectedSuperRegion], () => {
   selectedNode.value = null
 })
 
-// Reset to first region when super-region changes (but not on initial load)
+// Reset to first region when super-region changes (but not when restoring saved region)
 watch(selectedSuperRegion, (newSuperRegion) => {
-  if (isInitialLoad) {
-    isInitialLoad = false
+  if (skipNextRegionReset) {
+    skipNextRegionReset = false
     return
   }
   if (newSuperRegion) {
