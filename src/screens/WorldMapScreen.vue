@@ -14,14 +14,16 @@ const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
 
 const selectedNode = ref(null)
-const selectedRegion = ref(questsStore.lastVisitedRegion || regions[0].id)
-const selectedSuperRegion = ref(null)
 
-// Initialize super-region based on restored region
-const initRegion = getRegion(selectedRegion.value)
-if (initRegion) {
-  selectedSuperRegion.value = initRegion.superRegion
-}
+// Restore last visited region, or default to first region
+const restoredRegion = questsStore.lastVisitedRegion || regions[0].id
+const restoredRegionData = getRegion(restoredRegion)
+
+const selectedRegion = ref(restoredRegion)
+const selectedSuperRegion = ref(restoredRegionData?.superRegion || null)
+
+// Track if we're in initial load to prevent watch from resetting the region
+let isInitialLoad = true
 
 // Check if we should show super-region selection
 const showSuperRegionSelect = computed(() => {
@@ -73,8 +75,12 @@ watch([selectedRegion, selectedSuperRegion], () => {
   selectedNode.value = null
 })
 
-// Reset to first region when super-region changes
+// Reset to first region when super-region changes (but not on initial load)
 watch(selectedSuperRegion, (newSuperRegion) => {
+  if (isInitialLoad) {
+    isInitialLoad = false
+    return
+  }
   if (newSuperRegion) {
     const srRegions = getRegionsBySuperRegion(newSuperRegion)
     if (srRegions.length > 0) {
