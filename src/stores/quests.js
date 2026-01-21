@@ -189,13 +189,18 @@ export const useQuestsStore = defineStore('quests', () => {
     }
 
     // Roll shard drops (only for nodes with shardDropChance)
+    const shardsStore = useShardsStore()
     let shardDrop = null
     if (node.shardDropChance && Math.random() < node.shardDropChance) {
-      const shardsStore = useShardsStore()
       shardDrop = shardsStore.rollShardDrop()
       if (shardDrop) {
         shardsStore.addShards(shardDrop.templateId, shardDrop.count)
       }
+    }
+
+    // Unlock shards system when first Aquaria node is completed
+    if (node.region === 'Gate to Aquaria' && !shardsStore.isUnlocked) {
+      shardsStore.unlock()
     }
 
     // Calculate rewards (gold is based on exp value or explicit node.rewards.gold)
