@@ -1,12 +1,12 @@
-// src/data/genusLoki.js
+// src/data/genusLoci.js
 
-export const genusLokiData = {
+export const genusLociData = {
   valinar: {
     id: 'valinar',
     name: 'Valinar, Lake Tower Guardian',
     description: 'A corrupted sentinel who guards the ancient lake tower.',
     region: 'whisper_lake',
-    nodeId: 'whisper_lake_genus_loki',
+    nodeId: 'whisper_lake_genus_loci',
     keyItemId: 'lake_tower_key',
     maxPowerLevel: 20,
     baseStats: { hp: 5000, atk: 150, def: 100, spd: 80 },
@@ -28,14 +28,14 @@ export const genusLokiData = {
   }
 }
 
-export function getGenusLoki(id) {
-  return genusLokiData[id] || null
+export function getGenusLoci(id) {
+  return genusLociData[id] || null
 }
 
-export function getAllGenusLoki() {
-  return Object.values(genusLokiData)
+export function getAllGenusLoci() {
+  return Object.values(genusLociData)
 }
 
-export function getGenusLokiByRegion(regionId) {
-  return Object.values(genusLokiData).find(g => g.region === regionId) || null
+export function getGenusLociByRegion(regionId) {
+  return Object.values(genusLociData).find(g => g.region === regionId) || null
 }

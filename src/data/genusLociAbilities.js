@@ -1,5 +1,5 @@
-// src/data/genusLokiAbilities.js
-// Ability definitions for Genus Loki bosses
+// src/data/genusLociAbilities.js
+// Ability definitions for Genus Loci bosses
 
 import { EffectType } from './statusEffects.js'
 
@@ -63,18 +63,18 @@ export const valinarAbilities = {
 }
 
 // Map of boss ID to their abilities
-export const genusLokiAbilities = {
+export const genusLociAbilities = {
   valinar: valinarAbilities
 }
 
-export function getGenusLokiAbility(bossId, abilityId) {
-  const bossAbilities = genusLokiAbilities[bossId]
+export function getGenusLociAbility(bossId, abilityId) {
+  const bossAbilities = genusLociAbilities[bossId]
   if (!bossAbilities) return null
   return bossAbilities[abilityId] || null
 }
 
-export function getGenusLokiAbilitiesForLevel(bossId, powerLevel, bossData) {
-  const bossAbilities = genusLokiAbilities[bossId]
+export function getGenusLociAbilitiesForLevel(bossId, powerLevel, bossData) {
+  const bossAbilities = genusLociAbilities[bossId]
   if (!bossAbilities || !bossData) return []
 
   // Filter abilities that are unlocked at this power level

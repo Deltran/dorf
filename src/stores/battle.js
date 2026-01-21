@@ -4,8 +4,8 @@ import { useHeroesStore } from './heroes.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import { EffectType, createEffect, getEffectDefinition } from '../data/statusEffects.js'
 import { getClass } from '../data/classes.js'
-import { getGenusLoki } from '../data/genusLoki.js'
-import { getGenusLokiAbilitiesForLevel } from '../data/genusLokiAbilities.js'
+import { getGenusLoci } from '../data/genusLoci.js'
+import { getGenusLociAbilitiesForLevel } from '../data/genusLociAbilities.js'
 
 // Battle states
 export const BattleState = {
@@ -31,8 +31,8 @@ export const useBattleStore = defineStore('battle', () => {
   const selectedTarget = ref(null)
   const combatEffects = ref([]) // For visual feedback: { id, targetId, targetType, effectType, value }
   const leaderSkillActivation = ref(null) // { skillName, leaderId } - for visual announcement
-  const battleType = ref('normal') // 'normal' or 'genusLoki'
-  const genusLokiMeta = ref(null) // { genusLokiId, powerLevel, triggeredTowersWrath }
+  const battleType = ref('normal') // 'normal' or 'genusLoci'
+  const genusLociMeta = ref(null) // { genusLociId, powerLevel, triggeredTowersWrath }
 
   // Getters
   const currentUnit = computed(() => {
@@ -636,11 +636,11 @@ export const useBattleStore = defineStore('battle', () => {
     return false
   }
 
-  // ========== GENUS LOKI HELPERS ==========
+  // ========== genus loci HELPERS ==========
 
-  // Generate a Genus Loki boss enemy object for battle
-  function generateGenusLokiBoss(genusLokiId, powerLevel) {
-    const bossData = getGenusLoki(genusLokiId)
+  // Generate a Genus Loci boss enemy object for battle
+  function generateGenusLociBoss(genusLociId, powerLevel) {
+    const bossData = getGenusLoci(genusLociId)
     if (!bossData) return null
 
     // Calculate scaled stats based on power level
@@ -653,7 +653,7 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     // Get abilities unlocked at this power level
-    const abilities = getGenusLokiAbilitiesForLevel(genusLokiId, powerLevel, bossData)
+    const abilities = getGenusLociAbilitiesForLevel(genusLociId, powerLevel, bossData)
 
     // Separate active skills from passive abilities
     const activeSkills = abilities.filter(a => !a.isPassive)
@@ -666,13 +666,13 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     return {
-      id: 'genus_loki_boss',
-      templateId: genusLokiId,
+      id: 'genus_loci_boss',
+      templateId: genusLociId,
       currentHp: stats.hp,
       maxHp: stats.hp,
       stats,
       template: {
-        id: genusLokiId,
+        id: genusLociId,
         name: bossData.name,
         skills: activeSkills
       },
@@ -680,13 +680,13 @@ export const useBattleStore = defineStore('battle', () => {
       statusEffects: [],
       passiveAbilities, // Store for checking passive triggers
       shield: 0, // For Iron Guard shield
-      isGenusLoki: true
+      isGenusLoci: true
     }
   }
 
   // ========== BATTLE FUNCTIONS ==========
 
-  function initBattle(partyState, enemyTemplateIds, genusLokiContext = null) {
+  function initBattle(partyState, enemyTemplateIds, genusLociContext = null) {
     const heroesStore = useHeroesStore()
 
     // Reset state
@@ -698,10 +698,10 @@ export const useBattleStore = defineStore('battle', () => {
     battleLog.value = []
     selectedAction.value = null
     selectedTarget.value = null
-    battleType.value = genusLokiContext ? 'genusLoki' : 'normal'
-    genusLokiMeta.value = genusLokiContext ? {
-      genusLokiId: genusLokiContext.genusLokiId,
-      powerLevel: genusLokiContext.powerLevel,
+    battleType.value = genusLociContext ? 'genusLoci' : 'normal'
+    genusLociMeta.value = genusLociContext ? {
+      genusLociId: genusLociContext.genusLociId,
+      powerLevel: genusLociContext.powerLevel,
       triggeredTowersWrath: false
     } : null
 
@@ -733,12 +733,12 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     // Initialize enemies
-    if (genusLokiContext) {
-      // Genus Loki battle - generate boss
-      const boss = generateGenusLokiBoss(genusLokiContext.genusLokiId, genusLokiContext.powerLevel)
+    if (genusLociContext) {
+      // Genus Loci battle - generate boss
+      const boss = generateGenusLociBoss(genusLociContext.genusLociId, genusLociContext.powerLevel)
       if (boss) {
         enemies.value.push(boss)
-        addLog(`${boss.template.name} (Lv.${genusLokiContext.powerLevel}) appears!`)
+        addLog(`${boss.template.name} (Lv.${genusLociContext.powerLevel}) appears!`)
       }
     } else {
       // Normal battle - use enemy templates
@@ -1920,7 +1920,7 @@ export const useBattleStore = defineStore('battle', () => {
     combatEffects,
     leaderSkillActivation,
     battleType,
-    genusLokiMeta,
+    genusLociMeta,
     // Getters
     currentUnit,
     isPlayerTurn,

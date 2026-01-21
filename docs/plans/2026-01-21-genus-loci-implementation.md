@@ -1,10 +1,10 @@
-# Genus Loki Implementation Plan
+# Genus Loci Implementation Plan
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Implement the Genus Loki endgame boss challenge system with Valinar as the first boss.
+**Goal:** Implement the Genus Loci endgame boss challenge system with Valinar as the first boss.
 
-**Architecture:** New data file for boss definitions, new Pinia store for progress tracking, integration with existing inventory/battle/quest systems. Home screen gets a new Genus Loki panel. World map handles special genusLoki node type.
+**Architecture:** New data file for boss definitions, new Pinia store for progress tracking, integration with existing inventory/battle/quest systems. Home screen gets a new Genus Loci panel. World map handles special genusLoci node type.
 
 **Tech Stack:** Vue 3, Pinia, Vitest
 
@@ -17,13 +17,13 @@
 
 **Step 1: Write the test**
 
-Create test file `src/data/__tests__/items-genus-loki.test.js`:
+Create test file `src/data/__tests__/items-genus-loci.test.js`:
 
 ```js
 import { describe, it, expect } from 'vitest'
 import { getItem, getItemsByType } from '../items.js'
 
-describe('Genus Loki items', () => {
+describe('Genus Loci items', () => {
   describe('Lake Tower Key', () => {
     it('exists and has correct properties', () => {
       const key = getItem('lake_tower_key')
@@ -39,7 +39,7 @@ describe('Genus Loki items', () => {
       const crest = getItem('valinar_crest')
       expect(crest).not.toBeNull()
       expect(crest.name).toBe("Valinar's Crest")
-      expect(crest.type).toBe('genusLoki')
+      expect(crest.type).toBe('genusLoci')
       expect(crest.rarity).toBe(4)
     })
   })
@@ -51,8 +51,8 @@ describe('Genus Loki items', () => {
       expect(keys.some(k => k.id === 'lake_tower_key')).toBe(true)
     })
 
-    it('returns genusLoki items', () => {
-      const drops = getItemsByType('genusLoki')
+    it('returns genusLoci items', () => {
+      const drops = getItemsByType('genusLoci')
       expect(drops.length).toBeGreaterThanOrEqual(1)
       expect(drops.some(d => d.id === 'valinar_crest')).toBe(true)
     })
@@ -62,7 +62,7 @@ describe('Genus Loki items', () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `npm test -- src/data/__tests__/items-genus-loki.test.js`
+Run: `npm test -- src/data/__tests__/items-genus-loci.test.js`
 Expected: FAIL - items not found
 
 **Step 3: Add items to items.js**
@@ -81,43 +81,43 @@ Add to the `items` object in `src/data/items.js`:
     id: 'valinar_crest',
     name: "Valinar's Crest",
     description: 'A battle-worn crest pried from the Lake Tower Guardian. Its purpose remains unknown.',
-    type: 'genusLoki',
+    type: 'genusLoci',
     rarity: 4
   }
 ```
 
 **Step 4: Run test to verify it passes**
 
-Run: `npm test -- src/data/__tests__/items-genus-loki.test.js`
+Run: `npm test -- src/data/__tests__/items-genus-loci.test.js`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add src/data/items.js src/data/__tests__/items-genus-loki.test.js
+git add src/data/items.js src/data/__tests__/items-genus-loci.test.js
 git commit -m "feat: add Lake Tower Key and Valinar's Crest items"
 ```
 
 ---
 
-## Task 2: Create Genus Loki Data File
+## Task 2: Create Genus Loci Data File
 
 **Files:**
-- Create: `src/data/genusLoki.js`
-- Create: `src/data/__tests__/genusLoki.test.js`
+- Create: `src/data/genusLoci.js`
+- Create: `src/data/__tests__/genusLoci.test.js`
 
 **Step 1: Write the test**
 
-Create `src/data/__tests__/genusLoki.test.js`:
+Create `src/data/__tests__/genusLoci.test.js`:
 
 ```js
 import { describe, it, expect } from 'vitest'
-import { genusLokiData, getGenusLoki, getAllGenusLoki, getGenusLokiByRegion } from '../genusLoki.js'
+import { genusLociData, getGenusLoci, getAllGenusLoci, getGenusLociByRegion } from '../genusLoci.js'
 
-describe('Genus Loki data', () => {
-  describe('getGenusLoki', () => {
+describe('Genus Loci data', () => {
+  describe('getGenusLoci', () => {
     it('returns Valinar by id', () => {
-      const valinar = getGenusLoki('valinar')
+      const valinar = getGenusLoci('valinar')
       expect(valinar).not.toBeNull()
       expect(valinar.name).toBe('Valinar, Lake Tower Guardian')
       expect(valinar.region).toBe('whisper_lake')
@@ -126,34 +126,34 @@ describe('Genus Loki data', () => {
     })
 
     it('returns null for unknown id', () => {
-      expect(getGenusLoki('nonexistent')).toBeNull()
+      expect(getGenusLoci('nonexistent')).toBeNull()
     })
   })
 
-  describe('getAllGenusLoki', () => {
+  describe('getAllGenusLoci', () => {
     it('returns array of all bosses', () => {
-      const all = getAllGenusLoki()
+      const all = getAllGenusLoci()
       expect(Array.isArray(all)).toBe(true)
       expect(all.length).toBeGreaterThanOrEqual(1)
       expect(all.some(g => g.id === 'valinar')).toBe(true)
     })
   })
 
-  describe('getGenusLokiByRegion', () => {
+  describe('getGenusLociByRegion', () => {
     it('returns Valinar for whisper_lake', () => {
-      const boss = getGenusLokiByRegion('whisper_lake')
+      const boss = getGenusLociByRegion('whisper_lake')
       expect(boss).not.toBeNull()
       expect(boss.id).toBe('valinar')
     })
 
     it('returns null for region without boss', () => {
-      expect(getGenusLokiByRegion('whispering_woods')).toBeNull()
+      expect(getGenusLociByRegion('whispering_woods')).toBeNull()
     })
   })
 
   describe('Valinar stats and abilities', () => {
     it('has correct base stats', () => {
-      const valinar = getGenusLoki('valinar')
+      const valinar = getGenusLoci('valinar')
       expect(valinar.baseStats.hp).toBe(5000)
       expect(valinar.baseStats.atk).toBe(150)
       expect(valinar.baseStats.def).toBe(100)
@@ -161,7 +161,7 @@ describe('Genus Loki data', () => {
     })
 
     it('has 6 abilities with correct unlock levels', () => {
-      const valinar = getGenusLoki('valinar')
+      const valinar = getGenusLoci('valinar')
       expect(valinar.abilities.length).toBe(6)
       expect(valinar.abilities.filter(a => a.unlocksAt === 1).length).toBe(2)
       expect(valinar.abilities.find(a => a.id === 'shield_bash').unlocksAt).toBe(5)
@@ -171,7 +171,7 @@ describe('Genus Loki data', () => {
     })
 
     it('has correct reward structure', () => {
-      const valinar = getGenusLoki('valinar')
+      const valinar = getGenusLoci('valinar')
       expect(valinar.firstClearBonus.gems).toBe(20)
       expect(valinar.currencyRewards.base.gold).toBe(100)
       expect(valinar.currencyRewards.perLevel.gold).toBe(25)
@@ -184,23 +184,23 @@ describe('Genus Loki data', () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `npm test -- src/data/__tests__/genusLoki.test.js`
+Run: `npm test -- src/data/__tests__/genusLoci.test.js`
 Expected: FAIL - module not found
 
-**Step 3: Create genusLoki.js**
+**Step 3: Create genusLoci.js**
 
-Create `src/data/genusLoki.js`:
+Create `src/data/genusLoci.js`:
 
 ```js
-// src/data/genusLoki.js
+// src/data/genusLoci.js
 
-export const genusLokiData = {
+export const genusLociData = {
   valinar: {
     id: 'valinar',
     name: 'Valinar, Lake Tower Guardian',
     description: 'A corrupted sentinel who guards the ancient lake tower.',
     region: 'whisper_lake',
-    nodeId: 'whisper_lake_genus_loki',
+    nodeId: 'whisper_lake_genus_loci',
     keyItemId: 'lake_tower_key',
     maxPowerLevel: 20,
     baseStats: { hp: 5000, atk: 150, def: 100, spd: 80 },
@@ -222,69 +222,69 @@ export const genusLokiData = {
   }
 }
 
-export function getGenusLoki(id) {
-  return genusLokiData[id] || null
+export function getGenusLoci(id) {
+  return genusLociData[id] || null
 }
 
-export function getAllGenusLoki() {
-  return Object.values(genusLokiData)
+export function getAllGenusLoci() {
+  return Object.values(genusLociData)
 }
 
-export function getGenusLokiByRegion(regionId) {
-  return Object.values(genusLokiData).find(g => g.region === regionId) || null
+export function getGenusLociByRegion(regionId) {
+  return Object.values(genusLociData).find(g => g.region === regionId) || null
 }
 ```
 
 **Step 4: Run test to verify it passes**
 
-Run: `npm test -- src/data/__tests__/genusLoki.test.js`
+Run: `npm test -- src/data/__tests__/genusLoci.test.js`
 Expected: PASS
 
 **Step 5: Commit**
 
 ```bash
-git add src/data/genusLoki.js src/data/__tests__/genusLoki.test.js
-git commit -m "feat: add Genus Loki data file with Valinar"
+git add src/data/genusLoci.js src/data/__tests__/genusLoci.test.js
+git commit -m "feat: add Genus Loci data file with Valinar"
 ```
 
 ---
 
-## Task 3: Create Genus Loki Store
+## Task 3: Create Genus Loci Store
 
 **Files:**
-- Create: `src/stores/genusLoki.js`
-- Create: `src/stores/__tests__/genusLoki.test.js`
+- Create: `src/stores/genusLoci.js`
+- Create: `src/stores/__tests__/genusLoci.test.js`
 - Modify: `src/stores/index.js`
 
 **Step 1: Write the test**
 
-Create `src/stores/__tests__/genusLoki.test.js`:
+Create `src/stores/__tests__/genusLoci.test.js`:
 
 ```js
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useGenusLokiStore } from '../genusLoki.js'
+import { useGenusLociStore } from '../genusLoci.js'
 
-describe('genusLoki store', () => {
+describe('genusLoci store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
   describe('initial state', () => {
     it('has empty progress', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       expect(store.progress).toEqual({})
     })
   })
 
   describe('isUnlocked', () => {
     it('returns false for never-beaten boss', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       expect(store.isUnlocked('valinar')).toBe(false)
     })
 
     it('returns true after first victory', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.recordVictory('valinar', 1)
       expect(store.isUnlocked('valinar')).toBe(true)
     })
@@ -292,12 +292,12 @@ describe('genusLoki store', () => {
 
   describe('getHighestCleared', () => {
     it('returns 0 for unbeaten boss', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       expect(store.getHighestCleared('valinar')).toBe(0)
     })
 
     it('returns highest cleared level', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.recordVictory('valinar', 1)
       store.recordVictory('valinar', 2)
       store.recordVictory('valinar', 3)
@@ -305,7 +305,7 @@ describe('genusLoki store', () => {
     })
 
     it('does not decrease on lower level clear', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.recordVictory('valinar', 5)
       store.recordVictory('valinar', 2)
       expect(store.getHighestCleared('valinar')).toBe(5)
@@ -314,18 +314,18 @@ describe('genusLoki store', () => {
 
   describe('getAvailableLevels', () => {
     it('returns [1] for unbeaten boss', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       expect(store.getAvailableLevels('valinar')).toEqual([1])
     })
 
     it('returns levels up to highest + 1', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.recordVictory('valinar', 3)
       expect(store.getAvailableLevels('valinar')).toEqual([1, 2, 3, 4])
     })
 
     it('caps at maxPowerLevel', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.progress.valinar = { unlocked: true, highestCleared: 20, firstClearClaimed: true }
       expect(store.getAvailableLevels('valinar')).toEqual(
         Array.from({ length: 20 }, (_, i) => i + 1)
@@ -335,26 +335,26 @@ describe('genusLoki store', () => {
 
   describe('recordVictory', () => {
     it('marks boss as unlocked', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.recordVictory('valinar', 1)
       expect(store.progress.valinar.unlocked).toBe(true)
     })
 
     it('updates highestCleared', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.recordVictory('valinar', 1)
       expect(store.progress.valinar.highestCleared).toBe(1)
     })
 
     it('returns firstClear true on first victory', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       const result = store.recordVictory('valinar', 1)
       expect(result.isFirstClear).toBe(true)
       expect(store.progress.valinar.firstClearClaimed).toBe(true)
     })
 
     it('returns firstClear false on subsequent victories', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.recordVictory('valinar', 1)
       const result = store.recordVictory('valinar', 2)
       expect(result.isFirstClear).toBe(false)
@@ -363,12 +363,12 @@ describe('genusLoki store', () => {
 
   describe('unlockedBosses', () => {
     it('returns empty array initially', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       expect(store.unlockedBosses).toEqual([])
     })
 
     it('returns unlocked bosses with progress', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.recordVictory('valinar', 5)
       expect(store.unlockedBosses.length).toBe(1)
       expect(store.unlockedBosses[0].id).toBe('valinar')
@@ -378,14 +378,14 @@ describe('genusLoki store', () => {
 
   describe('persistence', () => {
     it('saves and loads state', () => {
-      const store = useGenusLokiStore()
+      const store = useGenusLociStore()
       store.recordVictory('valinar', 7)
 
       const saved = store.saveState()
       expect(saved.progress.valinar.highestCleared).toBe(7)
 
       // Create new store and load
-      const store2 = useGenusLokiStore()
+      const store2 = useGenusLociStore()
       store2.loadState(saved)
       expect(store2.getHighestCleared('valinar')).toBe(7)
       expect(store2.isUnlocked('valinar')).toBe(true)
@@ -396,26 +396,26 @@ describe('genusLoki store', () => {
 
 **Step 2: Run test to verify it fails**
 
-Run: `npm test -- src/stores/__tests__/genusLoki.test.js`
+Run: `npm test -- src/stores/__tests__/genusLoci.test.js`
 Expected: FAIL - module not found
 
-**Step 3: Create genusLoki store**
+**Step 3: Create genusLoci store**
 
-Create `src/stores/genusLoki.js`:
+Create `src/stores/genusLoci.js`:
 
 ```js
-// src/stores/genusLoki.js
+// src/stores/genusLoci.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getGenusLoki, getAllGenusLoki } from '../data/genusLoki.js'
+import { getGenusLoci, getAllGenusLoci } from '../data/genusLoci.js'
 
-export const useGenusLokiStore = defineStore('genusLoki', () => {
+export const useGenusLociStore = defineStore('genusLoci', () => {
   // State - progress per boss: { [id]: { unlocked, highestCleared, firstClearClaimed } }
   const progress = ref({})
 
   // Getters
   const unlockedBosses = computed(() => {
-    return getAllGenusLoki()
+    return getAllGenusLoci()
       .filter(boss => progress.value[boss.id]?.unlocked)
       .map(boss => ({
         ...boss,
@@ -424,33 +424,33 @@ export const useGenusLokiStore = defineStore('genusLoki', () => {
   })
 
   // Actions
-  function isUnlocked(genusLokiId) {
-    return progress.value[genusLokiId]?.unlocked || false
+  function isUnlocked(genusLociId) {
+    return progress.value[genusLociId]?.unlocked || false
   }
 
-  function getHighestCleared(genusLokiId) {
-    return progress.value[genusLokiId]?.highestCleared || 0
+  function getHighestCleared(genusLociId) {
+    return progress.value[genusLociId]?.highestCleared || 0
   }
 
-  function getAvailableLevels(genusLokiId) {
-    const boss = getGenusLoki(genusLokiId)
+  function getAvailableLevels(genusLociId) {
+    const boss = getGenusLoci(genusLociId)
     if (!boss) return []
 
-    const highest = getHighestCleared(genusLokiId)
+    const highest = getHighestCleared(genusLociId)
     const maxAvailable = Math.min(highest + 1, boss.maxPowerLevel)
     return Array.from({ length: maxAvailable }, (_, i) => i + 1)
   }
 
-  function recordVictory(genusLokiId, powerLevel) {
-    if (!progress.value[genusLokiId]) {
-      progress.value[genusLokiId] = {
+  function recordVictory(genusLociId, powerLevel) {
+    if (!progress.value[genusLociId]) {
+      progress.value[genusLociId] = {
         unlocked: false,
         highestCleared: 0,
         firstClearClaimed: false
       }
     }
 
-    const bossProgress = progress.value[genusLokiId]
+    const bossProgress = progress.value[genusLociId]
     const isFirstClear = !bossProgress.firstClearClaimed
 
     bossProgress.unlocked = true
@@ -493,7 +493,7 @@ export const useGenusLokiStore = defineStore('genusLoki', () => {
 
 **Step 4: Run test to verify it passes**
 
-Run: `npm test -- src/stores/__tests__/genusLoki.test.js`
+Run: `npm test -- src/stores/__tests__/genusLoci.test.js`
 Expected: PASS
 
 **Step 5: Export from stores/index.js**
@@ -501,19 +501,19 @@ Expected: PASS
 Add to `src/stores/index.js`:
 
 ```js
-export { useGenusLokiStore } from './genusLoki.js'
+export { useGenusLociStore } from './genusLoci.js'
 ```
 
 **Step 6: Commit**
 
 ```bash
-git add src/stores/genusLoki.js src/stores/__tests__/genusLoki.test.js src/stores/index.js
-git commit -m "feat: add Genus Loki store for progress tracking"
+git add src/stores/genusLoci.js src/stores/__tests__/genusLoci.test.js src/stores/index.js
+git commit -m "feat: add Genus Loci store for progress tracking"
 ```
 
 ---
 
-## Task 4: Add Genus Loki Node to Whisper Lake
+## Task 4: Add Genus Loci Node to Whisper Lake
 
 **Files:**
 - Modify: `src/data/questNodes.js`
@@ -523,14 +523,14 @@ git commit -m "feat: add Genus Loki store for progress tracking"
 After the `lake_02` node definition in `src/data/questNodes.js`, add:
 
 ```js
-  lake_genus_loki: {
-    id: 'lake_genus_loki',
+  lake_genus_loci: {
+    id: 'lake_genus_loci',
     name: 'Lake Tower',
     region: 'Whisper Lake',
     x: 250,
     y: 400,
-    type: 'genusLoki',
-    genusLokiId: 'valinar',
+    type: 'genusLoci',
+    genusLociId: 'valinar',
     connections: ['lake_02']
   },
 ```
@@ -538,7 +538,7 @@ After the `lake_02` node definition in `src/data/questNodes.js`, add:
 Also update `lake_02` to include connection to the new node:
 
 ```js
-connections: ['lake_genus_loki'],
+connections: ['lake_genus_loci'],
 ```
 
 **Step 2: Add Lake Tower Key drops to lake_02**
@@ -563,7 +563,7 @@ git commit -m "feat: add Lake Tower node and key drops to Whisper Lake"
 
 ---
 
-## Task 5: Add Genus Loki Panel to Home Screen
+## Task 5: Add Genus Loci Panel to Home Screen
 
 **Files:**
 - Modify: `src/screens/HomeScreen.vue`
@@ -573,39 +573,39 @@ git commit -m "feat: add Lake Tower node and key drops to Whisper Lake"
 Add to imports:
 
 ```js
-import { useGenusLokiStore } from '../stores'
+import { useGenusLociStore } from '../stores'
 ```
 
 Add store initialization:
 
 ```js
-const genusLokiStore = useGenusLokiStore()
+const genusLociStore = useGenusLociStore()
 ```
 
 **Step 2: Add computed for unlocked bosses**
 
 ```js
-const unlockedGenusLoki = computed(() => genusLokiStore.unlockedBosses)
-const hasAnyGenusLoki = computed(() => unlockedGenusLoki.value.length > 0)
+const unlockedGenusLoci = computed(() => genusLociStore.unlockedBosses)
+const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
 ```
 
-**Step 3: Add Genus Loki section to template**
+**Step 3: Add Genus Loci section to template**
 
 After the party-preview section, add:
 
 ```html
-<!-- Genus Loki Section -->
-<section class="genus-loki-section">
-  <div class="genus-loki-header">
-    <span class="genus-loki-title">Genus Loki</span>
+<!-- Genus Loci Section -->
+<section class="genus-loci-section">
+  <div class="genus-loci-header">
+    <span class="genus-loci-title">Genus Loci</span>
   </div>
 
-  <div v-if="hasAnyGenusLoki" class="genus-loki-grid">
+  <div v-if="hasAnyGenusLoci" class="genus-loci-grid">
     <div
-      v-for="boss in unlockedGenusLoki"
+      v-for="boss in unlockedGenusLoci"
       :key="boss.id"
-      class="genus-loki-card"
-      @click="emit('navigate', 'genusLoki', boss.id)"
+      class="genus-loci-card"
+      @click="emit('navigate', 'genusLoci', boss.id)"
     >
       <div class="boss-icon">👹</div>
       <div class="boss-info">
@@ -615,7 +615,7 @@ After the party-preview section, add:
     </div>
   </div>
 
-  <div v-else class="genus-loki-empty" @click="emit('navigate', 'worldmap')">
+  <div v-else class="genus-loci-empty" @click="emit('navigate', 'worldmap')">
     <div class="empty-icon">🏰</div>
     <p class="empty-text">Powerful guardians await in the world.</p>
     <p class="empty-hint">Seek them out on your quest.</p>
@@ -626,32 +626,32 @@ After the party-preview section, add:
 **Step 4: Add styles**
 
 ```css
-/* ===== Genus Loki Section ===== */
-.genus-loki-section {
+/* ===== Genus Loci Section ===== */
+.genus-loci-section {
   position: relative;
   z-index: 1;
 }
 
-.genus-loki-header {
+.genus-loci-header {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.genus-loki-title {
+.genus-loci-title {
   font-size: 0.85rem;
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-.genus-loki-grid {
+.genus-loci-grid {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.genus-loki-card {
+.genus-loci-card {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -663,7 +663,7 @@ After the party-preview section, add:
   transition: all 0.2s ease;
 }
 
-.genus-loki-card:hover {
+.genus-loci-card:hover {
   transform: translateX(4px);
   border-color: #9333ea;
   box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
@@ -697,7 +697,7 @@ After the party-preview section, add:
   color: #9ca3af;
 }
 
-.genus-loki-empty {
+.genus-loci-empty {
   text-align: center;
   padding: 24px 16px;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -707,7 +707,7 @@ After the party-preview section, add:
   transition: all 0.2s ease;
 }
 
-.genus-loki-empty:hover {
+.genus-loci-empty:hover {
   border-color: #6b21a8;
   background: linear-gradient(135deg, #2a1f3d 0%, #0f172a 100%);
 }
@@ -735,27 +735,27 @@ After the party-preview section, add:
 
 ```bash
 git add src/screens/HomeScreen.vue
-git commit -m "feat: add Genus Loki panel to home screen"
+git commit -m "feat: add Genus Loci panel to home screen"
 ```
 
 ---
 
-## Task 6: Create Genus Loki Selection Screen
+## Task 6: Create Genus Loci Selection Screen
 
 **Files:**
-- Create: `src/screens/GenusLokiScreen.vue`
+- Create: `src/screens/GenusLociScreen.vue`
 - Modify: `src/App.vue` (add route)
 - Modify: `src/screens/index.js` (export)
 
-**Step 1: Create GenusLokiScreen.vue**
+**Step 1: Create GenusLociScreen.vue**
 
 ```vue
 <script setup>
 import { ref, computed } from 'vue'
-import { useGenusLokiStore, useInventoryStore } from '../stores'
-import { getGenusLoki, getAllGenusLoki } from '../data/genusLoki.js'
+import { useGenusLociStore, useInventoryStore } from '../stores'
+import { getGenusLoci, getAllGenusLoci } from '../data/genusLoci.js'
 
-const emit = defineEmits(['navigate', 'startGenusLokiBattle'])
+const emit = defineEmits(['navigate', 'startGenusLociBattle'])
 
 const props = defineProps({
   selectedBossId: {
@@ -764,12 +764,12 @@ const props = defineProps({
   }
 })
 
-const genusLokiStore = useGenusLokiStore()
+const genusLociStore = useGenusLociStore()
 const inventoryStore = useInventoryStore()
 
 const selectedBoss = computed(() => {
   if (props.selectedBossId) {
-    return getGenusLoki(props.selectedBossId)
+    return getGenusLoci(props.selectedBossId)
   }
   return null
 })
@@ -778,12 +778,12 @@ const selectedLevel = ref(null)
 
 const availableLevels = computed(() => {
   if (!selectedBoss.value) return []
-  return genusLokiStore.getAvailableLevels(selectedBoss.value.id)
+  return genusLociStore.getAvailableLevels(selectedBoss.value.id)
 })
 
 const highestCleared = computed(() => {
   if (!selectedBoss.value) return 0
-  return genusLokiStore.getHighestCleared(selectedBoss.value.id)
+  return genusLociStore.getHighestCleared(selectedBoss.value.id)
 })
 
 const keyCount = computed(() => {
@@ -801,8 +801,8 @@ function selectLevel(level) {
 
 function startBattle() {
   if (!canChallenge.value) return
-  emit('startGenusLokiBattle', {
-    genusLokiId: selectedBoss.value.id,
+  emit('startGenusLociBattle', {
+    genusLociId: selectedBoss.value.id,
     powerLevel: selectedLevel.value
   })
 }
@@ -819,10 +819,10 @@ function goBack() {
 </script>
 
 <template>
-  <div class="genus-loki-screen">
+  <div class="genus-loci-screen">
     <header class="screen-header">
       <button class="back-btn" @click="goBack">← Back</button>
-      <h1>Genus Loki</h1>
+      <h1>Genus Loci</h1>
     </header>
 
     <div v-if="selectedBoss" class="boss-detail">
@@ -870,14 +870,14 @@ function goBack() {
     </div>
 
     <div v-else class="no-boss-selected">
-      <p>Select a Genus Loki from the home screen.</p>
+      <p>Select a Genus Loci from the home screen.</p>
       <button class="back-btn-large" @click="goBack">Return Home</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.genus-loki-screen {
+.genus-loci-screen {
   min-height: 100vh;
   padding: 20px;
   background: linear-gradient(135deg, #1a1025 0%, #0f172a 100%);
@@ -1087,59 +1087,59 @@ function goBack() {
 Add to `src/screens/index.js`:
 
 ```js
-export { default as GenusLokiScreen } from './GenusLokiScreen.vue'
+export { default as GenusLociScreen } from './GenusLociScreen.vue'
 ```
 
 **Step 3: Add route to App.vue**
 
-In App.vue, add to the screen switch/conditional and handle the `startGenusLokiBattle` event.
+In App.vue, add to the screen switch/conditional and handle the `startGenusLociBattle` event.
 
 **Step 4: Commit**
 
 ```bash
-git add src/screens/GenusLokiScreen.vue src/screens/index.js
-git commit -m "feat: add Genus Loki selection screen"
+git add src/screens/GenusLociScreen.vue src/screens/index.js
+git commit -m "feat: add Genus Loci selection screen"
 ```
 
 ---
 
-## Task 7: Handle Genus Loki Node in World Map
+## Task 7: Handle Genus Loci Node in World Map
 
 **Files:**
 - Modify: `src/components/NodeMarker.vue`
 - Modify: `src/screens/WorldMapScreen.vue`
 
-**Step 1: Update NodeMarker to handle genusLoki type**
+**Step 1: Update NodeMarker to handle genusLoci type**
 
-Add conditional styling for `type === 'genusLoki'` nodes:
+Add conditional styling for `type === 'genusLoci'` nodes:
 - Purple/special coloring
 - Different icon (skull or tower)
 
 **Step 2: Update WorldMapScreen node click handler**
 
-When clicking a genusLoki node:
+When clicking a genusLoci node:
 - Check if player has key item
 - If first time (not unlocked), show confirmation and start level 1 battle
-- If previously beaten, navigate to GenusLokiScreen for level selection
+- If previously beaten, navigate to GenusLociScreen for level selection
 
 **Step 3: Commit**
 
 ```bash
 git add src/components/NodeMarker.vue src/screens/WorldMapScreen.vue
-git commit -m "feat: handle Genus Loki nodes on world map"
+git commit -m "feat: handle Genus Loci nodes on world map"
 ```
 
 ---
 
-## Task 8: Implement Genus Loki Battle Logic
+## Task 8: Implement Genus Loci Battle Logic
 
 **Files:**
 - Modify: `src/stores/battle.js`
-- Create: `src/data/genusLokiAbilities.js`
+- Create: `src/data/genusLociAbilities.js`
 
 **Step 1: Create ability definitions**
 
-Create `src/data/genusLokiAbilities.js` with Valinar's 6 abilities:
+Create `src/data/genusLociAbilities.js` with Valinar's 6 abilities:
 - iron_guard: Self DEF buff + shield
 - heavy_strike: High single-target damage
 - shield_bash: Stun, damage scales with DEF buff
@@ -1147,47 +1147,47 @@ Create `src/data/genusLokiAbilities.js` with Valinar's 6 abilities:
 - counterattack_stance: Passive retaliate when DEF buffed
 - judgment_of_ages: AoE + dispel party buffs
 
-**Step 2: Add Genus Loki enemy generation**
+**Step 2: Add Genus Loci enemy generation**
 
 Add function to generate boss stats at power level:
 ```js
-function generateGenusLokiBoss(genusLokiId, powerLevel) {
-  const boss = getGenusLoki(genusLokiId)
+function generateGenusLociBoss(genusLociId, powerLevel) {
+  const boss = getGenusLoci(genusLociId)
   // Calculate scaled stats
   // Filter abilities by unlocksAt <= powerLevel
   // Return enemy object compatible with battle store
 }
 ```
 
-**Step 3: Handle genusLoki battle type in initBattle**
+**Step 3: Handle genusLoci battle type in initBattle**
 
-Add support for `battleType: 'genusLoki'` with metadata `{ genusLokiId, powerLevel }`.
+Add support for `battleType: 'genusLoci'` with metadata `{ genusLociId, powerLevel }`.
 
 **Step 4: Commit**
 
 ```bash
-git add src/stores/battle.js src/data/genusLokiAbilities.js
-git commit -m "feat: implement Genus Loki battle generation"
+git add src/stores/battle.js src/data/genusLociAbilities.js
+git commit -m "feat: implement Genus Loci battle generation"
 ```
 
 ---
 
-## Task 9: Handle Genus Loki Victory/Defeat
+## Task 9: Handle Genus Loci Victory/Defeat
 
 **Files:**
 - Modify: `src/screens/BattleScreen.vue`
 
-**Step 1: Detect genusLoki battle type**
+**Step 1: Detect genusLoci battle type**
 
-Check for genusLoki battle context when handling victory.
+Check for genusLoci battle context when handling victory.
 
 **Step 2: On victory:**
 - Consume key (already done before battle)
-- Call `genusLokiStore.recordVictory()`
+- Call `genusLociStore.recordVictory()`
 - Award gold based on power level
 - Award first-clear gems if applicable
 - Award unique drop item
-- Show modified victory screen with Genus Loki rewards
+- Show modified victory screen with Genus Loci rewards
 
 **Step 3: On defeat:**
 - Key already consumed, no additional penalty
@@ -1197,7 +1197,7 @@ Check for genusLoki battle context when handling victory.
 
 ```bash
 git add src/screens/BattleScreen.vue
-git commit -m "feat: handle Genus Loki victory and defeat"
+git commit -m "feat: handle Genus Loci victory and defeat"
 ```
 
 ---
@@ -1207,17 +1207,17 @@ git commit -m "feat: handle Genus Loki victory and defeat"
 **Files:**
 - Modify: `src/App.vue`
 
-**Step 1: Add genusLoki screen to navigation**
+**Step 1: Add genusLoci screen to navigation**
 
-Handle `navigate('genusLoki', bossId)` to show GenusLokiScreen with selectedBossId prop.
+Handle `navigate('genusLoci', bossId)` to show GenusLociScreen with selectedBossId prop.
 
-**Step 2: Handle startGenusLokiBattle event**
+**Step 2: Handle startGenusLociBattle event**
 
 - Consume key item from inventory
-- Set up battle context with genusLoki type
+- Set up battle context with genusLoci type
 - Navigate to battle screen
 
-**Step 3: Ensure genusLoki store is persisted**
+**Step 3: Ensure genusLoci store is persisted**
 
 Add to save/load state alongside other stores.
 
@@ -1230,7 +1230,7 @@ Expected: All tests pass
 
 ```bash
 git add src/App.vue
-git commit -m "feat: integrate Genus Loki navigation in App"
+git commit -m "feat: integrate Genus Loci navigation in App"
 ```
 
 ---
@@ -1241,12 +1241,12 @@ git commit -m "feat: integrate Genus Loki navigation in App"
 
 - [ ] Lake Tower Key appears in Whisper Lake drops
 - [ ] Lake Tower node appears on Whisper Lake map
-- [ ] Home screen shows Genus Loki panel (empty state)
+- [ ] Home screen shows Genus Loci panel (empty state)
 - [ ] Clicking empty panel navigates to world map
 - [ ] With key, can click Lake Tower node
 - [ ] First attempt goes directly to level 1 battle
 - [ ] After victory, boss appears in home screen panel
-- [ ] Can select power levels on GenusLokiScreen
+- [ ] Can select power levels on GenusLociScreen
 - [ ] Key consumed on battle start
 - [ ] Victory awards correct gold and unique drop
 - [ ] First clear awards 20 gems
@@ -1261,7 +1261,7 @@ Expected: All tests pass
 
 ```bash
 git add -A
-git commit -m "feat: complete Genus Loki system implementation"
+git commit -m "feat: complete Genus Loci system implementation"
 ```
 
 ---
@@ -1271,8 +1271,8 @@ git commit -m "feat: complete Genus Loki system implementation"
 | Task | Description | Estimated Complexity |
 |------|-------------|---------------------|
 | 1 | Add key and unique drop items | Simple |
-| 2 | Create Genus Loki data file | Simple |
-| 3 | Create Genus Loki store | Medium |
+| 2 | Create Genus Loci data file | Simple |
+| 3 | Create Genus Loci store | Medium |
 | 4 | Add node to Whisper Lake | Simple |
 | 5 | Add home screen panel | Medium |
 | 6 | Create selection screen | Medium |

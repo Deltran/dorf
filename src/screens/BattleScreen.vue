@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLokiStore, BattleState } from '../stores'
+import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLociStore, BattleState } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import EnemyCard from '../components/EnemyCard.vue'
 import ActionButton from '../components/ActionButton.vue'
@@ -14,10 +14,10 @@ import RageBar from '../components/RageBar.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode } from '../data/questNodes.js'
 import { getHeroTemplate } from '../data/heroTemplates.js'
-import { getGenusLoki } from '../data/genusLoki.js'
+import { getGenusLoci } from '../data/genusLoci.js'
 
 const props = defineProps({
-  genusLokiContext: {
+  genusLociContext: {
     type: Object,
     default: null
   }
@@ -30,7 +30,7 @@ const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const inventoryStore = useInventoryStore()
-const genusLokiStore = useGenusLokiStore()
+const genusLociStore = useGenusLociStore()
 
 const showVictoryModal = ref(false)
 const showDefeatModal = ref(false)
@@ -46,10 +46,10 @@ const victoryStep = ref(1) // 1 = rewards, 2 = xp/level ups
 const shardDropDisplay = ref(null) // For displaying shard drops in victory
 const inspectedHero = ref(null) // For hero stats popup
 const lastClickedHero = ref(null) // Track for double-click detection
-const genusLokiRewards = ref(null) // For Genus Loki victory rewards
+const genusLociRewards = ref(null) // For Genus Loci victory rewards
 
-// Computed to check if this is a Genus Loki battle
-const isGenusLokiBattle = computed(() => battleStore.battleType === 'genusLoki')
+// Computed to check if this is a Genus Loci battle
+const isGenusLociBattle = computed(() => battleStore.battleType === 'genusLoci')
 
 // Combat visual effects
 const damageNumbers = ref([])
@@ -257,10 +257,10 @@ onMounted(() => {
 })
 
 function startCurrentBattle() {
-  // Check if this is a Genus Loki battle
-  if (props.genusLokiContext) {
-    const { genusLokiId, powerLevel, partyState } = props.genusLokiContext
-    battleStore.initBattle(partyState, [], { genusLokiId, powerLevel })
+  // Check if this is a Genus Loci battle
+  if (props.genusLociContext) {
+    const { genusLociId, powerLevel, partyState } = props.genusLociContext
+    battleStore.initBattle(partyState, [], { genusLociId, powerLevel })
     return
   }
 
@@ -285,9 +285,9 @@ watch(() => battleStore.state, (newState) => {
 })
 
 function handleVictory() {
-  // Handle Genus Loki victory separately
-  if (isGenusLokiBattle.value) {
-    handleGenusLokiVictory()
+  // Handle Genus Loci victory separately
+  if (isGenusLociBattle.value) {
+    handleGenusLociVictory()
     return
   }
 
@@ -383,8 +383,8 @@ function animateRewards() {
 }
 
 function handleDefeat() {
-  // For Genus Loki, just show defeat - key was already consumed
-  if (isGenusLokiBattle.value) {
+  // For Genus Loci, just show defeat - key was already consumed
+  if (isGenusLociBattle.value) {
     showDefeatModal.value = true
     return
   }
@@ -392,15 +392,15 @@ function handleDefeat() {
   showDefeatModal.value = true
 }
 
-function handleGenusLokiVictory() {
-  const meta = battleStore.genusLokiMeta
+function handleGenusLociVictory() {
+  const meta = battleStore.genusLociMeta
   if (!meta) return
 
-  const bossData = getGenusLoki(meta.genusLokiId)
+  const bossData = getGenusLoci(meta.genusLociId)
   if (!bossData) return
 
-  // Record victory in genus loki store
-  const { isFirstClear } = genusLokiStore.recordVictory(meta.genusLokiId, meta.powerLevel)
+  // Record victory in genus loci store
+  const { isFirstClear } = genusLociStore.recordVictory(meta.genusLociId, meta.powerLevel)
 
   // Calculate rewards
   const goldReward = bossData.currencyRewards.base.gold +
@@ -428,7 +428,7 @@ function handleGenusLokiVictory() {
   }
 
   // Set up rewards for display
-  genusLokiRewards.value = {
+  genusLociRewards.value = {
     gold: goldReward,
     gems: gemsReward,
     isFirstClear,
@@ -444,7 +444,7 @@ function handleGenusLokiVictory() {
   revealedItemCount.value = 0
   victoryStep.value = 1
   showVictoryModal.value = true
-  animateGenusLokiRewards()
+  animateGenusLociRewards()
 
   // Reveal items sequentially
   if (itemsDrop.length > 0) {
@@ -458,11 +458,11 @@ function handleGenusLokiVictory() {
   }
 }
 
-function animateGenusLokiRewards() {
-  if (!genusLokiRewards.value) return
+function animateGenusLociRewards() {
+  if (!genusLociRewards.value) return
 
-  const targetGold = genusLokiRewards.value.gold
-  const targetGems = genusLokiRewards.value.gems
+  const targetGold = genusLociRewards.value.gold
+  const targetGems = genusLociRewards.value.gems
   const duration = 1500
   const steps = 60
   const interval = duration / steps
@@ -1013,33 +1013,33 @@ function getStatChange(hero, stat) {
 
     <!-- Victory Modal -->
     <div v-if="showVictoryModal" class="modal-overlay">
-      <div class="modal victory-modal" :class="{ 'genus-loki-victory': isGenusLokiBattle }">
+      <div class="modal victory-modal" :class="{ 'genus-loci-victory': isGenusLociBattle }">
         <h2>Victory!</h2>
 
-        <!-- Genus Loki Victory -->
-        <template v-if="isGenusLokiBattle && genusLokiRewards">
-          <p class="node-complete genus-loki-complete">
-            {{ genusLokiRewards.bossName }} Defeated!
-            <span v-if="genusLokiRewards.isFirstClear" class="first-clear-badge">First Clear!</span>
+        <!-- Genus Loci Victory -->
+        <template v-if="isGenusLociBattle && genusLociRewards">
+          <p class="node-complete genus-loci-complete">
+            {{ genusLociRewards.bossName }} Defeated!
+            <span v-if="genusLociRewards.isFirstClear" class="first-clear-badge">First Clear!</span>
           </p>
-          <p class="power-level-badge">Power Level {{ genusLokiRewards.powerLevel }}</p>
+          <p class="power-level-badge">Power Level {{ genusLociRewards.powerLevel }}</p>
 
           <div class="rewards">
             <div class="reward-item gold-reward">
               <span>🪙 Gold</span>
               <span class="reward-value">+{{ displayedGold }}</span>
             </div>
-            <div v-if="genusLokiRewards.gems > 0" class="reward-item">
+            <div v-if="genusLociRewards.gems > 0" class="reward-item">
               <span>💎 Gems</span>
               <span class="reward-value">+{{ displayedGems }}</span>
             </div>
           </div>
 
-          <div v-if="genusLokiRewards.items.length > 0" class="item-drops">
+          <div v-if="genusLociRewards.items.length > 0" class="item-drops">
             <div class="drops-header">Unique Drop</div>
             <div class="drops-grid">
               <div
-                v-for="(drop, index) in genusLokiRewards.items"
+                v-for="(drop, index) in genusLociRewards.items"
                 :key="drop.item.id"
                 :class="['drop-item', { revealed: index < revealedItemCount }]"
                 @click="showItemDetail(drop.item)"
@@ -1791,11 +1791,11 @@ function getStatChange(hero, stat) {
   color: #22c55e;
 }
 
-.victory-modal.genus-loki-victory h2 {
+.victory-modal.genus-loci-victory h2 {
   color: #9333ea;
 }
 
-.genus-loki-complete {
+.genus-loci-complete {
   color: #c084fc;
 }
 

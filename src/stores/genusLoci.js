@@ -1,15 +1,15 @@
-// src/stores/genusLoki.js
+// src/stores/genusLoci.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getGenusLoki, getAllGenusLoki } from '../data/genusLoki.js'
+import { getGenusLoci, getAllGenusLoci } from '../data/genusLoci.js'
 
-export const useGenusLokiStore = defineStore('genusLoki', () => {
+export const useGenusLociStore = defineStore('genusLoci', () => {
   // State - progress per boss: { [id]: { unlocked, highestCleared, firstClearClaimed } }
   const progress = ref({})
 
   // Getters
   const unlockedBosses = computed(() => {
-    return getAllGenusLoki()
+    return getAllGenusLoci()
       .filter(boss => progress.value[boss.id]?.unlocked)
       .map(boss => ({
         ...boss,
@@ -18,33 +18,33 @@ export const useGenusLokiStore = defineStore('genusLoki', () => {
   })
 
   // Actions
-  function isUnlocked(genusLokiId) {
-    return progress.value[genusLokiId]?.unlocked || false
+  function isUnlocked(genusLociId) {
+    return progress.value[genusLociId]?.unlocked || false
   }
 
-  function getHighestCleared(genusLokiId) {
-    return progress.value[genusLokiId]?.highestCleared || 0
+  function getHighestCleared(genusLociId) {
+    return progress.value[genusLociId]?.highestCleared || 0
   }
 
-  function getAvailableLevels(genusLokiId) {
-    const boss = getGenusLoki(genusLokiId)
+  function getAvailableLevels(genusLociId) {
+    const boss = getGenusLoci(genusLociId)
     if (!boss) return []
 
-    const highest = getHighestCleared(genusLokiId)
+    const highest = getHighestCleared(genusLociId)
     const maxAvailable = Math.min(highest + 1, boss.maxPowerLevel)
     return Array.from({ length: maxAvailable }, (_, i) => i + 1)
   }
 
-  function recordVictory(genusLokiId, powerLevel) {
-    if (!progress.value[genusLokiId]) {
-      progress.value[genusLokiId] = {
+  function recordVictory(genusLociId, powerLevel) {
+    if (!progress.value[genusLociId]) {
+      progress.value[genusLociId] = {
         unlocked: false,
         highestCleared: 0,
         firstClearClaimed: false
       }
     }
 
-    const bossProgress = progress.value[genusLokiId]
+    const bossProgress = progress.value[genusLociId]
     const isFirstClear = !bossProgress.firstClearClaimed
 
     bossProgress.unlocked = true

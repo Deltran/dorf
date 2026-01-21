@@ -1,20 +1,20 @@
 <script setup>
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
-import { useQuestsStore, useHeroesStore, useInventoryStore, useGenusLokiStore } from '../stores'
+import { useQuestsStore, useHeroesStore, useInventoryStore, useGenusLociStore } from '../stores'
 import { regions, superRegions, getQuestNode, getNodesByRegion, getRegion, getRegionsBySuperRegion } from '../data/questNodes.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
-import { getGenusLoki } from '../data/genusLoki.js'
+import { getGenusLoci } from '../data/genusLoci.js'
 import MapCanvas from '../components/MapCanvas.vue'
 import SuperRegionSelect from '../components/SuperRegionSelect.vue'
 
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 
-const emit = defineEmits(['navigate', 'startBattle', 'startGenusLokiBattle'])
+const emit = defineEmits(['navigate', 'startBattle', 'startGenusLociBattle'])
 
 const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
 const inventoryStore = useInventoryStore()
-const genusLokiStore = useGenusLokiStore()
+const genusLociStore = useGenusLociStore()
 
 const selectedNode = ref(null)
 const selectedRegion = ref(regions[0].id)
@@ -107,17 +107,17 @@ function selectNode(node) {
     return
   }
 
-  // For genusLoki nodes, enrich with boss data
-  if (node.type === 'genusLoki') {
-    const bossData = getGenusLoki(node.genusLokiId)
+  // For genusLoci nodes, enrich with boss data
+  if (node.type === 'genusLoci') {
+    const bossData = getGenusLoci(node.genusLociId)
     const keyCount = inventoryStore.getItemCount(bossData?.keyItemId)
-    const isUnlocked = genusLokiStore.isUnlocked(node.genusLokiId)
-    const highestCleared = genusLokiStore.getHighestCleared(node.genusLokiId)
+    const isUnlocked = genusLociStore.isUnlocked(node.genusLociId)
+    const highestCleared = genusLociStore.getHighestCleared(node.genusLociId)
 
     selectedNode.value = {
       ...node,
       isCompleted: highestCleared >= (bossData?.maxPowerLevel || 20),
-      isGenusLoki: true,
+      isGenusLoci: true,
       bossData,
       keyCount,
       isUnlocked,
@@ -175,9 +175,9 @@ function goToSuperRegionSelect() {
   selectedNode.value = null
 }
 
-function startGenusLokiChallenge() {
-  if (!selectedNode.value?.isGenusLoki) return
-  const { bossData, keyCount, isUnlocked, genusLokiId } = selectedNode.value
+function startGenusLociChallenge() {
+  if (!selectedNode.value?.isGenusLoci) return
+  const { bossData, keyCount, isUnlocked, genusLociId } = selectedNode.value
 
   if (keyCount <= 0) {
     alert('You need a key to challenge this boss!')
@@ -189,15 +189,15 @@ function startGenusLokiChallenge() {
     return
   }
 
-  // If already unlocked, navigate to GenusLokiScreen for level selection
+  // If already unlocked, navigate to GenusLociScreen for level selection
   if (isUnlocked) {
-    emit('navigate', 'genusLoki', genusLokiId)
+    emit('navigate', 'genusLoci', genusLociId)
     return
   }
 
   // First time challenge - start level 1 battle directly
-  emit('startGenusLokiBattle', {
-    genusLokiId,
+  emit('startGenusLociBattle', {
+    genusLociId,
     powerLevel: 1
   })
 }
@@ -287,8 +287,8 @@ function startGenusLokiChallenge() {
           <button class="close-preview" @click="clearSelection">×</button>
         </div>
 
-        <!-- Genus Loki Preview -->
-        <div v-if="selectedNode.isGenusLoki" class="preview-body genus-loki-preview">
+        <!-- Genus Loci Preview -->
+        <div v-if="selectedNode.isGenusLoci" class="preview-body genus-loci-preview">
           <div class="boss-info-card">
             <div class="boss-icon">👹</div>
             <div class="boss-details">
@@ -335,9 +335,9 @@ function startGenusLokiChallenge() {
           </div>
 
           <button
-            class="start-quest-btn genus-loki-btn"
+            class="start-quest-btn genus-loci-btn"
             :disabled="selectedNode.keyCount <= 0"
-            @click="startGenusLokiChallenge"
+            @click="startGenusLociChallenge"
           >
             <span class="btn-icon">👹</span>
             <span v-if="selectedNode.keyCount <= 0">No Keys</span>
@@ -917,8 +917,8 @@ function startGenusLokiChallenge() {
   font-size: 1.2rem;
 }
 
-/* Genus Loki Preview */
-.genus-loki-preview .boss-info-card {
+/* Genus Loci Preview */
+.genus-loci-preview .boss-info-card {
   display: flex;
   gap: 16px;
   padding: 16px;
@@ -928,7 +928,7 @@ function startGenusLokiChallenge() {
   margin-bottom: 16px;
 }
 
-.genus-loki-preview .boss-icon {
+.genus-loci-preview .boss-icon {
   font-size: 2.5rem;
   width: 60px;
   height: 60px;
@@ -940,24 +940,24 @@ function startGenusLokiChallenge() {
   flex-shrink: 0;
 }
 
-.genus-loki-preview .boss-details {
+.genus-loci-preview .boss-details {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.genus-loki-preview .boss-name {
+.genus-loci-preview .boss-name {
   font-size: 1.1rem;
   font-weight: 600;
   color: #f3f4f6;
 }
 
-.genus-loki-preview .boss-desc {
+.genus-loci-preview .boss-desc {
   font-size: 0.85rem;
   color: #9ca3af;
 }
 
-.genus-loki-preview .key-status-card {
+.genus-loci-preview .key-status-card {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -967,26 +967,26 @@ function startGenusLokiChallenge() {
   margin-bottom: 16px;
 }
 
-.genus-loki-preview .key-icon {
+.genus-loci-preview .key-icon {
   font-size: 1.3rem;
 }
 
-.genus-loki-preview .key-count {
+.genus-loci-preview .key-count {
   font-size: 1.3rem;
   font-weight: 700;
   color: #fbbf24;
 }
 
-.genus-loki-preview .key-count.no-keys {
+.genus-loci-preview .key-count.no-keys {
   color: #ef4444;
 }
 
-.genus-loki-preview .key-label {
+.genus-loci-preview .key-label {
   color: #6b7280;
   font-size: 0.85rem;
 }
 
-.genus-loki-preview .progress-info {
+.genus-loci-preview .progress-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -997,26 +997,26 @@ function startGenusLokiChallenge() {
   margin-bottom: 16px;
 }
 
-.genus-loki-preview .progress-label {
+.genus-loci-preview .progress-label {
   color: #9ca3af;
   font-size: 0.85rem;
 }
 
-.genus-loki-preview .progress-value {
+.genus-loci-preview .progress-value {
   color: #22c55e;
   font-weight: 600;
 }
 
-.start-quest-btn.genus-loki-btn {
+.start-quest-btn.genus-loci-btn {
   background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
   box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
 }
 
-.start-quest-btn.genus-loki-btn:hover:not(:disabled) {
+.start-quest-btn.genus-loci-btn:hover:not(:disabled) {
   box-shadow: 0 6px 20px rgba(147, 51, 234, 0.5);
 }
 
-.start-quest-btn.genus-loki-btn:disabled {
+.start-quest-btn.genus-loci-btn:disabled {
   background: #374151;
   color: #6b7280;
   cursor: not-allowed;

@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useGenusLokiStore, useInventoryStore } from '../stores'
-import { getGenusLoki, getAllGenusLoki } from '../data/genusLoki.js'
+import { useGenusLociStore, useInventoryStore } from '../stores'
+import { getGenusLoci, getAllGenusLoci } from '../data/genusLoci.js'
 
-const emit = defineEmits(['navigate', 'startGenusLokiBattle'])
+const emit = defineEmits(['navigate', 'startGenusLociBattle'])
 
 const props = defineProps({
   selectedBossId: {
@@ -12,12 +12,12 @@ const props = defineProps({
   }
 })
 
-const genusLokiStore = useGenusLokiStore()
+const genusLociStore = useGenusLociStore()
 const inventoryStore = useInventoryStore()
 
 const selectedBoss = computed(() => {
   if (props.selectedBossId) {
-    return getGenusLoki(props.selectedBossId)
+    return getGenusLoci(props.selectedBossId)
   }
   return null
 })
@@ -26,12 +26,12 @@ const selectedLevel = ref(null)
 
 const availableLevels = computed(() => {
   if (!selectedBoss.value) return []
-  return genusLokiStore.getAvailableLevels(selectedBoss.value.id)
+  return genusLociStore.getAvailableLevels(selectedBoss.value.id)
 })
 
 const highestCleared = computed(() => {
   if (!selectedBoss.value) return 0
-  return genusLokiStore.getHighestCleared(selectedBoss.value.id)
+  return genusLociStore.getHighestCleared(selectedBoss.value.id)
 })
 
 const keyCount = computed(() => {
@@ -49,8 +49,8 @@ function selectLevel(level) {
 
 function startBattle() {
   if (!canChallenge.value) return
-  emit('startGenusLokiBattle', {
-    genusLokiId: selectedBoss.value.id,
+  emit('startGenusLociBattle', {
+    genusLociId: selectedBoss.value.id,
     powerLevel: selectedLevel.value
   })
 }
@@ -67,10 +67,10 @@ function goBack() {
 </script>
 
 <template>
-  <div class="genus-loki-screen">
+  <div class="genus-loci-screen">
     <header class="screen-header">
       <button class="back-btn" @click="goBack">← Back</button>
-      <h1>Genus Loki</h1>
+      <h1>Genus Loci</h1>
     </header>
 
     <div v-if="selectedBoss" class="boss-detail">
@@ -118,14 +118,14 @@ function goBack() {
     </div>
 
     <div v-else class="no-boss-selected">
-      <p>Select a Genus Loki from the home screen.</p>
+      <p>Select a Genus Loci from the home screen.</p>
       <button class="back-btn-large" @click="goBack">Return Home</button>
     </div>
   </div>
 </template>
 
 <style scoped>
-.genus-loki-screen {
+.genus-loci-screen {
   min-height: 100vh;
   padding: 20px;
   background: linear-gradient(135deg, #1a1025 0%, #0f172a 100%);

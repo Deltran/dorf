@@ -1,21 +1,21 @@
-# Genus Loki System Design
+# Genus Loci System Design
 
 ## Overview
 
-Genus Loki is an endgame boss challenge system featuring powerful single bosses with deeper ability kits than normal enemies. Each Genus Loki requires both a map node unlock and a consumable key item to attempt.
+Genus Loci is an endgame boss challenge system featuring powerful single bosses with deeper ability kits than normal enemies. Each Genus Loci requires both a map node unlock and a consumable key item to attempt.
 
 ## Access System
 
 ### Requirements
 
-- **Key Item**: Consumable item specific to each Genus Loki (e.g., Lake Tower Key for Valinar)
+- **Key Item**: Consumable item specific to each Genus Loci (e.g., Lake Tower Key for Valinar)
 - **Map Node**: Dedicated node in a specific region must be unlocked through normal progression
 
 ### Access Flow
 
 **First Attempt:**
 1. Player has required key item in inventory
-2. Player has unlocked the Genus Loki's map node
+2. Player has unlocked the Genus Loci's map node
 3. Clicking the node prompts "Challenge [Boss]? (Key x1 required)"
 4. Confirming consumes the key and enters Power Level 1 fight directly
 
@@ -40,7 +40,7 @@ Genus Loki is an endgame boss challenge system featuring powerful single bosses 
 
 ## Rewards
 
-- **Guaranteed unique drop**: Collectible item specific to each Genus Loki (future use TBD)
+- **Guaranteed unique drop**: Collectible item specific to each Genus Loci (future use TBD)
 - **Scaling gold**: Base amount + per-level bonus
 - **First clear bonus**: One-time gem reward on first ever victory
 
@@ -53,9 +53,9 @@ Example (Valinar):
 
 ### Home Screen Panel
 
-The "Genus Loki" section is always visible on the home screen.
+The "Genus Loci" section is always visible on the home screen.
 
-**When no Genus Loki are unlocked:**
+**When no Genus Loci are unlocked:**
 - Shows a mysterious/teaser style card or button
 - Tapping opens a screen with text: "Powerful guardians await in the world. Seek them out on your quest."
 
@@ -66,7 +66,7 @@ The "Genus Loki" section is always visible on the home screen.
 
 ### World Map Node
 
-- Distinct visual style (special icon/glow) to indicate Genus Loki fight
+- Distinct visual style (special icon/glow) to indicate Genus Loci fight
 - Different from normal combat nodes
 
 ### Power Level Selection Screen
@@ -78,7 +78,7 @@ The "Genus Loki" section is always visible on the home screen.
 
 ## Data Structures
 
-### Genus Loki Definition (`src/data/genusLoki.js`)
+### Genus Loci Definition (`src/data/genusLoci.js`)
 
 ```js
 {
@@ -86,7 +86,7 @@ The "Genus Loki" section is always visible on the home screen.
   name: 'Valinar, Lake Tower Guardian',
   description: 'A corrupted sentinel who guards the ancient lake tower.',
   region: 'whisper_lake',
-  nodeId: 'whisper_lake_genus_loki',
+  nodeId: 'whisper_lake_genus_loci',
   keyItemId: 'lake_tower_key',
   maxPowerLevel: 20,
   baseStats: { hp: 5000, atk: 150, def: 100, spd: 80 },
@@ -127,7 +127,7 @@ The "Genus Loki" section is always visible on the home screen.
   id: 'valinar_crest',
   name: "Valinar's Crest",
   description: 'A battle-worn crest pried from the Lake Tower Guardian. Its purpose remains unknown.',
-  type: 'genusLoki',
+  type: 'genusLoci',
   rarity: 4
 }
 ```
@@ -136,19 +136,19 @@ The "Genus Loki" section is always visible on the home screen.
 
 ```js
 {
-  id: 'whisper_lake_genus_loki',
+  id: 'whisper_lake_genus_loci',
   name: 'Lake Tower',
   region: 'whisper_lake',
   x: 380,
   y: 120,
-  type: 'genusLoki',
-  genusLokiId: 'valinar',
+  type: 'genusLoci',
+  genusLociId: 'valinar',
   connections: ['whisper_lake_04'],
   unlockCondition: { nodeCleared: 'whisper_lake_boss' }
 }
 ```
 
-## State Management (`src/stores/genusLoki.js`)
+## State Management (`src/stores/genusLoci.js`)
 
 ### State Structure
 
@@ -166,18 +166,18 @@ The "Genus Loki" section is always visible on the home screen.
 
 ### Store Actions
 
-- `isUnlocked(genusLokiId)` - Returns whether this boss appears in home screen panel
-- `getHighestCleared(genusLokiId)` - Returns highest defeated level (0 if never beaten)
-- `canChallenge(genusLokiId, powerLevel)` - Checks: level unlocked AND has key item
-- `recordVictory(genusLokiId, powerLevel)` - Updates highestCleared, marks unlocked, handles first clear
-- `getAvailableLevels(genusLokiId)` - Returns array of unlockable levels (1 through highestCleared + 1)
+- `isUnlocked(genusLociId)` - Returns whether this boss appears in home screen panel
+- `getHighestCleared(genusLociId)` - Returns highest defeated level (0 if never beaten)
+- `canChallenge(genusLociId, powerLevel)` - Checks: level unlocked AND has key item
+- `recordVictory(genusLociId, powerLevel)` - Updates highestCleared, marks unlocked, handles first clear
+- `getAvailableLevels(genusLociId)` - Returns array of unlockable levels (1 through highestCleared + 1)
 
 ## Battle Integration
 
 ### Starting a Battle
 
 1. Consume 1 key item from inventory
-2. Initialize battle store with `battleType: 'genusLoki'` and metadata: `{ genusLokiId, powerLevel }`
+2. Initialize battle store with `battleType: 'genusLoci'` and metadata: `{ genusLociId, powerLevel }`
 3. Generate boss enemy scaled to power level
 4. Navigate to BattleScreen
 
@@ -196,7 +196,7 @@ The "Genus Loki" section is always visible on the home screen.
 
 ### Victory Handling
 
-1. Call `genusLokiStore.recordVictory(id, level)`
+1. Call `genusLociStore.recordVictory(id, level)`
 2. Award gold: `base + (perLevel * (powerLevel - 1))`
 3. Award first-clear gems if applicable
 4. Grant guaranteed unique drop item
@@ -236,14 +236,14 @@ itemDrops: [
 
 ## Files to Create
 
-- `src/data/genusLoki.js` - Boss definitions
-- `src/stores/genusLoki.js` - Progress tracking store
+- `src/data/genusLoci.js` - Boss definitions
+- `src/stores/genusLoci.js` - Progress tracking store
 
 ## Files to Modify
 
 - `src/data/items.js` - Add key items and unique drops
-- `src/data/questNodes.js` - Add Genus Loki node type and Valinar's node
-- `src/stores/battle.js` - Handle genusLoki battle type
-- `src/views/HomeScreen.vue` - Add Genus Loki panel
-- `src/components/NodeMarker.vue` - Handle genusLoki node type styling
-- `src/views/BattleScreen.vue` - Handle Genus Loki victory/defeat
+- `src/data/questNodes.js` - Add Genus Loci node type and Valinar's node
+- `src/stores/battle.js` - Handle genusLoci battle type
+- `src/views/HomeScreen.vue` - Add Genus Loci panel
+- `src/components/NodeMarker.vue` - Handle genusLoci node type styling
+- `src/views/BattleScreen.vue` - Handle Genus Loci victory/defeat

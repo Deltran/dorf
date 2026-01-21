@@ -22,7 +22,7 @@ const props = defineProps({
 
 const emit = defineEmits(['select'])
 
-const isGenusLoki = computed(() => props.node.type === 'genusLoki')
+const isGenusLoci = computed(() => props.node.type === 'genusLoci')
 
 const markerStyle = computed(() => ({
   left: `${props.node.x * props.scale}px`,
@@ -38,7 +38,7 @@ const markerStyle = computed(() => ({
       {
         'completed': isCompleted,
         'selected': isSelected,
-        'genus-loki': isGenusLoki
+        'genus-loci': isGenusLoci
       }
     ]"
     :style="markerStyle"
@@ -46,7 +46,7 @@ const markerStyle = computed(() => ({
   >
     <div class="marker-ring"></div>
     <div class="marker-icon">
-      <span v-if="isGenusLoki">👹</span>
+      <span v-if="isGenusLoci">👹</span>
       <span v-else-if="isCompleted">✓</span>
       <span v-else>!</span>
     </div>
@@ -121,26 +121,26 @@ const markerStyle = computed(() => ({
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
-/* Genus Loki (boss) node styling */
-.node-marker.genus-loki .marker-icon {
+/* Genus Loci (boss) node styling */
+.node-marker.genus-loci .marker-icon {
   background: linear-gradient(135deg, #9333ea 0%, #6b21a8 100%);
   box-shadow: 0 4px 12px rgba(147, 51, 234, 0.5);
 }
 
-.node-marker.genus-loki:not(.completed) .marker-icon {
-  animation: genusLokiPulse 2s ease-in-out infinite;
+.node-marker.genus-loci:not(.completed) .marker-icon {
+  animation: genusLociPulse 2s ease-in-out infinite;
 }
 
-@keyframes genusLokiPulse {
+@keyframes genusLociPulse {
   0%, 100% { box-shadow: 0 4px 12px rgba(147, 51, 234, 0.5); }
   50% { box-shadow: 0 4px 24px rgba(147, 51, 234, 0.9); }
 }
 
-.node-marker.genus-loki .marker-ring {
+.node-marker.genus-loci .marker-ring {
   border-color: rgba(147, 51, 234, 0.5);
 }
 
-.node-marker.genus-loki.selected .marker-ring {
+.node-marker.genus-loci.selected .marker-ring {
   border-color: #9333ea;
 }
 

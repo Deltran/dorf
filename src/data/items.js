@@ -79,7 +79,7 @@ export const items = {
     id: 'valinar_crest',
     name: "Valinar's Crest",
     description: 'A battle-worn crest pried from the Lake Tower Guardian. Its purpose remains unknown.',
-    type: 'genusLoki',
+    type: 'genusLoci',
     rarity: 4
   }
 }

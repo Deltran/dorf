@@ -1,8 +1,8 @@
 const SAVE_KEY = 'dorf_save'
-const SAVE_VERSION = 4  // Bump version for genusLoki addition
+const SAVE_VERSION = 4  // Bump version for genusLoci addition
 
 export function saveGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoki } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci } = stores
 
   const saveData = {
     version: SAVE_VERSION,
@@ -12,7 +12,7 @@ export function saveGame(stores) {
     quests: quests.saveState(),
     inventory: inventory?.saveState() || { items: {} },
     shards: shards?.saveState() || { huntingSlots: [null, null, null, null, null], unlocked: false },
-    genusLoki: genusLoki?.saveState() || { progress: {} }
+    genusLoci: genusLoci?.saveState() || { progress: {} }
   }
 
   try {
@@ -25,7 +25,7 @@ export function saveGame(stores) {
 }
 
 export function loadGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoki } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci } = stores
 
   try {
     const saved = localStorage.getItem(SAVE_KEY)
@@ -44,7 +44,7 @@ export function loadGame(stores) {
     if (saveData.quests) quests.loadState(saveData.quests)
     if (saveData.inventory && inventory) inventory.loadState(saveData.inventory)
     if (saveData.shards && shards) shards.loadState(saveData.shards)
-    if (saveData.genusLoki && genusLoki) genusLoki.loadState(saveData.genusLoki)
+    if (saveData.genusLoci && genusLoci) genusLoci.loadState(saveData.genusLoci)
 
     return true
   } catch (e) {

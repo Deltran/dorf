@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useGenusLokiStore } from '../stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useGenusLociStore } from '../stores'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 
@@ -9,7 +9,7 @@ const emit = defineEmits(['navigate'])
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const questsStore = useQuestsStore()
-const genusLokiStore = useGenusLokiStore()
+const genusLociStore = useGenusLociStore()
 
 // Hero images (check for animated gif first, then static png)
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
@@ -51,8 +51,8 @@ const hasParty = computed(() => {
   return heroesStore.party.some(id => id !== null)
 })
 
-const unlockedGenusLoki = computed(() => genusLokiStore.unlockedBosses)
-const hasAnyGenusLoki = computed(() => unlockedGenusLoki.value.length > 0)
+const unlockedGenusLoci = computed(() => genusLociStore.unlockedBosses)
+const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
 </script>
 
 <template>
@@ -109,18 +109,18 @@ const hasAnyGenusLoki = computed(() => unlockedGenusLoki.value.length > 0)
       </div>
     </section>
 
-    <!-- Genus Loki Section -->
-    <section class="genus-loki-section">
-      <div class="genus-loki-header">
-        <span class="genus-loki-title">Genus Loki</span>
+    <!-- Genus Loci Section -->
+    <section class="genus-loci-section">
+      <div class="genus-loci-header">
+        <span class="genus-loci-title">Genus Loci</span>
       </div>
 
-      <div v-if="hasAnyGenusLoki" class="genus-loki-grid">
+      <div v-if="hasAnyGenusLoci" class="genus-loci-grid">
         <div
-          v-for="boss in unlockedGenusLoki"
+          v-for="boss in unlockedGenusLoci"
           :key="boss.id"
-          class="genus-loki-card"
-          @click="emit('navigate', 'genusLoki', boss.id)"
+          class="genus-loci-card"
+          @click="emit('navigate', 'genusLoci', boss.id)"
         >
           <div class="boss-icon">👹</div>
           <div class="boss-info">
@@ -130,7 +130,7 @@ const hasAnyGenusLoki = computed(() => unlockedGenusLoki.value.length > 0)
         </div>
       </div>
 
-      <div v-else class="genus-loki-empty" @click="emit('navigate', 'worldmap')">
+      <div v-else class="genus-loci-empty" @click="emit('navigate', 'worldmap')">
         <div class="empty-icon">🏰</div>
         <p class="empty-text">Powerful guardians await in the world.</p>
         <p class="empty-hint">Seek them out on your quest.</p>
@@ -765,32 +765,32 @@ const hasAnyGenusLoki = computed(() => unlockedGenusLoki.value.length > 0)
   background: linear-gradient(180deg, transparent 0%, #374151 50%, transparent 100%);
 }
 
-/* ===== Genus Loki Section ===== */
-.genus-loki-section {
+/* ===== Genus Loci Section ===== */
+.genus-loci-section {
   position: relative;
   z-index: 1;
 }
 
-.genus-loki-header {
+.genus-loci-header {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.genus-loki-title {
+.genus-loci-title {
   font-size: 0.85rem;
   color: #9ca3af;
   text-transform: uppercase;
   letter-spacing: 1px;
 }
 
-.genus-loki-grid {
+.genus-loci-grid {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.genus-loki-card {
+.genus-loci-card {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -802,7 +802,7 @@ const hasAnyGenusLoki = computed(() => unlockedGenusLoki.value.length > 0)
   transition: all 0.2s ease;
 }
 
-.genus-loki-card:hover {
+.genus-loci-card:hover {
   transform: translateX(4px);
   border-color: #9333ea;
   box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
@@ -836,7 +836,7 @@ const hasAnyGenusLoki = computed(() => unlockedGenusLoki.value.length > 0)
   color: #9ca3af;
 }
 
-.genus-loki-empty {
+.genus-loci-empty {
   text-align: center;
   padding: 24px 16px;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -846,7 +846,7 @@ const hasAnyGenusLoki = computed(() => unlockedGenusLoki.value.length > 0)
   transition: all 0.2s ease;
 }
 
-.genus-loki-empty:hover {
+.genus-loci-empty:hover {
   border-color: #6b21a8;
   background: linear-gradient(135deg, #2a1f3d 0%, #0f172a 100%);
 }

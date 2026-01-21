@@ -1,8 +1,8 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLokiStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
-import { getGenusLoki } from './data/genusLoki.js'
+import { getGenusLoci } from './data/genusLoci.js'
 
 import HomeScreen from './screens/HomeScreen.vue'
 import GachaScreen from './screens/GachaScreen.vue'
@@ -13,27 +13,27 @@ import InventoryScreen from './screens/InventoryScreen.vue'
 import ShardsScreen from './screens/ShardsScreen.vue'
 import MergeScreen from './screens/MergeScreen.vue'
 import AdminScreen from './screens/AdminScreen.vue'
-import GenusLokiScreen from './screens/GenusLokiScreen.vue'
+import GenusLociScreen from './screens/GenusLociScreen.vue'
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const questsStore = useQuestsStore()
 const inventoryStore = useInventoryStore()
 const shardsStore = useShardsStore()
-const genusLokiStore = useGenusLokiStore()
+const genusLociStore = useGenusLociStore()
 
 const currentScreen = ref('home')
 const isLoaded = ref(false)
 const initialHeroId = ref(null)
 const selectedBossId = ref(null)
-const genusLokiBattleContext = ref(null)
+const genusLociBattleContext = ref(null)
 
 // Load game on mount
 onMounted(() => {
   const hasData = hasSaveData()
 
   if (hasData) {
-    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoki: genusLokiStore })
+    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore })
   } else {
     // New player: give them a starter hero
     initNewPlayer()
@@ -69,11 +69,11 @@ watch(
     inventoryStore.totalItemCount,
     shardsStore.huntingSlots,
     shardsStore.unlocked,
-    genusLokiStore.progress
+    genusLociStore.progress
   ],
   () => {
     if (isLoaded.value) {
-      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoki: genusLokiStore })
+      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore })
     }
   },
   { deep: true }
@@ -83,19 +83,19 @@ function navigate(screen, param = null) {
   currentScreen.value = screen
   if (screen === 'heroes') {
     initialHeroId.value = param
-  } else if (screen === 'genusLoki') {
+  } else if (screen === 'genusLoci') {
     selectedBossId.value = param
   }
 }
 
 function startBattle() {
-  genusLokiBattleContext.value = null
+  genusLociBattleContext.value = null
   currentScreen.value = 'battle'
 }
 
-function startGenusLokiBattle({ genusLokiId, powerLevel }) {
+function startGenusLociBattle({ genusLociId, powerLevel }) {
   // Consume key before battle
-  const bossData = getGenusLoki(genusLokiId)
+  const bossData = getGenusLoci(genusLociId)
   if (bossData && inventoryStore.getItemCount(bossData.keyItemId) > 0) {
     inventoryStore.removeItem(bossData.keyItemId, 1)
   }
@@ -111,8 +111,8 @@ function startGenusLokiBattle({ genusLokiId, powerLevel }) {
   }
 
   // Set battle context for BattleScreen
-  genusLokiBattleContext.value = {
-    genusLokiId,
+  genusLociBattleContext.value = {
+    genusLociId,
     powerLevel,
     partyState
   }
@@ -141,18 +141,18 @@ function startGenusLokiBattle({ genusLokiId, powerLevel }) {
         v-else-if="currentScreen === 'worldmap'"
         @navigate="navigate"
         @startBattle="startBattle"
-        @startGenusLokiBattle="startGenusLokiBattle"
+        @startGenusLociBattle="startGenusLociBattle"
       />
       <BattleScreen
         v-else-if="currentScreen === 'battle'"
-        :genus-loki-context="genusLokiBattleContext"
+        :genus-loci-context="genusLociBattleContext"
         @navigate="navigate"
       />
-      <GenusLokiScreen
-        v-else-if="currentScreen === 'genusLoki'"
+      <GenusLociScreen
+        v-else-if="currentScreen === 'genusLoci'"
         :selected-boss-id="selectedBossId"
         @navigate="navigate"
-        @startGenusLokiBattle="startGenusLokiBattle"
+        @startGenusLociBattle="startGenusLociBattle"
       />
       <InventoryScreen
         v-else-if="currentScreen === 'inventory'"
