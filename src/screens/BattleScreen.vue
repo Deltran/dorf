@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, BattleState } from '../stores'
+import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLokiStore, BattleState } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import EnemyCard from '../components/EnemyCard.vue'
 import ActionButton from '../components/ActionButton.vue'
@@ -14,6 +14,14 @@ import RageBar from '../components/RageBar.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode } from '../data/questNodes.js'
 import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getGenusLoki } from '../data/genusLoki.js'
+
+const props = defineProps({
+  genusLokiContext: {
+    type: Object,
+    default: null
+  }
+})
 
 const emit = defineEmits(['navigate', 'battleEnd'])
 
@@ -21,6 +29,8 @@ const battleStore = useBattleStore()
 const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
+const inventoryStore = useInventoryStore()
+const genusLokiStore = useGenusLokiStore()
 
 const showVictoryModal = ref(false)
 const showDefeatModal = ref(false)
@@ -36,6 +46,10 @@ const victoryStep = ref(1) // 1 = rewards, 2 = xp/level ups
 const shardDropDisplay = ref(null) // For displaying shard drops in victory
 const inspectedHero = ref(null) // For hero stats popup
 const lastClickedHero = ref(null) // Track for double-click detection
+const genusLokiRewards = ref(null) // For Genus Loki victory rewards
+
+// Computed to check if this is a Genus Loki battle
+const isGenusLokiBattle = computed(() => battleStore.battleType === 'genusLoki')
 
 // Combat visual effects
 const damageNumbers = ref([])
@@ -243,6 +257,14 @@ onMounted(() => {
 })
 
 function startCurrentBattle() {
+  // Check if this is a Genus Loki battle
+  if (props.genusLokiContext) {
+    const { genusLokiId, powerLevel, partyState } = props.genusLokiContext
+    battleStore.initBattle(partyState, [], { genusLokiId, powerLevel })
+    return
+  }
+
+  // Normal quest battle
   const battle = questsStore.currentBattle
   if (!battle) {
     emit('navigate', 'worldmap')
@@ -263,6 +285,12 @@ watch(() => battleStore.state, (newState) => {
 })
 
 function handleVictory() {
+  // Handle Genus Loki victory separately
+  if (isGenusLokiBattle.value) {
+    handleGenusLokiVictory()
+    return
+  }
+
   // Save party state for next battle
   const partyState = battleStore.getPartyState()
 
@@ -355,8 +383,105 @@ function animateRewards() {
 }
 
 function handleDefeat() {
+  // For Genus Loki, just show defeat - key was already consumed
+  if (isGenusLokiBattle.value) {
+    showDefeatModal.value = true
+    return
+  }
   questsStore.failRun()
   showDefeatModal.value = true
+}
+
+function handleGenusLokiVictory() {
+  const meta = battleStore.genusLokiMeta
+  if (!meta) return
+
+  const bossData = getGenusLoki(meta.genusLokiId)
+  if (!bossData) return
+
+  // Record victory in genus loki store
+  const { isFirstClear } = genusLokiStore.recordVictory(meta.genusLokiId, meta.powerLevel)
+
+  // Calculate rewards
+  const goldReward = bossData.currencyRewards.base.gold +
+    bossData.currencyRewards.perLevel.gold * (meta.powerLevel - 1)
+
+  let gemsReward = 0
+  if (isFirstClear && bossData.firstClearBonus) {
+    gemsReward = bossData.firstClearBonus.gems
+  }
+
+  // Award currency
+  gachaStore.addGold(goldReward)
+  if (gemsReward > 0) {
+    gachaStore.addGems(gemsReward)
+  }
+
+  // Award unique drop
+  const itemsDrop = []
+  if (bossData.uniqueDrop) {
+    inventoryStore.addItem(bossData.uniqueDrop.itemId, 1)
+    itemsDrop.push({
+      item: getItem(bossData.uniqueDrop.itemId),
+      count: 1
+    })
+  }
+
+  // Set up rewards for display
+  genusLokiRewards.value = {
+    gold: goldReward,
+    gems: gemsReward,
+    isFirstClear,
+    powerLevel: meta.powerLevel,
+    bossName: bossData.name,
+    items: itemsDrop
+  }
+
+  // Use similar display flow as normal victory
+  displayedGems.value = 0
+  displayedGold.value = 0
+  displayedExp.value = 0
+  revealedItemCount.value = 0
+  victoryStep.value = 1
+  showVictoryModal.value = true
+  animateGenusLokiRewards()
+
+  // Reveal items sequentially
+  if (itemsDrop.length > 0) {
+    const revealNext = () => {
+      if (revealedItemCount.value < itemsDrop.length) {
+        revealedItemCount.value++
+        setTimeout(revealNext, 200)
+      }
+    }
+    setTimeout(revealNext, 800)
+  }
+}
+
+function animateGenusLokiRewards() {
+  if (!genusLokiRewards.value) return
+
+  const targetGold = genusLokiRewards.value.gold
+  const targetGems = genusLokiRewards.value.gems
+  const duration = 1500
+  const steps = 60
+  const interval = duration / steps
+
+  let step = 0
+  const timer = setInterval(() => {
+    step++
+    const progress = step / steps
+    const eased = 1 - Math.pow(1 - progress, 3)
+
+    displayedGold.value = Math.floor(targetGold * eased)
+    displayedGems.value = Math.floor(targetGems * eased)
+
+    if (step >= steps) {
+      clearInterval(timer)
+      displayedGold.value = targetGold
+      displayedGems.value = targetGems
+    }
+  }, interval)
 }
 
 function selectAction(action) {
@@ -888,87 +1013,129 @@ function getStatChange(hero, stat) {
 
     <!-- Victory Modal -->
     <div v-if="showVictoryModal" class="modal-overlay">
-      <div class="modal victory-modal">
+      <div class="modal victory-modal" :class="{ 'genus-loki-victory': isGenusLokiBattle }">
         <h2>Victory!</h2>
-        <p class="node-complete">
-          {{ questsStore.lastVisitedNode ? getQuestNode(questsStore.lastVisitedNode)?.name : '' }} Complete!
-          <span v-if="rewards?.isFirstClear" class="first-clear-badge">First Clear!</span>
-        </p>
 
-        <!-- Step 1: Rewards -->
-        <div v-if="victoryStep === 1" class="victory-step">
-          <div v-if="rewards" class="rewards">
-            <div class="reward-item">
-              <span>💎 Gems</span>
-              <span class="reward-value">+{{ displayedGems }}</span>
-            </div>
+        <!-- Genus Loki Victory -->
+        <template v-if="isGenusLokiBattle && genusLokiRewards">
+          <p class="node-complete genus-loki-complete">
+            {{ genusLokiRewards.bossName }} Defeated!
+            <span v-if="genusLokiRewards.isFirstClear" class="first-clear-badge">First Clear!</span>
+          </p>
+          <p class="power-level-badge">Power Level {{ genusLokiRewards.powerLevel }}</p>
+
+          <div class="rewards">
             <div class="reward-item gold-reward">
               <span>🪙 Gold</span>
               <span class="reward-value">+{{ displayedGold }}</span>
             </div>
-            <div class="reward-item">
-              <span>⭐ EXP</span>
-              <span class="reward-value">+{{ displayedExp }}</span>
+            <div v-if="genusLokiRewards.gems > 0" class="reward-item">
+              <span>💎 Gems</span>
+              <span class="reward-value">+{{ displayedGems }}</span>
             </div>
           </div>
 
-          <div v-if="itemDropsWithData.length > 0" class="item-drops">
-            <div class="drops-header">Items Found</div>
+          <div v-if="genusLokiRewards.items.length > 0" class="item-drops">
+            <div class="drops-header">Unique Drop</div>
             <div class="drops-grid">
               <div
-                v-for="(item, index) in itemDropsWithData"
-                :key="item.id"
+                v-for="(drop, index) in genusLokiRewards.items"
+                :key="drop.item.id"
                 :class="['drop-item', { revealed: index < revealedItemCount }]"
-                @click="showItemDetail(item)"
+                @click="showItemDetail(drop.item)"
               >
-                <ItemCard :item="item" compact />
+                <ItemCard :item="drop.item" compact />
               </div>
             </div>
           </div>
 
-          <!-- Shard Drop -->
-          <div v-if="shardDropDisplay" class="shard-drop-section">
-            <div class="shard-drop">
-              <span class="shard-icon">💎</span>
-              <span class="shard-hero">{{ shardDropDisplay.template.name }}</span>
-              <span class="shard-count">x{{ shardDropDisplay.count }}</span>
-            </div>
+          <div class="modal-actions">
+            <button class="btn-primary" @click="returnHome">Continue</button>
           </div>
+        </template>
 
-          <button class="btn-next" @click="nextVictoryStep">
-            Party Results →
-          </button>
-        </div>
+        <!-- Normal Quest Victory -->
+        <template v-else>
+          <p class="node-complete">
+            {{ questsStore.lastVisitedNode ? getQuestNode(questsStore.lastVisitedNode)?.name : '' }} Complete!
+            <span v-if="rewards?.isFirstClear" class="first-clear-badge">First Clear!</span>
+          </p>
 
-        <!-- Step 2: XP & Level Ups -->
-        <div v-if="victoryStep === 2" class="victory-step">
-          <div class="step-header">Party Results</div>
-          <div class="victory-party">
-            <div
-              v-for="hero in partyHeroesForVictory"
-              :key="hero.instanceId"
-              :class="['victory-hero', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
-            >
-              <HeroCard :hero="hero" compact />
-              <div v-if="showXpFloaters" class="xp-floater">
-                +{{ expPerHero }} XP
+          <!-- Step 1: Rewards -->
+          <div v-if="victoryStep === 1" class="victory-step">
+            <div v-if="rewards" class="rewards">
+              <div class="reward-item">
+                <span>💎 Gems</span>
+                <span class="reward-value">+{{ displayedGems }}</span>
               </div>
-              <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-badge">
-                Level Up!
+              <div class="reward-item gold-reward">
+                <span>🪙 Gold</span>
+                <span class="reward-value">+{{ displayedGold }}</span>
+              </div>
+              <div class="reward-item">
+                <span>⭐ EXP</span>
+                <span class="reward-value">+{{ displayedExp }}</span>
               </div>
             </div>
+
+            <div v-if="itemDropsWithData.length > 0" class="item-drops">
+              <div class="drops-header">Items Found</div>
+              <div class="drops-grid">
+                <div
+                  v-for="(item, index) in itemDropsWithData"
+                  :key="item.id"
+                  :class="['drop-item', { revealed: index < revealedItemCount }]"
+                  @click="showItemDetail(item)"
+                >
+                  <ItemCard :item="item" compact />
+                </div>
+              </div>
+            </div>
+
+            <!-- Shard Drop -->
+            <div v-if="shardDropDisplay" class="shard-drop-section">
+              <div class="shard-drop">
+                <span class="shard-icon">💎</span>
+                <span class="shard-hero">{{ shardDropDisplay.template.name }}</span>
+                <span class="shard-count">x{{ shardDropDisplay.count }}</span>
+              </div>
+            </div>
+
+            <button class="btn-next" @click="nextVictoryStep">
+              Party Results →
+            </button>
           </div>
 
-          <button class="btn-back" @click="prevVictoryStep">
-            ← Rewards
-          </button>
-        </div>
+          <!-- Step 2: XP & Level Ups -->
+          <div v-if="victoryStep === 2" class="victory-step">
+            <div class="step-header">Party Results</div>
+            <div class="victory-party">
+              <div
+                v-for="hero in partyHeroesForVictory"
+                :key="hero.instanceId"
+                :class="['victory-hero', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
+              >
+                <HeroCard :hero="hero" compact />
+                <div v-if="showXpFloaters" class="xp-floater">
+                  +{{ expPerHero }} XP
+                </div>
+                <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-badge">
+                  Level Up!
+                </div>
+              </div>
+            </div>
 
-        <div class="modal-actions">
-          <button class="btn-primary" @click="returnToMap">Continue</button>
-          <button v-if="rewards && !rewards.isFirstClear" class="btn-secondary" @click="replayStage">Replay</button>
-          <button class="btn-secondary" @click="returnHome">Home</button>
-        </div>
+            <button class="btn-back" @click="prevVictoryStep">
+              ← Rewards
+            </button>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn-primary" @click="returnToMap">Continue</button>
+            <button v-if="rewards && !rewards.isFirstClear" class="btn-secondary" @click="replayStage">Replay</button>
+            <button class="btn-secondary" @click="returnHome">Home</button>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -1622,6 +1789,25 @@ function getStatChange(hero, stat) {
 
 .victory-modal h2 {
   color: #22c55e;
+}
+
+.victory-modal.genus-loki-victory h2 {
+  color: #9333ea;
+}
+
+.genus-loki-complete {
+  color: #c084fc;
+}
+
+.power-level-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #9333ea 0%, #6b21a8 100%);
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 16px;
+  margin-bottom: 16px;
 }
 
 .defeat-modal h2 {
