@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 
 import HomeScreen from './screens/HomeScreen.vue'
@@ -17,6 +17,7 @@ const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const questsStore = useQuestsStore()
 const inventoryStore = useInventoryStore()
+const shardsStore = useShardsStore()
 
 const currentScreen = ref('home')
 const isLoaded = ref(false)
@@ -27,7 +28,7 @@ onMounted(() => {
   const hasData = hasSaveData()
 
   if (hasData) {
-    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore })
+    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore })
   } else {
     // New player: give them a starter hero
     initNewPlayer()
@@ -60,11 +61,13 @@ watch(
     gachaStore.gold,
     gachaStore.totalPulls,
     questsStore.completedNodes.length,
-    inventoryStore.totalItemCount
+    inventoryStore.totalItemCount,
+    shardsStore.huntingSlots,
+    shardsStore.unlocked
   ],
   () => {
     if (isLoaded.value) {
-      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore })
+      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore })
     }
   },
   { deep: true }
