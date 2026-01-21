@@ -52,7 +52,7 @@ const heroGroups = computed(() => {
         highestHero,
         canMerge: mergeInfo.canMerge,
         copiesNeeded: mergeInfo.copiesNeeded || highestStar,
-        copiesHave: group.copies.length - 1  // Exclude the base
+        copiesHave: mergeInfo.copiesHave ?? 0  // Same star level copies only
       }
     })
     .filter(g => g.highestStar < 5)  // Hide maxed heroes
