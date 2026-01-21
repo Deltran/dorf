@@ -616,6 +616,18 @@ export const useBattleStore = defineStore('battle', () => {
     return actualDamage
   }
 
+  // ========== SKILL CONDITION HELPERS ==========
+
+  // Evaluate a condition object against a hero (for conditional skill effects)
+  function evaluateCondition(condition, hero) {
+    if (condition.stat === 'hpPercent') {
+      const hpPercent = (hero.currentHp / hero.maxHp) * 100
+      if (condition.below !== undefined) return hpPercent < condition.below
+      if (condition.above !== undefined) return hpPercent > condition.above
+    }
+    return false
+  }
+
   // ========== BATTLE FUNCTIONS ==========
 
   function initBattle(partyState, enemyTemplateIds) {
