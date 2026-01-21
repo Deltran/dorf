@@ -412,34 +412,28 @@ function goToSuperRegionSelect() {
 /* Region Tabs */
 .region-tabs {
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  gap: 8px;
   padding-bottom: 8px;
-  scrollbar-width: none;
-}
-
-.region-tabs::-webkit-scrollbar {
-  display: none;
 }
 
 .region-tab {
   position: relative;
-  padding: 16px 24px;
+  padding: 10px 14px;
   background-color: rgba(0, 0, 0, 0.5);
   background-size: cover;
   background-position: center;
   border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-radius: 10px;
   color: #94a3b8;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.3s ease;
   overflow: hidden;
-  min-width: 120px;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 0.85rem;
 }
 
 .region-tab-overlay {
