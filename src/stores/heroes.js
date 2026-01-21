@@ -314,6 +314,29 @@ export const useHeroesStore = defineStore('heroes', () => {
       }
     }
 
+    // Check for required merge material (e.g., shards for 3* -> 4*)
+    const requiredMaterial = MERGE_MATERIALS[starLevel]
+    let hasMaterial = true
+    let materialName = null
+    if (requiredMaterial) {
+      const inventoryStore = useInventoryStore()
+      hasMaterial = inventoryStore.getItemCount(requiredMaterial) >= 1
+      const materialItem = getItem(requiredMaterial)
+      materialName = materialItem?.name || requiredMaterial
+    }
+
+    if (!hasMaterial) {
+      return {
+        canMerge: false,
+        reason: `Requires 1 ${materialName}`,
+        copiesNeeded,
+        copiesHave: duplicates.length,
+        requiredStarLevel: starLevel,
+        requiredMaterial,
+        requiredMaterialName: materialName
+      }
+    }
+
     const goldCost = (starLevel + 1) * MERGE_GOLD_COST_PER_STAR
 
     return {
@@ -323,7 +346,9 @@ export const useHeroesStore = defineStore('heroes', () => {
       duplicates,
       goldCost,
       targetStarLevel: starLevel + 1,
-      requiredStarLevel: starLevel
+      requiredStarLevel: starLevel,
+      requiredMaterial,
+      requiredMaterialName: materialName
     }
   }
 

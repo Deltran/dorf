@@ -120,8 +120,8 @@ export const questNodes = {
     id: 'cave_01',
     name: 'Cavern Entrance',
     region: 'Echoing Caverns',
-    x: 100,
-    y: 250,
+    x: 135,
+    y: 450,
     battles: [
       { enemies: ['cave_bat', 'cave_bat', 'cave_bat'] },
       { enemies: ['cave_bat', 'dark_cultist'] },
@@ -141,8 +141,8 @@ export const questNodes = {
     id: 'cave_02',
     name: 'Cultist Shrine',
     region: 'Echoing Caverns',
-    x: 380,
-    y: 100,
+    x: 320,
+    y: 350,
     battles: [
       { enemies: ['dark_caster', 'dark_cultist'] },
       { enemies: ['dark_caster', 'dark_cultist', 'cave_bat'] },
@@ -162,8 +162,8 @@ export const questNodes = {
     id: 'cave_03',
     name: 'Troll Bridge',
     region: 'Echoing Caverns',
-    x: 380,
-    y: 400,
+    x: 200,
+    y: 220,
     battles: [
       { enemies: ['rock_golem', 'cave_bat', 'cave_bat'] },
       { enemies: ['cave_troll'] },
@@ -183,7 +183,7 @@ export const questNodes = {
     id: 'cave_04',
     name: 'Deep Chasm',
     region: 'Echoing Caverns',
-    x: 700,
+    x: 600,
     y: 250,
     battles: [
       { enemies: ['rock_golem', 'rock_golem'] },
@@ -204,8 +204,8 @@ export const questNodes = {
     id: 'cave_05',
     name: 'Ritual Chamber',
     region: 'Echoing Caverns',
-    x: 480,
-    y: 250,
+    x: 300,
+    y: 80,
     battles: [
       { enemies: ['cultist_ritualist', 'dark_cultist', 'dark_cultist'] },
       { enemies: ['corrupted_golem', 'dark_caster'] },
@@ -226,7 +226,7 @@ export const questNodes = {
     name: 'Blood Altar',
     region: 'Echoing Caverns',
     x: 600,
-    y: 120,
+    y: 80,
     battles: [
       { enemies: ['dark_caster', 'dark_caster', 'cultist_ritualist'] },
       { enemies: ['cultist_ritualist', 'cultist_ritualist', 'dark_cultist', 'dark_cultist'] },
@@ -246,8 +246,8 @@ export const questNodes = {
     id: 'cave_07',
     name: 'Summoning Circle',
     region: 'Echoing Caverns',
-    x: 600,
-    y: 380,
+    x: 500,
+    y: 180,
     battles: [
       { enemies: ['corrupted_golem', 'corrupted_golem'] },
       { enemies: ['cave_troll', 'cultist_ritualist', 'dark_cultist'] },
