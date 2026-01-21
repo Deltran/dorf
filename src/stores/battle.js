@@ -1309,7 +1309,8 @@ export const useBattleStore = defineStore('battle', () => {
             applyEffect(hero, buff.type, {
               duration: buff.duration,
               value: buff.value,
-              sourceId: hero.instanceId
+              sourceId: hero.instanceId,
+              fromAllySkill: false
             })
             emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
 
