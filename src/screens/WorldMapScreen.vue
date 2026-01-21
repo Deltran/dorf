@@ -436,6 +436,7 @@ function goToSuperRegionSelect() {
   transition: all 0.3s ease;
   overflow: hidden;
   min-width: 120px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
