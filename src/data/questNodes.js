@@ -1321,7 +1321,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.95 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   aqua_02: {
     id: 'aqua_02',
@@ -1342,7 +1343,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.95 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   aqua_03: {
     id: 'aqua_03',
@@ -1363,7 +1365,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 2, max: 3, chance: 0.95 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   aqua_04: {
     id: 'aqua_04',
@@ -1385,7 +1388,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 3, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 2, max: 3, chance: 0.95 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   aqua_05: {
     id: 'aqua_05',
@@ -1407,7 +1411,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 3, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 2, max: 3, chance: 0.95 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   aqua_06: {
     id: 'aqua_06',
@@ -1429,7 +1434,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 3, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 2, max: 4, chance: 0.95 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   aqua_07: {
     id: 'aqua_07',
@@ -1451,7 +1457,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 3, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 2, max: 4, chance: 1.0 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   aqua_08: {
     id: 'aqua_08',
@@ -1474,7 +1481,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 2, max: 4, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 2, max: 4, chance: 1.0 },
       { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   // Coral Depths (Aquarias) - First region of the underwater realm
   coral_01: {
@@ -1494,7 +1502,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 0.8 },
       { itemId: 'tome_large', min: 1, max: 1, chance: 0.3 }
-    ]
+    ],
+    shardDropChance: 0.25
   }
 }
 

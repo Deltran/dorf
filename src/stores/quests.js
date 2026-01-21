@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { getQuestNode, getAllQuestNodes, regions, superRegions, getRegionsBySuperRegion, getNodesByRegion } from '../data/questNodes.js'
 import { useInventoryStore } from './inventory.js'
+import { useShardsStore } from './shards.js'
 
 export const useQuestsStore = defineStore('quests', () => {
   // State
@@ -187,6 +188,16 @@ export const useQuestsStore = defineStore('quests', () => {
       inventoryStore.addItem(drop.itemId, drop.count)
     }
 
+    // Roll shard drops (only for nodes with shardDropChance)
+    let shardDrop = null
+    if (node.shardDropChance && Math.random() < node.shardDropChance) {
+      const shardsStore = useShardsStore()
+      shardDrop = shardsStore.rollShardDrop()
+      if (shardDrop) {
+        shardsStore.addShards(shardDrop.templateId, shardDrop.count)
+      }
+    }
+
     // Calculate rewards (gold is based on exp value or explicit node.rewards.gold)
     const baseGold = node.rewards.gold || Math.floor(node.rewards.exp * 2)
     const rewards = {
@@ -194,7 +205,8 @@ export const useQuestsStore = defineStore('quests', () => {
       exp: node.rewards.exp,
       gold: baseGold,
       isFirstClear,
-      items: itemDrops
+      items: itemDrops,
+      shardDrop // { templateId, count } or null
     }
 
     if (isFirstClear && node.firstClearBonus) {
