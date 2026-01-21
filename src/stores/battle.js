@@ -1299,6 +1299,22 @@ export const useBattleStore = defineStore('battle', () => {
               }
             }
           }
+          // Conditional self buff (e.g., Salia's "But Not Out" - stronger buff when HP is low)
+          if (skill.conditionalSelfBuff) {
+            const { default: defaultBuff, conditional } = skill.conditionalSelfBuff
+            const buff = evaluateCondition(conditional.condition, hero)
+              ? conditional.effect
+              : defaultBuff
+
+            applyEffect(hero, buff.type, {
+              duration: buff.duration,
+              value: buff.value,
+              sourceId: hero.instanceId
+            })
+            emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+
+            addLog(`${hero.template.name} gains ${buff.value}% ATK for ${buff.duration} turns!`)
+          }
           // Self heal (percentage of max HP)
           if (skill.selfHealPercent) {
             const healAmount = Math.floor(hero.maxHp * skill.selfHealPercent / 100)
