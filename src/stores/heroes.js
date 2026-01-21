@@ -6,6 +6,9 @@ import { getItem } from '../data/items.js'
 import { useInventoryStore } from './inventory.js'
 import { useGachaStore } from './gacha.js'
 
+// Shard tier upgrade costs (tier 1, 2, 3)
+const SHARD_TIER_COSTS = [50, 100, 200]
+
 export const useHeroesStore = defineStore('heroes', () => {
   // State
   const collection = ref([]) // Array of hero instances
@@ -49,7 +52,9 @@ export const useHeroesStore = defineStore('heroes', () => {
       templateId,
       level: 1,
       exp: 0,
-      starLevel: template.rarity  // Starts at base rarity, upgradeable through merging
+      starLevel: template.rarity,  // Starts at base rarity, upgradeable through merging
+      shards: 0,      // Current shard count (resets after upgrade)
+      shardTier: 0    // 0 = none, 1/2/3 = upgraded tiers
     }
 
     collection.value.push(heroInstance)
@@ -228,9 +233,12 @@ export const useHeroesStore = defineStore('heroes', () => {
   function loadState(savedState) {
     if (savedState.collection) {
       // Migration: add starLevel if missing (defaults to template rarity)
+      // Migration: add shards/shardTier if missing (defaults to 0)
       collection.value = savedState.collection.map(hero => ({
         ...hero,
-        starLevel: hero.starLevel || getHeroTemplate(hero.templateId)?.rarity || 1
+        starLevel: hero.starLevel || getHeroTemplate(hero.templateId)?.rarity || 1,
+        shards: hero.shards ?? 0,
+        shardTier: hero.shardTier ?? 0
       }))
     }
     if (savedState.party) party.value = savedState.party
@@ -434,6 +442,64 @@ export const useHeroesStore = defineStore('heroes', () => {
     }
   }
 
+  // Shard functions
+  function canUpgradeShardTier(instanceId) {
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    if (!hero) return { canUpgrade: false, reason: 'Hero not found' }
+
+    const currentTier = hero.shardTier || 0
+    if (currentTier >= 3) {
+      return { canUpgrade: false, reason: 'Already at max shard tier' }
+    }
+
+    const cost = SHARD_TIER_COSTS[currentTier]
+    const currentShards = hero.shards || 0
+
+    if (currentShards < cost) {
+      return {
+        canUpgrade: false,
+        reason: `Need ${cost} shards (have ${currentShards})`,
+        shardsNeeded: cost,
+        shardsHave: currentShards,
+        nextTier: currentTier + 1
+      }
+    }
+
+    return {
+      canUpgrade: true,
+      shardsNeeded: cost,
+      shardsHave: currentShards,
+      nextTier: currentTier + 1,
+      bonusPercent: (currentTier + 1) * 5 // +5%, +10%, +15%
+    }
+  }
+
+  function upgradeShardTier(instanceId) {
+    const checkResult = canUpgradeShardTier(instanceId)
+    if (!checkResult.canUpgrade) {
+      return { success: false, error: checkResult.reason }
+    }
+
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    const cost = SHARD_TIER_COSTS[hero.shardTier || 0]
+
+    hero.shards -= cost
+    hero.shardTier = (hero.shardTier || 0) + 1
+
+    return {
+      success: true,
+      newTier: hero.shardTier,
+      bonusPercent: hero.shardTier * 5,
+      shardsRemaining: hero.shards
+    }
+  }
+
+  function getShardBonus(instanceId) {
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    if (!hero) return 0
+    return (hero.shardTier || 0) * 5 // 0, 5, 10, or 15
+  }
+
   return {
     // State
     collection,
@@ -463,6 +529,11 @@ export const useHeroesStore = defineStore('heroes', () => {
     mergeHero,
     MERGE_GOLD_COST_PER_STAR,
     MERGE_MATERIALS,
+    // Shards
+    canUpgradeShardTier,
+    upgradeShardTier,
+    getShardBonus,
+    SHARD_TIER_COSTS,
     // Persistence
     loadState,
     saveState

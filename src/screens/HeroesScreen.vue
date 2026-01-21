@@ -271,6 +271,34 @@ const isKnightHero = computed(() => {
   return selectedHero.value?.class?.resourceType === 'valor'
 })
 
+// Shard tier info for selected hero
+const selectedHeroShardInfo = computed(() => {
+  if (!selectedHero.value) return null
+  const hero = heroesStore.collection.find(h => h.instanceId === selectedHero.value.instanceId)
+  if (!hero) return null
+
+  const tier = hero.shardTier || 0
+  const shards = hero.shards || 0
+  const canUpgrade = heroesStore.canUpgradeShardTier(hero.instanceId)
+
+  return {
+    shards,
+    tier,
+    canUpgrade,
+    nextCost: tier < 3 ? heroesStore.SHARD_TIER_COSTS[tier] : null,
+    bonusPercent: tier * 5
+  }
+})
+
+function upgradeShardTier() {
+  if (!selectedHero.value) return
+  const result = heroesStore.upgradeShardTier(selectedHero.value.instanceId)
+  if (result.success) {
+    // Refresh selected hero data
+    selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
+  }
+}
+
 // Get skill cost display (handles both mpCost and valorRequired)
 function getSkillCostDisplay(skill, heroClass) {
   if (skill.valorRequired !== undefined) {
@@ -657,6 +685,50 @@ function getEffectTypeName(type) {
             <div class="leader-skill-desc">{{ selectedHero.template.leaderSkill.description }}</div>
           </div>
         </template>
+
+        <!-- Shard Tier Section -->
+        <div class="shard-section" v-if="selectedHeroShardInfo">
+          <div class="section-header shard-header">
+            <div class="section-line"></div>
+            <h4>Shard Power</h4>
+            <div class="section-line"></div>
+          </div>
+          <div class="shard-tier-display">
+            <div class="tier-pips">
+              <span
+                v-for="i in 3"
+                :key="i"
+                :class="['tier-pip', { active: selectedHeroShardInfo.tier >= i }]"
+              >★</span>
+            </div>
+            <span class="tier-bonus" v-if="selectedHeroShardInfo.bonusPercent > 0">
+              +{{ selectedHeroShardInfo.bonusPercent }}% to all skills
+            </span>
+          </div>
+
+          <div class="shard-progress" v-if="selectedHeroShardInfo.nextCost">
+            <div class="progress-bar">
+              <div
+                class="progress-fill"
+                :style="{ width: `${Math.min(100, (selectedHeroShardInfo.shards / selectedHeroShardInfo.nextCost) * 100)}%` }"
+              />
+            </div>
+            <span class="progress-text">
+              {{ selectedHeroShardInfo.shards }} / {{ selectedHeroShardInfo.nextCost }} shards
+            </span>
+          </div>
+          <div class="shard-max" v-else>
+            <span class="max-badge">MAX TIER</span>
+          </div>
+
+          <button
+            v-if="selectedHeroShardInfo.canUpgrade.canUpgrade"
+            class="upgrade-btn"
+            @click="upgradeShardTier"
+          >
+            Upgrade (+{{ selectedHeroShardInfo.canUpgrade.bonusPercent }}%)
+          </button>
+        </div>
 
         <div class="detail-actions">
           <template v-if="isInParty(selectedHero.instanceId)">
@@ -2149,5 +2221,104 @@ function getEffectTypeName(type) {
 .merge-confirm-btn:disabled {
   background: #4b5563;
   cursor: not-allowed;
+}
+
+/* ===== Shard Tier Section ===== */
+.shard-section {
+  margin-top: 20px;
+}
+
+.shard-header {
+  margin-bottom: 12px;
+}
+
+.shard-tier-display {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.tier-pips {
+  display: flex;
+  gap: 4px;
+}
+
+.tier-pip {
+  font-size: 1.2rem;
+  color: #4b5563;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.tier-pip.active {
+  color: #a855f7;
+  text-shadow: 0 0 8px rgba(168, 85, 247, 0.6);
+}
+
+.tier-bonus {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #a855f7;
+}
+
+.shard-progress {
+  margin-bottom: 12px;
+}
+
+.shard-progress .progress-bar {
+  height: 8px;
+  background: #374151;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.shard-progress .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a855f7 0%, #c084fc 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.shard-progress .progress-text {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.shard-max {
+  margin-bottom: 12px;
+}
+
+.max-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.15);
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.upgrade-btn {
+  width: 100%;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.upgrade-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4);
 }
 </style>

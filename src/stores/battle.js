@@ -557,19 +557,23 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   // Resolve effect value, handling both number and Valor-scaled object
-  function resolveEffectValue(effect, hero, casterAtk = 0) {
+  // shardBonus is added to percentage-based effect values (buffs/debuffs)
+  function resolveEffectValue(effect, hero, casterAtk = 0, shardBonus = 0) {
     // First check for atkPercent (ATK-based effect value)
     if (effect.atkPercent) {
-      return Math.floor(casterAtk * effect.atkPercent / 100)
+      const effectivePercent = effect.atkPercent + shardBonus
+      return Math.floor(casterAtk * effectivePercent / 100)
     }
 
     const rawValue = effect.value
     if (typeof rawValue === 'number') {
-      return rawValue
+      // Effect values are percentages (e.g., 20 = +20% stat), add shard bonus
+      return rawValue + shardBonus
     }
     if (typeof rawValue === 'object' && rawValue !== null) {
       const tier = getValorTier(hero)
-      return resolveValorScaling(rawValue, tier)
+      const baseValue = resolveValorScaling(rawValue, tier)
+      return baseValue + shardBonus
     }
     return 0 // Default value
   }
@@ -982,6 +986,10 @@ export const useBattleStore = defineStore('battle', () => {
       const damageStat = skill.useStat || 'atk'
       const effectiveDamageStat = skill.useStat ? getEffectiveStat(hero, skill.useStat) : effectiveAtk
 
+      // Get shard bonus for this hero (0, 5, 10, or 15)
+      const heroesStore = useHeroesStore()
+      const shardBonus = heroesStore.getShardBonus(hero.instanceId)
+
       switch (targetType) {
         case 'enemy': {
           const target = enemies.value.find(e => e.id === selectedTarget.value?.id)
@@ -1011,7 +1019,7 @@ export const useBattleStore = defineStore('battle', () => {
             }
             if (conditionMet && preBuff) {
               const buffDuration = resolveEffectDuration(preBuff, hero)
-              const buffValue = resolveEffectValue(preBuff, hero, effectiveAtk)
+              const buffValue = resolveEffectValue(preBuff, hero, effectiveAtk, shardBonus)
               applyEffect(hero, preBuff.type, { duration: buffDuration, value: buffValue, sourceId: hero.instanceId, fromAllySkill: true })
               emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               addLog(`${hero.template.name} was attacked - gains +${buffValue}% DEF!`)
@@ -1031,7 +1039,8 @@ export const useBattleStore = defineStore('battle', () => {
             const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
             const reducedDef = effectiveDef * (1 - defReduction)
 
-            const multiplier = (skill.baseDamage + skill.damagePerRage * rageConsumed) / 100
+            // Apply shard bonus to the base damage percentage
+            const multiplier = (skill.baseDamage + shardBonus + skill.damagePerRage * rageConsumed) / 100
             let totalDamage = 0
 
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}! (${rageConsumed} rage consumed)`)
@@ -1054,7 +1063,7 @@ export const useBattleStore = defineStore('battle', () => {
             const effectiveDef = getEffectiveStat(target, 'def')
             const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
             const reducedDef = effectiveDef * (1 - defReduction)
-            const multiplier = parseSkillMultiplier(skill.description)
+            const multiplier = parseSkillMultiplier(skill.description, shardBonus)
             let totalDamage = 0
 
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
@@ -1083,10 +1092,11 @@ export const useBattleStore = defineStore('battle', () => {
             // Check for Valor-scaled damage
             const scaledDamage = getSkillDamage(skill, hero)
             if (scaledDamage !== null) {
-              const multiplier = scaledDamage / 100
+              // Apply shard bonus to Valor-scaled damage percentage
+              const multiplier = (scaledDamage + shardBonus) / 100
               damage = calculateDamage(finalDamageStat, multiplier, reducedDef)
             } else {
-              const multiplier = parseSkillMultiplier(skill.description)
+              const multiplier = parseSkillMultiplier(skill.description, shardBonus)
               damage = calculateDamage(finalDamageStat, multiplier, reducedDef)
             }
 
@@ -1102,7 +1112,7 @@ export const useBattleStore = defineStore('battle', () => {
             for (const effect of skill.effects) {
               if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
                 const effectDuration = resolveEffectDuration(effect, hero)
-                const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                 applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
                 emitCombatEffect(target.id, 'enemy', 'debuff', 0)
               }
@@ -1151,7 +1161,7 @@ export const useBattleStore = defineStore('battle', () => {
 
           // Heal unless skill is effect-only
           if (!skill.noDamage) {
-            const healAmount = calculateHeal(effectiveAtk, skill.description)
+            const healAmount = calculateHeal(effectiveAtk, skill.description, shardBonus)
             const oldHp = target.currentHp
             target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
             const actualHeal = target.currentHp - oldHp
@@ -1219,7 +1229,7 @@ export const useBattleStore = defineStore('battle', () => {
           if (skill.healFromStat) {
             const { stat, percent } = skill.healFromStat
             const valorTier = getValorTier(hero)
-            const healPercent = resolveValorScaling(percent, valorTier)
+            const healPercent = resolveValorScaling(percent, valorTier) + shardBonus
             const statValue = getEffectiveStat(hero, stat)
             const healAmount = Math.floor(statValue * healPercent / 100)
 
@@ -1252,7 +1262,7 @@ export const useBattleStore = defineStore('battle', () => {
             for (const effect of skill.effects) {
               if (effect.target === 'ally' && shouldApplyEffect(effect, hero)) {
                 const effectDuration = resolveEffectDuration(effect, hero)
-                const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                 applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
                 emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
               }
@@ -1264,7 +1274,8 @@ export const useBattleStore = defineStore('battle', () => {
             const debuffCount = target.statusEffects?.filter(e => !e.definition?.isBuff).length || 0
             if (debuffCount > 0) {
               const buff = skill.buffPerDebuff
-              const buffValue = buff.valuePerDebuff * debuffCount
+              // Apply shard bonus to each debuff's contribution
+              const buffValue = (buff.valuePerDebuff + shardBonus) * debuffCount
               applyEffect(hero, buff.type, { duration: buff.duration, value: buffValue, sourceId: hero.instanceId, fromAllySkill: true })
               emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               addLog(`${hero.template.name} gains ${buffValue}% ATK from ${debuffCount} debuff(s)!`)
@@ -1281,7 +1292,7 @@ export const useBattleStore = defineStore('battle', () => {
             for (const effect of skill.effects) {
               if (effect.target === 'self' && shouldApplyEffect(effect, hero)) {
                 const effectDuration = resolveEffectDuration(effect, hero)
-                const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                 applyEffect(hero, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: false })
                 emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               }
@@ -1289,7 +1300,8 @@ export const useBattleStore = defineStore('battle', () => {
           }
           // Self heal (percentage of max HP)
           if (skill.selfHealPercent) {
-            const healAmount = Math.floor(hero.maxHp * skill.selfHealPercent / 100)
+            const effectiveHealPercent = skill.selfHealPercent + shardBonus
+            const healAmount = Math.floor(hero.maxHp * effectiveHealPercent / 100)
             const oldHp = hero.currentHp
             hero.currentHp = Math.min(hero.maxHp, hero.currentHp + healAmount)
             const actualHeal = hero.currentHp - oldHp
@@ -1312,7 +1324,7 @@ export const useBattleStore = defineStore('battle', () => {
 
         case 'random_enemies': {
           const numHits = skill.hits || 1
-          const multiplier = parseSkillMultiplier(skill.description)
+          const multiplier = parseSkillMultiplier(skill.description, shardBonus)
           let totalDamage = 0
 
           addLog(`${hero.template.name} uses ${skill.name}!`)
@@ -1357,9 +1369,9 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
-          // Use Valor-scaled damage if available
+          // Use Valor-scaled damage if available (with shard bonus)
           const scaledDamage = getSkillDamage(skill, hero)
-          const multiplier = scaledDamage !== null ? scaledDamage / 100 : parseSkillMultiplier(skill.description)
+          const multiplier = scaledDamage !== null ? (scaledDamage + shardBonus) / 100 : parseSkillMultiplier(skill.description, shardBonus)
           let totalDamage = 0
           let totalThornsDamage = 0
           for (const target of targets) {
@@ -1373,7 +1385,7 @@ export const useBattleStore = defineStore('battle', () => {
               for (const effect of skill.effects) {
                 if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
                   const effectDuration = resolveEffectDuration(effect, hero)
-                  const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
+                  const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                   applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
                   emitCombatEffect(target.id, 'enemy', 'debuff', 0)
                 }
@@ -1408,7 +1420,7 @@ export const useBattleStore = defineStore('battle', () => {
         case 'all_allies': {
           addLog(`${hero.template.name} uses ${skill.name} on all allies!`)
           if (skill.description.toLowerCase().includes('heal')) {
-            const healAmount = calculateHeal(effectiveAtk, skill.description)
+            const healAmount = calculateHeal(effectiveAtk, skill.description, shardBonus)
             for (const target of aliveHeroes.value) {
               const oldHp = target.currentHp
               target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
@@ -1441,7 +1453,7 @@ export const useBattleStore = defineStore('battle', () => {
             for (const effect of skill.effects) {
               if ((effect.target === 'ally' || effect.target === 'all_allies') && shouldApplyEffect(effect, hero)) {
                 const effectDuration = resolveEffectDuration(effect, hero)
-                const effectValue = resolveEffectValue(effect, hero, effectiveAtk)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                 for (const target of aliveHeroes.value) {
                   applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
                   emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
@@ -1701,18 +1713,22 @@ export const useBattleStore = defineStore('battle', () => {
     return Math.max(1, Math.floor(raw))
   }
 
-  function calculateHeal(atk, description) {
+  function calculateHeal(atk, description, shardBonus = 0) {
     const match = description.match(/(\d+)%/)
     if (match) {
-      return Math.floor(atk * parseInt(match[1]) / 100)
+      const basePercent = parseInt(match[1])
+      const effectivePercent = basePercent + shardBonus
+      return Math.floor(atk * effectivePercent / 100)
     }
     return Math.floor(atk)
   }
 
-  function parseSkillMultiplier(description) {
+  function parseSkillMultiplier(description, shardBonus = 0) {
     const match = description.match(/(\d+)%/)
     if (match) {
-      return parseInt(match[1]) / 100
+      const basePercent = parseInt(match[1])
+      const effectivePercent = basePercent + shardBonus
+      return effectivePercent / 100
     }
     return 1.0
   }
