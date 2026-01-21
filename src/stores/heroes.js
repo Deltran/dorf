@@ -335,8 +335,15 @@ export const useHeroesStore = defineStore('heroes', () => {
     return duplicates.slice(0, count)
   }
 
+  // Material requirements for merging
+  const MERGE_MATERIALS = {
+    3: 'shard_dragon_heart', // 3* -> 4* requires Shard of Dragon Heart
+    4: 'dragon_heart'        // 4* -> 5* requires Dragon Heart
+  }
+
   function mergeHero(baseInstanceId, fodderInstanceIds) {
     const gachaStore = useGachaStore()
+    const inventoryStore = useInventoryStore()
 
     const hero = collection.value.find(h => h.instanceId === baseInstanceId)
     if (!hero) return { success: false, error: 'Base hero not found' }
@@ -368,6 +375,15 @@ export const useHeroesStore = defineStore('heroes', () => {
     // Validate all fodder heroes have the same star level as base
     if (fodderHeroes.some(h => getHeroStarLevel(h) !== currentStar)) {
       return { success: false, error: `All fodder heroes must be ${currentStar}-star` }
+    }
+
+    // Check for required merge material
+    const requiredMaterial = MERGE_MATERIALS[currentStar]
+    if (requiredMaterial) {
+      const materialItem = getItem(requiredMaterial)
+      if (inventoryStore.getItemCount(requiredMaterial) < 1) {
+        return { success: false, error: `Requires 1 ${materialItem?.name || requiredMaterial}` }
+      }
     }
 
     // Check gold cost
@@ -405,10 +421,16 @@ export const useHeroesStore = defineStore('heroes', () => {
     // Deduct gold
     gachaStore.spendGold(goldCost)
 
+    // Consume merge material if required
+    if (requiredMaterial) {
+      inventoryStore.removeItem(requiredMaterial, 1)
+    }
+
     return {
       success: true,
       newStarLevel: hero.starLevel,
-      goldSpent: goldCost
+      goldSpent: goldCost,
+      materialUsed: requiredMaterial || null
     }
   }
 
@@ -440,6 +462,7 @@ export const useHeroesStore = defineStore('heroes', () => {
     getMergeCandidates,
     mergeHero,
     MERGE_GOLD_COST_PER_STAR,
+    MERGE_MATERIALS,
     // Persistence
     loadState,
     saveState

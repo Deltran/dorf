@@ -61,7 +61,8 @@ export const questNodes = {
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
       { itemId: 'tome_medium', min: 1, max: 1, chance: 0.3 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.25 },
-      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.15 }
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.15 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
   },
   forest_04: {
@@ -83,7 +84,8 @@ export const questNodes = {
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
       { itemId: 'tome_medium', min: 1, max: 1, chance: 0.3 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.4 },
-      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 }
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
   },
   forest_05: {
@@ -106,7 +108,8 @@ export const questNodes = {
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
       { itemId: 'tome_medium', min: 1, max: 1, chance: 0.5 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.5 },
-      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.15 }
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.15 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
   },
 
@@ -339,7 +342,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.6 },
-      { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.7 }
+      { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.7 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
   },
   mountain_05: {
@@ -445,7 +449,8 @@ export const questNodes = {
       { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
       { itemId: 'tome_medium', min: 1, max: 1, chance: 0.45 },
       { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.35 },
-      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 }
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
   },
 
@@ -583,7 +588,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'tome_large', min: 1, max: 1, chance: 0.5 },
-      { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.8 }
+      { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.8 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
   },
 
@@ -868,7 +874,8 @@ export const questNodes = {
     firstClearBonus: { gems: 200 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 3, chance: 1.0 },
-      { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.95 }
+      { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.95 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
   },
 
@@ -1155,7 +1162,8 @@ export const questNodes = {
     firstClearBonus: { gems: 250 },
     itemDrops: [
       { itemId: 'tome_large', min: 2, max: 3, chance: 1.0 },
-      { itemId: 'goblin_trinket', min: 2, max: 4, chance: 1.0 }
+      { itemId: 'goblin_trinket', min: 2, max: 4, chance: 1.0 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
   },
 
@@ -1464,7 +1472,8 @@ export const questNodes = {
     firstClearBonus: { gems: 300 },
     itemDrops: [
       { itemId: 'tome_large', min: 2, max: 4, chance: 1.0 },
-      { itemId: 'goblin_trinket', min: 2, max: 4, chance: 1.0 }
+      { itemId: 'goblin_trinket', min: 2, max: 4, chance: 1.0 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
   }
 }

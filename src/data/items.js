@@ -51,6 +51,22 @@ export const items = {
     type: 'junk',
     rarity: 2,
     sellReward: { gems: 15 }
+  },
+  shard_dragon_heart: {
+    id: 'shard_dragon_heart',
+    name: 'Shard of Dragon Heart',
+    description: 'A fragment of crystallized dragon essence. Required to ascend a hero from 3-star to 4-star.',
+    type: 'merge_material',
+    rarity: 3,
+    sellReward: { gems: 100 }
+  },
+  dragon_heart: {
+    id: 'dragon_heart',
+    name: 'Dragon Heart',
+    description: 'A complete dragon heart, pulsing with ancient power. Required to ascend a hero from 4-star to 5-star.',
+    type: 'merge_material',
+    rarity: 4,
+    sellReward: { gems: 500 }
   }
 }
 
