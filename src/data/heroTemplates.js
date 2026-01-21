@@ -425,7 +425,7 @@ export const heroTemplates = {
     name: 'Sorju, Gate Guard',
     rarity: 2,
     classId: 'knight',
-    baseStats: { hp: 110, atk: 18, def: 33, spd: 13 },
+    baseStats: { hp: 90, atk: 18, def: 28, spd: 13 },
     skills: [
       {
         name: 'High Initiative',
@@ -466,12 +466,15 @@ export const heroTemplates = {
     rarity: 2,
     classId: 'mage',
     baseStats: { hp: 55, atk: 28, def: 10, spd: 11, mp: 50 },
-    skill: {
-      name: 'Spark',
-      description: 'Deal 100% ATK damage to one enemy',
-      mpCost: 10,
-      targetType: 'enemy'
-    }
+    skills: [
+      {
+        name: 'Spark',
+        description: 'Deal 120% ATK damage to one enemy',
+        mpCost: 10,
+        skillUnlockLevel: 1,
+        targetType: 'enemy'
+      }
+    ]
   },
   herb_gatherer: {
     id: 'herb_gatherer',
@@ -493,7 +496,7 @@ export const heroTemplates = {
     name: 'Darl',
     rarity: 1,
     classId: 'berserker',
-    baseStats: { hp: 70, atk: 28, def: 12, spd: 8 },
+    baseStats: { hp: 70, atk: 25, def: 12, spd: 8 },
     skills: [
       {
         name: 'Pitchfork Jabs',
@@ -540,7 +543,7 @@ export const heroTemplates = {
     name: 'Salia',
     rarity: 1,
     classId: 'ranger',
-    baseStats: { hp: 50, atk: 21, def: 8, spd: 14, mp: 30 },
+    baseStats: { hp: 50, atk: 18, def: 8, spd: 14, mp: 30 },
     skills: [
       {
         name: 'Quick Throw',
