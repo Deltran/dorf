@@ -1498,12 +1498,25 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Check for extra turn from skill (e.g., Quick Throw)
     if (skillUsed?.grantsExtraTurn && hero.currentHp > 0) {
-      addLog(`${hero.template.name} gets an extra turn!`)
-      setTimeout(() => {
-        selectedAction.value = null
-        selectedTarget.value = null
-        state.value = BattleState.PLAYER_TURN
-      }, 600)
+      // Check victory/defeat before granting extra turn
+      if (aliveEnemies.value.length === 0) {
+        setTimeout(() => {
+          state.value = BattleState.VICTORY
+          addLog('Victory! All enemies defeated.')
+        }, 600)
+      } else if (aliveHeroes.value.length === 0) {
+        setTimeout(() => {
+          state.value = BattleState.DEFEAT
+          addLog('Defeat! All heroes have fallen.')
+        }, 600)
+      } else {
+        addLog(`${hero.template.name} gets an extra turn!`)
+        setTimeout(() => {
+          selectedAction.value = null
+          selectedTarget.value = null
+          state.value = BattleState.PLAYER_TURN
+        }, 600)
+      }
     } else {
       setTimeout(() => {
         advanceTurnIndex()
