@@ -204,8 +204,43 @@ const hasEnoughGold = computed(() => {
   return gachaStore.gold >= (mergeInfo.value?.goldCost || 0)
 })
 
+const hasMergeMaterial = computed(() => {
+  // No material required for this star level
+  if (!mergeInfo.value?.requiredMaterial) return true
+  // If canMerge is true, we have everything including material
+  if (mergeInfo.value.canMerge) return true
+  // If reason mentions "Requires", we're missing the material
+  if (mergeInfo.value.reason?.includes('Requires')) return false
+  // Otherwise we have the material but missing something else
+  return true
+})
+
+// Computed for merge button display - shows what's missing in priority order
+const mergeButtonState = computed(() => {
+  if (!mergeInfo.value) return { icon: '⭐', text: 'Merge', canMerge: false }
+
+  if (mergeInfo.value.canMerge) {
+    return { icon: '⭐', text: 'Merge', canMerge: true }
+  }
+
+  // Priority: copies → material → gold
+  if (mergeInfo.value.copiesHave < mergeInfo.value.copiesNeeded) {
+    return { icon: '⭐', text: `Need ${mergeInfo.value.copiesNeeded} copies`, canMerge: false }
+  }
+
+  if (mergeInfo.value.requiredMaterial && !mergeInfo.value.canMerge) {
+    return { icon: '💎', text: 'Need Shard', canMerge: false }
+  }
+
+  if (!hasEnoughGold.value) {
+    return { icon: '🪙', text: 'Need Gold', canMerge: false }
+  }
+
+  return { icon: '⭐', text: mergeInfo.value.reason || 'Cannot Merge', canMerge: false }
+})
+
 const canConfirmMerge = computed(() => {
-  return selectedFodder.value.length === mergeInfo.value?.copiesNeeded && hasEnoughGold.value
+  return selectedFodder.value.length === mergeInfo.value?.copiesNeeded && hasEnoughGold.value && !mergeInfo.value?.requiredMaterial || (mergeInfo.value?.requiredMaterial && mergeInfo.value?.canMerge)
 })
 
 function isFodderInParty(instanceId) {
@@ -754,15 +789,38 @@ function getEffectTypeName(type) {
           </button>
         </div>
 
+        <!-- Next Star Requirements -->
+        <div v-if="canShowMergeButton && mergeInfo" class="next-star-requirements">
+          <div class="nsr-header">Next ★ Requirements</div>
+          <div class="nsr-row">
+            <span class="nsr-label">{{ mergeInfo.copiesNeeded }}× {{ '★'.repeat(mergeInfo.requiredStarLevel) }} copies</span>
+            <span class="nsr-value" :class="mergeInfo.copiesHave >= mergeInfo.copiesNeeded ? 'met' : 'unmet'">
+              {{ mergeInfo.copiesHave }}/{{ mergeInfo.copiesNeeded }}
+            </span>
+          </div>
+          <div class="nsr-row">
+            <span class="nsr-label">🪙 {{ mergeInfo.goldCost?.toLocaleString() }} Gold</span>
+            <span class="nsr-value" :class="hasEnoughGold ? 'met' : 'unmet'">
+              {{ hasEnoughGold ? '✓' : '✗' }}
+            </span>
+          </div>
+          <div v-if="mergeInfo.requiredMaterial" class="nsr-row">
+            <span class="nsr-label">💎 {{ mergeInfo.requiredMaterialName }}</span>
+            <span class="nsr-value" :class="hasMergeMaterial ? 'met' : 'unmet'">
+              {{ hasMergeMaterial ? '✓' : '✗' }}
+            </span>
+          </div>
+        </div>
+
         <!-- Merge Button -->
         <div v-if="canShowMergeButton" class="merge-section">
           <button
             class="merge-btn"
-            :disabled="!mergeInfo?.canMerge"
+            :disabled="!mergeButtonState.canMerge"
             @click="openMergeModal"
           >
-            <span class="merge-icon">⭐</span>
-            <span>{{ mergeInfo?.canMerge ? 'Merge' : mergeInfo?.reason }}</span>
+            <span class="merge-icon">{{ mergeButtonState.icon }}</span>
+            <span>{{ mergeButtonState.text }}</span>
           </button>
         </div>
 
@@ -858,11 +916,22 @@ function getEffectTypeName(type) {
             </div>
           </div>
 
-          <div class="merge-cost">
-            <span>Cost: {{ mergeInfo?.goldCost }} Gold</span>
-            <span :class="{ insufficient: !hasEnoughGold }">
-              (You have: {{ gachaStore.gold }})
-            </span>
+          <div class="merge-requirements">
+            <div class="requirement-header">Requirements</div>
+            <div class="requirement-row">
+              <span class="req-icon">🪙</span>
+              <span class="req-label">{{ mergeInfo?.goldCost?.toLocaleString() }} Gold</span>
+              <span class="req-status" :class="hasEnoughGold ? 'met' : 'unmet'">
+                {{ hasEnoughGold ? `✓ (${gachaStore.gold.toLocaleString()})` : '✗' }}
+              </span>
+            </div>
+            <div v-if="mergeInfo?.requiredMaterial" class="requirement-row">
+              <span class="req-icon">💎</span>
+              <span class="req-label">{{ mergeInfo?.requiredMaterialName }}</span>
+              <span class="req-status" :class="hasMergeMaterial ? 'met' : 'unmet'">
+                {{ hasMergeMaterial ? '✓' : '✗' }}
+              </span>
+            </div>
           </div>
 
           <div class="merge-modal-actions">
@@ -1951,11 +2020,50 @@ function getEffectTypeName(type) {
   margin-top: 2px;
 }
 
+/* ===== Next Star Requirements ===== */
+.next-star-requirements {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  border: 1px solid #374151;
+}
+
+.nsr-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.nsr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  font-size: 0.85rem;
+}
+
+.nsr-label {
+  color: #d1d5db;
+}
+
+.nsr-value {
+  font-weight: 600;
+}
+
+.nsr-value.met {
+  color: #22c55e;
+}
+
+.nsr-value.unmet {
+  color: #6b7280;
+}
+
 /* ===== Merge Section ===== */
 .merge-section {
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #374151;
+  margin-top: 12px;
 }
 
 .merge-btn {
@@ -2170,14 +2278,49 @@ function getEffectTypeName(type) {
   margin-top: 4px;
 }
 
-.merge-cost {
-  text-align: center;
+.merge-requirements {
   margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+}
+
+.requirement-header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.requirement-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
   font-size: 0.9rem;
+}
+
+.req-icon {
+  font-size: 1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.req-label {
+  flex: 1;
   color: #f3f4f6;
 }
 
-.merge-cost .insufficient {
+.req-status {
+  font-weight: 600;
+}
+
+.req-status.met {
+  color: #22c55e;
+}
+
+.req-status.unmet {
   color: #ef4444;
 }
 
