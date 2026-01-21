@@ -1,17 +1,20 @@
 <script setup>
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
-import { useQuestsStore, useHeroesStore } from '../stores'
+import { useQuestsStore, useHeroesStore, useInventoryStore, useGenusLokiStore } from '../stores'
 import { regions, superRegions, getQuestNode, getNodesByRegion, getRegion, getRegionsBySuperRegion } from '../data/questNodes.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
+import { getGenusLoki } from '../data/genusLoki.js'
 import MapCanvas from '../components/MapCanvas.vue'
 import SuperRegionSelect from '../components/SuperRegionSelect.vue'
 
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 
-const emit = defineEmits(['navigate', 'startBattle'])
+const emit = defineEmits(['navigate', 'startBattle', 'startGenusLokiBattle'])
 
 const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
+const inventoryStore = useInventoryStore()
+const genusLokiStore = useGenusLokiStore()
 
 const selectedNode = ref(null)
 const selectedRegion = ref(regions[0].id)
@@ -103,9 +106,28 @@ function selectNode(node) {
     // Second tap - could start quest directly, but we use the button
     return
   }
-  selectedNode.value = {
-    ...node,
-    isCompleted: questsStore.completedNodes.includes(node.id)
+
+  // For genusLoki nodes, enrich with boss data
+  if (node.type === 'genusLoki') {
+    const bossData = getGenusLoki(node.genusLokiId)
+    const keyCount = inventoryStore.getItemCount(bossData?.keyItemId)
+    const isUnlocked = genusLokiStore.isUnlocked(node.genusLokiId)
+    const highestCleared = genusLokiStore.getHighestCleared(node.genusLokiId)
+
+    selectedNode.value = {
+      ...node,
+      isCompleted: highestCleared >= (bossData?.maxPowerLevel || 20),
+      isGenusLoki: true,
+      bossData,
+      keyCount,
+      isUnlocked,
+      highestCleared
+    }
+  } else {
+    selectedNode.value = {
+      ...node,
+      isCompleted: questsStore.completedNodes.includes(node.id)
+    }
   }
 }
 
@@ -151,6 +173,33 @@ function startQuest() {
 function goToSuperRegionSelect() {
   selectedSuperRegion.value = null
   selectedNode.value = null
+}
+
+function startGenusLokiChallenge() {
+  if (!selectedNode.value?.isGenusLoki) return
+  const { bossData, keyCount, isUnlocked, genusLokiId } = selectedNode.value
+
+  if (keyCount <= 0) {
+    alert('You need a key to challenge this boss!')
+    return
+  }
+
+  if (!heroesStore.partyIsFull && heroesStore.party.filter(Boolean).length === 0) {
+    alert('You need at least one hero in your party!')
+    return
+  }
+
+  // If already unlocked, navigate to GenusLokiScreen for level selection
+  if (isUnlocked) {
+    emit('navigate', 'genusLoki', genusLokiId)
+    return
+  }
+
+  // First time challenge - start level 1 battle directly
+  emit('startGenusLokiBattle', {
+    genusLokiId,
+    powerLevel: 1
+  })
 }
 </script>
 
@@ -238,7 +287,67 @@ function goToSuperRegionSelect() {
           <button class="close-preview" @click="clearSelection">×</button>
         </div>
 
-        <div class="preview-body">
+        <!-- Genus Loki Preview -->
+        <div v-if="selectedNode.isGenusLoki" class="preview-body genus-loki-preview">
+          <div class="boss-info-card">
+            <div class="boss-icon">👹</div>
+            <div class="boss-details">
+              <span class="boss-name">{{ selectedNode.bossData?.name }}</span>
+              <span class="boss-desc">{{ selectedNode.bossData?.description }}</span>
+            </div>
+          </div>
+
+          <div class="key-status-card">
+            <span class="key-icon">🔑</span>
+            <span class="key-count" :class="{ 'no-keys': selectedNode.keyCount <= 0 }">
+              {{ selectedNode.keyCount }}
+            </span>
+            <span class="key-label">Keys Available</span>
+          </div>
+
+          <div v-if="selectedNode.isUnlocked" class="progress-info">
+            <span class="progress-label">Highest Cleared:</span>
+            <span class="progress-value">Lv.{{ selectedNode.highestCleared }} / {{ selectedNode.bossData?.maxPowerLevel }}</span>
+          </div>
+
+          <div class="rewards-section">
+            <h4 class="section-label">
+              <span class="label-line"></span>
+              <span>Rewards</span>
+              <span class="label-line"></span>
+            </h4>
+            <div class="rewards-grid">
+              <div class="reward-card">
+                <span class="reward-icon">🪙</span>
+                <div class="reward-info">
+                  <span class="reward-label">Gold</span>
+                  <span class="reward-value gold">{{ selectedNode.bossData?.currencyRewards?.base?.gold }}+</span>
+                </div>
+              </div>
+              <div v-if="!selectedNode.isUnlocked" class="reward-card">
+                <span class="reward-icon">💎</span>
+                <div class="reward-info">
+                  <span class="reward-label">First Clear</span>
+                  <span class="reward-value">{{ selectedNode.bossData?.firstClearBonus?.gems }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="start-quest-btn genus-loki-btn"
+            :disabled="selectedNode.keyCount <= 0"
+            @click="startGenusLokiChallenge"
+          >
+            <span class="btn-icon">👹</span>
+            <span v-if="selectedNode.keyCount <= 0">No Keys</span>
+            <span v-else-if="selectedNode.isUnlocked">Select Level</span>
+            <span v-else>Challenge (🔑 x1)</span>
+          </button>
+        </div>
+
+        <!-- Regular Quest Preview -->
+        <div v-else class="preview-body">
           <div class="battle-count-card">
             <span class="battle-count-icon">⚔️</span>
             <span class="battle-count-text">{{ selectedNode.battles.length }} Battles</span>
@@ -806,6 +915,112 @@ function goToSuperRegionSelect() {
 
 .btn-icon {
   font-size: 1.2rem;
+}
+
+/* Genus Loki Preview */
+.genus-loki-preview .boss-info-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(107, 33, 168, 0.2) 100%);
+  border: 1px solid rgba(147, 51, 234, 0.4);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.genus-loki-preview .boss-icon {
+  font-size: 2.5rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(147, 51, 234, 0.3);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.genus-loki-preview .boss-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.genus-loki-preview .boss-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.genus-loki-preview .boss-desc {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.genus-loki-preview .key-status-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.genus-loki-preview .key-icon {
+  font-size: 1.3rem;
+}
+
+.genus-loki-preview .key-count {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.genus-loki-preview .key-count.no-keys {
+  color: #ef4444;
+}
+
+.genus-loki-preview .key-label {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.genus-loki-preview .progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.genus-loki-preview .progress-label {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.genus-loki-preview .progress-value {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.start-quest-btn.genus-loki-btn {
+  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.3);
+}
+
+.start-quest-btn.genus-loki-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 20px rgba(147, 51, 234, 0.5);
+}
+
+.start-quest-btn.genus-loki-btn:disabled {
+  background: #374151;
+  color: #6b7280;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
 /* Transitions */

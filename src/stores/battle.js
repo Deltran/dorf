@@ -4,6 +4,8 @@ import { useHeroesStore } from './heroes.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import { EffectType, createEffect, getEffectDefinition } from '../data/statusEffects.js'
 import { getClass } from '../data/classes.js'
+import { getGenusLoki } from '../data/genusLoki.js'
+import { getGenusLokiAbilitiesForLevel } from '../data/genusLokiAbilities.js'
 
 // Battle states
 export const BattleState = {
@@ -29,6 +31,8 @@ export const useBattleStore = defineStore('battle', () => {
   const selectedTarget = ref(null)
   const combatEffects = ref([]) // For visual feedback: { id, targetId, targetType, effectType, value }
   const leaderSkillActivation = ref(null) // { skillName, leaderId } - for visual announcement
+  const battleType = ref('normal') // 'normal' or 'genusLoki'
+  const genusLokiMeta = ref(null) // { genusLokiId, powerLevel, triggeredTowersWrath }
 
   // Getters
   const currentUnit = computed(() => {
@@ -632,9 +636,57 @@ export const useBattleStore = defineStore('battle', () => {
     return false
   }
 
+  // ========== GENUS LOKI HELPERS ==========
+
+  // Generate a Genus Loki boss enemy object for battle
+  function generateGenusLokiBoss(genusLokiId, powerLevel) {
+    const bossData = getGenusLoki(genusLokiId)
+    if (!bossData) return null
+
+    // Calculate scaled stats based on power level
+    const levelMultiplier = Math.pow(1, powerLevel - 1) // Base level
+    const stats = {
+      hp: Math.floor(bossData.baseStats.hp * Math.pow(bossData.statScaling.hp, powerLevel - 1)),
+      atk: Math.floor(bossData.baseStats.atk * Math.pow(bossData.statScaling.atk, powerLevel - 1)),
+      def: Math.floor(bossData.baseStats.def * Math.pow(bossData.statScaling.def, powerLevel - 1)),
+      spd: bossData.baseStats.spd
+    }
+
+    // Get abilities unlocked at this power level
+    const abilities = getGenusLokiAbilitiesForLevel(genusLokiId, powerLevel, bossData)
+
+    // Separate active skills from passive abilities
+    const activeSkills = abilities.filter(a => !a.isPassive)
+    const passiveAbilities = abilities.filter(a => a.isPassive)
+
+    // Initialize cooldowns for active skills
+    const cooldowns = {}
+    for (const skill of activeSkills) {
+      cooldowns[skill.name] = 0
+    }
+
+    return {
+      id: 'genus_loki_boss',
+      templateId: genusLokiId,
+      currentHp: stats.hp,
+      maxHp: stats.hp,
+      stats,
+      template: {
+        id: genusLokiId,
+        name: bossData.name,
+        skills: activeSkills
+      },
+      currentCooldowns: cooldowns,
+      statusEffects: [],
+      passiveAbilities, // Store for checking passive triggers
+      shield: 0, // For Iron Guard shield
+      isGenusLoki: true
+    }
+  }
+
   // ========== BATTLE FUNCTIONS ==========
 
-  function initBattle(partyState, enemyTemplateIds) {
+  function initBattle(partyState, enemyTemplateIds, genusLokiContext = null) {
     const heroesStore = useHeroesStore()
 
     // Reset state
@@ -646,6 +698,12 @@ export const useBattleStore = defineStore('battle', () => {
     battleLog.value = []
     selectedAction.value = null
     selectedTarget.value = null
+    battleType.value = genusLokiContext ? 'genusLoki' : 'normal'
+    genusLokiMeta.value = genusLokiContext ? {
+      genusLokiId: genusLokiContext.genusLokiId,
+      powerLevel: genusLokiContext.powerLevel,
+      triggeredTowersWrath: false
+    } : null
 
     // Initialize heroes from party
     const party = heroesStore.party.filter(Boolean)
@@ -675,30 +733,40 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     // Initialize enemies
-    let enemyIndex = 0
-    for (const templateId of enemyTemplateIds) {
-      const template = getEnemyTemplate(templateId)
-      if (!template) continue
-
-      const cooldowns = {}
-      if (template.skills) {
-        for (const skill of template.skills) {
-          cooldowns[skill.name] = 0
-        }
-      } else if (template.skill) {
-        cooldowns[template.skill.name] = 0
+    if (genusLokiContext) {
+      // Genus Loki battle - generate boss
+      const boss = generateGenusLokiBoss(genusLokiContext.genusLokiId, genusLokiContext.powerLevel)
+      if (boss) {
+        enemies.value.push(boss)
+        addLog(`${boss.template.name} (Lv.${genusLokiContext.powerLevel}) appears!`)
       }
+    } else {
+      // Normal battle - use enemy templates
+      let enemyIndex = 0
+      for (const templateId of enemyTemplateIds) {
+        const template = getEnemyTemplate(templateId)
+        if (!template) continue
 
-      enemies.value.push({
-        id: `enemy_${enemyIndex++}`,
-        templateId,
-        currentHp: template.stats.hp,
-        maxHp: template.stats.hp,
-        stats: template.stats,
-        template,
-        currentCooldowns: cooldowns,
-        statusEffects: []
-      })
+        const cooldowns = {}
+        if (template.skills) {
+          for (const skill of template.skills) {
+            cooldowns[skill.name] = 0
+          }
+        } else if (template.skill) {
+          cooldowns[template.skill.name] = 0
+        }
+
+        enemies.value.push({
+          id: `enemy_${enemyIndex++}`,
+          templateId,
+          currentHp: template.stats.hp,
+          maxHp: template.stats.hp,
+          stats: template.stats,
+          template,
+          currentCooldowns: cooldowns,
+          statusEffects: []
+        })
+      }
     }
 
     // Apply passive leader skill effects
@@ -1851,6 +1919,8 @@ export const useBattleStore = defineStore('battle', () => {
     selectedTarget,
     combatEffects,
     leaderSkillActivation,
+    battleType,
+    genusLokiMeta,
     // Getters
     currentUnit,
     isPlayerTurn,
