@@ -32,10 +32,14 @@ watchEffect(() => {
   }
 })
 
-// Filter regions by selected super-region
+// Filter regions by selected super-region, only show regions with unlocked nodes
 const filteredRegions = computed(() => {
   if (!selectedSuperRegion.value) return []
-  return getRegionsBySuperRegion(selectedSuperRegion.value)
+  const srRegions = getRegionsBySuperRegion(selectedSuperRegion.value)
+  return srRegions.filter(region => {
+    const regionNodes = getNodesByRegion(region.name)
+    return regionNodes.some(node => questsStore.unlockedNodes.includes(node.id))
+  })
 })
 
 // Get the full region object
