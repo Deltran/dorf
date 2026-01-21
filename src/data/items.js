@@ -67,6 +67,20 @@ export const items = {
     type: 'merge_material',
     rarity: 4,
     sellReward: { gems: 500 }
+  },
+  lake_tower_key: {
+    id: 'lake_tower_key',
+    name: 'Lake Tower Key',
+    description: 'An ancient key that grants passage to the Lake Tower. Used to challenge Valinar.',
+    type: 'key',
+    rarity: 3
+  },
+  valinar_crest: {
+    id: 'valinar_crest',
+    name: "Valinar's Crest",
+    description: 'A battle-worn crest pried from the Lake Tower Guardian. Its purpose remains unknown.',
+    type: 'genusLoki',
+    rarity: 4
   }
 }
 
