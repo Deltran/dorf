@@ -1,9 +1,10 @@
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, watchEffect } from 'vue'
 import { useQuestsStore, useHeroesStore } from '../stores'
-import { regions, getQuestNode, getNodesByRegion, getRegion } from '../data/questNodes.js'
+import { regions, superRegions, getQuestNode, getNodesByRegion, getRegion, getRegionsBySuperRegion } from '../data/questNodes.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import MapCanvas from '../components/MapCanvas.vue'
+import SuperRegionSelect from '../components/SuperRegionSelect.vue'
 
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 
@@ -14,6 +15,28 @@ const heroesStore = useHeroesStore()
 
 const selectedNode = ref(null)
 const selectedRegion = ref(regions[0].id)
+const selectedSuperRegion = ref(null)
+
+// Check if we should show super-region selection
+const showSuperRegionSelect = computed(() => {
+  return questsStore.unlockedSuperRegions.length > 1
+})
+
+// Auto-select super-region if only one is unlocked
+watchEffect(() => {
+  if (questsStore.unlockedSuperRegions.length === 1) {
+    selectedSuperRegion.value = questsStore.unlockedSuperRegions[0].id
+  } else if (questsStore.unlockedSuperRegions.length > 1 && !selectedSuperRegion.value) {
+    // Multiple unlocked but none selected - show selection screen
+    selectedSuperRegion.value = null
+  }
+})
+
+// Filter regions by selected super-region
+const filteredRegions = computed(() => {
+  if (!selectedSuperRegion.value) return []
+  return getRegionsBySuperRegion(selectedSuperRegion.value)
+})
 
 // Get the full region object
 const currentRegion = computed(() => {
@@ -35,9 +58,19 @@ function getRegionBackground(region) {
   return battleBackgrounds[path] || null
 }
 
-// Clear selection when changing regions
-watch(selectedRegion, () => {
+// Clear selection when changing regions or super-regions
+watch([selectedRegion, selectedSuperRegion], () => {
   selectedNode.value = null
+})
+
+// Reset to first region when super-region changes
+watch(selectedSuperRegion, (newSuperRegion) => {
+  if (newSuperRegion) {
+    const srRegions = getRegionsBySuperRegion(newSuperRegion)
+    if (srRegions.length > 0) {
+      selectedRegion.value = srRegions[0].id
+    }
+  }
 })
 
 function selectNode(node) {
@@ -89,6 +122,11 @@ function startQuest() {
   // Navigate to battle
   emit('startBattle')
 }
+
+function goToSuperRegionSelect() {
+  selectedSuperRegion.value = null
+  selectedNode.value = null
+}
 </script>
 
 <template>
@@ -100,14 +138,24 @@ function startQuest() {
       <div class="bg-vignette"></div>
     </div>
 
-    <!-- Content -->
-    <div class="content">
+    <!-- Super-Region Selection -->
+    <SuperRegionSelect
+      v-if="showSuperRegionSelect && !selectedSuperRegion"
+      :super-regions="superRegions"
+      :unlocked-super-regions="questsStore.unlockedSuperRegions"
+      :super-region-progress="questsStore.superRegionProgress"
+      @select="selectedSuperRegion = $event"
+      @back="emit('navigate', 'home')"
+    />
+
+    <!-- Region Content -->
+    <div v-else class="content">
       <header class="worldmap-header">
-        <button class="back-button" @click="emit('navigate', 'home')">
+        <button class="back-button" @click="showSuperRegionSelect ? goToSuperRegionSelect() : emit('navigate', 'home')">
           <span class="back-arrow">&larr;</span>
-          <span>Back</span>
+          <span>{{ showSuperRegionSelect ? 'Regions' : 'Back' }}</span>
         </button>
-        <h1 class="page-title">World Map</h1>
+        <h1 class="page-title">{{ selectedSuperRegion ? superRegions.find(sr => sr.id === selectedSuperRegion)?.name : 'World Map' }}</h1>
         <div class="cleared-badge">
           <span class="cleared-icon">🏆</span>
           <span class="cleared-count">{{ questsStore.completedNodeCount }}</span>
@@ -116,7 +164,7 @@ function startQuest() {
 
       <nav class="region-tabs">
         <button
-          v-for="region in regions"
+          v-for="region in filteredRegions"
           :key="region.id"
           :class="['region-tab', { active: selectedRegion === region.id }]"
           :style="getRegionBackground(region) ? { backgroundImage: `url(${getRegionBackground(region)})` } : {}"
