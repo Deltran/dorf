@@ -886,6 +886,7 @@ export const useBattleStore = defineStore('battle', () => {
     if (!hero || hero.currentHp <= 0) return
 
     let usedSkill = false
+    let skillUsed = null  // Track the skill for grantsExtraTurn check
 
     state.value = BattleState.ANIMATING
 
@@ -931,6 +932,7 @@ export const useBattleStore = defineStore('battle', () => {
         state.value = BattleState.PLAYER_TURN
         return
       }
+      skillUsed = skill  // Track for grantsExtraTurn check at end of action
 
       // Check resource availability: Valor for knights, Focus for rangers, MP for others
       if (isKnight(hero)) {
@@ -1494,10 +1496,20 @@ export const useBattleStore = defineStore('battle', () => {
     // Reset wasAttacked flag after the hero's turn ends
     hero.wasAttacked = false
 
-    setTimeout(() => {
-      advanceTurnIndex()
-      startNextTurn()
-    }, 600)
+    // Check for extra turn from skill (e.g., Quick Throw)
+    if (skillUsed?.grantsExtraTurn && hero.currentHp > 0) {
+      addLog(`${hero.template.name} gets an extra turn!`)
+      setTimeout(() => {
+        selectedAction.value = null
+        selectedTarget.value = null
+        state.value = BattleState.PLAYER_TURN
+      }, 600)
+    } else {
+      setTimeout(() => {
+        advanceTurnIndex()
+        startNextTurn()
+      }, 600)
+    }
   }
 
   function executeEnemyTurn(enemy) {
