@@ -620,6 +620,18 @@ export const useBattleStore = defineStore('battle', () => {
     return actualDamage
   }
 
+  // ========== SKILL CONDITION HELPERS ==========
+
+  // Evaluate a condition object against a hero (for conditional skill effects)
+  function evaluateCondition(condition, hero) {
+    if (condition.stat === 'hpPercent') {
+      const hpPercent = (hero.currentHp / hero.maxHp) * 100
+      if (condition.below !== undefined) return hpPercent < condition.below
+      if (condition.above !== undefined) return hpPercent > condition.above
+    }
+    return false
+  }
+
   // ========== BATTLE FUNCTIONS ==========
 
   function initBattle(partyState, enemyTemplateIds) {
@@ -878,6 +890,7 @@ export const useBattleStore = defineStore('battle', () => {
     if (!hero || hero.currentHp <= 0) return
 
     let usedSkill = false
+    let skillUsed = null  // Track the skill for grantsExtraTurn check
 
     state.value = BattleState.ANIMATING
 
@@ -923,6 +936,7 @@ export const useBattleStore = defineStore('battle', () => {
         state.value = BattleState.PLAYER_TURN
         return
       }
+      skillUsed = skill  // Track for grantsExtraTurn check at end of action
 
       // Check resource availability: Valor for knights, Focus for rangers, MP for others
       if (isKnight(hero)) {
@@ -1298,6 +1312,23 @@ export const useBattleStore = defineStore('battle', () => {
               }
             }
           }
+          // Conditional self buff (e.g., Salia's "But Not Out" - stronger buff when HP is low)
+          if (skill.conditionalSelfBuff) {
+            const { default: defaultBuff, conditional } = skill.conditionalSelfBuff
+            const buff = evaluateCondition(conditional.condition, hero)
+              ? conditional.effect
+              : defaultBuff
+
+            applyEffect(hero, buff.type, {
+              duration: buff.duration,
+              value: buff.value,
+              sourceId: hero.instanceId,
+              fromAllySkill: false
+            })
+            emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+
+            addLog(`${hero.template.name} gains ${buff.value}% ATK for ${buff.duration} turns!`)
+          }
           // Self heal (percentage of max HP)
           if (skill.selfHealPercent) {
             const effectiveHealPercent = skill.selfHealPercent + shardBonus
@@ -1477,10 +1508,33 @@ export const useBattleStore = defineStore('battle', () => {
     // Reset wasAttacked flag after the hero's turn ends
     hero.wasAttacked = false
 
-    setTimeout(() => {
-      advanceTurnIndex()
-      startNextTurn()
-    }, 600)
+    // Check for extra turn from skill (e.g., Quick Throw)
+    if (skillUsed?.grantsExtraTurn && hero.currentHp > 0) {
+      // Check victory/defeat before granting extra turn
+      if (aliveEnemies.value.length === 0) {
+        setTimeout(() => {
+          state.value = BattleState.VICTORY
+          addLog('Victory! All enemies defeated.')
+        }, 600)
+      } else if (aliveHeroes.value.length === 0) {
+        setTimeout(() => {
+          state.value = BattleState.DEFEAT
+          addLog('Defeat! All heroes have fallen.')
+        }, 600)
+      } else {
+        addLog(`${hero.template.name} gets an extra turn!`)
+        setTimeout(() => {
+          selectedAction.value = null
+          selectedTarget.value = null
+          state.value = BattleState.PLAYER_TURN
+        }, 600)
+      }
+    } else {
+      setTimeout(() => {
+        advanceTurnIndex()
+        startNextTurn()
+      }, 600)
+    }
   }
 
   function executeEnemyTurn(enemy) {
