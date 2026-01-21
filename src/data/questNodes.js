@@ -443,7 +443,7 @@ export const questNodes = {
       { enemies: ['forest_wolf', 'forest_wolf', 'dire_wolf', 'giant_frog'] },
       { enemies: ['marsh_hag', 'lake_serpent', 'giant_frog'] }
     ],
-    connections: [],
+    connections: ['lake_genus_loki'],
     rewards: { gems: 110, gold: 280, exp: 220 },
     firstClearBonus: { gems: 70 },
     itemDrops: [
@@ -451,8 +451,19 @@ export const questNodes = {
       { itemId: 'tome_medium', min: 1, max: 1, chance: 0.45 },
       { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.35 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 },
+      { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.25 }
     ]
+  },
+  lake_genus_loki: {
+    id: 'lake_genus_loki',
+    name: 'Lake Tower',
+    region: 'Whisper Lake',
+    x: 250,
+    y: 400,
+    type: 'genusLoki',
+    genusLokiId: 'valinar',
+    connections: ['lake_02']
   },
 
   // The Summit (Ancient Wind Temple) - BOSS: Ancient Titan
