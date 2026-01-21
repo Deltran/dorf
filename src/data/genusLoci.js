@@ -9,7 +9,7 @@ export const genusLociData = {
     nodeId: 'whisper_lake_genus_loci',
     keyItemId: 'lake_tower_key',
     maxPowerLevel: 20,
-    baseStats: { hp: 500, atk: 65, def: 15, spd: 80 },
+    baseStats: { hp: 5000, atk: 150, def: 100, spd: 80 },
     statScaling: { hp: 1.15, atk: 1.1, def: 1.08 },
     abilities: [
       { id: 'iron_guard', unlocksAt: 1 },

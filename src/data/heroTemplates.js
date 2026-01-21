@@ -475,6 +475,17 @@ export const heroTemplates = {
         targetType: 'enemy'
       },
       {
+        name: 'Chain Lightning',
+        description: 'Deal 70% ATK damage to target, then bounce to up to 2 additional enemies for 50% ATK each',
+        mpCost: 16,
+        skillUnlockLevel: 3,
+        targetType: 'enemy',
+        chainBounce: {
+          maxBounces: 2,
+          bounceMultiplier: 50
+        }
+      },
+      {
         name: 'Jolt',
         description: 'Deal 70% ATK damage and stun the target for 1 turn',
         mpCost: 18,

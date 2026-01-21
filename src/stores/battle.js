@@ -1205,6 +1205,28 @@ export const useBattleStore = defineStore('battle', () => {
             addLog(`${target.template.name} defeated!`)
           }
 
+          // Handle chain bounce damage (e.g., Chain Lightning)
+          if (skill.chainBounce && !skill.noDamage) {
+            const { maxBounces, bounceMultiplier } = skill.chainBounce
+            const bounceTargets = getChainTargets(target, enemies.value, maxBounces)
+
+            if (bounceTargets.length > 0) {
+              const bouncePercent = bounceMultiplier / 100
+              for (const bounceTarget of bounceTargets) {
+                if (bounceTarget.currentHp <= 0) continue
+                const bounceDef = getEffectiveStat(bounceTarget, 'def')
+                const bounceDamage = calculateDamage(effectiveAtk, bouncePercent, bounceDef)
+                applyDamage(bounceTarget, bounceDamage, 'attack', hero)
+                emitCombatEffect(bounceTarget.id, 'enemy', 'damage', bounceDamage)
+                addLog(`Lightning chains to ${bounceTarget.template.name} for ${bounceDamage} damage!`)
+
+                if (bounceTarget.currentHp <= 0) {
+                  addLog(`${bounceTarget.template.name} defeated!`)
+                }
+              }
+            }
+          }
+
           // Check for thorns effect on the enemy (only if we dealt damage)
           if (!skill.noDamage) {
             const thornsEffect = target.statusEffects?.find(e => e.type === EffectType.THORNS)
@@ -1906,6 +1928,16 @@ export const useBattleStore = defineStore('battle', () => {
     battleLog.value = []
   }
 
+  // Get chain bounce targets (excludes primary target and dead enemies)
+  function getChainTargets(primaryTarget, allEnemies, maxBounces) {
+    const eligible = allEnemies.filter(e =>
+      e.id !== primaryTarget.id && e.currentHp > 0
+    )
+    // Shuffle and take up to maxBounces
+    const shuffled = [...eligible].sort(() => Math.random() - 0.5)
+    return shuffled.slice(0, maxBounces)
+  }
+
   return {
     // State
     state,
@@ -1952,6 +1984,8 @@ export const useBattleStore = defineStore('battle', () => {
     // Valor helpers (for UI)
     isKnight,
     getValorTier,
+    // Chain bounce helpers
+    getChainTargets,
     // Constants
     BattleState,
     EffectType
