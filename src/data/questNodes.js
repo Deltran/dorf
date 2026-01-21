@@ -1475,6 +1475,26 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 2, max: 4, chance: 1.0 },
       { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.01 }
     ]
+  },
+  // Coral Depths (Aquarias) - First region of the underwater realm
+  coral_01: {
+    id: 'coral_01',
+    name: 'Coral Tunnels',
+    region: 'Coral Depths',
+    x: 100,
+    y: 250,
+    battles: [
+      { enemies: ['merfolk_warrior', 'merfolk_warrior', 'merfolk_mage'] },
+      { enemies: ['sea_serpent', 'sea_serpent', 'coral_golem'] },
+      { enemies: ['tide_priest', 'merfolk_warrior', 'merfolk_warrior', 'merfolk_mage'] }
+    ],
+    connections: [],
+    rewards: { gems: 100, gold: 250, exp: 200 },
+    firstClearBonus: { gems: 50 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 0.8 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.3 }
+    ]
   }
 }
 
