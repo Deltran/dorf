@@ -9,6 +9,7 @@ import HeroesScreen from './screens/HeroesScreen.vue'
 import WorldMapScreen from './screens/WorldMapScreen.vue'
 import BattleScreen from './screens/BattleScreen.vue'
 import InventoryScreen from './screens/InventoryScreen.vue'
+import ShardsScreen from './screens/ShardsScreen.vue'
 import MergeScreen from './screens/MergeScreen.vue'
 import AdminScreen from './screens/AdminScreen.vue'
 
@@ -106,6 +107,10 @@ function startBattle() {
       />
       <InventoryScreen
         v-else-if="currentScreen === 'inventory'"
+        @navigate="navigate"
+      />
+      <ShardsScreen
+        v-else-if="currentScreen === 'shards'"
         @navigate="navigate"
       />
       <MergeScreen
