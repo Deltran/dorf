@@ -1478,10 +1478,27 @@ export const questNodes = {
   }
 }
 
+export const superRegions = [
+  {
+    id: 'western_veros',
+    name: 'Western Veros',
+    description: 'The familiar lands where your journey began',
+    unlockedByDefault: true
+  },
+  {
+    id: 'aquarias',
+    name: 'Aquarias',
+    description: 'A realm beneath the waves',
+    unlockedByDefault: false,
+    unlockCondition: { completedNode: 'aqua_08' }
+  }
+]
+
 export const regions = [
   {
     id: 'whispering_woods',
     name: 'Whispering Woods',
+    superRegion: 'western_veros',
     startNode: 'forest_01',
     width: 800,
     height: 500,
@@ -1491,6 +1508,7 @@ export const regions = [
   {
     id: 'echoing_caverns',
     name: 'Echoing Caverns',
+    superRegion: 'western_veros',
     startNode: 'cave_01',
     width: 800,
     height: 500,
@@ -1499,6 +1517,7 @@ export const regions = [
   {
     id: 'stormwind_peaks',
     name: 'Stormwind Peaks',
+    superRegion: 'western_veros',
     startNode: 'mountain_01',
     width: 800,
     height: 500,
@@ -1507,6 +1526,7 @@ export const regions = [
   {
     id: 'whisper_lake',
     name: 'Whisper Lake',
+    superRegion: 'western_veros',
     startNode: 'lake_01',
     width: 500,
     height: 450,
@@ -1516,6 +1536,7 @@ export const regions = [
   {
     id: 'the_summit',
     name: 'The Summit',
+    superRegion: 'western_veros',
     startNode: 'summit_01',
     width: 800,
     height: 500,
@@ -1524,6 +1545,7 @@ export const regions = [
   {
     id: 'blistering_cliffsides',
     name: 'Blistering Cliffsides',
+    superRegion: 'western_veros',
     startNode: 'cliffs_01',
     width: 800,
     height: 500,
@@ -1532,6 +1554,7 @@ export const regions = [
   {
     id: 'janxier_floodplain',
     name: 'Janxier Floodplain',
+    superRegion: 'western_veros',
     startNode: 'flood_01',
     width: 800,
     height: 500,
@@ -1540,6 +1563,7 @@ export const regions = [
   {
     id: 'old_fort_calindash',
     name: 'Old Fort Calindash',
+    superRegion: 'western_veros',
     startNode: 'fort_01',
     width: 800,
     height: 500,
@@ -1548,6 +1572,7 @@ export const regions = [
   {
     id: 'ancient_catacombs',
     name: 'Ancient Catacombs',
+    superRegion: 'western_veros',
     startNode: 'cata_01',
     width: 800,
     height: 500,
@@ -1556,6 +1581,7 @@ export const regions = [
   {
     id: 'underground_morass',
     name: 'Underground Morass',
+    superRegion: 'western_veros',
     startNode: 'morass_01',
     width: 800,
     height: 500,
@@ -1564,10 +1590,20 @@ export const regions = [
   {
     id: 'gate_to_aquaria',
     name: 'Gate to Aquaria',
+    superRegion: 'western_veros',
     startNode: 'aqua_01',
     width: 800,
     height: 500,
     backgroundColor: '#1a2a3f' // Deep ocean blue
+  },
+  {
+    id: 'coral_depths',
+    name: 'Coral Depths',
+    superRegion: 'aquarias',
+    startNode: 'coral_01',
+    width: 800,
+    height: 500,
+    backgroundColor: '#0a2a3a'
   }
 ]
 
@@ -1585,4 +1621,12 @@ export function getAllQuestNodes() {
 
 export function getRegion(regionId) {
   return regions.find(r => r.id === regionId) || null
+}
+
+export function getSuperRegion(superRegionId) {
+  return superRegions.find(sr => sr.id === superRegionId) || null
+}
+
+export function getRegionsBySuperRegion(superRegionId) {
+  return regions.filter(r => r.superRegion === superRegionId)
 }
