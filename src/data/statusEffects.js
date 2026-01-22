@@ -27,6 +27,7 @@ export const EffectType = {
   // Targeting manipulation
   TAUNT: 'taunt', // Enemies must target this unit
   UNTARGETABLE: 'untargetable', // Cannot be targeted by enemies
+  EVASION: 'evasion', // Chance to completely avoid attacks
 
   // Protection
   GUARDING: 'guarding', // Redirects damage from guarded ally to guardian
@@ -165,6 +166,14 @@ export const effectDefinitions = {
     color: '#8b5cf6',
     isBuff: true,
     isUntargetable: true,
+    stackable: false
+  },
+  [EffectType.EVASION]: {
+    name: 'Evasion',
+    icon: '💨',
+    color: '#a78bfa',
+    isBuff: true,
+    isEvasion: true,
     stackable: false
   },
   [EffectType.GUARDING]: {
