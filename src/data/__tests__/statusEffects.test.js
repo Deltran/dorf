@@ -35,3 +35,17 @@ describe('FLAME_SHIELD status effect', () => {
     expect(def.isFlameShield).toBe(true)
   })
 })
+
+describe('DEATH_PREVENTION status effect', () => {
+  it('exists in EffectType', () => {
+    expect(EffectType.DEATH_PREVENTION).toBe('death_prevention')
+  })
+
+  it('has correct effect definition', () => {
+    const def = effectDefinitions[EffectType.DEATH_PREVENTION]
+    expect(def).toBeDefined()
+    expect(def.name).toBe('Protected')
+    expect(def.isBuff).toBe(true)
+    expect(def.isDeathPrevention).toBe(true)
+  })
+})
