@@ -298,6 +298,18 @@ export const heroTemplates = {
             onEvade: { restoreMp: 5, to: 'caster' }
           }
         ]
+      },
+      {
+        name: "Full Moon's Embrace",
+        description: 'Revive a fallen ally at 40% HP with untargetable for 1 turn.',
+        mpCost: 35,
+        skillUnlockLevel: 12,
+        targetType: 'dead_ally',
+        noDamage: true,
+        revive: { hpPercent: 40 },
+        effects: [
+          { type: EffectType.UNTARGETABLE, target: 'ally', duration: 1 }
+        ]
       }
     ]
   },
