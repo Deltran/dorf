@@ -354,6 +354,36 @@ export const useBattleStore = defineStore('battle', () => {
     return (unit.statusEffects || []).some(e => e.type === effectType)
   }
 
+  // Check if death prevention should trigger and handle it
+  function checkDeathPrevention(unit, incomingDamage) {
+    if (!unit.statusEffects) return false
+
+    const deathPreventionEffect = unit.statusEffects.find(
+      e => e.type === EffectType.DEATH_PREVENTION
+    )
+
+    if (!deathPreventionEffect) return false
+
+    // Only trigger if damage would kill
+    if (unit.currentHp - incomingDamage > 0) return false
+
+    // Prevent death: set HP to 1
+    unit.currentHp = 1
+
+    // Heal based on caster's ATK
+    if (deathPreventionEffect.healOnTrigger && deathPreventionEffect.casterAtk) {
+      const healAmount = Math.floor(deathPreventionEffect.casterAtk * deathPreventionEffect.healOnTrigger / 100)
+      unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount)
+    }
+
+    // Remove the effect (one-time use)
+    unit.statusEffects = unit.statusEffects.filter(
+      e => e.type !== EffectType.DEATH_PREVENTION
+    )
+
+    return true
+  }
+
   // Process effects at start of turn (check for stun, etc.)
   function processStartOfTurnEffects(unit) {
     if (hasEffect(unit, EffectType.STUN)) {
@@ -2459,6 +2489,7 @@ export const useBattleStore = defineStore('battle', () => {
     // Effect helpers (for UI)
     getEffectiveStat,
     hasEffect,
+    checkDeathPrevention,
     getMarkedDamageMultiplier,
     calculateDamageWithMarked,
     selectRandomTarget,
