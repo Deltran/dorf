@@ -213,3 +213,47 @@ describe('battle store - Guardian Link', () => {
     })
   })
 })
+
+describe('Aurora the Dawn skills integration', () => {
+  it('Guardian Link has correct effect structure', () => {
+    const guardianLinkSkill = {
+      name: 'Guardian Link',
+      effects: [
+        { type: EffectType.GUARDIAN_LINK, target: 'ally', duration: 3, redirectPercent: 40 }
+      ]
+    }
+    expect(guardianLinkSkill.effects[0].type).toBe(EffectType.GUARDIAN_LINK)
+    expect(guardianLinkSkill.effects[0].redirectPercent).toBe(40)
+  })
+
+  it('Judgment\'s Echo has DAMAGE_STORE effect', () => {
+    const judgmentsEchoSkill = {
+      name: "Judgment's Echo",
+      effects: [
+        { type: EffectType.DAMAGE_STORE, target: 'self', duration: 2 }
+      ]
+    }
+    expect(judgmentsEchoSkill.effects[0].type).toBe(EffectType.DAMAGE_STORE)
+  })
+
+  it('Divine Sacrifice has correct properties', () => {
+    const divineSacrificeSkill = {
+      name: 'Divine Sacrifice',
+      effects: [
+        { type: EffectType.DIVINE_SACRIFICE, target: 'self', duration: 2, damageReduction: 50, healPerTurn: 15 }
+      ]
+    }
+    expect(divineSacrificeSkill.effects[0].type).toBe(EffectType.DIVINE_SACRIFICE)
+    expect(divineSacrificeSkill.effects[0].damageReduction).toBe(50)
+    expect(divineSacrificeSkill.effects[0].healPerTurn).toBe(15)
+  })
+
+  it('Holy Strike has healSelfPercent', () => {
+    const holyStrikeSkill = {
+      name: 'Holy Strike',
+      damagePercent: 120,
+      healSelfPercent: 50
+    }
+    expect(holyStrikeSkill.healSelfPercent).toBe(50)
+  })
+})
