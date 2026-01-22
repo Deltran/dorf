@@ -268,7 +268,7 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   // Apply a status effect to a unit
-  function applyEffect(unit, effectType, { duration = 2, value = 0, sourceId = null, fromAllySkill = false } = {}) {
+  function applyEffect(unit, effectType, { duration = 2, value = 0, sourceId = null, fromAllySkill = false, ...extra } = {}) {
     if (!unit.statusEffects) {
       unit.statusEffects = []
     }
@@ -283,7 +283,7 @@ export const useBattleStore = defineStore('battle', () => {
       return
     }
 
-    const newEffect = createEffect(effectType, { duration, value, sourceId })
+    const newEffect = createEffect(effectType, { duration, value, sourceId, ...extra })
     if (!newEffect) return
 
     // Track whether this is a self-buff or ally-buff (for stat buff stacking)
@@ -1600,7 +1600,7 @@ export const useBattleStore = defineStore('battle', () => {
               if (effect.target === 'ally' && shouldApplyEffect(effect, hero)) {
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
-                applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
+                applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true, ...(effect.onEvade && { onEvade: effect.onEvade }) })
                 emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
               }
             }
