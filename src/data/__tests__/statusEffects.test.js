@@ -63,3 +63,17 @@ describe('DAMAGE_STORE status effect', () => {
     expect(def.isDamageStore).toBe(true)
   })
 })
+
+describe('DIVINE_SACRIFICE status effect', () => {
+  it('has DIVINE_SACRIFICE in EffectType enum', () => {
+    expect(EffectType.DIVINE_SACRIFICE).toBe('divine_sacrifice')
+  })
+
+  it('has DIVINE_SACRIFICE definition with correct properties', () => {
+    const def = effectDefinitions[EffectType.DIVINE_SACRIFICE]
+    expect(def).toBeDefined()
+    expect(def.name).toBe('Divine Sacrifice')
+    expect(def.isBuff).toBe(true)
+    expect(def.isDivineSacrifice).toBe(true)
+  })
+})

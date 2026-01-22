@@ -33,6 +33,7 @@ export const EffectType = {
   GUARDING: 'guarding', // Redirects damage from guarded ally to guardian
   GUARDIAN_LINK: 'guardian_link', // Redirects portion of damage to linked guardian
   DAMAGE_STORE: 'damage_store', // Stores damage taken, releases as AoE on expiration
+  DIVINE_SACRIFICE: 'divine_sacrifice', // Intercepts all ally damage with self-sustain
   DAMAGE_REDUCTION: 'damage_reduction', // Reduces incoming damage by percentage
   REFLECT: 'reflect', // Reflects percentage of damage taken back to attacker
   DEBUFF_IMMUNE: 'debuff_immune', // Immune to new debuffs
@@ -206,6 +207,14 @@ export const effectDefinitions = {
     color: '#fbbf24',
     isBuff: true,
     isDamageStore: true,
+    stackable: false
+  },
+  [EffectType.DIVINE_SACRIFICE]: {
+    name: 'Divine Sacrifice',
+    icon: '✨',
+    color: '#fbbf24',
+    isBuff: true,
+    isDivineSacrifice: true,
     stackable: false
   },
   [EffectType.DAMAGE_REDUCTION]: {
