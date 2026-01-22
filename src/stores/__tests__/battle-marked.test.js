@@ -31,4 +31,16 @@ describe('battle store - MARKED effect', () => {
       expect(store.getMarkedDamageMultiplier(target)).toBe(1)
     })
   })
+
+  describe('applyMarkedDamage (integration)', () => {
+    it('applies MARKED multiplier to calculateDamage result', () => {
+      // Base damage: 100 ATK * 1.0 multiplier - 50 DEF * 0.5 = 75
+      const baseDamage = store.calculateDamageWithMarked(100, 1.0, 50, 1)
+      expect(baseDamage).toBe(75)
+
+      // With 20% MARKED: 75 * 1.2 = 90
+      const markedDamage = store.calculateDamageWithMarked(100, 1.0, 50, 1.2)
+      expect(markedDamage).toBe(90)
+    })
+  })
 })
