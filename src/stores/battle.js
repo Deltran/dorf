@@ -272,6 +272,13 @@ export const useBattleStore = defineStore('battle', () => {
     const definition = getEffectDefinition(effectType)
     if (!definition) return
 
+    // Check for debuff immunity - block debuffs if unit has DEBUFF_IMMUNE
+    if (!definition.isBuff && hasEffect(unit, EffectType.DEBUFF_IMMUNE)) {
+      const unitName = unit.template?.name || 'Unknown'
+      addLog(`${unitName} is immune to debuffs!`)
+      return
+    }
+
     const newEffect = createEffect(effectType, { duration, value, sourceId })
     if (!newEffect) return
 
@@ -651,6 +658,18 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Check for DAMAGE_REDUCTION effect
+    const damageReductionEffect = (unit.statusEffects || []).find(e => e.type === EffectType.DAMAGE_REDUCTION)
+    if (damageReductionEffect) {
+      const reductionPercent = damageReductionEffect.value
+      const reducedAmount = Math.floor(damage * reductionPercent / 100)
+      damage = damage - reducedAmount
+      if (reducedAmount > 0) {
+        const unitName = unit.template?.name || 'Unknown'
+        addLog(`${unitName}'s fortified stance reduces damage by ${reducedAmount}!`)
+      }
+    }
+
     const actualDamage = Math.min(unit.currentHp, damage)
     unit.currentHp = Math.max(0, unit.currentHp - actualDamage)
 
@@ -682,6 +701,33 @@ export const useBattleStore = defineStore('battle', () => {
       // Reset rage on death for berserkers
       if (isBerserker(unit)) {
         unit.currentRage = 0
+      }
+    }
+
+    // Check for REFLECT effect - reflect damage back to attacker
+    // Only trigger on direct attacks, not on reflected damage (to avoid infinite loops)
+    if (source !== 'reflect' && attacker && actualDamage > 0 && unit.currentHp > 0) {
+      const reflectEffect = (unit.statusEffects || []).find(e => e.type === EffectType.REFLECT)
+      if (reflectEffect) {
+        const reflectPercent = reflectEffect.value
+        const reflectDamage = Math.floor(actualDamage * reflectPercent / 100)
+        if (reflectDamage > 0) {
+          const unitName = unit.template?.name || 'Unknown'
+          const attackerName = attacker.template?.name || attacker.name || 'Unknown'
+          addLog(`${unitName} reflects ${reflectDamage} damage back to ${attackerName}!`)
+
+          // Apply reflected damage to attacker (use 'reflect' source to prevent loops)
+          const reflectedActual = Math.min(attacker.currentHp, reflectDamage)
+          attacker.currentHp = Math.max(0, attacker.currentHp - reflectedActual)
+          emitCombatEffect(attacker.id || attacker.instanceId, attacker.instanceId ? 'hero' : 'enemy', 'damage', reflectedActual)
+
+          // Check for attacker death from reflect
+          if (attacker.currentHp <= 0) {
+            if (attacker.statusEffects?.length > 0) {
+              attacker.statusEffects = []
+            }
+          }
+        }
       }
     }
 
