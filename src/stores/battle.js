@@ -1257,8 +1257,9 @@ export const useBattleStore = defineStore('battle', () => {
 
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}! (${rageConsumed} rage consumed)`)
 
+            const markedMultiplier = getMarkedDamageMultiplier(target)
             for (let i = 0; i < skill.multiHit && target.currentHp > 0; i++) {
-              const hitDamage = calculateDamage(finalDamageStat, multiplier, reducedDef)
+              const hitDamage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
               applyDamage(target, hitDamage, 'attack', hero)
               totalDamage += hitDamage
               emitCombatEffect(target.id, 'enemy', 'damage', hitDamage)
@@ -1276,12 +1277,13 @@ export const useBattleStore = defineStore('battle', () => {
             const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
             const reducedDef = effectiveDef * (1 - defReduction)
             const multiplier = parseSkillMultiplier(skill.description, shardBonus)
+            const markedMultiplier = getMarkedDamageMultiplier(target)
             let totalDamage = 0
 
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
 
             for (let i = 0; i < skill.multiHit && target.currentHp > 0; i++) {
-              const hitDamage = calculateDamage(finalDamageStat, multiplier, reducedDef)
+              const hitDamage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
               applyDamage(target, hitDamage, 'attack', hero)
               totalDamage += hitDamage
               emitCombatEffect(target.id, 'enemy', 'damage', hitDamage)
@@ -1299,6 +1301,7 @@ export const useBattleStore = defineStore('battle', () => {
             // Apply ignoreDef if present
             const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
             const reducedDef = effectiveDef * (1 - defReduction)
+            const markedMultiplier = getMarkedDamageMultiplier(target)
             let damage
 
             // Count debuffs for bonusDamagePerDebuff skills (e.g., Knarly's Special)
@@ -1312,7 +1315,7 @@ export const useBattleStore = defineStore('battle', () => {
             if (scaledDamage !== null) {
               // Apply shard bonus to Valor-scaled damage percentage
               const multiplier = (scaledDamage + shardBonus) / 100
-              damage = calculateDamage(finalDamageStat, multiplier, reducedDef)
+              damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
             } else if (skill.damageMultiplier !== undefined) {
               // Use explicit damageMultiplier if provided (with bonus per debuff)
               let baseMultiplier = skill.damageMultiplier
@@ -1321,10 +1324,10 @@ export const useBattleStore = defineStore('battle', () => {
               }
               // Apply shard bonus as percentage
               baseMultiplier += shardBonus / 100
-              damage = calculateDamage(finalDamageStat, baseMultiplier, reducedDef)
+              damage = calculateDamageWithMarked(finalDamageStat, baseMultiplier, reducedDef, markedMultiplier)
             } else {
               const multiplier = parseSkillMultiplier(skill.description, shardBonus)
-              damage = calculateDamage(finalDamageStat, multiplier, reducedDef)
+              damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
             }
 
             applyDamage(target, damage, 'attack', hero)
@@ -1697,20 +1700,22 @@ export const useBattleStore = defineStore('battle', () => {
         }
 
         case 'random_enemies': {
-          const numHits = skill.hits || 1
           const multiplier = parseSkillMultiplier(skill.description, shardBonus)
+          const numHits = skill.multiHit || 1
           let totalDamage = 0
 
           addLog(`${hero.template.name} uses ${skill.name}!`)
 
           for (let i = 0; i < numHits; i++) {
-            // Pick a random alive enemy for each hit
-            const targets = aliveEnemies.value
-            if (targets.length === 0) break
+            const target = selectRandomTarget(aliveEnemies.value, skill.prioritizeMarked)
+            if (!target) break
 
-            const target = targets[Math.floor(Math.random() * targets.length)]
             const effectiveDef = getEffectiveStat(target, 'def')
-            const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+            const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
+            const reducedDef = effectiveDef * (1 - defReduction)
+            const markedMultiplier = getMarkedDamageMultiplier(target)
+            const damage = calculateDamageWithMarked(effectiveAtk, multiplier, reducedDef, markedMultiplier)
+
             applyDamage(target, damage, 'attack', hero)
             totalDamage += damage
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
@@ -1750,7 +1755,8 @@ export const useBattleStore = defineStore('battle', () => {
           let totalThornsDamage = 0
           for (const target of targets) {
             const effectiveDef = getEffectiveStat(target, 'def')
-            const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
+            const markedMultiplier = getMarkedDamageMultiplier(target)
+            const damage = calculateDamageWithMarked(effectiveAtk, multiplier, effectiveDef, markedMultiplier)
             applyDamage(target, damage, 'attack', hero)
             totalDamage += damage
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
