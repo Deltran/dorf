@@ -31,6 +31,7 @@ export const EffectType = {
 
   // Protection
   GUARDING: 'guarding', // Redirects damage from guarded ally to guardian
+  GUARDIAN_LINK: 'guardian_link', // Redirects portion of damage to linked guardian
   DAMAGE_REDUCTION: 'damage_reduction', // Reduces incoming damage by percentage
   REFLECT: 'reflect', // Reflects percentage of damage taken back to attacker
   DEBUFF_IMMUNE: 'debuff_immune', // Immune to new debuffs
@@ -188,6 +189,14 @@ export const effectDefinitions = {
     color: '#3b82f6',
     isBuff: true,
     isGuarding: true,
+    stackable: false
+  },
+  [EffectType.GUARDIAN_LINK]: {
+    name: 'Guardian Link',
+    icon: '🔗',
+    color: '#fbbf24',
+    isBuff: true,
+    isGuardianLink: true,
     stackable: false
   },
   [EffectType.DAMAGE_REDUCTION]: {

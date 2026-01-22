@@ -35,3 +35,17 @@ describe('FLAME_SHIELD status effect', () => {
     expect(def.isFlameShield).toBe(true)
   })
 })
+
+describe('GUARDIAN_LINK status effect', () => {
+  it('has GUARDIAN_LINK in EffectType enum', () => {
+    expect(EffectType.GUARDIAN_LINK).toBe('guardian_link')
+  })
+
+  it('has GUARDIAN_LINK definition with correct properties', () => {
+    const def = effectDefinitions[EffectType.GUARDIAN_LINK]
+    expect(def).toBeDefined()
+    expect(def.name).toBe('Guardian Link')
+    expect(def.isBuff).toBe(true)
+    expect(def.isGuardianLink).toBe(true)
+  })
+})
