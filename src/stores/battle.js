@@ -1412,6 +1412,14 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
+          // Handle spreadBurn skill
+          if (skill.spreadBurn && target.currentHp > 0) {
+            const spreadCount = spreadBurnFromTarget(target, aliveEnemies.value, hero.instanceId)
+            if (spreadCount > 0) {
+              addLog(`Flames spread to ${spreadCount} other enemies!`)
+            }
+          }
+
           if (target.currentHp <= 0) {
             addLog(`${target.template.name} defeated!`)
           }
@@ -1804,6 +1812,28 @@ export const useBattleStore = defineStore('battle', () => {
         }
 
         case 'all_enemies': {
+          // Handle consumeBurns skill (Conflagration)
+          if (skill.consumeBurns) {
+            const atkBonus = skill.consumeBurnAtkBonus || 0
+            const { totalDamage, burnsConsumed } = consumeAllBurns(aliveEnemies.value, effectiveAtk, atkBonus)
+
+            if (burnsConsumed > 0) {
+              // Distribute damage to all alive enemies
+              const damagePerEnemy = Math.floor(totalDamage / aliveEnemies.value.length)
+              for (const enemy of aliveEnemies.value) {
+                applyDamage(enemy, damagePerEnemy, 'attack', hero)
+                emitCombatEffect(enemy.id, 'enemy', 'damage', damagePerEnemy)
+                if (enemy.currentHp <= 0) {
+                  addLog(`${enemy.template.name} defeated!`)
+                }
+              }
+              addLog(`${hero.template.name} detonates ${burnsConsumed} burns for ${totalDamage} total damage!`)
+            } else {
+              addLog(`${hero.template.name} uses ${skill.name}, but no enemies are burning!`)
+            }
+            break
+          }
+
           // Filter targets based on targetFilter
           let targets = aliveEnemies.value
           if (skill.targetFilter === 'not_acted') {
@@ -2200,6 +2230,9 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Check for flame shield effect on the target
+    triggerFlameShield(target, enemy)
+
     // Process end of turn effects for enemy
     processEndOfTurnEffects(enemy)
 
@@ -2207,6 +2240,82 @@ export const useBattleStore = defineStore('battle', () => {
       advanceTurnIndex()
       startNextTurn()
     }, 600)
+  }
+
+  function triggerFlameShield(defender, attacker) {
+    const flameShieldEffect = defender.statusEffects?.find(e => e.type === EffectType.FLAME_SHIELD)
+    if (!flameShieldEffect || attacker.currentHp <= 0) return
+
+    const burnDuration = flameShieldEffect.burnDuration || 2
+    const defenderAtk = getEffectiveStat(defender, 'atk')
+
+    applyEffect(attacker, EffectType.BURN, {
+      duration: burnDuration,
+      value: Math.floor(defenderAtk * 0.5),
+      sourceId: defender.instanceId
+    })
+
+    const defenderName = defender.template?.name || 'Hero'
+    const attackerName = attacker.template?.name || 'Enemy'
+    addLog(`${attackerName} is burned by ${defenderName}'s Flame Shield!`)
+    emitCombatEffect(attacker.id, 'enemy', 'debuff', 0)
+  }
+
+  function spreadBurnFromTarget(target, allEnemies, sourceId) {
+    const burnEffect = target.statusEffects?.find(e => e.type === EffectType.BURN)
+    if (!burnEffect) return 0
+
+    let spreadCount = 0
+    for (const enemy of allEnemies) {
+      if (enemy.id === target.id) continue
+      if (enemy.currentHp <= 0) continue
+
+      const hasBurn = enemy.statusEffects?.some(e => e.type === EffectType.BURN)
+      if (hasBurn) continue
+
+      applyEffect(enemy, EffectType.BURN, {
+        duration: burnEffect.duration,
+        value: burnEffect.value,
+        sourceId: sourceId
+      })
+      addLog(`Burn spreads to ${enemy.template.name}!`)
+      emitCombatEffect(enemy.id, 'enemy', 'debuff', 0)
+      spreadCount++
+    }
+
+    return spreadCount
+  }
+
+  function consumeAllBurns(allEnemies, casterAtk, atkBonusPercent = 0) {
+    let burnDamage = 0
+    let burnsConsumed = 0
+
+    for (const enemy of allEnemies) {
+      if (enemy.currentHp <= 0) continue
+      if (!enemy.statusEffects) continue
+
+      const burnEffects = enemy.statusEffects.filter(e => e.type === EffectType.BURN)
+
+      for (const burn of burnEffects) {
+        // Calculate remaining burn damage
+        const burnDamagePerTick = burn.value
+        const remainingDamage = burnDamagePerTick * burn.duration
+
+        burnDamage += remainingDamage
+        burnsConsumed++
+      }
+
+      // Remove all burns from this enemy
+      if (burnEffects.length > 0) {
+        enemy.statusEffects = enemy.statusEffects.filter(e => e.type !== EffectType.BURN)
+      }
+    }
+
+    // Calculate ATK bonus based on total burns consumed
+    const atkBonus = Math.floor(burnsConsumed * casterAtk * atkBonusPercent / 100)
+    const totalDamage = burnDamage + atkBonus
+
+    return { totalDamage, burnsConsumed }
   }
 
   function calculateDamage(atk, multiplier, def) {
@@ -2367,6 +2476,12 @@ export const useBattleStore = defineStore('battle', () => {
     getValorTier,
     // Chain bounce helpers
     getChainTargets,
+    // Flame Shield trigger (for reactive burn)
+    triggerFlameShield,
+    // Spread burn (for Spreading Flames skill)
+    spreadBurnFromTarget,
+    // Consume burns (for Conflagration skill)
+    consumeAllBurns,
     // Constants
     BattleState,
     EffectType

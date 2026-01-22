@@ -38,6 +38,9 @@ export const EffectType = {
   // Triggered effects
   WELL_FED: 'well_fed', // Auto-heals when HP drops below threshold
 
+  // Reactive effects
+  FLAME_SHIELD: 'flame_shield', // Burns attackers when hit
+
   // Vulnerability
   MARKED: 'marked' // Increases damage taken from all sources
 }
@@ -217,6 +220,14 @@ export const effectDefinitions = {
     color: '#f59e0b',
     isBuff: true,
     isTriggered: true,
+    stackable: false
+  },
+  [EffectType.FLAME_SHIELD]: {
+    name: 'Flame Shield',
+    icon: '🔥',
+    color: '#f97316',
+    isBuff: true,
+    isFlameShield: true,
     stackable: false
   },
   [EffectType.MARKED]: {
