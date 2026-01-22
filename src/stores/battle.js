@@ -781,6 +781,19 @@ export const useBattleStore = defineStore('battle', () => {
     return actualDamage
   }
 
+  // Revive a dead unit with a percentage of max HP
+  function reviveUnit(unit, hpPercent) {
+    if (!unit || unit.currentHp > 0) return false
+
+    const newHp = Math.floor(unit.maxHp * hpPercent / 100)
+    unit.currentHp = newHp
+
+    addLog(`${unit.template.name} has been revived with ${newHp} HP!`)
+    emitCombatEffect(unit.instanceId, 'hero', 'heal', newHp)
+
+    return true
+  }
+
   // ========== SKILL CONDITION HELPERS ==========
 
   // Evaluate a condition object against a hero (for conditional skill effects)
@@ -1670,6 +1683,40 @@ export const useBattleStore = defineStore('battle', () => {
           break
         }
 
+        case 'dead_ally': {
+          const target = heroes.value.find(h => h.instanceId === selectedTarget.value?.id)
+          if (!target || target.currentHp > 0) {
+            addLog('Invalid target - must target a fallen ally')
+            // Refund MP
+            hero.currentMp += skill.mpCost
+            state.value = BattleState.PLAYER_TURN
+            return
+          }
+
+          addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
+
+          // Revive the target
+          if (skill.revive) {
+            reviveUnit(target, skill.revive.hpPercent)
+          }
+
+          // Apply post-revive effects (like untargetable)
+          if (skill.effects) {
+            for (const effect of skill.effects) {
+              if (effect.target === 'ally') {
+                applyEffect(target, effect.type, {
+                  duration: effect.duration,
+                  value: effect.value || 0,
+                  sourceId: hero.instanceId,
+                  fromAllySkill: true
+                })
+                emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              }
+            }
+          }
+          break
+        }
+
         case 'self': {
           addLog(`${hero.template.name} uses ${skill.name}!`)
           if (skill.effects) {
@@ -2265,6 +2312,7 @@ export const useBattleStore = defineStore('battle', () => {
     endBattle,
     clearCombatEffects,
     applyDamage,
+    reviveUnit,
     // Effect helpers (for UI)
     getEffectiveStat,
     hasEffect,
