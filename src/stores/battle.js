@@ -674,6 +674,12 @@ export const useBattleStore = defineStore('battle', () => {
     return null
   }
 
+  // Calculate heal amount from lifesteal (healSelfPercent skill property)
+  function calculateHealSelfPercent(damageDealt, healPercent) {
+    if (!healPercent || healPercent <= 0) return 0
+    return Math.floor(damageDealt * healPercent / 100)
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
@@ -1510,6 +1516,21 @@ export const useBattleStore = defineStore('battle', () => {
               addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
             }
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
+
+            // Handle healSelfPercent (lifesteal)
+            if (skill.healSelfPercent && damage > 0) {
+              const healAmount = calculateHealSelfPercent(damage, skill.healSelfPercent)
+              if (healAmount > 0) {
+                const maxHp = hero.stats?.hp || hero.maxHp
+                const oldHp = hero.currentHp
+                hero.currentHp = Math.min(maxHp, hero.currentHp + healAmount)
+                const actualHeal = hero.currentHp - oldHp
+                if (actualHeal > 0) {
+                  addLog(`${hero.template.name} heals for ${actualHeal}!`)
+                  emitCombatEffect(hero.instanceId, 'hero', 'heal', actualHeal)
+                }
+              }
+            }
 
             // Consume debuffs if skill has consumeDebuffs flag
             if (skill.consumeDebuffs && target.currentHp > 0) {
@@ -2621,6 +2642,8 @@ export const useBattleStore = defineStore('battle', () => {
     releaseDamageStore,
     // Divine Sacrifice (for Aurora's ally damage interception)
     checkDivineSacrifice,
+    // Heal Self Percent (lifesteal for skills)
+    calculateHealSelfPercent,
     // Constants
     BattleState,
     EffectType

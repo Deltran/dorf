@@ -195,4 +195,21 @@ describe('battle store - Guardian Link', () => {
       expect(result).toBeNull()
     })
   })
+
+  describe('calculateHealSelfPercent', () => {
+    it('calculates heal amount from damage dealt', () => {
+      const result = store.calculateHealSelfPercent(100, 50)
+      expect(result).toBe(50)
+    })
+
+    it('returns 0 when no percent specified', () => {
+      const result = store.calculateHealSelfPercent(100, 0)
+      expect(result).toBe(0)
+    })
+
+    it('floors the result', () => {
+      const result = store.calculateHealSelfPercent(75, 50)
+      expect(result).toBe(37)
+    })
+  })
 })
