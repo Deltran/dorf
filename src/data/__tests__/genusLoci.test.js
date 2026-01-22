@@ -41,9 +41,9 @@ describe('Genus Loci data', () => {
   describe('Valinar stats and abilities', () => {
     it('has correct base stats', () => {
       const valinar = getGenusLoci('valinar')
-      expect(valinar.baseStats.hp).toBe(5000)
-      expect(valinar.baseStats.atk).toBe(150)
-      expect(valinar.baseStats.def).toBe(100)
+      expect(valinar.baseStats.hp).toBe(600)
+      expect(valinar.baseStats.atk).toBe(60)
+      expect(valinar.baseStats.def).toBe(25)
       expect(valinar.baseStats.spd).toBe(80)
     })
 
