@@ -605,6 +605,25 @@ export const useBattleStore = defineStore('battle', () => {
     return 0 // Default value
   }
 
+  // Calculate how damage should be split between an ally and their linked guardian
+  function calculateGuardianLinkDamage(target, damage, allHeroes) {
+    const guardianLink = target.statusEffects?.find(e => e.type === EffectType.GUARDIAN_LINK)
+    if (!guardianLink) {
+      return { allyDamage: damage, guardianDamage: 0, guardian: null }
+    }
+
+    const guardian = allHeroes.find(h => h.instanceId === guardianLink.guardianId)
+    if (!guardian || guardian.currentHp <= 0) {
+      return { allyDamage: damage, guardianDamage: 0, guardian: null }
+    }
+
+    const redirectPercent = guardianLink.redirectPercent || 40
+    const guardianDamage = Math.floor(damage * redirectPercent / 100)
+    const allyDamage = damage - guardianDamage
+
+    return { allyDamage, guardianDamage, guardian }
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
@@ -631,6 +650,34 @@ export const useBattleStore = defineStore('battle', () => {
 
         return 0 // No damage dealt
       }
+    }
+
+    // Check for GUARDIAN_LINK effect (damage sharing with Aurora)
+    const guardianLinkResult = calculateGuardianLinkDamage(unit, damage, heroes.value)
+    if (guardianLinkResult.guardianDamage > 0 && guardianLinkResult.guardian) {
+      const guardian = guardianLinkResult.guardian
+      const redirectedDamage = Math.min(guardian.currentHp, guardianLinkResult.guardianDamage)
+      guardian.currentHp = Math.max(0, guardian.currentHp - redirectedDamage)
+
+      addLog(`${guardian.template.name} absorbs ${redirectedDamage} damage for ${unit.template.name}!`)
+      emitCombatEffect(guardian.instanceId, 'hero', 'damage', redirectedDamage)
+
+      // Track damage for DAMAGE_STORE if guardian has it
+      const damageStore = guardian.statusEffects?.find(e => e.type === EffectType.DAMAGE_STORE)
+      if (damageStore) {
+        damageStore.storedDamage = (damageStore.storedDamage || 0) + redirectedDamage
+      }
+
+      if (guardian.currentHp <= 0) {
+        if (guardian.statusEffects?.length > 0) {
+          guardian.statusEffects = []
+        }
+        // Remove guardian link from ally when guardian dies
+        unit.statusEffects = unit.statusEffects.filter(e => e.type !== EffectType.GUARDIAN_LINK)
+      }
+
+      damage = guardianLinkResult.allyDamage
+      if (damage <= 0) return redirectedDamage
     }
 
     // Check if unit is being guarded by another hero
@@ -2482,6 +2529,8 @@ export const useBattleStore = defineStore('battle', () => {
     spreadBurnFromTarget,
     // Consume burns (for Conflagration skill)
     consumeAllBurns,
+    // Guardian Link (for Aurora's damage sharing)
+    calculateGuardianLinkDamage,
     // Constants
     BattleState,
     EffectType
