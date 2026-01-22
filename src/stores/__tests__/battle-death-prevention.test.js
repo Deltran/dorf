@@ -46,4 +46,20 @@ describe('battle store - death prevention', () => {
       expect(unit.statusEffects.find(e => e.type === EffectType.DEATH_PREVENTION)).toBeUndefined()
     })
   })
+
+  describe('applyDamage integration', () => {
+    it('calls checkDeathPrevention before applying lethal damage', () => {
+      const unit = {
+        currentHp: 30,
+        maxHp: 100,
+        statusEffects: [{ type: EffectType.DEATH_PREVENTION, duration: 2, healOnTrigger: 50, casterAtk: 40 }]
+      }
+
+      // applyDamage should check death prevention
+      store.applyDamage(unit, 50, 'attack')
+
+      // Unit should survive with healed HP
+      expect(unit.currentHp).toBe(21)
+    })
+  })
 })

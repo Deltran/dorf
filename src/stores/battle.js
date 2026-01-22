@@ -727,6 +727,16 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Check death prevention before applying lethal damage
+    if (unit.currentHp - damage <= 0) {
+      if (checkDeathPrevention(unit, damage)) {
+        const unitName = unit.template?.name || 'Unit'
+        addLog(`${unitName} is protected from death by World Root's Embrace!`)
+        emitCombatEffect(unit.instanceId || unit.id, unit.instanceId ? 'hero' : 'enemy', 'heal', 0)
+        return 0 // Damage was prevented by death prevention effect
+      }
+    }
+
     const actualDamage = Math.min(unit.currentHp, damage)
     unit.currentHp = Math.max(0, unit.currentHp - actualDamage)
 
