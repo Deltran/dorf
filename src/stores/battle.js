@@ -1235,20 +1235,50 @@ export const useBattleStore = defineStore('battle', () => {
             const reducedDef = effectiveDef * (1 - defReduction)
             let damage
 
+            // Count debuffs for bonusDamagePerDebuff skills (e.g., Knarly's Special)
+            let debuffCount = 0
+            if (skill.bonusDamagePerDebuff) {
+              debuffCount = (target.statusEffects || []).filter(e => !e.definition?.isBuff).length
+            }
+
             // Check for Valor-scaled damage
             const scaledDamage = getSkillDamage(skill, hero)
             if (scaledDamage !== null) {
               // Apply shard bonus to Valor-scaled damage percentage
               const multiplier = (scaledDamage + shardBonus) / 100
               damage = calculateDamage(finalDamageStat, multiplier, reducedDef)
+            } else if (skill.damageMultiplier !== undefined) {
+              // Use explicit damageMultiplier if provided (with bonus per debuff)
+              let baseMultiplier = skill.damageMultiplier
+              if (skill.bonusDamagePerDebuff && debuffCount > 0) {
+                baseMultiplier += (skill.bonusDamagePerDebuff / 100) * debuffCount
+              }
+              // Apply shard bonus as percentage
+              baseMultiplier += shardBonus / 100
+              damage = calculateDamage(finalDamageStat, baseMultiplier, reducedDef)
             } else {
               const multiplier = parseSkillMultiplier(skill.description, shardBonus)
               damage = calculateDamage(finalDamageStat, multiplier, reducedDef)
             }
 
             applyDamage(target, damage, 'attack', hero)
-            addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
+            if (skill.bonusDamagePerDebuff && debuffCount > 0) {
+              addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage! (${debuffCount} debuffs consumed)`)
+            } else {
+              addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
+            }
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
+
+            // Consume debuffs if skill has consumeDebuffs flag
+            if (skill.consumeDebuffs && target.currentHp > 0) {
+              const debuffsRemoved = (target.statusEffects || []).filter(e => !e.definition?.isBuff)
+              if (debuffsRemoved.length > 0) {
+                target.statusEffects = (target.statusEffects || []).filter(e => e.definition?.isBuff)
+                for (const debuff of debuffsRemoved) {
+                  addLog(`${target.template.name}'s ${debuff.definition.name} was consumed!`)
+                }
+              }
+            }
           } else {
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
           }
@@ -1257,6 +1287,14 @@ export const useBattleStore = defineStore('battle', () => {
           if (skill.effects) {
             for (const effect of skill.effects) {
               if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
+                // Handle effect chance (e.g., 50% chance to stun)
+                if (effect.chance !== undefined) {
+                  const roll = Math.random() * 100
+                  if (roll >= effect.chance) {
+                    // Effect didn't proc
+                    continue
+                  }
+                }
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                 applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
