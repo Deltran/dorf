@@ -2134,6 +2134,14 @@ export const useBattleStore = defineStore('battle', () => {
     return Math.max(1, Math.floor(raw))
   }
 
+  function getMarkedDamageMultiplier(target) {
+    const markedEffect = target?.statusEffects?.find(e => e.type === EffectType.MARKED)
+    if (markedEffect) {
+      return 1 + (markedEffect.value / 100)
+    }
+    return 1
+  }
+
   function calculateHeal(atk, description, shardBonus = 0) {
     const match = description.match(/(\d+)%/)
     if (match) {
@@ -2240,6 +2248,7 @@ export const useBattleStore = defineStore('battle', () => {
     // Effect helpers (for UI)
     getEffectiveStat,
     hasEffect,
+    getMarkedDamageMultiplier,
     // Focus helpers (for UI)
     isRanger,
     grantFocus,
