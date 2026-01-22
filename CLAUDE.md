@@ -57,10 +57,17 @@ const roleIcons = {
 
 ### Stores
 - `src/stores/heroes.js` - Hero collection, party management, party leader
-- `src/stores/battle.js` - Combat state machine, leader skill processing
+- `src/stores/battle.js` - Combat state machine, leader skill processing, damage interception
 - `src/stores/gacha.js` - Pull logic, pity counters, gems and gold currency
 - `src/stores/quests.js` - Quest progress, node unlocks, `lastVisitedNode` tracking
 - `src/stores/inventory.js` - Item storage and management
+
+**Key battle.js exports:**
+- `applyDamage(unit, damage, type, source)` - Main damage application with all interception checks
+- `calculateGuardianLinkDamage(target, damage, heroes)` - Split damage for Guardian Link
+- `checkDivineSacrifice(target, heroes)` - Find hero with Divine Sacrifice active
+- `releaseDamageStore(hero, enemies)` - Release stored damage as AoE
+- `calculateHealSelfPercent(damage, percent)` - Calculate lifesteal healing
 
 ### Data
 - `src/data/heroTemplates.js` - Hero definitions with skills and leader skills
@@ -303,6 +310,119 @@ watch(showResults, (show) => {
 ```
 
 Template uses `v-if="index < revealedCount"` to control visibility.
+
+## Damage Interception System
+
+The `applyDamage` function in `battle.js` checks protection effects in this order:
+
+1. **Evasion** - Roll for dodge chance, skip all damage if successful
+2. **Divine Sacrifice** - If any ally has this, intercept ALL damage to other allies
+3. **Guardian Link** - Redirect percentage of damage to the linked guardian
+4. **Guarded By** - Full damage redirect to guarding unit
+5. **Damage Reduction** - Apply percentage reduction
+6. **Shield** - Absorb damage with shield HP
+7. **Marked** - Increase damage taken
+8. **Normal damage** - Apply remaining damage to HP
+
+```js
+// Example: checkDivineSacrifice returns hero with active Divine Sacrifice
+const sacrificer = checkDivineSacrifice(target, heroes.value)
+if (sacrificer) {
+  // Intercept damage, apply DR, heal per turn
+}
+
+// Example: calculateGuardianLinkDamage splits damage
+const { allyDamage, guardianDamage, guardian } = calculateGuardianLinkDamage(target, damage, heroes)
+```
+
+## Skill Properties
+
+Skills can have these special properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `damagePercent` | number | ATK multiplier (100 = 100% ATK) |
+| `healSelfPercent` | number | Lifesteal - heal % of damage dealt |
+| `healAlliesPercent` | number | Heal all allies for % of damage dealt |
+| `healPercent` | number | Heal target for % of caster's ATK |
+| `noDamage` | boolean | Skill applies effects only, no damage |
+| `targetType` | string | `'enemy'`, `'ally'`, `'self'`, `'all_enemies'`, `'all_allies'` |
+| `effects` | array | Status effects to apply |
+
+```js
+// Lifesteal skill example (Aurora's Holy Strike)
+{
+  name: 'Holy Strike',
+  damagePercent: 120,
+  healSelfPercent: 50,  // Heal for 50% of damage dealt
+  targetType: 'enemy'
+}
+
+// Buff skill example (Aurora's Guardian Link)
+{
+  name: 'Guardian Link',
+  targetType: 'ally',
+  noDamage: true,
+  effects: [
+    { type: EffectType.GUARDIAN_LINK, target: 'ally', duration: 3, redirectPercent: 40 }
+  ]
+}
+```
+
+## Status Effect Types
+
+Effects are defined in `src/data/statusEffects.js`. Key categories:
+
+**Protection Effects** (checked in applyDamage):
+- `DIVINE_SACRIFICE` - Intercepts all ally damage, has `damageReduction` and `healPerTurn`
+- `GUARDIAN_LINK` - Redirects damage to guardian, has `guardianId` and `redirectPercent`
+- `DAMAGE_REDUCTION` - Flat % damage reduction, has `value`
+- `SHIELD` - Absorbs damage, has `shieldHp`
+- `EVASION` - Dodge chance, has `value` (percentage)
+- `DEATH_PREVENTION` - Survive fatal hit at 1 HP (one-time)
+
+**Damage Storage** (accumulate and release):
+- `DAMAGE_STORE` - Tracks `storedDamage`, releases to all enemies when duration expires
+
+**Reactive Effects** (trigger when hit):
+- `FLAME_SHIELD` - Burns attacker, has `burnDamage` and `burnDuration`
+- `THORNS` - Reflects damage, has `value` (percentage)
+- `RIPOSTE` - Counter-attack if attacker has lower DEF
+
+**Triggered Effects**:
+- `WELL_FED` - Heals when HP drops below `threshold`, has `healPercent`
+
+```js
+// Creating a protection effect
+{
+  type: EffectType.DIVINE_SACRIFICE,
+  duration: 2,
+  damageReduction: 50,  // 50% DR
+  healPerTurn: 15       // Heal 15% max HP per turn
+}
+
+// Creating a damage store effect
+{
+  type: EffectType.DAMAGE_STORE,
+  duration: 2,
+  storedDamage: 0  // Accumulates as hero takes damage
+}
+```
+
+## Class Resource Systems
+
+Each class has a unique resource besides MP:
+
+| Class | Resource | Mechanic |
+|-------|----------|----------|
+| Berserker | Rage | Builds on damage taken/kills, increases ATK, reduces DEF |
+| Ranger | Focus | Builds per turn, spent on powerful shots |
+| Knight | Valor | Builds when protecting allies, enables defensive skills |
+| Paladin | Faith | Standard MP-like resource |
+| Mage | Mana | Standard MP |
+| Cleric | Divine Power | Standard MP |
+| Druid | Nature | Standard MP |
+| Bard | Inspiration | Standard MP |
 
 ## Hero Roster
 

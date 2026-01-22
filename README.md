@@ -173,11 +173,23 @@ dorf/
 | STUN | Skip turn (control effect) |
 | TAUNT | Force enemies to target this hero |
 | UNTARGETABLE | Cannot be targeted by enemies |
+| EVASION | Chance to completely avoid attacks |
 | THORNS | Reflect damage when attacked |
+| RIPOSTE | Counter-attack when hit by lower DEF enemy |
+| SHIELD | Absorbs damage before HP |
+| DAMAGE_REDUCTION | Reduces incoming damage by percentage |
+| MARKED | Increases damage taken from all sources |
+| GUARDIAN_LINK | Redirects portion of damage to linked guardian |
+| DAMAGE_STORE | Stores damage taken, releases as AoE on expiration |
+| DIVINE_SACRIFICE | Intercepts all ally damage with damage reduction |
+| FLAME_SHIELD | Burns attackers when hit |
+| WELL_FED | Auto-heals when HP drops below threshold |
+| DEATH_PREVENTION | Prevents fatal damage once |
 
 - Stat modifiers stack additively (two 20% DEF downs = 40% reduction)
 - DoT/HoT effects can scale with caster's ATK via `atkPercent`
 - Cleanse effects can remove debuffs; some enemy skills remove buffs
+- Protection effects (Divine Sacrifice, Guardian Link) are checked before normal damage
 
 ### Items
 
@@ -214,6 +226,25 @@ Each region has a boss node with unique mechanics and better rewards.
 | 3-star | Kensin Squire (Knight), Knarly Zeek (Mage), Grandma Helga (Cleric), Harl the Handsom (Bard) |
 | 2-star | Sorju Gate Guard (Knight), Calisus (Mage), Bertan the Gatherer (Druid) |
 | 1-star | Darl (Berserker), Salia (Ranger), Vagrant Bil (Cleric) |
+
+### Featured 5-Star Heroes
+
+**Aurora the Dawn** (Paladin) - Divine Protector
+- **Holy Strike**: 120% ATK damage with 50% lifesteal
+- **Guardian Link**: Link to an ally, absorbing 40% of their damage
+- **Consecrated Ground**: Grant ally 25% damage reduction
+- **Judgment's Echo**: Store all damage taken for 2 turns, then release as AoE
+- **Divine Sacrifice**: Intercept ALL ally damage with 50% DR and self-healing
+
+**Shadow King** (Berserker) - Rage-Fueled Warrior
+- Builds Rage when taking damage or killing enemies
+- Rage increases ATK but reduces DEF
+- Ultimate abilities consume Rage for massive damage
+
+**Yggra the World Root** (Druid) - Nature's Guardian
+- **Nature's Grasp**: Root enemies and deal damage over time
+- **Verdant Shield**: Grant ally death prevention (survive fatal hit at 1 HP)
+- **Nature's Reclamation**: Damage enemies and heal all allies from the damage
 
 ## New Player Start
 
