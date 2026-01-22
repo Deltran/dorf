@@ -416,6 +416,19 @@ export const useBattleStore = defineStore('battle', () => {
           addLog(`${unitName} recovers ${actualGain} MP!`)
         }
       }
+
+      // Divine Sacrifice heal per turn
+      if (effect.type === EffectType.DIVINE_SACRIFICE && effect.healPerTurn) {
+        const maxHp = unit.stats?.hp || unit.maxHp || 100
+        const healAmount = Math.floor(maxHp * effect.healPerTurn / 100)
+        const oldHp = unit.currentHp
+        unit.currentHp = Math.min(maxHp, unit.currentHp + healAmount)
+        const actualHeal = unit.currentHp - oldHp
+        if (actualHeal > 0) {
+          addLog(`Divine Sacrifice heals ${unitName} for ${actualHeal}!`)
+          emitCombatEffect(targetId, targetType, 'heal', actualHeal)
+        }
+      }
     }
 
     // Tick down durations and remove expired effects
@@ -647,6 +660,20 @@ export const useBattleStore = defineStore('battle', () => {
     return { totalDamage: storedDamage, enemiesHit: aliveEnemies.length }
   }
 
+  function checkDivineSacrifice(target, allHeroes) {
+    // Find a hero (not the target) who has Divine Sacrifice active
+    for (const hero of allHeroes) {
+      if (hero.instanceId === target.instanceId) continue
+      if (hero.currentHp <= 0) continue
+
+      const divineSacrifice = hero.statusEffects?.find(e => e.type === EffectType.DIVINE_SACRIFICE)
+      if (divineSacrifice) {
+        return hero
+      }
+    }
+    return null
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
@@ -673,6 +700,34 @@ export const useBattleStore = defineStore('battle', () => {
 
         return 0 // No damage dealt
       }
+    }
+
+    // Check for DIVINE_SACRIFICE - intercepts ALL ally damage
+    const sacrificer = checkDivineSacrifice(unit, heroes.value)
+    if (sacrificer) {
+      const sacrifice = sacrificer.statusEffects.find(e => e.type === EffectType.DIVINE_SACRIFICE)
+      const damageReduction = sacrifice.damageReduction || 50
+      const reducedDamage = Math.floor(damage * (100 - damageReduction) / 100)
+      const actualDamage = Math.min(sacrificer.currentHp, reducedDamage)
+
+      sacrificer.currentHp = Math.max(0, sacrificer.currentHp - actualDamage)
+
+      addLog(`${sacrificer.template.name} intercepts ${damage} damage meant for ${unit.template.name}! (Reduced to ${actualDamage})`)
+      emitCombatEffect(sacrificer.instanceId, 'hero', 'damage', actualDamage)
+
+      // Track for DAMAGE_STORE
+      const damageStore = sacrificer.statusEffects?.find(e => e.type === EffectType.DAMAGE_STORE)
+      if (damageStore) {
+        damageStore.storedDamage = (damageStore.storedDamage || 0) + actualDamage
+      }
+
+      if (sacrificer.currentHp <= 0) {
+        if (sacrificer.statusEffects?.length > 0) {
+          sacrificer.statusEffects = []
+        }
+      }
+
+      return actualDamage // Target takes no damage
     }
 
     // Check for GUARDIAN_LINK effect (damage sharing with Aurora)
@@ -2564,6 +2619,8 @@ export const useBattleStore = defineStore('battle', () => {
     calculateGuardianLinkDamage,
     // Damage Store (for Aurora's damage release)
     releaseDamageStore,
+    // Divine Sacrifice (for Aurora's ally damage interception)
+    checkDivineSacrifice,
     // Constants
     BattleState,
     EffectType

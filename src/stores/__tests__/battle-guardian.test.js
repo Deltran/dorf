@@ -134,4 +134,65 @@ describe('battle store - Guardian Link', () => {
       expect(result.totalDamage).toBe(0)
     })
   })
+
+  describe('checkDivineSacrifice', () => {
+    it('finds hero with DIVINE_SACRIFICE', () => {
+      const aurora = {
+        instanceId: 'aurora1',
+        template: { name: 'Aurora' },
+        currentHp: 150,
+        statusEffects: [
+          {
+            type: EffectType.DIVINE_SACRIFICE,
+            duration: 2,
+            damageReduction: 50,
+            healPerTurn: 15,
+            definition: { isDivineSacrifice: true }
+          }
+        ]
+      }
+      const ally = {
+        instanceId: 'mage1',
+        template: { name: 'Mage' },
+        currentHp: 80,
+        statusEffects: []
+      }
+
+      const result = store.checkDivineSacrifice(ally, [aurora, ally])
+
+      expect(result).toBe(aurora)
+    })
+
+    it('returns null when no hero has DIVINE_SACRIFICE', () => {
+      const ally = {
+        instanceId: 'mage1',
+        template: { name: 'Mage' },
+        currentHp: 80,
+        statusEffects: []
+      }
+
+      const result = store.checkDivineSacrifice(ally, [ally])
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when target is the sacrificer', () => {
+      const aurora = {
+        instanceId: 'aurora1',
+        template: { name: 'Aurora' },
+        currentHp: 150,
+        statusEffects: [
+          {
+            type: EffectType.DIVINE_SACRIFICE,
+            duration: 2,
+            definition: { isDivineSacrifice: true }
+          }
+        ]
+      }
+
+      const result = store.checkDivineSacrifice(aurora, [aurora])
+
+      expect(result).toBeNull()
+    })
+  })
 })
