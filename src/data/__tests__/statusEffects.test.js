@@ -49,3 +49,17 @@ describe('GUARDIAN_LINK status effect', () => {
     expect(def.isGuardianLink).toBe(true)
   })
 })
+
+describe('DAMAGE_STORE status effect', () => {
+  it('has DAMAGE_STORE in EffectType enum', () => {
+    expect(EffectType.DAMAGE_STORE).toBe('damage_store')
+  })
+
+  it('has DAMAGE_STORE definition with correct properties', () => {
+    const def = effectDefinitions[EffectType.DAMAGE_STORE]
+    expect(def).toBeDefined()
+    expect(def.name).toBe("Judgment's Echo")
+    expect(def.isBuff).toBe(true)
+    expect(def.isDamageStore).toBe(true)
+  })
+})
