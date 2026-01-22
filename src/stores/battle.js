@@ -674,6 +674,26 @@ export const useBattleStore = defineStore('battle', () => {
       unit.wasAttacked = true
     }
 
+    // Check for Well Fed trigger (auto-heal when HP drops below threshold)
+    if (unit.currentHp > 0 && unit.statusEffects) {
+      const wellFedEffect = unit.statusEffects.find(e => e.type === EffectType.WELL_FED && !e.triggered)
+      if (wellFedEffect) {
+        const hpPercent = (unit.currentHp / unit.maxHp) * 100
+        if (hpPercent < wellFedEffect.threshold) {
+          // Trigger the auto-heal
+          const healAmount = Math.floor(wellFedEffect.casterAtk * wellFedEffect.atkPercent / 100)
+          const oldHp = unit.currentHp
+          unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount)
+          const actualHeal = unit.currentHp - oldHp
+          wellFedEffect.triggered = true
+          const unitName = unit.template?.name || 'Unknown'
+          addLog(`${unitName} is Well Fed! Auto-healed for ${actualHeal} HP!`)
+          const isHero = !!unit.instanceId
+          emitCombatEffect(isHero ? unit.instanceId : unit.id, isHero ? 'hero' : 'enemy', 'heal', actualHeal)
+        }
+      }
+    }
+
     // Clear all status effects on death
     if (unit.currentHp <= 0) {
       if (unit.statusEffects?.length > 0) {
@@ -1776,6 +1796,21 @@ export const useBattleStore = defineStore('battle', () => {
                   emitCombatEffect(target.id, 'enemy', 'debuff', 0)
                 }
               }
+            }
+          }
+          // Apply Well Fed effect (e.g., Second Helping)
+          if (skill.wellFedEffect) {
+            const { duration, atkPercent, threshold } = skill.wellFedEffect
+            for (const target of aliveHeroes.value) {
+              applyEffect(target, EffectType.WELL_FED, {
+                duration,
+                sourceId: hero.instanceId,
+                fromAllySkill: true,
+                casterAtk: effectiveAtk,
+                atkPercent,
+                threshold
+              })
+              emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
             }
           }
           break

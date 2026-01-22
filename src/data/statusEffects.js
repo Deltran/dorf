@@ -29,7 +29,10 @@ export const EffectType = {
   UNTARGETABLE: 'untargetable', // Cannot be targeted by enemies
 
   // Protection
-  GUARDING: 'guarding' // Redirects damage from guarded ally to guardian
+  GUARDING: 'guarding', // Redirects damage from guarded ally to guardian
+
+  // Triggered effects
+  WELL_FED: 'well_fed' // Auto-heals when HP drops below threshold
 }
 
 // Effect definitions with display info and default behavior
@@ -168,11 +171,19 @@ export const effectDefinitions = {
     isBuff: true,
     isGuarding: true,
     stackable: false
+  },
+  [EffectType.WELL_FED]: {
+    name: 'Well Fed',
+    icon: '🍲',
+    color: '#f59e0b',
+    isBuff: true,
+    isTriggered: true,
+    stackable: false
   }
 }
 
 // Helper to create a status effect instance
-export function createEffect(type, { duration = 2, value = 0, sourceId = null } = {}) {
+export function createEffect(type, { duration = 2, value = 0, sourceId = null, ...extra } = {}) {
   const definition = effectDefinitions[type]
   if (!definition) {
     console.warn(`Unknown effect type: ${type}`)
@@ -184,7 +195,8 @@ export function createEffect(type, { duration = 2, value = 0, sourceId = null } 
     duration, // Turns remaining
     value, // Percentage for stat mods, flat damage for DoTs, etc.
     sourceId, // Who applied this effect
-    definition
+    definition,
+    ...extra // Additional properties (e.g., casterAtk, atkPercent, threshold for WELL_FED)
   }
 }
 
