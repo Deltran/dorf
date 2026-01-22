@@ -256,6 +256,7 @@ export const heroTemplates = {
         name: 'Lunar Blessing',
         description: 'Heal one ally for 150% ATK and grant them 20% DEF boost for 2 turns',
         mpCost: 22,
+        skillUnlockLevel: 1,
         targetType: 'ally',
         effects: [
           { type: EffectType.DEF_UP, target: 'ally', duration: 2, value: 20 }
@@ -265,6 +266,7 @@ export const heroTemplates = {
         name: 'Moonveil',
         description: 'Shroud an ally in moonlight, making them untargetable for 2 turns',
         mpCost: 20,
+        skillUnlockLevel: 1,
         targetType: 'ally',
         noDamage: true,
         effects: [
@@ -279,6 +281,35 @@ export const heroTemplates = {
         targetType: 'ally',
         noDamage: true,
         cleanse: 'debuffs'
+      },
+      {
+        name: 'Silver Mist',
+        description: 'Grant ally 40% evasion for 3 turns. Missed attacks restore 5 MP to Lady Moonwhisper.',
+        mpCost: 18,
+        skillUnlockLevel: 6,
+        targetType: 'ally',
+        noDamage: true,
+        effects: [
+          {
+            type: EffectType.EVASION,
+            target: 'ally',
+            duration: 3,
+            value: 40,
+            onEvade: { restoreMp: 5, to: 'caster' }
+          }
+        ]
+      },
+      {
+        name: "Full Moon's Embrace",
+        description: 'Revive a fallen ally at 40% HP with untargetable for 1 turn.',
+        mpCost: 35,
+        skillUnlockLevel: 12,
+        targetType: 'dead_ally',
+        noDamage: true,
+        revive: { hpPercent: 40 },
+        effects: [
+          { type: EffectType.UNTARGETABLE, target: 'ally', duration: 1 }
+        ]
       }
     ]
   },

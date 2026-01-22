@@ -55,6 +55,10 @@ export const useBattleStore = defineStore('battle', () => {
     return heroes.value.filter(h => h.currentHp > 0)
   })
 
+  const deadHeroes = computed(() => {
+    return heroes.value.filter(h => h.currentHp <= 0)
+  })
+
   const aliveEnemies = computed(() => {
     return enemies.value.filter(e => e.currentHp > 0)
   })
@@ -225,7 +229,7 @@ export const useBattleStore = defineStore('battle', () => {
 
   const needsTargetSelection = computed(() => {
     const targetType = currentTargetType.value
-    return targetType === 'enemy' || targetType === 'ally'
+    return targetType === 'enemy' || targetType === 'ally' || targetType === 'dead_ally'
   })
 
   // ========== STATUS EFFECT FUNCTIONS ==========
@@ -264,7 +268,7 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   // Apply a status effect to a unit
-  function applyEffect(unit, effectType, { duration = 2, value = 0, sourceId = null, fromAllySkill = false } = {}) {
+  function applyEffect(unit, effectType, { duration = 2, value = 0, sourceId = null, fromAllySkill = false, ...extra } = {}) {
     if (!unit.statusEffects) {
       unit.statusEffects = []
     }
@@ -279,7 +283,7 @@ export const useBattleStore = defineStore('battle', () => {
       return
     }
 
-    const newEffect = createEffect(effectType, { duration, value, sourceId })
+    const newEffect = createEffect(effectType, { duration, value, sourceId, ...extra })
     if (!newEffect) return
 
     // Track whether this is a self-buff or ally-buff (for stat buff stacking)
@@ -606,6 +610,29 @@ export const useBattleStore = defineStore('battle', () => {
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
     if (damage <= 0) return 0
 
+    // Check for EVASION effect
+    const evasionEffect = (unit.statusEffects || []).find(e => e.type === EffectType.EVASION)
+    if (evasionEffect && source === 'attack') {
+      const evasionChance = evasionEffect.value / 100
+      if (Math.random() < evasionChance) {
+        const unitName = unit.template?.name || 'Unknown'
+        addLog(`${unitName} evades the attack!`)
+        emitCombatEffect(unit.instanceId || unit.id, unit.instanceId ? 'hero' : 'enemy', 'miss', 0)
+
+        // Handle onEvade effects (e.g., MP restore to caster)
+        if (evasionEffect.onEvade?.restoreMp && evasionEffect.sourceId) {
+          const caster = heroes.value.find(h => h.instanceId === evasionEffect.sourceId)
+          if (caster && caster.currentHp > 0) {
+            const mpToRestore = evasionEffect.onEvade.restoreMp
+            caster.currentMp = Math.min(caster.maxMp, caster.currentMp + mpToRestore)
+            addLog(`${caster.template.name} recovers ${mpToRestore} MP!`)
+          }
+        }
+
+        return 0 // No damage dealt
+      }
+    }
+
     // Check if unit is being guarded by another hero
     if (unit.guardedBy && unit.guardedBy.duration > 0) {
       const guardian = heroes.value.find(h => h.instanceId === unit.guardedBy.guardianId)
@@ -752,6 +779,19 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     return actualDamage
+  }
+
+  // Revive a dead unit with a percentage of max HP
+  function reviveUnit(unit, hpPercent) {
+    if (!unit || unit.currentHp > 0) return false
+
+    const newHp = Math.floor(unit.maxHp * hpPercent / 100)
+    unit.currentHp = newHp
+
+    addLog(`${unit.template.name} has been revived with ${newHp} HP!`)
+    emitCombatEffect(unit.instanceId, 'hero', 'heal', newHp)
+
+    return true
   }
 
   // ========== SKILL CONDITION HELPERS ==========
@@ -1563,7 +1603,7 @@ export const useBattleStore = defineStore('battle', () => {
               if (effect.target === 'ally' && shouldApplyEffect(effect, hero)) {
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
-                applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
+                applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true, ...(effect.onEvade && { onEvade: effect.onEvade }) })
                 emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
               }
             }
@@ -1641,6 +1681,40 @@ export const useBattleStore = defineStore('battle', () => {
             if (actualGrant > 0) {
               addLog(`${target.template.name} gains ${actualGrant} Valor!`)
               emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+            }
+          }
+          break
+        }
+
+        case 'dead_ally': {
+          const target = heroes.value.find(h => h.instanceId === selectedTarget.value?.id)
+          if (!target || target.currentHp > 0) {
+            addLog('Invalid target - must target a fallen ally')
+            // Refund MP
+            hero.currentMp += skill.mpCost
+            state.value = BattleState.PLAYER_TURN
+            return
+          }
+
+          addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
+
+          // Revive the target
+          if (skill.revive) {
+            reviveUnit(target, skill.revive.hpPercent)
+          }
+
+          // Apply post-revive effects (like untargetable)
+          if (skill.effects) {
+            for (const effect of skill.effects) {
+              if (effect.target === 'ally') {
+                applyEffect(target, effect.type, {
+                  duration: effect.duration,
+                  value: effect.value || 0,
+                  sourceId: hero.instanceId,
+                  fromAllySkill: true
+                })
+                emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              }
             }
           }
           break
@@ -2259,6 +2333,7 @@ export const useBattleStore = defineStore('battle', () => {
     currentUnit,
     isPlayerTurn,
     aliveHeroes,
+    deadHeroes,
     aliveEnemies,
     isBattleOver,
     currentTargetType,
@@ -2271,6 +2346,7 @@ export const useBattleStore = defineStore('battle', () => {
     endBattle,
     clearCombatEffects,
     applyDamage,
+    reviveUnit,
     // Effect helpers (for UI)
     getEffectiveStat,
     hasEffect,
