@@ -21,3 +21,17 @@ describe('MARKED status effect', () => {
     expect(effect.value).toBe(20)
   })
 })
+
+describe('FLAME_SHIELD status effect', () => {
+  it('has FLAME_SHIELD in EffectType enum', () => {
+    expect(EffectType.FLAME_SHIELD).toBe('flame_shield')
+  })
+
+  it('has FLAME_SHIELD definition with correct properties', () => {
+    const def = effectDefinitions[EffectType.FLAME_SHIELD]
+    expect(def).toBeDefined()
+    expect(def.name).toBe('Flame Shield')
+    expect(def.isBuff).toBe(true)
+    expect(def.isFlameShield).toBe(true)
+  })
+})
