@@ -34,4 +34,50 @@ describe('battle store - evasion effect', () => {
       expect(store.hasEffect(unit, EffectType.EVASION)).toBe(true)
     })
   })
+
+  describe('applyDamage with evasion', () => {
+    it('can evade damage when evasion check succeeds', () => {
+      // Mock Math.random to always return 0 (will be < 0.4 evasion chance)
+      const originalRandom = Math.random
+      Math.random = () => 0
+
+      const unit = {
+        currentHp: 100,
+        maxHp: 100,
+        statusEffects: [
+          { type: EffectType.EVASION, duration: 3, value: 40 }
+        ],
+        template: { name: 'Test Hero' }
+      }
+
+      const result = store.applyDamage(unit, 50, 'attack')
+
+      expect(result).toBe(0) // No damage dealt
+      expect(unit.currentHp).toBe(100) // HP unchanged
+
+      Math.random = originalRandom
+    })
+
+    it('takes damage when evasion check fails', () => {
+      // Mock Math.random to always return 0.5 (will be >= 0.4 evasion chance)
+      const originalRandom = Math.random
+      Math.random = () => 0.5
+
+      const unit = {
+        currentHp: 100,
+        maxHp: 100,
+        statusEffects: [
+          { type: EffectType.EVASION, duration: 3, value: 40 }
+        ],
+        template: { name: 'Test Hero' }
+      }
+
+      const result = store.applyDamage(unit, 50, 'attack')
+
+      expect(result).toBe(50) // Full damage dealt
+      expect(unit.currentHp).toBe(50) // HP reduced
+
+      Math.random = originalRandom
+    })
+  })
 })

@@ -606,6 +606,29 @@ export const useBattleStore = defineStore('battle', () => {
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
     if (damage <= 0) return 0
 
+    // Check for EVASION effect
+    const evasionEffect = (unit.statusEffects || []).find(e => e.type === EffectType.EVASION)
+    if (evasionEffect && source === 'attack') {
+      const evasionChance = evasionEffect.value / 100
+      if (Math.random() < evasionChance) {
+        const unitName = unit.template?.name || 'Unknown'
+        addLog(`${unitName} evades the attack!`)
+        emitCombatEffect(unit.instanceId || unit.id, unit.instanceId ? 'hero' : 'enemy', 'miss', 0)
+
+        // Handle onEvade effects (e.g., MP restore to caster)
+        if (evasionEffect.onEvade?.restoreMp && evasionEffect.sourceId) {
+          const caster = heroes.value.find(h => h.instanceId === evasionEffect.sourceId)
+          if (caster && caster.currentHp > 0) {
+            const mpToRestore = evasionEffect.onEvade.restoreMp
+            caster.currentMp = Math.min(caster.maxMp, caster.currentMp + mpToRestore)
+            addLog(`${caster.template.name} recovers ${mpToRestore} MP!`)
+          }
+        }
+
+        return 0 // No damage dealt
+      }
+    }
+
     // Check if unit is being guarded by another hero
     if (unit.guardedBy && unit.guardedBy.duration > 0) {
       const guardian = heroes.value.find(h => h.instanceId === unit.guardedBy.guardianId)
