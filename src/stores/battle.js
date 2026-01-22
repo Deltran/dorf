@@ -1985,7 +1985,18 @@ export const useBattleStore = defineStore('battle', () => {
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                 for (const target of aliveHeroes.value) {
-                  applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
+                  const effectOptions = {
+                    duration: effectDuration,
+                    value: effectValue,
+                    sourceId: hero.instanceId,
+                    fromAllySkill: true
+                  }
+                  // Pass caster ATK for death prevention heal
+                  if (effect.type === EffectType.DEATH_PREVENTION) {
+                    effectOptions.healOnTrigger = effect.healOnTrigger
+                    effectOptions.casterAtk = effectiveAtk
+                  }
+                  applyEffect(target, effect.type, effectOptions)
                   emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
                 }
               }
