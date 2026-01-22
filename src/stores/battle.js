@@ -446,12 +446,36 @@ export const useBattleStore = defineStore('battle', () => {
           addLog(`${unitName} recovers ${actualGain} MP!`)
         }
       }
+
+      // Divine Sacrifice heal per turn
+      if (effect.type === EffectType.DIVINE_SACRIFICE && effect.healPerTurn) {
+        const maxHp = unit.stats?.hp || unit.maxHp || 100
+        const healAmount = Math.floor(maxHp * effect.healPerTurn / 100)
+        const oldHp = unit.currentHp
+        unit.currentHp = Math.min(maxHp, unit.currentHp + healAmount)
+        const actualHeal = unit.currentHp - oldHp
+        if (actualHeal > 0) {
+          addLog(`Divine Sacrifice heals ${unitName} for ${actualHeal}!`)
+          emitCombatEffect(targetId, targetType, 'heal', actualHeal)
+        }
+      }
     }
 
     // Tick down durations and remove expired effects
     unit.statusEffects = unit.statusEffects.filter(effect => {
       effect.duration--
       if (effect.duration <= 0) {
+        // Check for DAMAGE_STORE expiration - release damage before removing
+        if (effect.type === EffectType.DAMAGE_STORE) {
+          const storedDamage = effect.storedDamage || 0
+          if (storedDamage > 0) {
+            for (const enemy of aliveEnemies.value) {
+              applyDamage(enemy, storedDamage, 'attack', unit)
+              emitCombatEffect(enemy.id, 'enemy', 'damage', storedDamage)
+            }
+            addLog(`${unitName} releases ${storedDamage} stored damage to all enemies!`)
+          }
+        }
         addLog(`${unitName}'s ${effect.definition.name} wore off.`)
         return false
       }
@@ -635,6 +659,57 @@ export const useBattleStore = defineStore('battle', () => {
     return 0 // Default value
   }
 
+  // Calculate how damage should be split between an ally and their linked guardian
+  function calculateGuardianLinkDamage(target, damage, allHeroes) {
+    const guardianLink = target.statusEffects?.find(e => e.type === EffectType.GUARDIAN_LINK)
+    if (!guardianLink) {
+      return { allyDamage: damage, guardianDamage: 0, guardian: null }
+    }
+
+    const guardian = allHeroes.find(h => h.instanceId === guardianLink.guardianId)
+    if (!guardian || guardian.currentHp <= 0) {
+      return { allyDamage: damage, guardianDamage: 0, guardian: null }
+    }
+
+    const redirectPercent = guardianLink.redirectPercent || 40
+    const guardianDamage = Math.floor(damage * redirectPercent / 100)
+    const allyDamage = damage - guardianDamage
+
+    return { allyDamage, guardianDamage, guardian }
+  }
+
+  function releaseDamageStore(hero, enemies) {
+    const damageStore = hero.statusEffects?.find(e => e.type === EffectType.DAMAGE_STORE)
+    if (!damageStore || !damageStore.storedDamage || damageStore.storedDamage <= 0) {
+      return { totalDamage: 0, enemiesHit: 0 }
+    }
+
+    const storedDamage = damageStore.storedDamage
+    const aliveEnemies = enemies.filter(e => e.currentHp > 0)
+
+    return { totalDamage: storedDamage, enemiesHit: aliveEnemies.length }
+  }
+
+  function checkDivineSacrifice(target, allHeroes) {
+    // Find a hero (not the target) who has Divine Sacrifice active
+    for (const hero of allHeroes) {
+      if (hero.instanceId === target.instanceId) continue
+      if (hero.currentHp <= 0) continue
+
+      const divineSacrifice = hero.statusEffects?.find(e => e.type === EffectType.DIVINE_SACRIFICE)
+      if (divineSacrifice) {
+        return hero
+      }
+    }
+    return null
+  }
+
+  // Calculate heal amount from lifesteal (healSelfPercent skill property)
+  function calculateHealSelfPercent(damageDealt, healPercent) {
+    if (!healPercent || healPercent <= 0) return 0
+    return Math.floor(damageDealt * healPercent / 100)
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
@@ -661,6 +736,62 @@ export const useBattleStore = defineStore('battle', () => {
 
         return 0 // No damage dealt
       }
+    }
+
+    // Check for DIVINE_SACRIFICE - intercepts ALL ally damage
+    const sacrificer = checkDivineSacrifice(unit, heroes.value)
+    if (sacrificer) {
+      const sacrifice = sacrificer.statusEffects.find(e => e.type === EffectType.DIVINE_SACRIFICE)
+      const damageReduction = sacrifice.damageReduction || 50
+      const reducedDamage = Math.floor(damage * (100 - damageReduction) / 100)
+      const actualDamage = Math.min(sacrificer.currentHp, reducedDamage)
+
+      sacrificer.currentHp = Math.max(0, sacrificer.currentHp - actualDamage)
+
+      addLog(`${sacrificer.template.name} intercepts ${damage} damage meant for ${unit.template.name}! (Reduced to ${actualDamage})`)
+      emitCombatEffect(sacrificer.instanceId, 'hero', 'damage', actualDamage)
+
+      // Track for DAMAGE_STORE
+      const damageStore = sacrificer.statusEffects?.find(e => e.type === EffectType.DAMAGE_STORE)
+      if (damageStore) {
+        damageStore.storedDamage = (damageStore.storedDamage || 0) + actualDamage
+      }
+
+      if (sacrificer.currentHp <= 0) {
+        if (sacrificer.statusEffects?.length > 0) {
+          sacrificer.statusEffects = []
+        }
+      }
+
+      return actualDamage // Target takes no damage
+    }
+
+    // Check for GUARDIAN_LINK effect (damage sharing with Aurora)
+    const guardianLinkResult = calculateGuardianLinkDamage(unit, damage, heroes.value)
+    if (guardianLinkResult.guardianDamage > 0 && guardianLinkResult.guardian) {
+      const guardian = guardianLinkResult.guardian
+      const redirectedDamage = Math.min(guardian.currentHp, guardianLinkResult.guardianDamage)
+      guardian.currentHp = Math.max(0, guardian.currentHp - redirectedDamage)
+
+      addLog(`${guardian.template.name} absorbs ${redirectedDamage} damage for ${unit.template.name}!`)
+      emitCombatEffect(guardian.instanceId, 'hero', 'damage', redirectedDamage)
+
+      // Track damage for DAMAGE_STORE if guardian has it
+      const damageStore = guardian.statusEffects?.find(e => e.type === EffectType.DAMAGE_STORE)
+      if (damageStore) {
+        damageStore.storedDamage = (damageStore.storedDamage || 0) + redirectedDamage
+      }
+
+      if (guardian.currentHp <= 0) {
+        if (guardian.statusEffects?.length > 0) {
+          guardian.statusEffects = []
+        }
+        // Remove guardian link from ally when guardian dies
+        unit.statusEffects = unit.statusEffects.filter(e => e.type !== EffectType.GUARDIAN_LINK)
+      }
+
+      damage = guardianLinkResult.allyDamage
+      if (damage <= 0) return redirectedDamage
     }
 
     // Check if unit is being guarded by another hero
@@ -739,6 +870,14 @@ export const useBattleStore = defineStore('battle', () => {
 
     const actualDamage = Math.min(unit.currentHp, damage)
     unit.currentHp = Math.max(0, unit.currentHp - actualDamage)
+
+    // Track damage for DAMAGE_STORE if this unit has it (direct damage)
+    if (unit.statusEffects) {
+      const damageStore = unit.statusEffects.find(e => e.type === EffectType.DAMAGE_STORE)
+      if (damageStore) {
+        damageStore.storedDamage = (damageStore.storedDamage || 0) + actualDamage
+      }
+    }
 
     // Rangers lose focus when taking damage
     if (isRanger(unit) && actualDamage > 0) {
@@ -1418,10 +1557,25 @@ export const useBattleStore = defineStore('battle', () => {
             }
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
-            // Heal all allies for percentage of damage dealt (Nature's Reclamation)
+// Heal all allies for percentage of damage dealt (Nature's Reclamation)
             if (skill.healAlliesPercent && damage > 0) {
               healAlliesFromDamage(aliveHeroes.value, damage, skill.healAlliesPercent)
               addLog(`All allies are healed from the life force reclaimed!`)
+            }
+
+            // Handle healSelfPercent (lifesteal)
+            if (skill.healSelfPercent && damage > 0) {
+              const healAmount = calculateHealSelfPercent(damage, skill.healSelfPercent)
+              if (healAmount > 0) {
+                const maxHp = hero.stats?.hp || hero.maxHp
+                const oldHp = hero.currentHp
+                hero.currentHp = Math.min(maxHp, hero.currentHp + healAmount)
+                const actualHeal = hero.currentHp - oldHp
+                if (actualHeal > 0) {
+                  addLog(`${hero.template.name} heals for ${actualHeal}!`)
+                  emitCombatEffect(hero.instanceId, 'hero', 'heal', actualHeal)
+                }
+              }
             }
 
             // Consume debuffs if skill has consumeDebuffs flag
@@ -2557,8 +2711,16 @@ export const useBattleStore = defineStore('battle', () => {
     spreadBurnFromTarget,
     // Consume burns (for Conflagration skill)
     consumeAllBurns,
-    // Heal allies from damage (for Nature's Reclamation skill)
+// Heal allies from damage (for Nature's Reclamation skill)
     healAlliesFromDamage,
+    // Guardian Link (for Aurora's damage sharing)
+    calculateGuardianLinkDamage,
+    // Damage Store (for Aurora's damage release)
+    releaseDamageStore,
+    // Divine Sacrifice (for Aurora's ally damage interception)
+    checkDivineSacrifice,
+    // Heal Self Percent (lifesteal for skills)
+    calculateHealSelfPercent,
     // Constants
     BattleState,
     EffectType

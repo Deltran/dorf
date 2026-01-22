@@ -49,3 +49,45 @@ describe('DEATH_PREVENTION status effect', () => {
     expect(def.isDeathPrevention).toBe(true)
   })
 })
+
+describe('GUARDIAN_LINK status effect', () => {
+  it('has GUARDIAN_LINK in EffectType enum', () => {
+    expect(EffectType.GUARDIAN_LINK).toBe('guardian_link')
+  })
+
+  it('has GUARDIAN_LINK definition with correct properties', () => {
+    const def = effectDefinitions[EffectType.GUARDIAN_LINK]
+    expect(def).toBeDefined()
+    expect(def.name).toBe('Guardian Link')
+    expect(def.isBuff).toBe(true)
+    expect(def.isGuardianLink).toBe(true)
+  })
+})
+
+describe('DAMAGE_STORE status effect', () => {
+  it('has DAMAGE_STORE in EffectType enum', () => {
+    expect(EffectType.DAMAGE_STORE).toBe('damage_store')
+  })
+
+  it('has DAMAGE_STORE definition with correct properties', () => {
+    const def = effectDefinitions[EffectType.DAMAGE_STORE]
+    expect(def).toBeDefined()
+    expect(def.name).toBe("Judgment's Echo")
+    expect(def.isBuff).toBe(true)
+    expect(def.isDamageStore).toBe(true)
+  })
+})
+
+describe('DIVINE_SACRIFICE status effect', () => {
+  it('has DIVINE_SACRIFICE in EffectType enum', () => {
+    expect(EffectType.DIVINE_SACRIFICE).toBe('divine_sacrifice')
+  })
+
+  it('has DIVINE_SACRIFICE definition with correct properties', () => {
+    const def = effectDefinitions[EffectType.DIVINE_SACRIFICE]
+    expect(def).toBeDefined()
+    expect(def.name).toBe('Divine Sacrifice')
+    expect(def.isBuff).toBe(true)
+    expect(def.isDivineSacrifice).toBe(true)
+  })
+})
