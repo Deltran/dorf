@@ -441,7 +441,7 @@ export const questNodes = {
       { enemies: ['lake_serpent', 'giant_frog', 'giant_frog'] },
       { enemies: ['dire_wolf', 'dire_wolf', 'lake_serpent'] },
       { enemies: ['forest_wolf', 'forest_wolf', 'dire_wolf', 'giant_frog'] },
-      { enemies: ['marsh_hag', 'lake_serpent', 'giant_frog'] }
+      { enemies: ['lake_serpent', 'marsh_hag', 'lake_serpent', 'giant_frog'] }
     ],
     connections: ['lake_genus_loci'],
     rewards: { gems: 110, gold: 280, exp: 220 },
