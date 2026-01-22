@@ -1530,6 +1530,50 @@ export const useBattleStore = defineStore('battle', () => {
             emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
             emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
           }
+
+          // Extend buff durations (e.g., Encore)
+          if (skill.extendBuffs) {
+            const buffsExtended = target.statusEffects?.filter(e => e.definition?.isBuff) || []
+            if (buffsExtended.length > 0) {
+              for (const buff of buffsExtended) {
+                buff.duration += skill.extendBuffs
+              }
+              addLog(`${target.template.name}'s buffs extended by ${skill.extendBuffs} turns!`)
+              emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+            }
+          }
+
+          // Grant MP to target (e.g., Encore)
+          if (skill.grantMp) {
+            const oldMp = target.currentMp || 0
+            target.currentMp = Math.min(target.maxMp || 100, oldMp + skill.grantMp)
+            const actualGrant = target.currentMp - oldMp
+            if (actualGrant > 0) {
+              addLog(`${target.template.name} gains ${actualGrant} MP!`)
+            }
+          }
+
+          // Grant Rage to target (e.g., Encore - for Berserkers)
+          if (skill.grantRage && isBerserker(target)) {
+            const oldRage = target.currentRage || 0
+            gainRage(target, skill.grantRage)
+            const actualGrant = target.currentRage - oldRage
+            if (actualGrant > 0) {
+              addLog(`${target.template.name} gains ${actualGrant} Rage!`)
+              emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+            }
+          }
+
+          // Grant Valor to target (e.g., Encore - for Knights)
+          if (skill.grantValor && isKnight(target)) {
+            const oldValor = target.currentValor || 0
+            gainValor(target, skill.grantValor)
+            const actualGrant = target.currentValor - oldValor
+            if (actualGrant > 0) {
+              addLog(`${target.template.name} gains ${actualGrant} Valor!`)
+              emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+            }
+          }
           break
         }
 

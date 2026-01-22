@@ -463,9 +463,41 @@ export const heroTemplates = {
         name: 'Mana Melody',
         description: 'Restore 10 MP to all allies',
         mpCost: 20,
-        skillUnlockLevel: 3,
+        skillUnlockLevel: 1,
         targetType: 'all_allies',
         mpRestore: 10
+      },
+      {
+        name: 'Soothing Serenade',
+        description: 'Heal all allies for 15% of ATK',
+        mpCost: 22,
+        skillUnlockLevel: 3,
+        targetType: 'all_allies',
+        healFromStat: { stat: 'atk', percent: 15 }
+      },
+      {
+        name: 'Ballad of Blackwall',
+        description: 'Grant all allies DEF +20% for 2 turns',
+        mpCost: 20,
+        skillUnlockLevel: 6,
+        targetType: 'all_allies',
+        effects: [
+          { type: EffectType.DEF_UP, target: 'all_allies', duration: 2, value: 20 }
+        ]
+      },
+      {
+        name: 'Encore',
+        description: 'Extend buff durations on ally by 2 turns. Grant +15 MP, +10 Rage, +10 Valor, +15% SPD for 1 turn.',
+        mpCost: 30,
+        skillUnlockLevel: 12,
+        targetType: 'ally',
+        extendBuffs: 2,
+        grantMp: 15,
+        grantRage: 10,
+        grantValor: 10,
+        effects: [
+          { type: EffectType.SPD_UP, target: 'ally', duration: 1, value: 15 }
+        ]
       }
     ]
   },
