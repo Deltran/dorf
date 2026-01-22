@@ -22,20 +22,20 @@ Complete Harl's skill kit from 2 skills to 5 skills, establishing him as a **Ver
 - **Effect:** Increase all allies ATK by 15% for 2 turns
 
 ### Skill 2: Mana Melody (Existing)
-- **Unlock:** Level 3
+- **Unlock:** Level 1
 - **MP Cost:** 20
 - **Target:** All Allies
 - **Effect:** Restore 10 MP to all allies
 
 ### Skill 3: Soothing Serenade (New)
-- **Unlock:** Level 6
+- **Unlock:** Level 3
 - **MP Cost:** 22
 - **Target:** All Allies
 - **Effect:** Heal all allies for 15% of Harl's ATK
 - **Design Notes:** Secondary healing capability. At 15% per target (60% total across 4 heroes), this is weaker than dedicated healers like Grandma Helga (120% single target) but provides party-wide sustain. Harl is a buffer first, healer second.
 
 ### Skill 4: Ballad of Blackwall (New)
-- **Unlock:** Level 9
+- **Unlock:** Level 6
 - **MP Cost:** 20
 - **Target:** All Allies
 - **Effect:** Grant all allies DEF +20% for 2 turns
