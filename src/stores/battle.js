@@ -416,6 +416,18 @@ export const useBattleStore = defineStore('battle', () => {
       }
       return true
     })
+
+    // Tick down guardedBy duration (for units being protected)
+    if (unit.guardedBy && unit.guardedBy.duration > 0) {
+      unit.guardedBy.duration--
+      if (unit.guardedBy.duration <= 0) {
+        const guardian = heroes.value.find(h => h.instanceId === unit.guardedBy.guardianId)
+        if (guardian) {
+          addLog(`${guardian.template.name} is no longer protecting ${unitName}.`)
+        }
+        unit.guardedBy = null
+      }
+    }
   }
 
   // ========== FOCUS HELPERS (Rangers) ==========
@@ -586,6 +598,58 @@ export const useBattleStore = defineStore('battle', () => {
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
     if (damage <= 0) return 0
+
+    // Check if unit is being guarded by another hero
+    if (unit.guardedBy && unit.guardedBy.duration > 0) {
+      const guardian = heroes.value.find(h => h.instanceId === unit.guardedBy.guardianId)
+      if (guardian && guardian.currentHp > 0) {
+        // Redirect damage to guardian
+        const redirectPercent = unit.guardedBy.percent / 100
+        const redirectedDamage = Math.floor(damage * redirectPercent)
+        const remainingDamage = damage - redirectedDamage
+
+        if (redirectedDamage > 0) {
+          const guardianActualDamage = Math.min(guardian.currentHp, redirectedDamage)
+          guardian.currentHp = Math.max(0, guardian.currentHp - guardianActualDamage)
+          addLog(`${guardian.template.name} takes ${guardianActualDamage} damage protecting ${unit.template.name}!`)
+          emitCombatEffect(guardian.instanceId, 'hero', 'damage', guardianActualDamage)
+
+          // Guardian loses focus if ranger
+          if (isRanger(guardian) && guardianActualDamage > 0) {
+            removeFocus(guardian)
+          }
+
+          // Guardian gains rage if berserker
+          if (isBerserker(guardian)) {
+            gainRage(guardian, 10)
+          }
+
+          // Track that guardian was attacked
+          if (guardian.wasAttacked !== undefined) {
+            guardian.wasAttacked = true
+          }
+
+          // Clear guardian's effects on death
+          if (guardian.currentHp <= 0) {
+            if (guardian.statusEffects?.length > 0) {
+              guardian.statusEffects = []
+            }
+            if (isBerserker(guardian)) {
+              guardian.currentRage = 0
+            }
+            // Clear the guarding relationship
+            unit.guardedBy = null
+          }
+        }
+
+        // Apply remaining damage to original target (if any)
+        if (remainingDamage > 0) {
+          damage = remainingDamage
+        } else {
+          return redirectedDamage // Return redirected damage as the "actual damage" dealt
+        }
+      }
+    }
 
     const actualDamage = Math.min(unit.currentHp, damage)
     unit.currentHp = Math.max(0, unit.currentHp - actualDamage)
@@ -1411,6 +1475,22 @@ export const useBattleStore = defineStore('battle', () => {
             } else {
               addLog(`${target.template.name} has no debuffs.`)
             }
+          }
+
+          // Damage redirect (e.g., Guardian's Sacrifice)
+          if (skill.redirect) {
+            const redirectDuration = resolveEffectDuration(skill.redirect, hero)
+            // Mark the target as being guarded by the caster
+            target.guardedBy = {
+              guardianId: hero.instanceId,
+              percent: skill.redirect.percent,
+              duration: redirectDuration
+            }
+            // Apply GUARDING effect to the guardian (caster) for visual feedback
+            applyEffect(hero, EffectType.GUARDING, { duration: redirectDuration, value: skill.redirect.percent, sourceId: hero.instanceId, fromAllySkill: true })
+            addLog(`${hero.template.name} is now protecting ${target.template.name}!`)
+            emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+            emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
           }
           break
         }

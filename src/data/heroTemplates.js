@@ -336,6 +336,22 @@ export const heroTemplates = {
         effects: [
           { type: EffectType.RIPOSTE, target: 'self', duration: { base: 3, at75: 4, at100: 5 }, value: 100 }
         ]
+      },
+      {
+        name: "Guardian's Sacrifice",
+        description: 'Redirect all damage from one ally to Kensin. Gain DEF buff while active. Duration and DEF scale with Valor.',
+        valorRequired: 0,
+        targetType: 'ally',
+        skillUnlockLevel: 12,
+        noDamage: true,
+        defensive: true,
+        effects: [
+          { type: EffectType.DEF_UP, target: 'self', duration: { base: 2, at75: 3 }, value: { base: 20, at25: 25, at50: 30, at100: 35 } }
+        ],
+        redirect: {
+          percent: 100,
+          duration: { base: 2, at75: 3 }
+        }
       }
     ]
   },

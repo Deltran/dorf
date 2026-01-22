@@ -26,7 +26,10 @@ export const EffectType = {
 
   // Targeting manipulation
   TAUNT: 'taunt', // Enemies must target this unit
-  UNTARGETABLE: 'untargetable' // Cannot be targeted by enemies
+  UNTARGETABLE: 'untargetable', // Cannot be targeted by enemies
+
+  // Protection
+  GUARDING: 'guarding' // Redirects damage from guarded ally to guardian
 }
 
 // Effect definitions with display info and default behavior
@@ -156,6 +159,14 @@ export const effectDefinitions = {
     color: '#8b5cf6',
     isBuff: true,
     isUntargetable: true,
+    stackable: false
+  },
+  [EffectType.GUARDING]: {
+    name: 'Guarding',
+    icon: '🛡️',
+    color: '#3b82f6',
+    isBuff: true,
+    isGuarding: true,
     stackable: false
   }
 }
