@@ -354,6 +354,36 @@ export const useBattleStore = defineStore('battle', () => {
     return (unit.statusEffects || []).some(e => e.type === effectType)
   }
 
+  // Check if death prevention should trigger and handle it
+  function checkDeathPrevention(unit, incomingDamage) {
+    if (!unit.statusEffects) return false
+
+    const deathPreventionEffect = unit.statusEffects.find(
+      e => e.type === EffectType.DEATH_PREVENTION
+    )
+
+    if (!deathPreventionEffect) return false
+
+    // Only trigger if damage would kill
+    if (unit.currentHp - incomingDamage > 0) return false
+
+    // Prevent death: set HP to 1
+    unit.currentHp = 1
+
+    // Heal based on caster's ATK
+    if (deathPreventionEffect.healOnTrigger && deathPreventionEffect.casterAtk) {
+      const healAmount = Math.floor(deathPreventionEffect.casterAtk * deathPreventionEffect.healOnTrigger / 100)
+      unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount)
+    }
+
+    // Remove the effect (one-time use)
+    unit.statusEffects = unit.statusEffects.filter(
+      e => e.type !== EffectType.DEATH_PREVENTION
+    )
+
+    return true
+  }
+
   // Process effects at start of turn (check for stun, etc.)
   function processStartOfTurnEffects(unit) {
     if (hasEffect(unit, EffectType.STUN)) {
@@ -694,6 +724,16 @@ export const useBattleStore = defineStore('battle', () => {
       if (reducedAmount > 0) {
         const unitName = unit.template?.name || 'Unknown'
         addLog(`${unitName}'s fortified stance reduces damage by ${reducedAmount}!`)
+      }
+    }
+
+    // Check death prevention before applying lethal damage
+    if (unit.currentHp - damage <= 0) {
+      if (checkDeathPrevention(unit, damage)) {
+        const unitName = unit.template?.name || 'Unit'
+        addLog(`${unitName} is protected from death by World Root's Embrace!`)
+        emitCombatEffect(unit.instanceId || unit.id, unit.instanceId ? 'hero' : 'enemy', 'heal', 0)
+        return 0 // Damage was prevented by death prevention effect
       }
     }
 
@@ -1378,6 +1418,12 @@ export const useBattleStore = defineStore('battle', () => {
             }
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
+            // Heal all allies for percentage of damage dealt (Nature's Reclamation)
+            if (skill.healAlliesPercent && damage > 0) {
+              healAlliesFromDamage(aliveHeroes.value, damage, skill.healAlliesPercent)
+              addLog(`All allies are healed from the life force reclaimed!`)
+            }
+
             // Consume debuffs if skill has consumeDebuffs flag
             if (skill.consumeDebuffs && target.currentHp > 0) {
               const debuffsRemoved = (target.statusEffects || []).filter(e => !e.definition?.isBuff)
@@ -1939,7 +1985,18 @@ export const useBattleStore = defineStore('battle', () => {
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                 for (const target of aliveHeroes.value) {
-                  applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true })
+                  const effectOptions = {
+                    duration: effectDuration,
+                    value: effectValue,
+                    sourceId: hero.instanceId,
+                    fromAllySkill: true
+                  }
+                  // Pass caster ATK for death prevention heal
+                  if (effect.type === EffectType.DEATH_PREVENTION) {
+                    effectOptions.healOnTrigger = effect.healOnTrigger
+                    effectOptions.casterAtk = effectiveAtk
+                  }
+                  applyEffect(target, effect.type, effectOptions)
                   emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
                 }
               }
@@ -2423,6 +2480,23 @@ export const useBattleStore = defineStore('battle', () => {
     return shuffled.slice(0, maxBounces)
   }
 
+  // Heal all allies for a percentage of damage dealt
+  function healAlliesFromDamage(allies, damageDealt, healPercent) {
+    if (damageDealt <= 0 || healPercent <= 0) return
+
+    const healAmount = Math.floor(damageDealt * healPercent / 100)
+    if (healAmount <= 0) return
+
+    for (const ally of allies) {
+      const oldHp = ally.currentHp
+      ally.currentHp = Math.min(ally.maxHp, ally.currentHp + healAmount)
+      const actualHeal = ally.currentHp - oldHp
+      if (actualHeal > 0) {
+        emitCombatEffect(ally.instanceId, 'hero', 'heal', actualHeal)
+      }
+    }
+  }
+
   return {
     // State
     state,
@@ -2459,6 +2533,7 @@ export const useBattleStore = defineStore('battle', () => {
     // Effect helpers (for UI)
     getEffectiveStat,
     hasEffect,
+    checkDeathPrevention,
     getMarkedDamageMultiplier,
     calculateDamageWithMarked,
     selectRandomTarget,
@@ -2482,6 +2557,8 @@ export const useBattleStore = defineStore('battle', () => {
     spreadBurnFromTarget,
     // Consume burns (for Conflagration skill)
     consumeAllBurns,
+    // Heal allies from damage (for Nature's Reclamation skill)
+    healAlliesFromDamage,
     // Constants
     BattleState,
     EffectType

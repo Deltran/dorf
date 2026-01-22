@@ -42,7 +42,10 @@ export const EffectType = {
   FLAME_SHIELD: 'flame_shield', // Burns attackers when hit
 
   // Vulnerability
-  MARKED: 'marked' // Increases damage taken from all sources
+  MARKED: 'marked', // Increases damage taken from all sources
+
+  // Protection from death
+  DEATH_PREVENTION: 'death_prevention'
 }
 
 // Effect definitions with display info and default behavior
@@ -236,6 +239,14 @@ export const effectDefinitions = {
     color: '#ef4444',
     isBuff: false,
     isMarked: true,
+    stackable: false
+  },
+  [EffectType.DEATH_PREVENTION]: {
+    name: 'Protected',
+    icon: '🌳',
+    color: '#22c55e',
+    isBuff: true,
+    isDeathPrevention: true,
     stackable: false
   }
 }

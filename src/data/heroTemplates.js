@@ -119,12 +119,55 @@ export const heroTemplates = {
     rarity: 5,
     classId: 'druid',
     baseStats: { hp: 120, atk: 40, def: 35, spd: 10, mp: 75 },
-    skill: {
-      name: 'Blessing of the World Root',
-      description: 'Channel the life force of the world tree to restore all allies for 100% ATK',
-      mpCost: 25,
-      targetType: 'all_allies'
-    },
+    skills: [
+      {
+        name: 'Blessing of the World Root',
+        description: 'Channel the life force of the world tree to restore all allies for 75% ATK',
+        mpCost: 19,
+        skillUnlockLevel: 1,
+        targetType: 'all_allies'
+      },
+      {
+        name: 'Grasping Roots',
+        description: 'Poison one enemy (50% ATK per turn for 2 turns)',
+        mpCost: 15,
+        skillUnlockLevel: 1,
+        targetType: 'enemy',
+        noDamage: true,
+        effects: [
+          { type: EffectType.POISON, target: 'enemy', duration: 2, atkPercent: 50 }
+        ]
+      },
+      {
+        name: 'Bark Shield',
+        description: 'Heal one ally for 50% ATK and grant 50% thorns for 3 turns',
+        mpCost: 18,
+        skillUnlockLevel: 3,
+        targetType: 'ally',
+        effects: [
+          { type: EffectType.THORNS, target: 'ally', duration: 3, value: 50 }
+        ]
+      },
+      {
+        name: "Nature's Reclamation",
+        description: 'Deal 200% ATK damage to one enemy; heal all allies for 35% of damage dealt',
+        mpCost: 28,
+        skillUnlockLevel: 6,
+        targetType: 'enemy',
+        healAlliesPercent: 35
+      },
+      {
+        name: "World Root's Embrace",
+        description: 'Grant all allies death prevention for 2 turns; when triggered, heal saved ally for 50% ATK',
+        mpCost: 35,
+        skillUnlockLevel: 12,
+        targetType: 'all_allies',
+        noDamage: true,
+        effects: [
+          { type: EffectType.DEATH_PREVENTION, target: 'all_allies', duration: 2, healOnTrigger: 50 }
+        ]
+      }
+    ],
     leaderSkill: {
       name: 'Ancient Awakening',
       description: "On round 1, all allies are healed for 10% of Yggra's ATK",
