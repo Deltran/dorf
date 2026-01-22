@@ -2148,6 +2148,20 @@ export const useBattleStore = defineStore('battle', () => {
     return Math.floor(baseDamage * markedMultiplier)
   }
 
+  function selectRandomTarget(enemies, prioritizeMarked = false) {
+    const alive = enemies.filter(e => e.currentHp > 0)
+    if (alive.length === 0) return null
+
+    if (prioritizeMarked) {
+      const marked = alive.filter(e => e.statusEffects?.some(s => s.type === EffectType.MARKED))
+      if (marked.length > 0) {
+        return marked[Math.floor(Math.random() * marked.length)]
+      }
+    }
+
+    return alive[Math.floor(Math.random() * alive.length)]
+  }
+
   function calculateHeal(atk, description, shardBonus = 0) {
     const match = description.match(/(\d+)%/)
     if (match) {
@@ -2256,6 +2270,7 @@ export const useBattleStore = defineStore('battle', () => {
     hasEffect,
     getMarkedDamageMultiplier,
     calculateDamageWithMarked,
+    selectRandomTarget,
     // Focus helpers (for UI)
     isRanger,
     grantFocus,

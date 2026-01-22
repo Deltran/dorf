@@ -43,4 +43,41 @@ describe('battle store - MARKED effect', () => {
       expect(markedDamage).toBe(90)
     })
   })
+
+  describe('selectRandomTarget', () => {
+    it('returns random target from alive enemies', () => {
+      const enemies = [
+        { id: 1, currentHp: 100, statusEffects: [] },
+        { id: 2, currentHp: 100, statusEffects: [] }
+      ]
+      const target = store.selectRandomTarget(enemies, false)
+      expect([1, 2]).toContain(target.id)
+    })
+
+    it('prioritizes MARKED targets when prioritizeMarked is true', () => {
+      const enemies = [
+        { id: 1, currentHp: 100, statusEffects: [] },
+        { id: 2, currentHp: 100, statusEffects: [{ type: EffectType.MARKED, duration: 3, value: 20 }] }
+      ]
+      // Run multiple times to verify marked target is always chosen
+      for (let i = 0; i < 10; i++) {
+        const target = store.selectRandomTarget(enemies, true)
+        expect(target.id).toBe(2)
+      }
+    })
+
+    it('falls back to any target when no MARKED targets exist', () => {
+      const enemies = [
+        { id: 1, currentHp: 100, statusEffects: [] },
+        { id: 2, currentHp: 100, statusEffects: [] }
+      ]
+      const target = store.selectRandomTarget(enemies, true)
+      expect([1, 2]).toContain(target.id)
+    })
+
+    it('returns null for empty array', () => {
+      const target = store.selectRandomTarget([], false)
+      expect(target).toBeNull()
+    })
+  })
 })
