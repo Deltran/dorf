@@ -228,13 +228,25 @@ export const heroTemplates = {
     skills: [
       {
         name: 'Fireball',
-        description: 'Deal 130% ATK damage to one enemy and 50% ATK damage to adjacent enemies',
+        description: 'Deal 130% ATK damage to one enemy and 50% ATK damage to adjacent enemies.',
         mpCost: 20,
+        skillUnlockLevel: 1,
         targetType: 'enemy'
       },
       {
+        name: 'Flame Shield',
+        description: 'Surround yourself with protective flames for 3 turns. Enemies who attack you are burned for 2 turns.',
+        mpCost: 18,
+        skillUnlockLevel: 1,
+        targetType: 'self',
+        noDamage: true,
+        effects: [
+          { type: EffectType.FLAME_SHIELD, target: 'self', duration: 3, burnDuration: 2 }
+        ]
+      },
+      {
         name: 'Ignite',
-        description: 'Set an enemy ablaze for 3 turns (burns for ATK×0.5 per turn)',
+        description: 'Set an enemy ablaze for 3 turns (burns for ATK×0.5 per turn).',
         mpCost: 15,
         skillUnlockLevel: 3,
         targetType: 'enemy',
@@ -242,6 +254,24 @@ export const heroTemplates = {
         effects: [
           { type: EffectType.BURN, target: 'enemy', duration: 3, atkPercent: 50 }
         ]
+      },
+      {
+        name: 'Spreading Flames',
+        description: 'Deal 80% ATK damage to one enemy. If the target is burning, spread their burn to all other enemies.',
+        mpCost: 22,
+        skillUnlockLevel: 6,
+        targetType: 'enemy',
+        spreadBurn: true
+      },
+      {
+        name: 'Conflagration',
+        description: 'Consume all burns on all enemies. Deal instant damage equal to the remaining burn damage plus 10% ATK per burn consumed.',
+        mpCost: 30,
+        skillUnlockLevel: 12,
+        targetType: 'all_enemies',
+        noDamage: true,
+        consumeBurns: true,
+        consumeBurnAtkBonus: 10
       }
     ]
   },
