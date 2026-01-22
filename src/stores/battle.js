@@ -2157,6 +2157,31 @@ export const useBattleStore = defineStore('battle', () => {
     emitCombatEffect(attacker.id, 'enemy', 'debuff', 0)
   }
 
+  function spreadBurnFromTarget(target, allEnemies, sourceId) {
+    const burnEffect = target.statusEffects?.find(e => e.type === EffectType.BURN)
+    if (!burnEffect) return 0
+
+    let spreadCount = 0
+    for (const enemy of allEnemies) {
+      if (enemy.id === target.id) continue
+      if (enemy.currentHp <= 0) continue
+
+      const hasBurn = enemy.statusEffects?.some(e => e.type === EffectType.BURN)
+      if (hasBurn) continue
+
+      applyEffect(enemy, EffectType.BURN, {
+        duration: burnEffect.duration,
+        value: burnEffect.value,
+        sourceId: sourceId
+      })
+      addLog(`Burn spreads to ${enemy.template.name}!`)
+      emitCombatEffect(enemy.id, 'enemy', 'debuff', 0)
+      spreadCount++
+    }
+
+    return spreadCount
+  }
+
   function calculateDamage(atk, multiplier, def) {
     const raw = atk * multiplier - def * 0.5
     return Math.max(1, Math.floor(raw))
@@ -2315,6 +2340,8 @@ export const useBattleStore = defineStore('battle', () => {
     getChainTargets,
     // Flame Shield trigger (for reactive burn)
     triggerFlameShield,
+    // Spread burn (for Spreading Flames skill)
+    spreadBurnFromTarget,
     // Constants
     BattleState,
     EffectType
