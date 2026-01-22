@@ -1418,6 +1418,12 @@ export const useBattleStore = defineStore('battle', () => {
             }
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
+            // Heal all allies for percentage of damage dealt (Nature's Reclamation)
+            if (skill.healAlliesPercent && damage > 0) {
+              healAlliesFromDamage(aliveHeroes.value, damage, skill.healAlliesPercent)
+              addLog(`All allies are healed from the life force reclaimed!`)
+            }
+
             // Consume debuffs if skill has consumeDebuffs flag
             if (skill.consumeDebuffs && target.currentHp > 0) {
               const debuffsRemoved = (target.statusEffects || []).filter(e => !e.definition?.isBuff)
