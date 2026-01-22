@@ -205,11 +205,17 @@ const alliesTargetable = computed(() => {
   return isSelectingTarget.value && battleStore.currentTargetType === 'ally'
 })
 
+// Check if dead allies are targetable (for revive skills)
+const deadAlliesTargetable = computed(() => {
+  return isSelectingTarget.value && battleStore.currentTargetType === 'dead_ally'
+})
+
 // Prompt text based on current state
 const targetPrompt = computed(() => {
   if (!battleStore.selectedAction) return 'Choose an action'
   if (!battleStore.needsTargetSelection) return 'Executing...'
   if (battleStore.currentTargetType === 'ally') return 'Select an ally'
+  if (battleStore.currentTargetType === 'dead_ally') return 'Select a fallen ally'
   return 'Select an enemy'
 })
 
@@ -508,6 +514,12 @@ function selectHeroTarget(hero) {
   }
 }
 
+function selectDeadHeroTarget(hero) {
+  if (deadAlliesTargetable.value && hero.currentHp <= 0) {
+    battleStore.selectTarget(hero.instanceId, 'dead_ally')
+  }
+}
+
 function returnToMap() {
   battleStore.endBattle()
   emit('navigate', 'worldmap')
@@ -768,6 +780,11 @@ function handleHeroClick(hero) {
   if (alliesTargetable.value && hero.currentHp > 0) {
     selectHeroTarget(hero)
   }
+
+  // Handle dead ally targeting for revive skills
+  if (deadAlliesTargetable.value && hero.currentHp <= 0) {
+    selectDeadHeroTarget(hero)
+  }
 }
 
 function closeHeroInspect() {
@@ -923,6 +940,7 @@ function getStatChange(hero, stat) {
         :class="['hero-wrapper', {
           active: battleStore.currentUnit?.instanceId === hero.instanceId,
           targetable: alliesTargetable && hero.currentHp > 0,
+          'dead-ally-targetable': deadAlliesTargetable && hero.currentHp <= 0,
           selected: battleStore.selectedTarget?.id === hero.instanceId,
           'leader-activating': leaderActivating === hero.instanceId,
           dead: hero.currentHp <= 0
@@ -1684,6 +1702,26 @@ function getStatChange(hero, stat) {
 
 .hero-wrapper.selected {
   box-shadow: 0 0 0 2px #22c55e;
+}
+
+/* Dead ally targeting for revive skills */
+.hero-wrapper.dead-ally-targetable {
+  cursor: pointer;
+  box-shadow: 0 0 0 2px transparent;
+  opacity: 0.7;
+  filter: grayscale(50%);
+}
+
+.hero-wrapper.dead-ally-targetable:hover {
+  box-shadow: 0 0 0 2px #a855f7;
+  transform: translateY(-2px);
+  opacity: 0.9;
+  filter: grayscale(30%);
+}
+
+.hero-wrapper.dead-ally-targetable.selected {
+  box-shadow: 0 0 0 2px #a855f7;
+  opacity: 0.9;
 }
 
 .action-area {
