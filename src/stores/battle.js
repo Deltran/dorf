@@ -55,6 +55,10 @@ export const useBattleStore = defineStore('battle', () => {
     return heroes.value.filter(h => h.currentHp > 0)
   })
 
+  const deadHeroes = computed(() => {
+    return heroes.value.filter(h => h.currentHp <= 0)
+  })
+
   const aliveEnemies = computed(() => {
     return enemies.value.filter(e => e.currentHp > 0)
   })
@@ -225,7 +229,7 @@ export const useBattleStore = defineStore('battle', () => {
 
   const needsTargetSelection = computed(() => {
     const targetType = currentTargetType.value
-    return targetType === 'enemy' || targetType === 'ally'
+    return targetType === 'enemy' || targetType === 'ally' || targetType === 'dead_ally'
   })
 
   // ========== STATUS EFFECT FUNCTIONS ==========
@@ -2248,6 +2252,7 @@ export const useBattleStore = defineStore('battle', () => {
     currentUnit,
     isPlayerTurn,
     aliveHeroes,
+    deadHeroes,
     aliveEnemies,
     isBattleOver,
     currentTargetType,
