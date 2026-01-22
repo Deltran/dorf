@@ -1372,6 +1372,14 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
+          // Handle spreadBurn skill
+          if (skill.spreadBurn && target.currentHp > 0) {
+            const spreadCount = spreadBurnFromTarget(target, aliveEnemies.value, hero.instanceId)
+            if (spreadCount > 0) {
+              addLog(`Flames spread to ${spreadCount} other enemies!`)
+            }
+          }
+
           if (target.currentHp <= 0) {
             addLog(`${target.template.name} defeated!`)
           }
@@ -1730,6 +1738,28 @@ export const useBattleStore = defineStore('battle', () => {
         }
 
         case 'all_enemies': {
+          // Handle consumeBurns skill (Conflagration)
+          if (skill.consumeBurns) {
+            const atkBonus = skill.consumeBurnAtkBonus || 0
+            const { totalDamage, burnsConsumed } = consumeAllBurns(aliveEnemies.value, effectiveAtk, atkBonus)
+
+            if (burnsConsumed > 0) {
+              // Distribute damage to all alive enemies
+              const damagePerEnemy = Math.floor(totalDamage / aliveEnemies.value.length)
+              for (const enemy of aliveEnemies.value) {
+                applyDamage(enemy, damagePerEnemy, 'attack', hero)
+                emitCombatEffect(enemy.id, 'enemy', 'damage', damagePerEnemy)
+                if (enemy.currentHp <= 0) {
+                  addLog(`${enemy.template.name} defeated!`)
+                }
+              }
+              addLog(`${hero.template.name} detonates ${burnsConsumed} burns for ${totalDamage} total damage!`)
+            } else {
+              addLog(`${hero.template.name} uses ${skill.name}, but no enemies are burning!`)
+            }
+            break
+          }
+
           // Filter targets based on targetFilter
           let targets = aliveEnemies.value
           if (skill.targetFilter === 'not_acted') {
