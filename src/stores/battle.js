@@ -1300,6 +1300,25 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
+          // Cleanse DoT effects only (poison, burn, bleed)
+          if (skill.cleanse === 'dots') {
+            const isDot = (e) => e.definition?.isDot
+            const removedEffects = target.statusEffects?.filter(isDot) || []
+            if (removedEffects.length > 0) {
+              target.statusEffects = target.statusEffects.filter(e => !isDot(e))
+              for (const effect of removedEffects) {
+                addLog(`${target.template.name}'s ${effect.definition.name} was cured!`)
+              }
+              emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              // Rangers gain focus when cured
+              if (isRanger(target)) {
+                grantFocus(target)
+              }
+            } else {
+              addLog(`${target.template.name} has no ailments to cure.`)
+            }
+          }
+
           // Selective cleanse: { types: ['atk', 'def'], at100Types: ['atk', 'def', 'spd'] }
           if (skill.cleanse && typeof skill.cleanse === 'object' && skill.cleanse.types) {
             const valorTier = getValorTier(hero)
@@ -1359,6 +1378,12 @@ export const useBattleStore = defineStore('battle', () => {
             if (actualRestore > 0) {
               addLog(`${target.template.name} recovers ${actualRestore} MP!`)
             }
+          }
+
+          // Grant focus to rangers
+          if (skill.grantsFocus && isRanger(target)) {
+            grantFocus(target)
+            addLog(`${target.template.name} regains Focus!`)
           }
 
           // Apply skill effects (buffs)
