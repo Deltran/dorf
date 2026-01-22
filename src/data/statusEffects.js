@@ -35,7 +35,10 @@ export const EffectType = {
   DEBUFF_IMMUNE: 'debuff_immune', // Immune to new debuffs
 
   // Triggered effects
-  WELL_FED: 'well_fed' // Auto-heals when HP drops below threshold
+  WELL_FED: 'well_fed', // Auto-heals when HP drops below threshold
+
+  // Vulnerability
+  MARKED: 'marked' // Increases damage taken from all sources
 }
 
 // Effect definitions with display info and default behavior
@@ -205,6 +208,14 @@ export const effectDefinitions = {
     color: '#f59e0b',
     isBuff: true,
     isTriggered: true,
+    stackable: false
+  },
+  [EffectType.MARKED]: {
+    name: 'Marked',
+    icon: '🎯',
+    color: '#ef4444',
+    isBuff: false,
+    isMarked: true,
     stackable: false
   }
 }
