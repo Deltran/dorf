@@ -695,8 +695,8 @@ watch(() => battleStore.combatEffects.length, () => {
       }, 400)
     }
 
-    // Add damage number if there's a value
-    if (effect.value > 0) {
+    // Add damage number if there's a value or it's a miss
+    if (effect.value > 0 || effect.effectType === 'miss') {
       damageNumbers.value.push({
         id: effect.id,
         value: effect.value,

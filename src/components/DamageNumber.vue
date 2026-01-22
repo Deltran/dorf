@@ -8,8 +8,8 @@ const props = defineProps({
   },
   type: {
     type: String,
-    default: 'damage', // 'damage', 'heal', 'buff', 'debuff'
-    validator: (v) => ['damage', 'heal', 'buff', 'debuff'].includes(v)
+    default: 'damage', // 'damage', 'heal', 'buff', 'debuff', 'miss'
+    validator: (v) => ['damage', 'heal', 'buff', 'debuff', 'miss'].includes(v)
   }
 })
 
@@ -25,7 +25,7 @@ onMounted(() => {
   }, 1000)
 })
 
-const displayValue = props.type === 'heal' ? `+${props.value}` : `-${props.value}`
+const displayValue = props.type === 'miss' ? 'Miss!' : props.type === 'heal' ? `+${props.value}` : `-${props.value}`
 </script>
 
 <template>
@@ -66,6 +66,11 @@ const displayValue = props.type === 'heal' ? `+${props.value}` : `-${props.value
 
 .damage-number.debuff {
   color: #a855f7;
+}
+
+.damage-number.miss {
+  color: #9ca3af;
+  font-style: italic;
 }
 
 @keyframes floatUp {
