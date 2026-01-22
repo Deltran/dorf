@@ -30,6 +30,9 @@ export const EffectType = {
 
   // Protection
   GUARDING: 'guarding', // Redirects damage from guarded ally to guardian
+  DAMAGE_REDUCTION: 'damage_reduction', // Reduces incoming damage by percentage
+  REFLECT: 'reflect', // Reflects percentage of damage taken back to attacker
+  DEBUFF_IMMUNE: 'debuff_immune', // Immune to new debuffs
 
   // Triggered effects
   WELL_FED: 'well_fed' // Auto-heals when HP drops below threshold
@@ -170,6 +173,30 @@ export const effectDefinitions = {
     color: '#3b82f6',
     isBuff: true,
     isGuarding: true,
+    stackable: false
+  },
+  [EffectType.DAMAGE_REDUCTION]: {
+    name: 'Fortified',
+    icon: '🏰',
+    color: '#60a5fa',
+    isBuff: true,
+    isDamageReduction: true,
+    stackable: false
+  },
+  [EffectType.REFLECT]: {
+    name: 'Reflect',
+    icon: '🪞',
+    color: '#c084fc',
+    isBuff: true,
+    isReflect: true,
+    stackable: false
+  },
+  [EffectType.DEBUFF_IMMUNE]: {
+    name: 'Debuff Immune',
+    icon: '✨',
+    color: '#fbbf24',
+    isBuff: true,
+    isDebuffImmune: true,
     stackable: false
   },
   [EffectType.WELL_FED]: {

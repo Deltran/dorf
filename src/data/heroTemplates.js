@@ -202,6 +202,20 @@ export const heroTemplates = {
             value: { base: 10, at50: 15, at75: 20, at100: 25 }
           }
         }
+      },
+      {
+        name: 'Fortress Stance',
+        description: 'Reduce damage taken by 50% and reflect 30% back to attackers for 2 turns. At 100 Valor: also immune to debuffs.',
+        skillUnlockLevel: 12,
+        valorRequired: 50,
+        targetType: 'self',
+        noDamage: true,
+        defensive: true,
+        effects: [
+          { type: EffectType.DAMAGE_REDUCTION, target: 'self', duration: 2, value: 50 },
+          { type: EffectType.REFLECT, target: 'self', duration: 2, value: 30 },
+          { type: EffectType.DEBUFF_IMMUNE, target: 'self', duration: 2, valorThreshold: 100 }
+        ]
       }
     ]
   },
