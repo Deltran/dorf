@@ -109,34 +109,6 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
       </div>
     </section>
 
-    <!-- Genus Loci Section -->
-    <section class="genus-loci-section">
-      <div class="genus-loci-header">
-        <span class="genus-loci-title">Genus Loci</span>
-      </div>
-
-      <div v-if="hasAnyGenusLoci" class="genus-loci-grid">
-        <div
-          v-for="boss in unlockedGenusLoci"
-          :key="boss.id"
-          class="genus-loci-card"
-          @click="emit('navigate', 'genusLoci', boss.id)"
-        >
-          <div class="boss-icon">👹</div>
-          <div class="boss-info">
-            <span class="boss-name">{{ boss.name }}</span>
-            <span class="boss-level">Highest: Lv.{{ boss.highestCleared }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="genus-loci-empty" @click="emit('navigate', 'worldmap')">
-        <div class="empty-icon">🏰</div>
-        <p class="empty-text">Powerful guardians await in the world.</p>
-        <p class="empty-hint">Seek them out on your quest.</p>
-      </div>
-    </section>
-
     <nav class="main-nav">
       <button
         class="nav-button summon-button"
@@ -201,6 +173,34 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
         <div class="nav-arrow">›</div>
       </button>
     </nav>
+
+    <!-- Genus Loci Section -->
+    <section class="genus-loci-section">
+      <div class="genus-loci-header">
+        <span class="genus-loci-title">Genus Loci</span>
+      </div>
+
+      <div v-if="hasAnyGenusLoci" class="genus-loci-grid">
+        <div
+          v-for="boss in unlockedGenusLoci"
+          :key="boss.id"
+          class="genus-loci-card"
+          @click="emit('navigate', 'genusLoci', boss.id)"
+        >
+          <div class="boss-icon">👹</div>
+          <div class="boss-info">
+            <span class="boss-name">{{ boss.name }}</span>
+            <span class="boss-level">Highest: Lv.{{ boss.highestCleared }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="genus-loci-empty" @click="emit('navigate', 'worldmap')">
+        <div class="empty-icon">🏰</div>
+        <p class="empty-text">Powerful guardians await in the world.</p>
+        <p class="empty-hint">Seek them out on your quest.</p>
+      </div>
+    </section>
 
     <footer class="home-footer">
       <div class="footer-stats">
