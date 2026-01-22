@@ -133,4 +133,52 @@ describe('battle store - Flame Shield', () => {
       expect(alreadyBurning.statusEffects[0].value).toBe(10)
     })
   })
+
+  describe('consumeAllBurns', () => {
+    it('calculates total damage from all burns and removes them', () => {
+      const enemy1 = {
+        id: 'enemy1',
+        template: { name: 'Goblin' },
+        currentHp: 100,
+        statusEffects: [
+          { type: EffectType.BURN, duration: 3, value: 20, definition: { isDot: true } }
+        ]
+      }
+      const enemy2 = {
+        id: 'enemy2',
+        template: { name: 'Orc' },
+        currentHp: 100,
+        statusEffects: [
+          { type: EffectType.BURN, duration: 2, value: 15, definition: { isDot: true } }
+        ]
+      }
+      const allEnemies = [enemy1, enemy2]
+
+      const result = store.consumeAllBurns(allEnemies, 45, 10)
+
+      // Burn damage: (20 * 3) + (15 * 2) = 60 + 30 = 90
+      // ATK bonus: 2 burns * (45 * 0.10) = 2 * 4.5 = 9
+      // Total: 90 + 9 = 99
+      expect(result.totalDamage).toBe(99)
+      expect(result.burnsConsumed).toBe(2)
+
+      // Burns should be removed
+      expect(enemy1.statusEffects.find(e => e.type === EffectType.BURN)).toBeUndefined()
+      expect(enemy2.statusEffects.find(e => e.type === EffectType.BURN)).toBeUndefined()
+    })
+
+    it('returns 0 when no enemies have burns', () => {
+      const enemy = {
+        id: 'enemy1',
+        template: { name: 'Goblin' },
+        currentHp: 100,
+        statusEffects: []
+      }
+
+      const result = store.consumeAllBurns([enemy], 45, 10)
+
+      expect(result.totalDamage).toBe(0)
+      expect(result.burnsConsumed).toBe(0)
+    })
+  })
 })

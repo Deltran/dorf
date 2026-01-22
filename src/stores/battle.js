@@ -2182,6 +2182,38 @@ export const useBattleStore = defineStore('battle', () => {
     return spreadCount
   }
 
+  function consumeAllBurns(allEnemies, casterAtk, atkBonusPercent = 0) {
+    let burnDamage = 0
+    let burnsConsumed = 0
+
+    for (const enemy of allEnemies) {
+      if (enemy.currentHp <= 0) continue
+      if (!enemy.statusEffects) continue
+
+      const burnEffects = enemy.statusEffects.filter(e => e.type === EffectType.BURN)
+
+      for (const burn of burnEffects) {
+        // Calculate remaining burn damage
+        const burnDamagePerTick = burn.value
+        const remainingDamage = burnDamagePerTick * burn.duration
+
+        burnDamage += remainingDamage
+        burnsConsumed++
+      }
+
+      // Remove all burns from this enemy
+      if (burnEffects.length > 0) {
+        enemy.statusEffects = enemy.statusEffects.filter(e => e.type !== EffectType.BURN)
+      }
+    }
+
+    // Calculate ATK bonus based on total burns consumed
+    const atkBonus = Math.floor(burnsConsumed * casterAtk * atkBonusPercent / 100)
+    const totalDamage = burnDamage + atkBonus
+
+    return { totalDamage, burnsConsumed }
+  }
+
   function calculateDamage(atk, multiplier, def) {
     const raw = atk * multiplier - def * 0.5
     return Math.max(1, Math.floor(raw))
@@ -2342,6 +2374,8 @@ export const useBattleStore = defineStore('battle', () => {
     triggerFlameShield,
     // Spread burn (for Spreading Flames skill)
     spreadBurnFromTarget,
+    // Consume burns (for Conflagration skill)
+    consumeAllBurns,
     // Constants
     BattleState,
     EffectType
