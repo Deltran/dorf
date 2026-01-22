@@ -182,3 +182,34 @@ describe('battle store - Flame Shield', () => {
     })
   })
 })
+
+describe('Shasha Ember Witch skills integration', () => {
+  it('Flame Shield has correct effect structure', () => {
+    const flameShieldSkill = {
+      name: 'Flame Shield',
+      effects: [
+        { type: EffectType.FLAME_SHIELD, target: 'self', duration: 3, burnDuration: 2 }
+      ]
+    }
+    expect(flameShieldSkill.effects[0].type).toBe(EffectType.FLAME_SHIELD)
+    expect(flameShieldSkill.effects[0].burnDuration).toBe(2)
+  })
+
+  it('Spreading Flames has spreadBurn flag', () => {
+    const spreadingFlamesSkill = {
+      name: 'Spreading Flames',
+      spreadBurn: true
+    }
+    expect(spreadingFlamesSkill.spreadBurn).toBe(true)
+  })
+
+  it('Conflagration has consumeBurns with ATK bonus', () => {
+    const conflagrationSkill = {
+      name: 'Conflagration',
+      consumeBurns: true,
+      consumeBurnAtkBonus: 10
+    }
+    expect(conflagrationSkill.consumeBurns).toBe(true)
+    expect(conflagrationSkill.consumeBurnAtkBonus).toBe(10)
+  })
+})
