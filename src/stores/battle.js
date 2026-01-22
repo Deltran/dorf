@@ -422,6 +422,17 @@ export const useBattleStore = defineStore('battle', () => {
     unit.statusEffects = unit.statusEffects.filter(effect => {
       effect.duration--
       if (effect.duration <= 0) {
+        // Check for DAMAGE_STORE expiration - release damage before removing
+        if (effect.type === EffectType.DAMAGE_STORE) {
+          const storedDamage = effect.storedDamage || 0
+          if (storedDamage > 0) {
+            for (const enemy of aliveEnemies.value) {
+              applyDamage(enemy, storedDamage, 'attack', unit)
+              emitCombatEffect(enemy.id, 'enemy', 'damage', storedDamage)
+            }
+            addLog(`${unitName} releases ${storedDamage} stored damage to all enemies!`)
+          }
+        }
         addLog(`${unitName}'s ${effect.definition.name} wore off.`)
         return false
       }
@@ -624,6 +635,18 @@ export const useBattleStore = defineStore('battle', () => {
     return { allyDamage, guardianDamage, guardian }
   }
 
+  function releaseDamageStore(hero, enemies) {
+    const damageStore = hero.statusEffects?.find(e => e.type === EffectType.DAMAGE_STORE)
+    if (!damageStore || !damageStore.storedDamage || damageStore.storedDamage <= 0) {
+      return { totalDamage: 0, enemiesHit: 0 }
+    }
+
+    const storedDamage = damageStore.storedDamage
+    const aliveEnemies = enemies.filter(e => e.currentHp > 0)
+
+    return { totalDamage: storedDamage, enemiesHit: aliveEnemies.length }
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
@@ -746,6 +769,14 @@ export const useBattleStore = defineStore('battle', () => {
 
     const actualDamage = Math.min(unit.currentHp, damage)
     unit.currentHp = Math.max(0, unit.currentHp - actualDamage)
+
+    // Track damage for DAMAGE_STORE if this unit has it (direct damage)
+    if (unit.statusEffects) {
+      const damageStore = unit.statusEffects.find(e => e.type === EffectType.DAMAGE_STORE)
+      if (damageStore) {
+        damageStore.storedDamage = (damageStore.storedDamage || 0) + actualDamage
+      }
+    }
 
     // Rangers lose focus when taking damage
     if (isRanger(unit) && actualDamage > 0) {
@@ -2531,6 +2562,8 @@ export const useBattleStore = defineStore('battle', () => {
     consumeAllBurns,
     // Guardian Link (for Aurora's damage sharing)
     calculateGuardianLinkDamage,
+    // Damage Store (for Aurora's damage release)
+    releaseDamageStore,
     // Constants
     BattleState,
     EffectType

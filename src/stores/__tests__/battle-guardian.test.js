@@ -88,4 +88,50 @@ describe('battle store - Guardian Link', () => {
       expect(result.guardianDamage).toBe(0)
     })
   })
+
+  describe('releaseDamageStore', () => {
+    it('deals stored damage to all enemies and clears storage', () => {
+      const hero = {
+        instanceId: 'aurora1',
+        template: { name: 'Aurora' },
+        currentHp: 100,
+        statusEffects: [
+          {
+            type: EffectType.DAMAGE_STORE,
+            duration: 0,
+            storedDamage: 150,
+            definition: { isDamageStore: true }
+          }
+        ]
+      }
+      const enemies = [
+        { id: 'e1', template: { name: 'Goblin' }, currentHp: 100, statusEffects: [] },
+        { id: 'e2', template: { name: 'Orc' }, currentHp: 100, statusEffects: [] }
+      ]
+
+      const result = store.releaseDamageStore(hero, enemies)
+
+      expect(result.totalDamage).toBe(150)
+      expect(result.enemiesHit).toBe(2)
+    })
+
+    it('returns 0 when no damage stored', () => {
+      const hero = {
+        instanceId: 'aurora1',
+        template: { name: 'Aurora' },
+        statusEffects: [
+          {
+            type: EffectType.DAMAGE_STORE,
+            duration: 0,
+            storedDamage: 0,
+            definition: { isDamageStore: true }
+          }
+        ]
+      }
+
+      const result = store.releaseDamageStore(hero, [])
+
+      expect(result.totalDamage).toBe(0)
+    })
+  })
 })
