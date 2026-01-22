@@ -2126,6 +2126,9 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Check for flame shield effect on the target
+    triggerFlameShield(target, enemy)
+
     // Process end of turn effects for enemy
     processEndOfTurnEffects(enemy)
 
@@ -2133,6 +2136,25 @@ export const useBattleStore = defineStore('battle', () => {
       advanceTurnIndex()
       startNextTurn()
     }, 600)
+  }
+
+  function triggerFlameShield(defender, attacker) {
+    const flameShieldEffect = defender.statusEffects?.find(e => e.type === EffectType.FLAME_SHIELD)
+    if (!flameShieldEffect || attacker.currentHp <= 0) return
+
+    const burnDuration = flameShieldEffect.burnDuration || 2
+    const defenderAtk = getEffectiveStat(defender, 'atk')
+
+    applyEffect(attacker, EffectType.BURN, {
+      duration: burnDuration,
+      value: Math.floor(defenderAtk * 0.5),
+      sourceId: defender.instanceId
+    })
+
+    const defenderName = defender.template?.name || 'Hero'
+    const attackerName = attacker.template?.name || 'Enemy'
+    addLog(`${attackerName} is burned by ${defenderName}'s Flame Shield!`)
+    emitCombatEffect(attacker.id, 'enemy', 'debuff', 0)
   }
 
   function calculateDamage(atk, multiplier, def) {
@@ -2291,6 +2313,8 @@ export const useBattleStore = defineStore('battle', () => {
     getValorTier,
     // Chain bounce helpers
     getChainTargets,
+    // Flame Shield trigger (for reactive burn)
+    triggerFlameShield,
     // Constants
     BattleState,
     EffectType
