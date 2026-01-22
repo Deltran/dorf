@@ -2463,6 +2463,23 @@ export const useBattleStore = defineStore('battle', () => {
     return shuffled.slice(0, maxBounces)
   }
 
+  // Heal all allies for a percentage of damage dealt
+  function healAlliesFromDamage(allies, damageDealt, healPercent) {
+    if (damageDealt <= 0 || healPercent <= 0) return
+
+    const healAmount = Math.floor(damageDealt * healPercent / 100)
+    if (healAmount <= 0) return
+
+    for (const ally of allies) {
+      const oldHp = ally.currentHp
+      ally.currentHp = Math.min(ally.maxHp, ally.currentHp + healAmount)
+      const actualHeal = ally.currentHp - oldHp
+      if (actualHeal > 0) {
+        emitCombatEffect(ally.instanceId, 'hero', 'heal', actualHeal)
+      }
+    }
+  }
+
   return {
     // State
     state,
@@ -2523,6 +2540,8 @@ export const useBattleStore = defineStore('battle', () => {
     spreadBurnFromTarget,
     // Consume burns (for Conflagration skill)
     consumeAllBurns,
+    // Heal allies from damage (for Nature's Reclamation skill)
+    healAlliesFromDamage,
     // Constants
     BattleState,
     EffectType
