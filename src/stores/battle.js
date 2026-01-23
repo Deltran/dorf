@@ -2572,6 +2572,11 @@ export const useBattleStore = defineStore('battle', () => {
     return Math.floor(atk)
   }
 
+  function pickRandom(array, count) {
+    const shuffled = [...array].sort(() => Math.random() - 0.5)
+    return shuffled.slice(0, count)
+  }
+
   function parseSkillMultiplier(description, shardBonus = 0) {
     const match = description.match(/(\d+)%/)
     if (match) {
@@ -2691,6 +2696,7 @@ export const useBattleStore = defineStore('battle', () => {
     getMarkedDamageMultiplier,
     calculateDamageWithMarked,
     selectRandomTarget,
+    pickRandom,
     // Focus helpers (for UI)
     isRanger,
     grantFocus,
