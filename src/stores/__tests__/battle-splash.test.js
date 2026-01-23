@@ -163,5 +163,38 @@ describe('Splash damage mechanics', () => {
       const splashDamage = 500 - otherEnemies[0].currentHp
       expect(splashDamage).toBe(49)
     })
+
+    it('allows splash targets to evade', () => {
+      const attacker = {
+        instanceId: 'hero1',
+        template: { name: 'Shasha' },
+        stats: { atk: 50 }
+      }
+
+      const primaryTarget = { id: 'enemy1', template: { name: 'Goblin A' }, stats: { def: 10 }, currentHp: 100, statusEffects: [] }
+
+      // Enemy with 100% evasion
+      const otherEnemies = [
+        {
+          id: 'enemy2',
+          template: { name: 'Dodgy Goblin' },
+          stats: { def: 10 },
+          currentHp: 100,
+          statusEffects: [{ type: 'evasion', value: 100, duration: 5, definition: { name: 'Evasion' } }]
+        }
+      ]
+
+      const skill = {
+        name: 'Fireball',
+        damagePercent: 130,
+        splashCount: 2,
+        splashDamagePercent: 50
+      }
+
+      store.applySplashDamage(attacker, primaryTarget, otherEnemies, skill)
+
+      // Evasion enemy should evade (100% evasion means always dodge)
+      expect(otherEnemies[0].currentHp).toBe(100)
+    })
   })
 })
