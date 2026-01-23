@@ -6,6 +6,7 @@ export const genusLociData = {
     name: 'Valinar, Lake Tower Guardian',
     description: 'A corrupted sentinel who guards the ancient lake tower.',
     region: 'whisper_lake',
+    imageSize: 160,
     nodeId: 'whisper_lake_genus_loci',
     keyItemId: 'lake_tower_key',
     maxPowerLevel: 20,

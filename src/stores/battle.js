@@ -1023,7 +1023,8 @@ export const useBattleStore = defineStore('battle', () => {
       template: {
         id: genusLociId,
         name: bossData.name,
-        skills: activeSkills
+        skills: activeSkills,
+        imageSize: bossData.imageSize
       },
       currentCooldowns: cooldowns,
       statusEffects: [],
@@ -2286,9 +2287,11 @@ export const useBattleStore = defineStore('battle', () => {
         for (const heroTarget of aliveHeroes.value) {
           const heroDef = getEffectiveStat(heroTarget, 'def')
           const damage = calculateDamage(effectiveAtk, multiplier, heroDef)
-          applyDamage(heroTarget, damage)
-          totalDamage += damage
-          emitCombatEffect(heroTarget.instanceId, 'hero', 'damage', damage)
+          const actualDamage = applyDamage(heroTarget, damage)
+          totalDamage += actualDamage
+          if (actualDamage > 0) {
+            emitCombatEffect(heroTarget.instanceId, 'hero', 'damage', actualDamage)
+          }
 
           // Apply debuffs to each hero if applicable
           if (skill.effects) {
@@ -2359,9 +2362,13 @@ export const useBattleStore = defineStore('battle', () => {
         // Standard single-target damage skill
         const multiplier = parseSkillMultiplier(skill.description)
         const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
-        applyDamage(target, damage)
-        addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
-        emitCombatEffect(target.instanceId, 'hero', 'damage', damage)
+        const actualDamage = applyDamage(target, damage)
+        if (actualDamage > 0) {
+          addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name} for ${actualDamage} damage!`)
+          emitCombatEffect(target.instanceId, 'hero', 'damage', actualDamage)
+        } else {
+          addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name}!`)
+        }
 
         // Remove buffs if skill has cleanse
         if (skill.cleanse === 'buffs') {
@@ -2403,9 +2410,13 @@ export const useBattleStore = defineStore('battle', () => {
       enemy.currentCooldowns[skill.name] = skill.cooldown
     } else {
       const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
-      applyDamage(target, damage)
-      addLog(`${enemy.template.name} attacks ${target.template.name} for ${damage} damage!`)
-      emitCombatEffect(target.instanceId, 'hero', 'damage', damage)
+      const actualDamage = applyDamage(target, damage)
+      if (actualDamage > 0) {
+        addLog(`${enemy.template.name} attacks ${target.template.name} for ${actualDamage} damage!`)
+        emitCombatEffect(target.instanceId, 'hero', 'damage', actualDamage)
+      } else {
+        addLog(`${enemy.template.name} attacks ${target.template.name}!`)
+      }
     }
 
     if (target.currentHp <= 0) {
