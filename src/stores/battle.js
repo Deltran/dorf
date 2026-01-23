@@ -1588,6 +1588,12 @@ export const useBattleStore = defineStore('battle', () => {
                 }
               }
             }
+
+            // Handle splash damage to random other enemies
+            if (skill.splashCount && skill.splashDamagePercent) {
+              const otherEnemies = aliveEnemies.value.filter(e => e.id !== target.id)
+              applySplashDamage(hero, target, otherEnemies, skill)
+            }
           } else {
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
           }
@@ -2577,6 +2583,29 @@ export const useBattleStore = defineStore('battle', () => {
     return shuffled.slice(0, count)
   }
 
+  function applySplashDamage(attacker, primaryTarget, otherEnemies, skill) {
+    if (!skill.splashCount || !skill.splashDamagePercent) return
+    if (!otherEnemies || otherEnemies.length === 0) return
+
+    const splashTargets = pickRandom(otherEnemies, skill.splashCount)
+    const effectiveAtk = getEffectiveStat(attacker, 'atk')
+    const splashMultiplier = skill.splashDamagePercent / 100
+
+    for (const splashTarget of splashTargets) {
+      if (splashTarget.currentHp <= 0) continue
+
+      const splashDef = getEffectiveStat(splashTarget, 'def')
+      const splashDamage = calculateDamage(effectiveAtk, splashMultiplier, splashDef)
+      applyDamage(splashTarget, splashDamage, 'attack', attacker)
+      emitCombatEffect(splashTarget.id, 'enemy', 'damage', splashDamage)
+      addLog(`${skill.name} splashes to ${splashTarget.template.name} for ${splashDamage} damage!`)
+
+      if (splashTarget.currentHp <= 0) {
+        addLog(`${splashTarget.template.name} defeated!`)
+      }
+    }
+  }
+
   function parseSkillMultiplier(description, shardBonus = 0) {
     const match = description.match(/(\d+)%/)
     if (match) {
@@ -2697,6 +2726,8 @@ export const useBattleStore = defineStore('battle', () => {
     calculateDamageWithMarked,
     selectRandomTarget,
     pickRandom,
+    // Splash damage (for cleave/AoE skills)
+    applySplashDamage,
     // Focus helpers (for UI)
     isRanger,
     grantFocus,
