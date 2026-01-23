@@ -320,10 +320,13 @@ export const heroTemplates = {
     skills: [
       {
         name: 'Fireball',
-        description: 'Deal 130% ATK damage to one enemy and 50% ATK damage to adjacent enemies.',
+        description: 'Deal 130% ATK damage to one enemy and 50% ATK damage to up to 2 other random enemies.',
         mpCost: 20,
         skillUnlockLevel: 1,
-        targetType: 'enemy'
+        targetType: 'enemy',
+        damagePercent: 130,
+        splashCount: 2,
+        splashDamagePercent: 50
       },
       {
         name: 'Flame Shield',
