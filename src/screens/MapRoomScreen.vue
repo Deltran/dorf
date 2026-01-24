@@ -303,8 +303,12 @@ const emit = defineEmits(['navigate'])
 }
 
 .nav-button.quests-button .nav-hint {
-  color: rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.nav-button.quests-button .nav-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.5);
 }
 
 .nav-button.quests-button .nav-arrow {
@@ -347,8 +351,12 @@ const emit = defineEmits(['navigate'])
 }
 
 .nav-button.genus-loci-button .nav-hint {
-  color: rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.nav-button.genus-loci-button .nav-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(147, 51, 234, 0.5);
 }
 
 .nav-button.genus-loci-button .nav-arrow {
@@ -391,8 +399,12 @@ const emit = defineEmits(['navigate'])
 }
 
 .nav-button.explorations-button .nav-hint {
-  color: rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.nav-button.explorations-button .nav-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(6, 182, 212, 0.5);
 }
 
 .nav-button.explorations-button .nav-arrow {

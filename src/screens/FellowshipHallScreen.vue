@@ -309,8 +309,12 @@ const emit = defineEmits(['navigate'])
 }
 
 .nav-button.heroes-button .nav-hint {
-  color: rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.nav-button.heroes-button .nav-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.5);
 }
 
 .nav-button.heroes-button .nav-arrow {

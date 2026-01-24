@@ -657,8 +657,12 @@ const hasParty = computed(() => {
 }
 
 .nav-button.summon-button .nav-hint {
-  color: rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.nav-button.summon-button .nav-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.5);
 }
 
 .nav-button.summon-button .nav-arrow {
@@ -813,8 +817,12 @@ const hasParty = computed(() => {
 }
 
 .room-button.map-room-button .room-hint {
-  color: rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.room-button.map-room-button .room-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.5);
 }
 
 .room-button.map-room-button:hover {
@@ -850,8 +858,12 @@ const hasParty = computed(() => {
 }
 
 .room-button.fellowship-hall-button .room-hint {
-  color: rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.room-button.fellowship-hall-button .room-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.5);
 }
 
 .room-button.fellowship-hall-button:hover {
