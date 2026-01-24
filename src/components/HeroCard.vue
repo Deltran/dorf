@@ -45,6 +45,10 @@ const props = defineProps({
   hitEffect: {
     type: String,
     default: null // 'damage', 'heal', 'buff', 'debuff'
+  },
+  showExplorationStatus: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -123,6 +127,10 @@ const rarityNames = {
   4: 'Epic',
   5: 'Legendary'
 }
+
+const isOnExploration = computed(() => {
+  return props.showExplorationStatus && props.hero.explorationNodeId != null
+})
 </script>
 
 <template>
@@ -144,6 +152,7 @@ const rarityNames = {
         class="card-hero-image"
       />
       <span class="hero-level">{{ levelDisplay }}</span>
+      <span v-if="isOnExploration" class="exploration-badge" title="Currently Exploring">🧭</span>
     </div>
 
     <div class="card-body">
@@ -263,6 +272,7 @@ const rarityNames = {
 .rarity-5 { border-left: 3px solid #f59e0b; background: linear-gradient(135deg, #1f2937 0%, #302a1f 100%); }
 
 .card-header {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -287,6 +297,14 @@ const rarityNames = {
   background: #374151;
   padding: 2px 6px;
   border-radius: 4px;
+}
+
+.exploration-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 1rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 .card-body {

@@ -172,6 +172,7 @@ dorf/
 | DEF_UP/DOWN | Percentage modifier to defense |
 | SPD_UP/DOWN | Percentage modifier to speed |
 | STUN | Skip turn (control effect) |
+| SLEEP | Skip turn, removed when attacked |
 | TAUNT | Force enemies to target this hero |
 | UNTARGETABLE | Cannot be targeted by enemies |
 | EVASION | Chance to completely avoid attacks |
@@ -214,9 +215,20 @@ Items drop from quest battles and can be used or sold:
 |--------|------------|---------|
 | Whispering Woods | Early | Goblin Scout, Goblin Warrior, Forest Wolf, Dire Wolf, Forest Spider |
 | Echoing Caverns | Mid | Cave Bat, Rock Golem, Dark Cultist, Dark Caster, Cave Troll |
+| Whisper Lake | Mid | Valinar, Lake Tower Guardian (Genus Loci) |
 | Stormwind Peaks | Late | Harpy, Frost Elemental, Storm Giant |
+| Hibernation Den | Late | Cave Troll, Great Troll (Genus Loci) |
 
 Each region has a boss node with unique mechanics and better rewards.
+
+### Genus Loci Bosses
+
+Genus Loci are powerful boss enemies with unique abilities and passives:
+
+| Boss | Region | Key Mechanics |
+|------|--------|---------------|
+| Valinar, Lake Tower Guardian | Whisper Lake | Iron Guard, Shield Bash, Counterattack Stance |
+| Great Troll | Hibernation Den | Hibernation (self-inflicted SLEEP with 10% HP regen), counterattack when woken |
 
 ### Heroes
 

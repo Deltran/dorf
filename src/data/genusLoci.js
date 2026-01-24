@@ -50,8 +50,8 @@ export const genusLociData = {
     uniqueDrop: { itemId: 'great_troll_crest', guaranteed: true },
     firstClearBonus: { gems: 20 },
     currencyRewards: {
-      base: { gold: 100 },
-      perLevel: { gold: 25 }
+      base: { gems: 10 },
+      perLevel: { gems: 2 }
     }
   }
 }

@@ -27,6 +27,26 @@ function getHeroImageUrl(heroId) {
 }
 ```
 
+## Enemy/Genus Loci Images
+
+Located in `src/assets/enemies/{enemy_id}.png` for full images and `{enemy_id}_portrait.png` for turn tracker portraits.
+
+**Loading pattern for portraits:**
+```js
+const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
+
+function getEnemyPortraitUrl(enemyId) {
+  const portraitPath = `../assets/enemies/${enemyId}_portrait.png`
+  return enemyPortraits[portraitPath] || null
+}
+```
+
+Portraits are used in:
+- Turn order tracker (BattleScreen)
+- Home page Genus Loci display
+- World map node markers (for Genus Loci nodes)
+- Quest detail popups
+
 ## Rarity System
 
 | Rarity | Color | Gradient End (for backgrounds) |
@@ -72,10 +92,12 @@ const roleIcons = {
 ### Data
 - `src/data/heroTemplates.js` - Hero definitions with skills and leader skills
 - `src/data/enemyTemplates.js` - Enemy definitions
+- `src/data/genusLoci.js` - Genus Loci boss definitions
+- `src/data/genusLociAbilities.js` - Genus Loci abilities and passives
 - `src/data/classes.js` - Class definitions (role, resource name)
 - `src/data/statusEffects.js` - Buff/debuff definitions
 - `src/data/questNodes.js` - Quest node definitions, region data
-- `src/data/items.js` - Item definitions (XP tomes, junk items)
+- `src/data/items.js` - Item definitions (XP tomes, junk items, keys)
 
 ### Components
 - `src/components/HeroCard.vue` - Hero display card
@@ -392,6 +414,10 @@ Effects are defined in `src/data/statusEffects.js`. Key categories:
 **Triggered Effects**:
 - `WELL_FED` - Heals when HP drops below `threshold`, has `healPercent`
 
+**Control Effects**:
+- `STUN` - Skips turn, cannot act
+- `SLEEP` - Skips turn, removed when attacked (used by Hibernation mechanic)
+
 ```js
 // Creating a protection effect
 {
@@ -433,3 +459,76 @@ Each class has a unique resource besides MP:
 | 3-star | Kensin Squire (Knight), Knarly Zeek (Mage), Grandma Helga (Cleric), Harl the Handsom (Bard) |
 | 2-star | Sorju Gate Guard (Knight), Calisus (Mage), Bertan the Gatherer (Druid) |
 | 1-star | Darl (Berserker), Salia (Ranger), Vagrant Bil (Cleric) |
+
+## Genus Loci System
+
+Genus Loci are boss enemies defined in `src/data/genusLoci.js` with abilities in `src/data/genusLociAbilities.js`.
+
+### Genus Loci Structure
+
+```js
+{
+  id: 'great_troll',
+  name: 'Great Troll',
+  baseStats: { hp: 2500, atk: 180, def: 100, spd: 40 },
+  abilities: [crushingBlow, boulderToss, hibernation, unstoppable],
+  passiveAbilities: [regenerativeSleep, thickHide, rageAwakening]
+}
+```
+
+### Passive Abilities
+
+Passives are checked during battle flow in `battle.js`:
+
+```js
+// Damage reduction passive (checked in applyDamage)
+{
+  id: 'thick_hide',
+  isPassive: true,
+  damageReduction: 15  // 15% flat DR
+}
+
+// Heal while sleeping (checked in processStartOfTurnEffects)
+{
+  id: 'regenerative_sleep',
+  isPassive: true,
+  healWhileSleeping: { percentMaxHp: 10 }  // Heal 10% max HP per turn while SLEEP
+}
+
+// Counterattack when woken (checked in applyDamage when SLEEP removed)
+{
+  id: 'rage_awakening',
+  isPassive: true,
+  triggerCondition: 'woken_from_sleep',
+  retaliatePercent: 200  // 200% ATK counter-attack
+}
+```
+
+### Skill Use Conditions
+
+Skills can have `useCondition` to restrict when they're available:
+
+```js
+{
+  name: 'Hibernation',
+  useCondition: 'hp_below_50',  // Only usable when HP < 50%
+  effects: [{ type: EffectType.SLEEP, target: 'self', duration: 2 }]
+}
+```
+
+Conditions are checked in `executeEnemyTurn`:
+- `hp_below_50` - HP percentage below 50%
+
+### Quest Node with Genus Loci
+
+```js
+{
+  id: 'hibernation_den',
+  name: 'Hibernation Den',
+  type: 'genusLoci',
+  genusLociId: 'great_troll',
+  battles: [{ enemies: ['great_troll'], isGenusLoci: true }],
+  rewards: { gems: 200, exp: 500, gold: 1000 },
+  itemDrops: [{ itemId: 'great_troll_crest', chance: 0.15 }]
+}
+```
