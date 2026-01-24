@@ -1,12 +1,13 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useExplorationsStore, useHeroesStore, useGachaStore, useInventoryStore } from '../stores'
+import { useExplorationsStore, useHeroesStore, useGachaStore, useInventoryStore, useTipsStore } from '../stores'
 import { getItem } from '../data/items.js'
 
 const emit = defineEmits(['navigate', 'back'])
 
 const explorationsStore = useExplorationsStore()
 const heroesStore = useHeroesStore()
+const tipsStore = useTipsStore()
 
 const unlockedExplorations = computed(() => explorationsStore.unlockedExplorations)
 const activeExplorations = computed(() => explorationsStore.activeExplorations)
@@ -16,6 +17,7 @@ const tick = ref(0)
 let timer = null
 
 onMounted(() => {
+  tipsStore.showTip('explorations_intro')
   timer = setInterval(() => {
     tick.value++
   }, 60000)
@@ -117,7 +119,7 @@ function confirmEnhance() {
       <h1>Explorations</h1>
     </header>
 
-    <div class="explorations-content">
+    <div id="exploration-panel" class="explorations-content">
       <div class="active-count">
         {{ explorationsStore.activeExplorationCount }} active exploration{{ explorationsStore.activeExplorationCount !== 1 ? 's' : '' }}
       </div>
