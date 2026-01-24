@@ -346,7 +346,7 @@ h3 {
 }
 
 .banner-hero img {
-  height: 150px;
+  height: 100px;
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
