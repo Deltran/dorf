@@ -17,6 +17,7 @@ import GenusLociScreen from './screens/GenusLociScreen.vue'
 import ExplorationsScreen from './screens/ExplorationsScreen.vue'
 import FellowshipHallScreen from './screens/FellowshipHallScreen.vue'
 import MapRoomScreen from './screens/MapRoomScreen.vue'
+import GenusLociListScreen from './screens/GenusLociListScreen.vue'
 import ExplorationDetailView from './components/ExplorationDetailView.vue'
 import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
 
@@ -238,6 +239,10 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
       />
       <MapRoomScreen
         v-else-if="currentScreen === 'map-room'"
+        @navigate="navigate"
+      />
+      <GenusLociListScreen
+        v-else-if="currentScreen === 'genus-loci-list'"
         @navigate="navigate"
       />
       <GachaScreen
