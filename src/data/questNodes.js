@@ -3,6 +3,7 @@ import echoingCavernsMap from '../assets/maps/echoing_caverns.png'
 import whisperLakeMap from '../assets/maps/whisper_lake.png'
 import stormwindPeaksMap from '../assets/maps/stormwind_peaks.png'
 import hibernationDenMap from '../assets/maps/hibernation_den.png'
+import summitMap from '../assets/maps/summit.png'
 
 export const questNodes = {
   // Whispering Woods (Tutorial / Early Game)
@@ -1765,7 +1766,8 @@ export const regions = [
     startNode: 'summit_01',
     width: 800,
     height: 500,
-    backgroundColor: '#1a1a2a' // Dark wind/ice blue
+    backgroundColor: '#1a1a2a',
+    backgroundImage: summitMap
   },
   {
     id: 'blistering_cliffsides',
