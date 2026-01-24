@@ -177,7 +177,7 @@ function navigate(screen, param = null) {
 }
 
 function handleExplorationBack() {
-  currentScreen.value = 'home'
+  currentScreen.value = 'map-room'
 }
 
 function handleExplorationDetailClose() {

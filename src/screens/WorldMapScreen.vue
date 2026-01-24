@@ -268,13 +268,13 @@ function goToExplorationDetail() {
       :unlocked-super-regions="questsStore.unlockedSuperRegions"
       :super-region-progress="questsStore.superRegionProgress"
       @select="selectedSuperRegion = $event"
-      @back="emit('navigate', 'home')"
+      @back="emit('navigate', 'map-room')"
     />
 
     <!-- Region Content -->
     <div v-else class="content">
       <header class="worldmap-header">
-        <button class="back-button" @click="showSuperRegionSelect ? goToSuperRegionSelect() : emit('navigate', 'home')">
+        <button class="back-button" @click="showSuperRegionSelect ? goToSuperRegionSelect() : emit('navigate', 'map-room')">
           <span class="back-arrow">&larr;</span>
           <span>{{ showSuperRegionSelect ? 'Regions' : 'Back' }}</span>
         </button>

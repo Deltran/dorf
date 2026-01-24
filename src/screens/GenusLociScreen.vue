@@ -62,7 +62,7 @@ function calculateGoldReward(level) {
 }
 
 function goBack() {
-  emit('navigate', 'home')
+  emit('navigate', 'map-room')
 }
 </script>
 

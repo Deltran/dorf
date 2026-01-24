@@ -67,7 +67,7 @@ function navigateToHero(hero) {
 <template>
   <div class="shards-screen">
     <header class="screen-header">
-      <button class="back-btn" @click="emit('navigate', 'home')">Back</button>
+      <button class="back-btn" @click="emit('navigate', 'fellowship-hall')">Back</button>
       <h1>Shards</h1>
     </header>
 

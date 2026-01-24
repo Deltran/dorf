@@ -77,7 +77,7 @@ function selectGroup(group) {
 <template>
   <div class="merge-screen">
     <header class="screen-header">
-      <button class="back-btn" @click="emit('navigate', 'heroes')">
+      <button class="back-btn" @click="emit('navigate', 'fellowship-hall')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>
