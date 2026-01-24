@@ -1,13 +1,20 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useExplorationsStore, useHeroesStore, useGachaStore, useInventoryStore, useTipsStore } from '../stores'
+import { useExplorationsStore, useHeroesStore, useGachaStore, useInventoryStore } from '../stores'
 import { getItem } from '../data/items.js'
+
+const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+
+function getBackgroundUrl(backgroundId) {
+  if (!backgroundId) return null
+  const path = `../assets/battle_backgrounds/${backgroundId}.png`
+  return battleBackgrounds[path] || null
+}
 
 const emit = defineEmits(['navigate', 'back'])
 
 const explorationsStore = useExplorationsStore()
 const heroesStore = useHeroesStore()
-const tipsStore = useTipsStore()
 
 const unlockedExplorations = computed(() => explorationsStore.unlockedExplorations)
 const activeExplorations = computed(() => explorationsStore.activeExplorations)
@@ -17,7 +24,6 @@ const tick = ref(0)
 let timer = null
 
 onMounted(() => {
-  tipsStore.showTip('explorations_intro')
   timer = setInterval(() => {
     tick.value++
   }, 60000)
@@ -136,6 +142,12 @@ function confirmEnhance() {
           :class="['exploration-card', { active: isActive(node.id) }]"
           @click="openExploration(node.id)"
         >
+          <div
+            v-if="getBackgroundUrl(node.backgroundId)"
+            class="card-background"
+            :style="{ backgroundImage: `url(${getBackgroundUrl(node.backgroundId)})` }"
+          ></div>
+          <div class="card-gradient-overlay"></div>
           <div class="card-header">
             <span class="compass-icon">🧭</span>
             <h3>{{ node.name }}</h3>
@@ -308,12 +320,14 @@ h1 {
 }
 
 .exploration-card {
+  position: relative;
   background: #1f2937;
   border: 2px solid #374151;
   border-radius: 12px;
   padding: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
+  overflow: hidden;
 }
 
 .exploration-card:hover {
@@ -323,10 +337,29 @@ h1 {
 
 .exploration-card.active {
   border-color: #06b6d4;
-  background: linear-gradient(135deg, #1f2937 0%, #164e63 100%);
+}
+
+.card-background {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.3;
+}
+
+.card-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to left, #0891b2 0%, #0891b280 30%, transparent 70%);
+}
+
+.exploration-card.active .card-gradient-overlay {
+  background: linear-gradient(to left, #06b6d4 0%, #06b6d480 30%, transparent 70%);
 }
 
 .card-header {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -343,6 +376,8 @@ h1 {
 }
 
 .card-body {
+  position: relative;
+  z-index: 1;
   margin-bottom: 12px;
 }
 
@@ -355,6 +390,12 @@ h1 {
   justify-content: space-between;
   font-size: 0.9rem;
   margin-bottom: 4px;
+}
+
+.progress-row span:last-child,
+.req-row span:last-child {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  font-weight: 600;
 }
 
 .progress-bar {
@@ -397,6 +438,8 @@ h1 {
 }
 
 .card-actions {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -442,11 +485,13 @@ h1 {
 }
 
 .rank-badge {
-  font-size: 0.75rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 4px 12px;
+  border-radius: 6px;
   margin-left: auto;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .rank-badge.rank-E {

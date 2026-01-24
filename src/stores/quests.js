@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { getQuestNode, getAllQuestNodes, regions, superRegions, getRegionsBySuperRegion, getNodesByRegion } from '../data/questNodes.js'
 import { useInventoryStore } from './inventory.js'
 import { useShardsStore } from './shards.js'
+import { useTipsStore } from './tips.js'
 
 export const useQuestsStore = defineStore('quests', () => {
   // State
@@ -183,6 +184,17 @@ export const useQuestsStore = defineStore('quests', () => {
     // Unlock Coral Depths when aqua_08 is completed
     if (node.id === 'aqua_08' && !unlockedNodes.value.includes('coral_01')) {
       unlockedNodes.value.push('coral_01')
+    }
+
+    // Check if any newly unlocked node enables an exploration
+    const explorationNodes = getAllQuestNodes().filter(n => n.type === 'exploration')
+    for (const explorationNode of explorationNodes) {
+      if (unlockedNodes.value.includes(explorationNode.unlockedBy)) {
+        // An exploration is now available - show the tip (only shows once)
+        const tipsStore = useTipsStore()
+        tipsStore.showTip('explorations_intro')
+        break
+      }
     }
 
     // Roll item drops
