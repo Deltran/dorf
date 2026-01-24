@@ -1,6 +1,8 @@
 <script setup>
-import { computed, ref, watch, onUnmounted } from 'vue'
-import { useExplorationsStore, useHeroesStore } from '../stores'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { useExplorationsStore, useHeroesStore, useGachaStore, useInventoryStore } from '../stores'
+import { RANK_BONUS_PER_LEVEL } from '../data/explorationRanks.js'
+import { getItem } from '../data/items.js'
 import HeroCard from './HeroCard.vue'
 
 // Image imports
@@ -33,15 +35,68 @@ const emit = defineEmits(['close', 'started', 'cancelled'])
 
 const explorationsStore = useExplorationsStore()
 const heroesStore = useHeroesStore()
+const gachaStore = useGachaStore()
+const inventoryStore = useInventoryStore()
 
 const node = computed(() => explorationsStore.getExplorationNode(props.nodeId))
 const config = computed(() => node.value?.explorationConfig)
 const isActive = computed(() => !!explorationsStore.activeExplorations[props.nodeId])
 const exploration = computed(() => explorationsStore.activeExplorations[props.nodeId])
 
+const currentRank = computed(() => {
+  return explorationsStore.getExplorationRank(props.nodeId)
+})
+
+const rankBonusPercent = computed(() => {
+  const rankIndex = ['E', 'D', 'C', 'B', 'A', 'S'].indexOf(currentRank.value)
+  return rankIndex * RANK_BONUS_PER_LEVEL
+})
+
 // Hero selection (when not active)
 const selectedHeroes = ref([])
 const showCancelConfirm = ref(false)
+const showEnhanceModal = ref(false)
+
+const enhanceInfo = computed(() => {
+  return explorationsStore.canUpgradeExploration(props.nodeId)
+})
+
+const enhanceCrestItem = computed(() => {
+  if (!enhanceInfo.value?.crestId) return null
+  return getItem(enhanceInfo.value.crestId)
+})
+
+function openEnhanceModal() {
+  showEnhanceModal.value = true
+}
+
+function closeEnhanceModal() {
+  showEnhanceModal.value = false
+}
+
+function confirmEnhance() {
+  const result = explorationsStore.upgradeExploration(props.nodeId)
+  if (result.success) {
+    closeEnhanceModal()
+  }
+}
+
+// Timer to update time display every minute
+const tick = ref(0)
+let timer = null
+
+onMounted(() => {
+  timer = setInterval(() => {
+    tick.value++
+  }, 60000)
+})
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+})
 
 const availableHeroes = computed(() => heroesStore.availableForExploration)
 
@@ -54,6 +109,9 @@ const partyRequestMet = computed(() => {
 
 // Time display for active exploration
 const timeDisplay = computed(() => {
+  // Reference tick to force reactivity on timer updates
+  void tick.value
+
   if (!exploration.value || !config.value) return ''
   const elapsed = Date.now() - exploration.value.startedAt
   const remaining = Math.max(0, (config.value.timeLimit * 60 * 1000) - elapsed)
@@ -125,24 +183,6 @@ function cancelExploration() {
   emit('cancelled')
 }
 
-// Update time display every second when active
-let timer = null
-watch(isActive, (active) => {
-  if (active) {
-    timer = setInterval(() => {}, 1000) // Force reactivity
-  } else if (timer) {
-    clearInterval(timer)
-    timer = null
-  }
-}, { immediate: true })
-
-// Clean up timer on component unmount to prevent memory leak
-onUnmounted(() => {
-  if (timer) {
-    clearInterval(timer)
-    timer = null
-  }
-})
 </script>
 
 <template>
@@ -150,6 +190,7 @@ onUnmounted(() => {
     <header class="detail-header">
       <button class="close-button" @click="emit('close')">×</button>
       <h2>{{ node?.name }}</h2>
+      <span :class="['rank-badge', `rank-${currentRank}`]">{{ currentRank }}</span>
     </header>
 
     <div class="detail-content">
@@ -178,6 +219,10 @@ onUnmounted(() => {
         <div class="request-bonus" v-if="isActive ? exploration?.partyRequestMet : partyRequestMet">
           +10% bonus active!
         </div>
+      </div>
+
+      <div v-if="rankBonusPercent > 0" class="rank-bonus">
+        Rank {{ currentRank }}: +{{ rankBonusPercent }}% rewards
       </div>
 
       <!-- Active Exploration View -->
@@ -258,7 +303,66 @@ onUnmounted(() => {
         >
           Start Exploration
         </button>
+
+        <button
+          v-if="currentRank !== 'S'"
+          class="enhance-btn"
+          @click="openEnhanceModal"
+        >
+          Enhance Exploration
+        </button>
       </template>
+
+      <!-- Enhance Modal -->
+      <div v-if="showEnhanceModal" class="modal-backdrop" @click="closeEnhanceModal"></div>
+      <div v-if="showEnhanceModal && enhanceInfo" class="enhance-modal">
+        <div class="modal-header">
+          <h3>Enhance Exploration</h3>
+          <button class="close-btn" @click="closeEnhanceModal">×</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="rank-transition">
+            <span :class="['rank-badge', 'large', `rank-${enhanceInfo.currentRank}`]">
+              {{ enhanceInfo.currentRank }}
+            </span>
+            <span class="arrow">→</span>
+            <span :class="['rank-badge', 'large', `rank-${enhanceInfo.nextRank}`]">
+              {{ enhanceInfo.nextRank }}
+            </span>
+          </div>
+
+          <div class="bonus-info">
+            +5% reward bonus
+          </div>
+
+          <div class="enhance-requirements">
+            <div class="requirement-row">
+              <span class="req-label">{{ enhanceCrestItem?.name || 'Crest' }}</span>
+              <span :class="['req-value', enhanceInfo.crestsHave >= enhanceInfo.crestsNeeded ? 'met' : 'unmet']">
+                {{ enhanceInfo.crestsHave }} / {{ enhanceInfo.crestsNeeded }}
+              </span>
+            </div>
+            <div class="requirement-row">
+              <span class="req-label">Gold</span>
+              <span :class="['req-value', enhanceInfo.goldHave >= enhanceInfo.goldNeeded ? 'met' : 'unmet']">
+                {{ enhanceInfo.goldHave.toLocaleString() }} / {{ enhanceInfo.goldNeeded.toLocaleString() }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="cancel-btn" @click="closeEnhanceModal">Cancel</button>
+          <button
+            class="confirm-btn"
+            :disabled="!enhanceInfo.canUpgrade"
+            @click="confirmEnhance"
+          >
+            Enhance
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -547,5 +651,179 @@ h3 {
 .confirm-yes {
   background: #ef4444;
   color: white;
+}
+
+.rank-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+.rank-badge.rank-E { background: #4b5563; color: #9ca3af; }
+.rank-badge.rank-D { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+.rank-badge.rank-C { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+.rank-badge.rank-B { background: rgba(168, 85, 247, 0.2); color: #a855f7; }
+.rank-badge.rank-A { background: rgba(249, 115, 22, 0.2); color: #f97316; }
+.rank-badge.rank-S {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(234, 179, 8, 0.3) 100%);
+  color: #fbbf24;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.rank-bonus {
+  text-align: center;
+  color: #22c55e;
+  font-size: 0.85rem;
+  padding: 8px;
+  background: rgba(34, 197, 94, 0.1);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.enhance-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  border: 1px solid #6b7280;
+  border-radius: 12px;
+  color: #d1d5db;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.enhance-btn:hover {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  border-color: #9ca3af;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+}
+
+.enhance-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 300px;
+  z-index: 101;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #f3f4f6;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.rank-transition {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.rank-badge.large {
+  font-size: 1.5rem;
+  padding: 8px 16px;
+}
+
+.arrow {
+  font-size: 1.5rem;
+  color: #6b7280;
+}
+
+.bonus-info {
+  text-align: center;
+  color: #22c55e;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.enhance-requirements {
+  background: #111827;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+.enhance-requirements .requirement-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.enhance-requirements .req-label {
+  color: #9ca3af;
+}
+
+.req-value {
+  font-weight: 600;
+}
+
+.req-value.met {
+  color: #22c55e;
+}
+
+.req-value.unmet {
+  color: #ef4444;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancel-btn {
+  padding: 10px 20px;
+  background: #374151;
+  border: none;
+  border-radius: 8px;
+  color: #d1d5db;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-btn:disabled {
+  background: #4b5563;
+  cursor: not-allowed;
 }
 </style>
