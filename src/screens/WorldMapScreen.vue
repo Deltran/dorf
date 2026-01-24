@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
-import { useQuestsStore, useHeroesStore, useInventoryStore, useGenusLociStore } from '../stores'
+import { useQuestsStore, useHeroesStore, useInventoryStore, useGenusLociStore, useExplorationsStore } from '../stores'
 import { regions, superRegions, getQuestNode, getNodesByRegion, getRegion, getRegionsBySuperRegion } from '../data/questNodes.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import { getGenusLoci } from '../data/genusLoci.js'
@@ -15,6 +15,7 @@ const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
 const inventoryStore = useInventoryStore()
 const genusLociStore = useGenusLociStore()
+const explorationsStore = useExplorationsStore()
 
 const selectedNode = ref(null)
 const selectedRegion = ref(regions[0].id)
@@ -123,6 +124,36 @@ function selectNode(node) {
       isUnlocked,
       highestCleared
     }
+  } else if (node.type === 'exploration') {
+    // For exploration nodes, enrich with exploration status
+    const activeExploration = explorationsStore.activeExplorations[node.id]
+    const config = node.explorationConfig
+
+    // Calculate progress if exploration is active
+    let progress = null
+    if (activeExploration) {
+      const elapsed = Date.now() - activeExploration.startedAt
+      const timeRemainingMs = Math.max(0, (config.timeLimit * 60 * 1000) - elapsed)
+      const fightsRemaining = Math.max(0, config.requiredFights - activeExploration.fightCount)
+
+      progress = {
+        fightCount: activeExploration.fightCount,
+        requiredFights: config.requiredFights,
+        fightsRemaining,
+        timeRemainingMs,
+        timeRemainingMinutes: Math.ceil(timeRemainingMs / 60000),
+        partyRequestMet: activeExploration.partyRequestMet,
+        isComplete: timeRemainingMs <= 0 || fightsRemaining <= 0
+      }
+    }
+
+    selectedNode.value = {
+      ...node,
+      isExploration: true,
+      isActive: !!activeExploration,
+      explorationConfig: config,
+      progress
+    }
   } else {
     selectedNode.value = {
       ...node,
@@ -200,6 +231,11 @@ function startGenusLociChallenge() {
     genusLociId,
     powerLevel: 1
   })
+}
+
+function goToExplorationDetail() {
+  if (!selectedNode.value?.isExploration) return
+  emit('navigate', 'exploration-detail', selectedNode.value.id)
 }
 </script>
 
@@ -343,6 +379,102 @@ function startGenusLociChallenge() {
             <span v-if="selectedNode.keyCount <= 0">No Keys</span>
             <span v-else-if="selectedNode.isUnlocked">Select Level</span>
             <span v-else>Challenge (🔑 x1)</span>
+          </button>
+        </div>
+
+        <!-- Exploration Preview -->
+        <div v-else-if="selectedNode.isExploration" class="preview-body exploration-preview">
+          <div class="exploration-info-card">
+            <div class="exploration-icon">🧭</div>
+            <div class="exploration-details">
+              <span class="exploration-name">{{ selectedNode.name }}</span>
+              <span class="exploration-desc">Send heroes on an idle expedition</span>
+            </div>
+          </div>
+
+          <!-- Active exploration progress -->
+          <div v-if="selectedNode.isActive" class="exploration-progress-card">
+            <div class="progress-header">
+              <span class="progress-icon">⏳</span>
+              <span class="progress-title">In Progress</span>
+            </div>
+            <div class="progress-stats">
+              <div class="progress-stat">
+                <span class="stat-label">Fights</span>
+                <span class="stat-value">{{ selectedNode.progress.fightCount }} / {{ selectedNode.progress.requiredFights }}</span>
+              </div>
+              <div class="progress-stat">
+                <span class="stat-label">Time Left</span>
+                <span class="stat-value">{{ selectedNode.progress.timeRemainingMinutes }} min</span>
+              </div>
+            </div>
+            <div class="progress-bar-container">
+              <div
+                class="exploration-progress-bar"
+                :style="{ width: Math.min(100, (selectedNode.progress.fightCount / selectedNode.progress.requiredFights) * 100) + '%' }"
+              ></div>
+            </div>
+            <div v-if="selectedNode.progress.partyRequestMet" class="bonus-indicator">
+              <span class="bonus-icon">✨</span>
+              <span class="bonus-text">+10% Bonus Active</span>
+            </div>
+          </div>
+
+          <!-- Requirements when not active -->
+          <div v-else class="exploration-requirements">
+            <div class="requirement-row">
+              <span class="requirement-icon">⚔️</span>
+              <span class="requirement-text">{{ selectedNode.explorationConfig.requiredFights }} fights required</span>
+            </div>
+            <div class="requirement-row">
+              <span class="requirement-icon">⏱️</span>
+              <span class="requirement-text">{{ selectedNode.explorationConfig.timeLimit }} min time limit</span>
+            </div>
+            <div v-if="selectedNode.explorationConfig.partyRequest" class="requirement-row bonus-row">
+              <span class="requirement-icon">✨</span>
+              <span class="requirement-text">Bonus: {{ selectedNode.explorationConfig.partyRequest.description }}</span>
+            </div>
+          </div>
+
+          <div class="rewards-section">
+            <h4 class="section-label">
+              <span class="label-line"></span>
+              <span>Rewards</span>
+              <span class="label-line"></span>
+            </h4>
+            <div class="rewards-grid">
+              <div class="reward-card">
+                <span class="reward-icon">🪙</span>
+                <div class="reward-info">
+                  <span class="reward-label">Gold</span>
+                  <span class="reward-value gold">{{ selectedNode.explorationConfig.rewards.gold }}</span>
+                </div>
+              </div>
+              <div class="reward-card">
+                <span class="reward-icon">💎</span>
+                <div class="reward-info">
+                  <span class="reward-label">Gems</span>
+                  <span class="reward-value">{{ selectedNode.explorationConfig.rewards.gems }}</span>
+                </div>
+              </div>
+              <div class="reward-card">
+                <span class="reward-icon">⭐</span>
+                <div class="reward-info">
+                  <span class="reward-label">XP</span>
+                  <span class="reward-value">{{ selectedNode.explorationConfig.rewards.xp }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="start-quest-btn exploration-btn"
+            @click="goToExplorationDetail"
+          >
+            <span class="btn-icon">🧭</span>
+            <span v-if="selectedNode.isActive && selectedNode.progress.isComplete">Claim Rewards</span>
+            <span v-else-if="selectedNode.isActive">View Progress</span>
+            <span v-else>Start Exploration</span>
           </button>
         </div>
 
@@ -1021,6 +1153,175 @@ function startGenusLociChallenge() {
   color: #6b7280;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+/* Exploration Preview */
+.exploration-preview .exploration-info-card {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.2) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.exploration-preview .exploration-icon {
+  font-size: 2.5rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(34, 197, 94, 0.3);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.exploration-preview .exploration-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.exploration-preview .exploration-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.exploration-preview .exploration-desc {
+  font-size: 0.85rem;
+  color: #9ca3af;
+}
+
+.exploration-preview .exploration-progress-card {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.exploration-preview .progress-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.exploration-preview .progress-icon {
+  font-size: 1.2rem;
+}
+
+.exploration-preview .progress-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #22c55e;
+}
+
+.exploration-preview .progress-stats {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+
+.exploration-preview .progress-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.exploration-preview .stat-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.exploration-preview .stat-value {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.exploration-preview .progress-bar-container {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.exploration-preview .exploration-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.exploration-preview .bonus-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  background: rgba(251, 191, 36, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  border-radius: 8px;
+}
+
+.exploration-preview .bonus-icon {
+  font-size: 1rem;
+}
+
+.exploration-preview .bonus-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fbbf24;
+}
+
+.exploration-preview .exploration-requirements {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exploration-preview .requirement-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.exploration-preview .requirement-icon {
+  font-size: 1.1rem;
+  width: 24px;
+  text-align: center;
+}
+
+.exploration-preview .requirement-text {
+  color: #d1d5db;
+  font-size: 0.9rem;
+}
+
+.exploration-preview .bonus-row {
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.exploration-preview .bonus-row .requirement-text {
+  color: #fbbf24;
+}
+
+.start-quest-btn.exploration-btn {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+}
+
+.start-quest-btn.exploration-btn:hover {
+  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
 }
 
 /* Transitions */
