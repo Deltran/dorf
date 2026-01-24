@@ -34,6 +34,35 @@ export const useHeroesStore = defineStore('heroes', () => {
     return collection.value.filter(h => !partyIds.has(h.instanceId))
   })
 
+  // Heroes available for exploration (not in party, not already on exploration)
+  const availableForExploration = computed(() => {
+    const partyIds = new Set(party.value.filter(Boolean))
+    return collection.value.filter(h =>
+      !partyIds.has(h.instanceId) &&
+      !h.explorationNodeId
+    )
+  })
+
+  function isHeroLocked(instanceId) {
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    return hero?.explorationNodeId != null
+  }
+
+  function lockHeroToExploration(instanceId, nodeId) {
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    if (!hero) return false
+    if (hero.explorationNodeId) return false // Already locked
+    hero.explorationNodeId = nodeId
+    return true
+  }
+
+  function unlockHeroFromExploration(instanceId) {
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    if (!hero) return false
+    hero.explorationNodeId = null
+    return true
+  }
+
   const leaderHero = computed(() => {
     if (!partyLeader.value) return null
     return collection.value.find(h => h.instanceId === partyLeader.value) || null
@@ -74,6 +103,9 @@ export const useHeroesStore = defineStore('heroes', () => {
 
   function setPartySlot(slotIndex, instanceId) {
     if (slotIndex < 0 || slotIndex > 3) return false
+
+    // Check if hero is locked to exploration
+    if (isHeroLocked(instanceId)) return false
 
     // If hero is already in another slot, swap or remove
     const existingSlot = party.value.findIndex(id => id === instanceId)
@@ -234,11 +266,13 @@ export const useHeroesStore = defineStore('heroes', () => {
     if (savedState.collection) {
       // Migration: add starLevel if missing (defaults to template rarity)
       // Migration: add shards/shardTier if missing (defaults to 0)
+      // Migration: add explorationNodeId if missing (defaults to null)
       collection.value = savedState.collection.map(hero => ({
         ...hero,
         starLevel: hero.starLevel || getHeroTemplate(hero.templateId)?.rarity || 1,
         shards: hero.shards ?? 0,
-        shardTier: hero.shardTier ?? 0
+        shardTier: hero.shardTier ?? 0,
+        explorationNodeId: hero.explorationNodeId ?? null
       }))
     }
     if (savedState.party) party.value = savedState.party
@@ -559,6 +593,11 @@ export const useHeroesStore = defineStore('heroes', () => {
     upgradeShardTier,
     getShardBonus,
     SHARD_TIER_COSTS,
+    // Exploration
+    availableForExploration,
+    isHeroLocked,
+    lockHeroToExploration,
+    unlockHeroFromExploration,
     // Persistence
     loadState,
     saveState
