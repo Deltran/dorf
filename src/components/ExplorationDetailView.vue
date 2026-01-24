@@ -362,17 +362,11 @@ h3 {
   bottom: 5px;
   z-index: 1;
 }
-.banner-hero.slot-0 img {
-  height: 120px;
-}
 
 .banner-hero.slot-1 {
   left: 28%;
   bottom: 10px;
   z-index: 2;
-}
-.banner-hero.slot-1 img {
-  height: 135px;
 }
 
 .banner-hero.slot-2 {
@@ -380,26 +374,17 @@ h3 {
   bottom: 15px;
   z-index: 3;
 }
-.banner-hero.slot-2 img {
-  height: 150px;
-}
 
 .banner-hero.slot-3 {
   left: 72%;
   bottom: 10px;
   z-index: 2;
 }
-.banner-hero.slot-3 img {
-  height: 135px;
-}
 
 .banner-hero.slot-4 {
   left: 90%;
   bottom: 5px;
   z-index: 1;
-}
-.banner-hero.slot-4 img {
-  height: 120px;
 }
 
 .party-request {
