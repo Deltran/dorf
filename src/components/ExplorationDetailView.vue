@@ -356,34 +356,29 @@ h3 {
   display: none;
 }
 
-/* Slot positions - staggered pyramid formation */
+/* Slot positions - evenly spaced with overlap */
 .banner-hero.slot-0 {
   left: 10%;
-  bottom: 5px;
   z-index: 1;
 }
 
 .banner-hero.slot-1 {
   left: 28%;
-  bottom: 10px;
   z-index: 2;
 }
 
 .banner-hero.slot-2 {
   left: 50%;
-  bottom: 15px;
   z-index: 3;
 }
 
 .banner-hero.slot-3 {
   left: 72%;
-  bottom: 10px;
   z-index: 2;
 }
 
 .banner-hero.slot-4 {
   left: 90%;
-  bottom: 5px;
   z-index: 1;
 }
 
