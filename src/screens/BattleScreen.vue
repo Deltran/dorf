@@ -1457,11 +1457,11 @@ function getStatChange(hero, stat) {
   display: flex;
   justify-content: center;
   gap: 12px;
-  padding: 20px;
+  padding: 40px 20px 20px 20px;
   flex-wrap: wrap;
-  min-height: 180px;
+  min-height: 220px;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .enemy-area-background {
