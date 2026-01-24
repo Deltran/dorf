@@ -62,9 +62,71 @@ export const valinarAbilities = {
   }
 }
 
+// Great Troll's abilities
+export const greatTrollAbilities = {
+  crushing_blow: {
+    id: 'crushing_blow',
+    name: 'Crushing Blow',
+    description: 'Deal 160% ATK damage to one hero',
+    cooldown: 2,
+    damagePercent: 160
+  },
+  hibernation: {
+    id: 'hibernation',
+    name: 'Hibernation',
+    description: 'Enter a deep sleep for 2 turns. Only usable below 50% HP.',
+    cooldown: 4,
+    noDamage: true,
+    targetType: 'self',
+    useCondition: 'hp_below_50',
+    effects: [
+      { type: EffectType.SLEEP, target: 'self', duration: 2 }
+    ]
+  },
+  regenerative_sleep: {
+    id: 'regenerative_sleep',
+    name: 'Regenerative Sleep',
+    description: 'While sleeping, heal 10% of max HP at the start of each turn.',
+    isPassive: true,
+    healWhileSleeping: { percentMaxHp: 10 }
+  },
+  boulder_toss: {
+    id: 'boulder_toss',
+    name: 'Boulder Toss',
+    description: 'Deal 120% ATK damage to all heroes',
+    cooldown: 3,
+    targetType: 'all_heroes',
+    damagePercent: 120
+  },
+  thick_hide: {
+    id: 'thick_hide',
+    name: 'Thick Hide',
+    description: 'Permanently reduce incoming damage by 15%.',
+    isPassive: true,
+    damageReduction: 15
+  },
+  rage_awakening: {
+    id: 'rage_awakening',
+    name: 'Rage Awakening',
+    description: 'When woken by damage, immediately counterattack for 200% ATK.',
+    isPassive: true,
+    triggerCondition: 'woken_from_sleep',
+    retaliatePercent: 200
+  },
+  unstoppable: {
+    id: 'unstoppable',
+    name: 'Unstoppable',
+    description: 'Deal 250% ATK damage and remove all buffs from target.',
+    cooldown: 5,
+    damagePercent: 250,
+    cleanse: 'buffs'
+  }
+}
+
 // Map of boss ID to their abilities
 export const genusLociAbilities = {
-  valinar: valinarAbilities
+  valinar: valinarAbilities,
+  great_troll: greatTrollAbilities
 }
 
 export function getGenusLociAbility(bossId, abilityId) {

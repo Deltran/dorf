@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useHeroesStore, useInventoryStore, useGachaStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
@@ -11,6 +11,10 @@ const props = defineProps({
   initialHeroId: {
     type: String,
     default: null
+  },
+  autoOpenMerge: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -33,11 +37,18 @@ const mergeInfo = ref(null)
 const selectedFodder = ref([])
 
 // Auto-select hero if passed from another screen
-onMounted(() => {
+onMounted(async () => {
   if (props.initialHeroId) {
     const hero = heroesStore.getHeroFull(props.initialHeroId)
     if (hero) {
       selectedHero.value = hero
+      // If autoOpenMerge is set, wait for mergeInfo to be computed then open modal
+      if (props.autoOpenMerge) {
+        await nextTick()
+        if (mergeInfo.value?.canMerge) {
+          openMergeModal()
+        }
+      }
     }
   }
 })

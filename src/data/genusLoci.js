@@ -26,6 +26,33 @@ export const genusLociData = {
       base: { gold: 100 },
       perLevel: { gold: 25 }
     }
+  },
+  great_troll: {
+    id: 'great_troll',
+    name: 'Great Troll',
+    description: 'An ancient troll that has learned to regenerate by entering deep hibernation.',
+    region: 'hibernation_den',
+    imageSize: 180,
+    nodeId: 'hibernation_den',
+    keyItemId: 'den_key',
+    maxPowerLevel: 20,
+    baseStats: { hp: 800, atk: 50, def: 35, spd: 5 },
+    statScaling: { hp: 1.15, atk: 1.1, def: 1.08 },
+    abilities: [
+      { id: 'crushing_blow', unlocksAt: 1 },
+      { id: 'hibernation', unlocksAt: 1 },
+      { id: 'regenerative_sleep', unlocksAt: 1 },
+      { id: 'boulder_toss', unlocksAt: 5 },
+      { id: 'thick_hide', unlocksAt: 10 },
+      { id: 'rage_awakening', unlocksAt: 15 },
+      { id: 'unstoppable', unlocksAt: 20 }
+    ],
+    uniqueDrop: { itemId: 'great_troll_crest', guaranteed: true },
+    firstClearBonus: { gems: 20 },
+    currencyRewards: {
+      base: { gold: 100 },
+      perLevel: { gold: 25 }
+    }
   }
 }
 

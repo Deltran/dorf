@@ -18,6 +18,7 @@ export const EffectType = {
 
   // Control effects
   STUN: 'stun',
+  SLEEP: 'sleep', // Skips turn, removed when attacked
 
   // Special
   SHIELD: 'shield', // Absorbs damage
@@ -139,6 +140,15 @@ export const effectDefinitions = {
     color: '#fbbf24',
     isBuff: false,
     isControl: true,
+    stackable: false
+  },
+  [EffectType.SLEEP]: {
+    name: 'Asleep',
+    icon: '💤',
+    color: '#6366f1',
+    isBuff: false,
+    isControl: true,
+    isSleep: true,
     stackable: false
   },
   [EffectType.SHIELD]: {

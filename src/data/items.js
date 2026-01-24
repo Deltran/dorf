@@ -81,6 +81,20 @@ export const items = {
     description: 'A battle-worn crest pried from the Lake Tower Guardian. Its purpose remains unknown.',
     type: 'genusLoci',
     rarity: 4
+  },
+  den_key: {
+    id: 'den_key',
+    name: 'Den Key',
+    description: 'A heavy iron key covered in claw marks. Grants passage to the Hibernation Den.',
+    type: 'key',
+    rarity: 3
+  },
+  great_troll_crest: {
+    id: 'great_troll_crest',
+    name: "Great Troll's Crest",
+    description: 'A mossy stone emblem torn from the Great Troll. Its purpose remains unknown.',
+    type: 'genusLoci',
+    rarity: 4
   }
 }
 

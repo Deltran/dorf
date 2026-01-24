@@ -386,11 +386,26 @@ export const useBattleStore = defineStore('battle', () => {
 
   // Process effects at start of turn (check for stun, etc.)
   function processStartOfTurnEffects(unit) {
+    const unitName = unit.template?.name || 'Unknown'
+
     if (hasEffect(unit, EffectType.STUN)) {
-      const unitName = unit.template?.name || 'Unknown'
       addLog(`${unitName} is stunned and cannot act!`)
       return false // Cannot act
     }
+
+    if (hasEffect(unit, EffectType.SLEEP)) {
+      // Check for regenerative_sleep passive (Great Troll)
+      const regenPassive = unit.passiveAbilities?.find(p => p.healWhileSleeping)
+      if (regenPassive) {
+        const healAmount = Math.floor(unit.maxHp * (regenPassive.healWhileSleeping.percentMaxHp / 100))
+        unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount)
+        addLog(`${unitName} regenerates ${healAmount} HP while sleeping!`)
+        emitCombatEffect(unit.id, 'enemy', 'heal', healAmount)
+      }
+      addLog(`${unitName} is asleep and cannot act!`)
+      return false // Cannot act
+    }
+
     return true // Can act
   }
 
@@ -858,6 +873,14 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Check for thick_hide passive (Great Troll - permanent damage reduction)
+    const thickHidePassive = unit.passiveAbilities?.find(p => p.damageReduction)
+    if (thickHidePassive) {
+      const reductionPercent = thickHidePassive.damageReduction
+      const reducedAmount = Math.floor(damage * reductionPercent / 100)
+      damage = damage - reducedAmount
+    }
+
     // Check death prevention before applying lethal damage
     if (unit.currentHp - damage <= 0) {
       if (checkDeathPrevention(unit, damage)) {
@@ -927,6 +950,38 @@ export const useBattleStore = defineStore('battle', () => {
       // Reset rage on death for berserkers
       if (isBerserker(unit)) {
         unit.currentRage = 0
+      }
+    }
+
+    // Check for SLEEP effect - wake up when attacked
+    if (actualDamage > 0 && unit.currentHp > 0 && unit.statusEffects) {
+      const sleepEffect = unit.statusEffects.find(e => e.type === EffectType.SLEEP)
+      if (sleepEffect) {
+        // Remove sleep effect
+        unit.statusEffects = unit.statusEffects.filter(e => e.type !== EffectType.SLEEP)
+        const unitName = unit.template?.name || 'Unknown'
+        addLog(`${unitName} wakes up!`)
+
+        // Check for rage_awakening passive (Great Troll)
+        const rageAwakening = unit.passiveAbilities?.find(p => p.triggerCondition === 'woken_from_sleep')
+        if (rageAwakening && attacker && attacker.currentHp > 0) {
+          const retaliatePercent = rageAwakening.retaliatePercent || 200
+          const retaliateDamage = Math.floor(unit.stats.atk * retaliatePercent / 100)
+          const attackerDef = attacker.stats?.def || 0
+          const finalDamage = Math.max(1, retaliateDamage - Math.floor(attackerDef * 0.5))
+
+          addLog(`${unitName} awakens in a rage and counterattacks for ${finalDamage} damage!`)
+          const attackerActual = Math.min(attacker.currentHp, finalDamage)
+          attacker.currentHp = Math.max(0, attacker.currentHp - attackerActual)
+          emitCombatEffect(attacker.instanceId || attacker.id, attacker.instanceId ? 'hero' : 'enemy', 'damage', attackerActual)
+
+          if (attacker.currentHp <= 0) {
+            addLog(`${attacker.template?.name || 'Unknown'} defeated!`)
+            if (attacker.statusEffects?.length > 0) {
+              attacker.statusEffects = []
+            }
+          }
+        }
       }
     }
 
@@ -2269,7 +2324,16 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Get available skills (supports both 'skill' and 'skills')
     const allSkills = enemy.template.skills || (enemy.template.skill ? [enemy.template.skill] : [])
-    const readySkills = allSkills.filter(s => enemy.currentCooldowns[s.name] === 0)
+    const readySkills = allSkills.filter(s => {
+      // Check cooldown
+      if (enemy.currentCooldowns[s.name] !== 0) return false
+      // Check HP-based use conditions
+      if (s.useCondition === 'hp_below_50') {
+        const hpPercent = (enemy.currentHp / enemy.maxHp) * 100
+        if (hpPercent >= 50) return false
+      }
+      return true
+    })
     const skill = readySkills.length > 0 ? readySkills[Math.floor(Math.random() * readySkills.length)] : null
 
     const effectiveAtk = getEffectiveStat(enemy, 'atk')

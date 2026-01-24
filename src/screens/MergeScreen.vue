@@ -64,8 +64,13 @@ const heroGroups = computed(() => {
 })
 
 function selectGroup(group) {
-  // Navigate to heroes screen - the user can select the hero there
-  emit('navigate', 'heroes')
+  // Only navigate if the hero can be merged
+  if (!group.canMerge) return
+
+  emit('navigate', 'heroes', {
+    heroId: group.highestHero.instanceId,
+    openMerge: true
+  })
 }
 </script>
 
@@ -208,9 +213,13 @@ function selectGroup(group) {
   border-radius: 12px;
   padding: 12px 16px;
   border-left: 4px solid #4b5563;
-  cursor: pointer;
+  cursor: default;
   transition: all 0.2s ease;
   border: 1px solid #374151;
+}
+
+.hero-group.can-merge {
+  cursor: pointer;
 }
 
 .group-image {
@@ -243,12 +252,12 @@ function selectGroup(group) {
   min-width: 0;
 }
 
-.hero-group:hover {
+.hero-group.can-merge:hover {
   transform: translateX(4px);
   border-color: #4b5563;
 }
 
-.hero-group:active {
+.hero-group.can-merge:active {
   transform: scale(0.98);
 }
 

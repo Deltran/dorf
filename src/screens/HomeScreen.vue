@@ -15,6 +15,9 @@ const genusLociStore = useGenusLociStore()
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
 const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
 
+// Enemy portraits for genus loci
+const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
+
 function getHeroImageUrl(heroId) {
   // Prefer animated gif if available
   const gifPath = `../assets/heroes/${heroId}.gif`
@@ -24,6 +27,11 @@ function getHeroImageUrl(heroId) {
   // Fall back to static png
   const pngPath = `../assets/heroes/${heroId}.png`
   return heroImages[pngPath] || null
+}
+
+function getBossPortraitUrl(bossId) {
+  const portraitPath = `../assets/enemies/${bossId}_portrait.png`
+  return enemyPortraits[portraitPath] || null
 }
 
 // Battle backgrounds for party section
@@ -187,7 +195,15 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
           class="genus-loci-card"
           @click="emit('navigate', 'genusLoci', boss.id)"
         >
-          <div class="boss-icon">👹</div>
+          <div class="boss-icon">
+            <img
+              v-if="getBossPortraitUrl(boss.id)"
+              :src="getBossPortraitUrl(boss.id)"
+              :alt="boss.name"
+              class="boss-portrait"
+            />
+            <span v-else>👹</span>
+          </div>
           <div class="boss-info">
             <span class="boss-name">{{ boss.name }}</span>
             <span class="boss-level">Highest: Lv.{{ boss.highestCleared }}</span>
@@ -817,6 +833,13 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
   justify-content: center;
   background: rgba(147, 51, 234, 0.2);
   border-radius: 8px;
+  overflow: hidden;
+}
+
+.boss-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .boss-info {

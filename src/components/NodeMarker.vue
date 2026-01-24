@@ -22,7 +22,16 @@ const props = defineProps({
 
 const emit = defineEmits(['select'])
 
+// Enemy portraits for genus loci
+const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
+
 const isGenusLoci = computed(() => props.node.type === 'genusLoci')
+
+const genusLociPortrait = computed(() => {
+  if (!isGenusLoci.value || !props.node.genusLociId) return null
+  const portraitPath = `../assets/enemies/${props.node.genusLociId}_portrait.png`
+  return enemyPortraits[portraitPath] || null
+})
 
 const markerStyle = computed(() => ({
   left: `${props.node.x * props.scale}px`,
@@ -45,8 +54,9 @@ const markerStyle = computed(() => ({
     @click="emit('select', node)"
   >
     <div class="marker-ring"></div>
-    <div class="marker-icon">
-      <span v-if="isGenusLoci">👹</span>
+    <div class="marker-icon" :class="{ 'has-portrait': genusLociPortrait }">
+      <img v-if="genusLociPortrait" :src="genusLociPortrait" :alt="node.name" class="genus-loci-portrait" />
+      <span v-else-if="isGenusLoci">👹</span>
       <span v-else-if="isCompleted">✓</span>
       <span v-else>!</span>
     </div>
@@ -105,6 +115,17 @@ const markerStyle = computed(() => ({
   font-weight: 700;
   box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
   transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.marker-icon.has-portrait {
+  padding: 0;
+}
+
+.genus-loci-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .node-marker:not(.completed) .marker-icon {

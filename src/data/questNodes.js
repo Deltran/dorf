@@ -1,6 +1,8 @@
 import whisperingWoodsMap from '../assets/maps/whispering_woods.png'
 import echoingCavernsMap from '../assets/maps/echoing_caverns.png'
 import whisperLakeMap from '../assets/maps/whisper_lake.png'
+import stormwindPeaksMap from '../assets/maps/stormwind_peaks.png'
+import hibernationDenMap from '../assets/maps/hibernation_den.png'
 
 export const questNodes = {
   // Whispering Woods (Tutorial / Early Game)
@@ -278,8 +280,8 @@ export const questNodes = {
     id: 'mountain_01',
     name: 'Mountain Pass',
     region: 'Stormwind Peaks',
-    x: 100,
-    y: 250,
+    x: 80,
+    y: 380,
     battles: [
       { enemies: ['harpy', 'harpy'] },
       { enemies: ['harpy', 'harpy', 'harpy'] },
@@ -300,13 +302,13 @@ export const questNodes = {
     name: 'Frozen Lake',
     region: 'Stormwind Peaks',
     x: 380,
-    y: 100,
+    y: 550,
     battles: [
       { enemies: ['frost_elemental', 'harpy'] },
       { enemies: ['frost_elemental', 'frost_elemental'] },
       { enemies: ['frost_elemental', 'frost_elemental', 'harpy'] }
     ],
-    connections: ['mountain_05'],
+    connections: ['mountain_05', 'hibernation_01'],
     rewards: { gems: 100, gold: 400, exp: 320 },
     firstClearBonus: { gems: 100 },
     itemDrops: [
@@ -320,8 +322,8 @@ export const questNodes = {
     id: 'mountain_03',
     name: 'Giant\'s Path',
     region: 'Stormwind Peaks',
-    x: 380,
-    y: 400,
+    x: 180,
+    y: 310,
     battles: [
       { enemies: ['mountain_giant'] },
       { enemies: ['harpy', 'harpy', 'harpy', 'harpy'] },
@@ -341,8 +343,8 @@ export const questNodes = {
     id: 'mountain_04',
     name: 'Dragon\'s Lair',
     region: 'Stormwind Peaks',
-    x: 700,
-    y: 250,
+    x: 405,
+    y: 185,
     battles: [
       { enemies: ['frost_elemental', 'frost_elemental', 'harpy', 'harpy'] },
       { enemies: ['mountain_giant', 'mountain_giant'] },
@@ -363,8 +365,8 @@ export const questNodes = {
     id: 'mountain_05',
     name: 'Storm Plateau',
     region: 'Stormwind Peaks',
-    x: 480,
-    y: 250,
+    x: 280,
+    y: 350,
     battles: [
       { enemies: ['storm_elemental', 'frost_elemental'] },
       { enemies: ['thunder_hawk', 'thunder_hawk', 'harpy'] },
@@ -384,8 +386,8 @@ export const questNodes = {
     id: 'mountain_06',
     name: 'Lightning Spire',
     region: 'Stormwind Peaks',
-    x: 600,
-    y: 100,
+    x: 290,
+    y: 180,
     battles: [
       { enemies: ['storm_elemental', 'storm_elemental'] },
       { enemies: ['thunder_hawk', 'thunder_hawk', 'thunder_hawk'] },
@@ -405,8 +407,8 @@ export const questNodes = {
     id: 'mountain_07',
     name: 'Howling Cliffs',
     region: 'Stormwind Peaks',
-    x: 600,
-    y: 400,
+    x: 370,
+    y: 320,
     battles: [
       { enemies: ['mountain_giant', 'storm_elemental'] },
       { enemies: ['frost_elemental', 'frost_elemental', 'thunder_hawk', 'thunder_hawk'] },
@@ -421,6 +423,61 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.1 }
     ]
+  },
+
+  // Hibernation Den (Great Troll Genus Loci)
+  // Layout: hibernation_01 -> hibernation_02 -> hibernation_den
+  hibernation_01: {
+    id: 'hibernation_01',
+    name: 'Troll Warren',
+    region: 'Hibernation Den',
+    x: 550,
+    y: 480,
+    battles: [
+      { enemies: ['mountain_giant', 'harpy'] },
+      { enemies: ['frost_elemental', 'frost_elemental', 'harpy'] },
+      { enemies: ['mountain_giant', 'mountain_giant'] }
+    ],
+    connections: ['hibernation_02'],
+    rewards: { gems: 95, gold: 420, exp: 360 },
+    firstClearBonus: { gems: 100 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.35 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.5 },
+      { itemId: 'den_key', min: 1, max: 1, chance: 0.1 }
+    ]
+  },
+  hibernation_02: {
+    id: 'hibernation_02',
+    name: "Troll Chieftain's Cave",
+    region: 'Hibernation Den',
+    x: 430,
+    y: 300,
+    battles: [
+      { enemies: ['mountain_giant', 'frost_elemental', 'harpy'] },
+      { enemies: ['storm_elemental', 'storm_elemental', 'mountain_giant'] },
+      { enemies: ['mountain_giant', 'mountain_giant', 'frost_elemental'] }
+    ],
+    connections: ['hibernation_den'],
+    rewards: { gems: 100, gold: 450, exp: 400 },
+    firstClearBonus: { gems: 110 },
+    itemDrops: [
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_large', min: 1, max: 1, chance: 0.45 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 },
+      { itemId: 'den_key', min: 1, max: 1, chance: 0.25 }
+    ]
+  },
+  hibernation_den: {
+    id: 'hibernation_den',
+    name: 'Hibernation Den',
+    region: 'Hibernation Den',
+    x: 220,
+    y: 120,
+    type: 'genusLoci',
+    genusLociId: 'great_troll',
+    connections: []
   },
 
   // Whisper Lake (Branching from Spider Nest)
@@ -1577,8 +1634,19 @@ export const regions = [
     superRegion: 'western_veros',
     startNode: 'mountain_01',
     width: 800,
+    height: 800,
+    backgroundColor: '#2a2a3a',
+    backgroundImage: stormwindPeaksMap
+  },
+  {
+    id: 'hibernation_den',
+    name: 'Hibernation Den',
+    superRegion: 'western_veros',
+    startNode: 'hibernation_01',
+    width: 800,
     height: 500,
-    backgroundColor: '#2a2a3a' // Dark mountain gray, placeholder for background image
+    backgroundColor: '#2a3a2a',
+    backgroundImage: hibernationDenMap
   },
   {
     id: 'whisper_lake',

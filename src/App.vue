@@ -25,6 +25,7 @@ const genusLociStore = useGenusLociStore()
 const currentScreen = ref('home')
 const isLoaded = ref(false)
 const initialHeroId = ref(null)
+const autoOpenMerge = ref(false)
 const selectedBossId = ref(null)
 const genusLociBattleContext = ref(null)
 
@@ -82,7 +83,14 @@ watch(
 function navigate(screen, param = null) {
   currentScreen.value = screen
   if (screen === 'heroes') {
-    initialHeroId.value = param
+    // Support both string (heroId) and object ({ heroId, openMerge })
+    if (typeof param === 'object' && param !== null) {
+      initialHeroId.value = param.heroId
+      autoOpenMerge.value = param.openMerge || false
+    } else {
+      initialHeroId.value = param
+      autoOpenMerge.value = false
+    }
   } else if (screen === 'genusLoci') {
     selectedBossId.value = param
   }
@@ -135,6 +143,7 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
       <HeroesScreen
         v-else-if="currentScreen === 'heroes'"
         :initial-hero-id="initialHeroId"
+        :auto-open-merge="autoOpenMerge"
         @navigate="navigate"
       />
       <WorldMapScreen
