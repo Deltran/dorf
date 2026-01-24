@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useExplorationsStore, useHeroesStore } from '../stores'
+import { useExplorationsStore, useHeroesStore, useGachaStore, useInventoryStore } from '../stores'
+import { getItem } from '../data/items.js'
 
 const emit = defineEmits(['navigate', 'back'])
 
@@ -70,6 +71,40 @@ function openExploration(nodeId) {
 
 function getExplorationRank(nodeId) {
   return explorationsStore.getExplorationRank(nodeId)
+}
+
+const showEnhanceModal = ref(false)
+const enhanceNodeId = ref(null)
+
+function openEnhanceModal(nodeId) {
+  enhanceNodeId.value = nodeId
+  showEnhanceModal.value = true
+}
+
+function closeEnhanceModal() {
+  showEnhanceModal.value = false
+  enhanceNodeId.value = null
+}
+
+const gachaStore = useGachaStore()
+const inventoryStore = useInventoryStore()
+
+const enhanceInfo = computed(() => {
+  if (!enhanceNodeId.value) return null
+  return explorationsStore.canUpgradeExploration(enhanceNodeId.value)
+})
+
+const enhanceCrestItem = computed(() => {
+  if (!enhanceInfo.value?.crestId) return null
+  return getItem(enhanceInfo.value.crestId)
+})
+
+function confirmEnhance() {
+  if (!enhanceNodeId.value) return
+  const result = explorationsStore.upgradeExploration(enhanceNodeId.value)
+  if (result.success) {
+    closeEnhanceModal()
+  }
 }
 </script>
 
@@ -144,11 +179,69 @@ function getExplorationRank(nodeId) {
             </template>
           </div>
 
-          <div class="card-action">
+          <div class="card-actions">
             <span v-if="isActive(node.id)" class="status-badge active">In Progress</span>
             <span v-else class="status-badge available">Available</span>
+            <button
+              class="enhance-btn"
+              :disabled="isActive(node.id)"
+              @click.stop="openEnhanceModal(node.id)"
+            >
+              Enhance
+            </button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Enhance Modal -->
+    <div v-if="showEnhanceModal" class="modal-backdrop" @click="closeEnhanceModal"></div>
+    <div v-if="showEnhanceModal && enhanceInfo" class="enhance-modal">
+      <div class="modal-header">
+        <h3>Enhance Exploration</h3>
+        <button class="close-btn" @click="closeEnhanceModal">×</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="rank-transition">
+          <span :class="['rank-badge', 'large', `rank-${enhanceInfo.currentRank}`]">
+            {{ enhanceInfo.currentRank }}
+          </span>
+          <span class="arrow">→</span>
+          <span :class="['rank-badge', 'large', `rank-${enhanceInfo.nextRank}`]">
+            {{ enhanceInfo.nextRank }}
+          </span>
+        </div>
+
+        <div class="bonus-info">
+          +5% reward bonus
+        </div>
+
+        <div class="enhance-requirements">
+          <div class="requirement-row">
+            <span class="req-label">{{ enhanceCrestItem?.name || 'Crest' }}</span>
+            <span :class="['req-value', enhanceInfo.crestsHave >= enhanceInfo.crestsNeeded ? 'met' : 'unmet']">
+              {{ enhanceInfo.crestsHave }} / {{ enhanceInfo.crestsNeeded }}
+            </span>
+          </div>
+          <div class="requirement-row">
+            <span class="req-label">Gold</span>
+            <span :class="['req-value', enhanceInfo.goldHave >= enhanceInfo.goldNeeded ? 'met' : 'unmet']">
+              {{ enhanceInfo.goldHave.toLocaleString() }} / {{ enhanceInfo.goldNeeded.toLocaleString() }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="cancel-btn" @click="closeEnhanceModal">Cancel</button>
+        <button
+          class="confirm-btn"
+          :disabled="!enhanceInfo.canUpgrade"
+          @click="confirmEnhance"
+        >
+          Enhance
+        </button>
       </div>
     </div>
   </div>
@@ -301,9 +394,32 @@ h1 {
   color: #fbbf24;
 }
 
-.card-action {
+.card-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.enhance-btn {
+  padding: 6px 12px;
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  border: 1px solid #6b7280;
+  border-radius: 6px;
+  color: #d1d5db;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.enhance-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  border-color: #9ca3af;
+}
+
+.enhance-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .status-badge {
@@ -360,5 +476,131 @@ h1 {
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(234, 179, 8, 0.3) 100%);
   color: #fbbf24;
   box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+}
+
+.enhance-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 16px;
+  padding: 20px;
+  min-width: 300px;
+  z-index: 101;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #f3f4f6;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.rank-transition {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.rank-badge.large {
+  font-size: 1.5rem;
+  padding: 8px 16px;
+}
+
+.arrow {
+  font-size: 1.5rem;
+  color: #6b7280;
+}
+
+.bonus-info {
+  text-align: center;
+  color: #22c55e;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.enhance-requirements {
+  background: #111827;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 20px;
+}
+
+.requirement-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.req-label {
+  color: #9ca3af;
+}
+
+.req-value {
+  font-weight: 600;
+}
+
+.req-value.met {
+  color: #22c55e;
+}
+
+.req-value.unmet {
+  color: #ef4444;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancel-btn {
+  padding: 10px 20px;
+  background: #374151;
+  border: none;
+  border-radius: 8px;
+  color: #d1d5db;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-btn {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-btn:disabled {
+  background: #4b5563;
+  cursor: not-allowed;
 }
 </style>
