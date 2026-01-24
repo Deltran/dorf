@@ -1,6 +1,6 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore } from './stores'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
 
@@ -14,6 +14,9 @@ import ShardsScreen from './screens/ShardsScreen.vue'
 import MergeScreen from './screens/MergeScreen.vue'
 import AdminScreen from './screens/AdminScreen.vue'
 import GenusLociScreen from './screens/GenusLociScreen.vue'
+import ExplorationsScreen from './screens/ExplorationsScreen.vue'
+import ExplorationDetailView from './components/ExplorationDetailView.vue'
+import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
@@ -21,6 +24,7 @@ const questsStore = useQuestsStore()
 const inventoryStore = useInventoryStore()
 const shardsStore = useShardsStore()
 const genusLociStore = useGenusLociStore()
+const explorationsStore = useExplorationsStore()
 
 const currentScreen = ref('home')
 const isLoaded = ref(false)
@@ -28,17 +32,22 @@ const initialHeroId = ref(null)
 const autoOpenMerge = ref(false)
 const selectedBossId = ref(null)
 const genusLociBattleContext = ref(null)
+const selectedExplorationNodeId = ref(null)
+const currentCompletionPopup = ref(null)
 
 // Load game on mount
 onMounted(() => {
   const hasData = hasSaveData()
 
   if (hasData) {
-    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore })
+    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore })
   } else {
     // New player: give them a starter hero
     initNewPlayer()
   }
+
+  // Check for any explorations that completed while offline
+  explorationsStore.checkCompletions()
 
   isLoaded.value = true
 
@@ -70,15 +79,77 @@ watch(
     inventoryStore.totalItemCount,
     shardsStore.huntingSlots,
     shardsStore.unlocked,
-    genusLociStore.progress
+    genusLociStore.progress,
+    explorationsStore.activeExplorations,
+    explorationsStore.completedHistory
   ],
   () => {
     if (isLoaded.value) {
-      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore })
+      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore })
     }
   },
   { deep: true }
 )
+
+// Watch for pending completions and show popup
+watch(
+  () => explorationsStore.pendingCompletions.length,
+  (count) => {
+    if (count > 0 && !currentCompletionPopup.value) {
+      showNextCompletionPopup()
+    }
+  }
+)
+
+function showNextCompletionPopup() {
+  if (explorationsStore.pendingCompletions.length === 0) {
+    currentCompletionPopup.value = null
+    return
+  }
+
+  const nodeId = explorationsStore.pendingCompletions[0]
+  const exploration = explorationsStore.activeExplorations[nodeId]
+  const node = explorationsStore.getExplorationNode(nodeId)
+
+  if (!exploration || !node) {
+    currentCompletionPopup.value = null
+    return
+  }
+
+  // Pre-calculate rewards for display (without claiming yet)
+  const config = node.explorationConfig
+  const bonusMultiplier = exploration.partyRequestMet ? 1.10 : 1.0
+  const goldReward = Math.floor(config.rewards.gold * bonusMultiplier)
+  const gemsReward = Math.floor(config.rewards.gems * bonusMultiplier)
+  const xpReward = Math.floor(config.rewards.xp * bonusMultiplier)
+  const xpPerHero = Math.floor(xpReward / 5)
+
+  currentCompletionPopup.value = {
+    nodeId,
+    nodeName: node.name,
+    rewards: { gold: goldReward, gems: gemsReward, xp: xpReward, xpPerHero },
+    heroes: [...exploration.heroes],
+    itemsDropped: [], // Will be filled when claimed
+    partyRequestMet: exploration.partyRequestMet
+  }
+}
+
+function claimCompletionPopup() {
+  if (!currentCompletionPopup.value) return
+
+  const result = explorationsStore.claimCompletion(currentCompletionPopup.value.nodeId)
+  if (result) {
+    // Update popup with actual items dropped
+    currentCompletionPopup.value.itemsDropped = result.itemsDropped
+  }
+
+  // Close popup and check for more
+  currentCompletionPopup.value = null
+  if (explorationsStore.pendingCompletions.length > 0) {
+    // Small delay before showing next popup
+    setTimeout(showNextCompletionPopup, 300)
+  }
+}
 
 function navigate(screen, param = null) {
   currentScreen.value = screen
@@ -93,7 +164,30 @@ function navigate(screen, param = null) {
     }
   } else if (screen === 'genusLoci') {
     selectedBossId.value = param
+  } else if (screen === 'exploration-detail') {
+    selectedExplorationNodeId.value = param
   }
+}
+
+function handleExplorationBack() {
+  currentScreen.value = 'home'
+}
+
+function handleExplorationDetailClose() {
+  currentScreen.value = 'explorations'
+  selectedExplorationNodeId.value = null
+}
+
+function handleExplorationStarted() {
+  // Return to explorations list after starting
+  currentScreen.value = 'explorations'
+  selectedExplorationNodeId.value = null
+}
+
+function handleExplorationCancelled() {
+  // Return to explorations list after cancelling
+  currentScreen.value = 'explorations'
+  selectedExplorationNodeId.value = null
 }
 
 function startBattle() {
@@ -178,6 +272,25 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
       <AdminScreen
         v-else-if="currentScreen === 'admin'"
         @navigate="navigate"
+      />
+      <ExplorationsScreen
+        v-else-if="currentScreen === 'explorations'"
+        @navigate="navigate"
+        @back="handleExplorationBack"
+      />
+      <ExplorationDetailView
+        v-else-if="currentScreen === 'exploration-detail'"
+        :node-id="selectedExplorationNodeId"
+        @close="handleExplorationDetailClose"
+        @started="handleExplorationStarted"
+        @cancelled="handleExplorationCancelled"
+      />
+
+      <!-- Exploration Completion Popup -->
+      <ExplorationCompletePopup
+        v-if="currentCompletionPopup"
+        :completion="currentCompletionPopup"
+        @claim="claimCompletionPopup"
       />
     </template>
 
