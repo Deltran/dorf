@@ -490,4 +490,41 @@ describe('explorations store', () => {
       expect(store.completedHistory[9].nodeId).toBe('cave_exploration')
     })
   })
+
+  describe('persistence', () => {
+    it('saves and loads activeExplorations', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+      store.incrementFightCount()
+
+      const saved = store.saveState()
+
+      // Reset and reload
+      store.activeExplorations = {}
+      store.loadState(saved)
+
+      expect(store.activeExplorations['cave_exploration']).toBeDefined()
+      expect(store.activeExplorations['cave_exploration'].fightCount).toBe(1)
+    })
+
+    it('saves and loads completedHistory', () => {
+      store.completedHistory.push({
+        nodeId: 'cave_exploration',
+        heroes: ['a', 'b', 'c', 'd', 'e'],
+        completedAt: 12345,
+        rewards: { gold: 500, gems: 20, xp: 300 }
+      })
+
+      const saved = store.saveState()
+
+      store.completedHistory = []
+      store.loadState(saved)
+
+      expect(store.completedHistory.length).toBe(1)
+      expect(store.completedHistory[0].nodeId).toBe('cave_exploration')
+    })
+  })
 })

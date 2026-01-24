@@ -239,6 +239,24 @@ export const useExplorationsStore = defineStore('explorations', () => {
     }
   }
 
+  // Persistence
+  function saveState() {
+    return {
+      activeExplorations: activeExplorations.value,
+      completedHistory: completedHistory.value
+    }
+  }
+
+  function loadState(savedState) {
+    if (!savedState) return
+    if (savedState.activeExplorations) {
+      activeExplorations.value = savedState.activeExplorations
+    }
+    if (savedState.completedHistory) {
+      completedHistory.value = savedState.completedHistory
+    }
+  }
+
   return {
     // State
     activeExplorations,
@@ -255,6 +273,8 @@ export const useExplorationsStore = defineStore('explorations', () => {
     cancelExploration,
     incrementFightCount,
     checkCompletions,
-    claimCompletion
+    claimCompletion,
+    saveState,
+    loadState
   }
 })
