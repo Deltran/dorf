@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useGenusLociStore, useExplorationsStore } from '../stores'
+import { useHeroesStore, useGachaStore, useQuestsStore } from '../stores'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 
@@ -9,21 +9,10 @@ const emit = defineEmits(['navigate'])
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const questsStore = useQuestsStore()
-const genusLociStore = useGenusLociStore()
-const explorationsStore = useExplorationsStore()
-
-// Hero collection stats
-const uniqueHeroCount = computed(() => {
-  const uniqueTemplates = new Set(heroesStore.collection.map(h => h.templateId))
-  return uniqueTemplates.size
-})
 
 // Hero images (check for animated gif first, then static png)
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
 const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
-
-// Enemy portraits for genus loci
-const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
 
 function getHeroImageUrl(heroId) {
   // Prefer animated gif if available
@@ -34,11 +23,6 @@ function getHeroImageUrl(heroId) {
   // Fall back to static png
   const pngPath = `../assets/heroes/${heroId}.png`
   return heroImages[pngPath] || null
-}
-
-function getBossPortraitUrl(bossId) {
-  const portraitPath = `../assets/enemies/${bossId}_portrait.png`
-  return enemyPortraits[portraitPath] || null
 }
 
 // Battle backgrounds for party section
@@ -65,9 +49,6 @@ const partyPreview = computed(() => {
 const hasParty = computed(() => {
   return heroesStore.party.some(id => id !== null)
 })
-
-const unlockedGenusLoci = computed(() => genusLociStore.unlockedBosses)
-const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
 </script>
 
 <template>
@@ -140,101 +121,32 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
         <div class="nav-arrow">›</div>
       </button>
 
-      <button class="nav-button heroes-button" @click="emit('navigate', 'heroes')">
-        <div class="nav-icon-wrapper heroes">
-          <span class="nav-icon">⚔️</span>
-        </div>
-        <div class="nav-content">
-          <span class="nav-label">Heroes</span>
-          <span class="nav-hint">{{ uniqueHeroCount }} owned · {{ heroesStore.heroCount }} total</span>
-        </div>
-        <div class="nav-arrow">›</div>
-      </button>
+      <div class="room-buttons">
+        <button class="room-button" @click="emit('navigate', 'fellowship-hall')">
+          <div class="room-icon-wrapper fellowship">
+            <span class="room-icon">🏰</span>
+          </div>
+          <span class="room-label">Fellowship Hall</span>
+          <span class="room-hint">Manage heroes</span>
+        </button>
 
-      <button
-        class="nav-button quests-button"
-        :disabled="!hasParty"
-        @click="emit('navigate', 'worldmap')"
-      >
-        <div class="nav-icon-wrapper quests">
-          <span class="nav-icon">🗺️</span>
-        </div>
-        <div class="nav-content">
-          <span class="nav-label">Quests</span>
-          <span class="nav-hint">{{ questsStore.completedNodeCount }} cleared</span>
-        </div>
-        <div class="nav-arrow">›</div>
-      </button>
+        <button class="room-button" @click="emit('navigate', 'map-room')">
+          <div class="room-icon-wrapper map">
+            <span class="room-icon">🗺️</span>
+          </div>
+          <span class="room-label">Map Room</span>
+          <span class="room-hint">Explore world</span>
+        </button>
 
-      <button class="nav-button inventory-button" @click="emit('navigate', 'inventory')">
-        <div class="nav-icon-wrapper inventory">
-          <span class="nav-icon">📦</span>
-        </div>
-        <div class="nav-content">
-          <span class="nav-label">Inventory</span>
-          <span class="nav-hint">Items & Equipment</span>
-        </div>
-        <div class="nav-arrow">›</div>
-      </button>
-
-      <button class="nav-button shards-button" @click="emit('navigate', 'shards')">
-        <div class="nav-icon-wrapper shards">
-          <span class="nav-icon">💎</span>
-        </div>
-        <div class="nav-content">
-          <span class="nav-label">Shards</span>
-          <span class="nav-hint">Hero fragments</span>
-        </div>
-        <div class="nav-arrow">›</div>
-      </button>
-
-      <button class="nav-button explorations-button" @click="emit('navigate', 'explorations')">
-        <div class="nav-icon-wrapper explorations">
-          <span class="nav-icon">🧭</span>
-        </div>
-        <div class="nav-content">
-          <span class="nav-label">Explorations</span>
-          <span class="nav-hint">{{ explorationsStore.activeExplorationCount }} active</span>
-        </div>
-        <div class="nav-arrow">›</div>
-      </button>
+        <button class="room-button" @click="emit('navigate', 'inventory')">
+          <div class="room-icon-wrapper store">
+            <span class="room-icon">📦</span>
+          </div>
+          <span class="room-label">Store Room</span>
+          <span class="room-hint">Items</span>
+        </button>
+      </div>
     </nav>
-
-    <!-- Genus Loci Section -->
-    <section class="genus-loci-section">
-      <div class="genus-loci-header">
-        <span class="genus-loci-title">Genus Loci</span>
-      </div>
-
-      <div v-if="hasAnyGenusLoci" class="genus-loci-grid">
-        <div
-          v-for="boss in unlockedGenusLoci"
-          :key="boss.id"
-          class="genus-loci-card"
-          @click="emit('navigate', 'genusLoci', boss.id)"
-        >
-          <div class="boss-icon">
-            <img
-              v-if="getBossPortraitUrl(boss.id)"
-              :src="getBossPortraitUrl(boss.id)"
-              :alt="boss.name"
-              class="boss-portrait"
-            />
-            <span v-else>👹</span>
-          </div>
-          <div class="boss-info">
-            <span class="boss-name">{{ boss.name }}</span>
-            <span class="boss-level">Highest: Lv.{{ boss.highestCleared }}</span>
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="genus-loci-empty" @click="emit('navigate', 'worldmap')">
-        <div class="empty-icon">🏰</div>
-        <p class="empty-text">Powerful guardians await in the world.</p>
-        <p class="empty-hint">Seek them out on your quest.</p>
-      </div>
-    </section>
 
     <footer class="home-footer">
       <div class="footer-stats">
@@ -673,31 +585,6 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
 }
 
-.nav-icon-wrapper.heroes {
-  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-.nav-icon-wrapper.quests {
-  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-}
-
-.nav-icon-wrapper.inventory {
-  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.nav-icon-wrapper.shards {
-  background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
-  box-shadow: 0 4px 12px rgba(192, 38, 211, 0.4);
-}
-
-.nav-icon-wrapper.explorations {
-  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
-}
-
 .nav-icon {
   font-size: 1.5rem;
 }
@@ -804,114 +691,69 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
   background: linear-gradient(180deg, transparent 0%, #374151 50%, transparent 100%);
 }
 
-/* ===== Genus Loci Section ===== */
-.genus-loci-section {
-  position: relative;
-  z-index: 1;
-}
-
-.genus-loci-header {
+/* ===== Room Buttons ===== */
+.room-buttons {
   display: flex;
-  align-items: center;
-  margin-bottom: 12px;
+  gap: 12px;
 }
 
-.genus-loci-title {
-  font-size: 0.85rem;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.genus-loci-grid {
+.room-button {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.genus-loci-card {
-  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: linear-gradient(135deg, #2a1f3d 0%, #1f2937 100%);
-  border: 1px solid #6b21a8;
-  border-radius: 12px;
+  gap: 8px;
+  padding: 20px 12px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  text-align: center;
 }
 
-.genus-loci-card:hover {
-  transform: translateX(4px);
-  border-color: #9333ea;
-  box-shadow: 0 0 12px rgba(147, 51, 234, 0.3);
+.room-button:hover {
+  border-color: #4b5563;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.3);
 }
 
-.boss-icon {
-  font-size: 1.5rem;
-  width: 40px;
-  height: 40px;
+.room-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(147, 51, 234, 0.2);
-  border-radius: 8px;
-  overflow: hidden;
 }
 
-.boss-portrait {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.room-icon-wrapper.fellowship {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
-.boss-info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
+.room-icon-wrapper.map {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
-.boss-name {
+.room-icon-wrapper.store {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
+.room-icon {
+  font-size: 1.8rem;
+}
+
+.room-label {
   font-size: 0.95rem;
   font-weight: 600;
   color: #f3f4f6;
 }
 
-.boss-level {
-  font-size: 0.75rem;
-  color: #9ca3af;
-}
-
-.genus-loci-empty {
-  text-align: center;
-  padding: 24px 16px;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 1px dashed #374151;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.genus-loci-empty:hover {
-  border-color: #6b21a8;
-  background: linear-gradient(135deg, #2a1f3d 0%, #0f172a 100%);
-}
-
-.empty-icon {
-  font-size: 2rem;
-  margin-bottom: 8px;
-  opacity: 0.6;
-}
-
-.empty-text {
-  color: #9ca3af;
-  font-size: 0.9rem;
-  margin: 0 0 4px 0;
-}
-
-.empty-hint {
+.room-hint {
+  font-size: 0.7rem;
   color: #6b7280;
-  font-size: 0.75rem;
-  margin: 0;
 }
 </style>
