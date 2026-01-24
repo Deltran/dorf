@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useHeroesStore, useInventoryStore, useGachaStore, useExplorationsStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
+import MergePlannerModal from '../components/MergePlannerModal.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 import { getItem } from '../data/items.js'
@@ -104,6 +105,10 @@ function handleClickOutside(event) {
 const showMergeModal = ref(false)
 const mergeInfo = ref(null)
 const selectedFodder = ref([])
+
+// Build Copies modal state
+const showBuildCopiesModal = ref(false)
+const buildCopiesHeroId = ref(null)
 
 // Auto-select hero if passed from another screen
 onMounted(async () => {
@@ -296,6 +301,14 @@ const canShowMergeButton = computed(() => {
   return starLevel < 5
 })
 
+// Can show Build Copies button (hero is below 5* and has lower-tier copies)
+const canShowBuildCopies = computed(() => {
+  if (!selectedHero.value) return false
+  const starLevel = selectedHero.value.starLevel || selectedHero.value.template.rarity
+  if (starLevel >= 5) return false
+  return heroesStore.hasLowerTierCopies(selectedHero.value.template.id, starLevel)
+})
+
 // Watch selectedHero to update mergeInfo
 watch(selectedHero, (hero) => {
   if (hero) {
@@ -418,6 +431,28 @@ function confirmMerge() {
 
 function getStarLevel(hero) {
   return hero.starLevel || hero.template?.rarity || 1
+}
+
+function openBuildCopies() {
+  if (!selectedHero.value) return
+  buildCopiesHeroId.value = selectedHero.value.instanceId
+  showBuildCopiesModal.value = true
+}
+
+function closeBuildCopies() {
+  showBuildCopiesModal.value = false
+  buildCopiesHeroId.value = null
+}
+
+function onBuildCopiesComplete(result) {
+  closeBuildCopies()
+  if (result.success) {
+    // Refresh selected hero data
+    if (selectedHero.value) {
+      selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
+      mergeInfo.value = heroesStore.canMergeHero(selectedHero.value.instanceId)
+    }
+  }
 }
 
 // Check if selected hero is a Knight (uses Valor)
@@ -974,6 +1009,18 @@ function getEffectTypeName(type) {
           </button>
         </div>
 
+        <!-- Build Copies Button -->
+        <div v-if="canShowBuildCopies" class="build-copies-section">
+          <button
+            class="build-copies-btn"
+            :disabled="!!selectedHeroExplorationInfo"
+            @click="openBuildCopies"
+          >
+            <span class="btn-icon">🔨</span>
+            <span>Build Copies</span>
+          </button>
+        </div>
+
         <!-- Use XP Item Button -->
         <div v-if="selectedHero.level < 250 && xpItems.length > 0" class="use-item-section">
           <button class="use-item-btn" :disabled="!!selectedHeroExplorationInfo" @click="openItemPicker">
@@ -1097,6 +1144,14 @@ function getEffectTypeName(type) {
         </div>
       </div>
     </aside>
+
+    <!-- Build Copies Modal -->
+    <MergePlannerModal
+      :show="showBuildCopiesModal"
+      :heroInstanceId="buildCopiesHeroId"
+      @close="closeBuildCopies"
+      @complete="onBuildCopiesComplete"
+    />
   </div>
 </template>
 
@@ -2574,5 +2629,44 @@ function getEffectTypeName(type) {
 
 .role-icon {
   font-size: 1rem;
+}
+
+/* ===== Build Copies Section ===== */
+.build-copies-section {
+  margin-top: 12px;
+}
+
+.build-copies-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.build-copies-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.build-copies-btn:disabled {
+  background: #4b5563;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+.build-copies-btn .btn-icon {
+  font-size: 1.1rem;
 }
 </style>
