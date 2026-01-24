@@ -355,7 +355,8 @@ export const useExplorationsStore = defineStore('explorations', () => {
   function saveState() {
     return {
       activeExplorations: activeExplorations.value,
-      completedHistory: completedHistory.value
+      completedHistory: completedHistory.value,
+      explorationRanks: explorationRanks.value
     }
   }
 
@@ -366,6 +367,9 @@ export const useExplorationsStore = defineStore('explorations', () => {
     }
     if (savedState.completedHistory) {
       completedHistory.value = savedState.completedHistory
+    }
+    if (savedState.explorationRanks) {
+      explorationRanks.value = savedState.explorationRanks
     }
   }
 
