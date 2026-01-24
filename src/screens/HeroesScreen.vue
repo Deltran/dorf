@@ -143,14 +143,62 @@ const heroesWithData = computed(() => {
   return heroesStore.collection.map(hero => heroesStore.getHeroFull(hero.instanceId))
 })
 
-const sortedHeroes = computed(() => {
-  return [...heroesWithData.value].sort((a, b) => {
-    // Sort by rarity (desc), then level (desc)
-    if (b.template.rarity !== a.template.rarity) {
-      return b.template.rarity - a.template.rarity
+const filteredAndSortedHeroes = computed(() => {
+  let heroes = [...heroesWithData.value]
+
+  // Filter by expedition status
+  if (hideOnExpedition.value) {
+    heroes = heroes.filter(hero => {
+      const heroData = heroesStore.collection.find(h => h.instanceId === hero.instanceId)
+      return !heroData?.explorationNodeId
+    })
+  }
+
+  // Filter by role
+  if (selectedRoles.value.length > 0) {
+    heroes = heroes.filter(hero => selectedRoles.value.includes(hero.class.role))
+  }
+
+  // Filter by class
+  if (selectedClasses.value.length > 0) {
+    heroes = heroes.filter(hero => selectedClasses.value.includes(hero.template.classId))
+  }
+
+  // Sort
+  heroes.sort((a, b) => {
+    let primary = 0
+    let secondary = 0
+
+    switch (sortBy.value) {
+      case 'rarity':
+        primary = b.template.rarity - a.template.rarity
+        secondary = b.level - a.level
+        break
+      case 'level':
+        primary = b.level - a.level
+        secondary = b.template.rarity - a.template.rarity
+        break
+      case 'atk':
+        primary = b.stats.atk - a.stats.atk
+        secondary = b.template.rarity - a.template.rarity
+        break
+      case 'def':
+        primary = b.stats.def - a.stats.def
+        secondary = b.template.rarity - a.template.rarity
+        break
+      case 'spd':
+        primary = b.stats.spd - a.stats.spd
+        secondary = b.template.rarity - a.template.rarity
+        break
+      default: // 'default'
+        primary = b.template.rarity - a.template.rarity
+        secondary = b.level - a.level
     }
-    return b.level - a.level
+
+    return primary !== 0 ? primary : secondary
   })
+
+  return heroes
 })
 
 const xpItems = computed(() => {
@@ -624,7 +672,7 @@ function getEffectTypeName(type) {
 
     <!-- Collection -->
     <section class="collection-section">
-      <div v-if="sortedHeroes.length === 0" class="empty-collection">
+      <div v-if="filteredAndSortedHeroes.length === 0" class="empty-collection">
         <div class="empty-icon">⚔️</div>
         <p>No heroes yet!</p>
         <button class="summon-cta" @click="emit('navigate', 'gacha')">
@@ -634,7 +682,7 @@ function getEffectTypeName(type) {
 
       <div v-else class="hero-grid">
         <HeroCard
-          v-for="hero in sortedHeroes"
+          v-for="hero in filteredAndSortedHeroes"
           :key="hero.instanceId"
           :hero="hero"
           :selected="selectedHero?.instanceId === hero.instanceId"
