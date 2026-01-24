@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLociStore, BattleState } from '../stores'
+import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLociStore, useExplorationsStore, BattleState } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import EnemyCard from '../components/EnemyCard.vue'
 import ActionButton from '../components/ActionButton.vue'
@@ -31,6 +31,7 @@ const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const inventoryStore = useInventoryStore()
 const genusLociStore = useGenusLociStore()
+const explorationsStore = useExplorationsStore()
 
 const showVictoryModal = ref(false)
 const showDefeatModal = ref(false)
@@ -319,6 +320,7 @@ function handleVictory() {
   } else {
     // Node complete!
     rewards.value = questsStore.completeRun()
+    explorationsStore.incrementFightCount()
     if (rewards.value) {
       gachaStore.addGems(rewards.value.gems)
       gachaStore.addGold(rewards.value.gold || 0)
@@ -521,11 +523,13 @@ function selectDeadHeroTarget(hero) {
 }
 
 function returnToMap() {
+  explorationsStore.checkCompletions()
   battleStore.endBattle()
   emit('navigate', 'worldmap')
 }
 
 function returnHome() {
+  explorationsStore.checkCompletions()
   battleStore.endBattle()
   emit('navigate', 'home')
 }
@@ -534,6 +538,8 @@ function replayStage() {
   // Use lastVisitedNode since currentRun is null after completeRun()
   const nodeId = questsStore.lastVisitedNode
   if (!nodeId) return
+
+  explorationsStore.checkCompletions()
 
   // Hide modal and reset victory state first
   showVictoryModal.value = false
