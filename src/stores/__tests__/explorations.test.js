@@ -264,4 +264,74 @@ describe('explorations store', () => {
       expect(() => store.incrementFightCount()).not.toThrow()
     })
   })
+
+  describe('checkCompletions', () => {
+    it('queues completion when fight count reached', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      // Simulate 50 fights (requiredFights for cave_exploration)
+      for (let i = 0; i < 50; i++) {
+        store.incrementFightCount()
+      }
+
+      store.checkCompletions()
+
+      expect(store.pendingCompletions).toContain('cave_exploration')
+    })
+
+    it('queues completion when time elapsed', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      // Simulate time passing (240 minutes = 4 hours)
+      store.activeExplorations['cave_exploration'].startedAt = Date.now() - (241 * 60 * 1000)
+
+      store.checkCompletions()
+
+      expect(store.pendingCompletions).toContain('cave_exploration')
+    })
+
+    it('does not queue incomplete exploration', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      // Only 10 fights, time just started
+      for (let i = 0; i < 10; i++) {
+        store.incrementFightCount()
+      }
+
+      store.checkCompletions()
+
+      expect(store.pendingCompletions).not.toContain('cave_exploration')
+    })
+
+    it('does not double-queue already pending completion', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      // Complete via fights
+      for (let i = 0; i < 50; i++) {
+        store.incrementFightCount()
+      }
+
+      store.checkCompletions()
+      store.checkCompletions() // Second check
+
+      const count = store.pendingCompletions.filter(id => id === 'cave_exploration').length
+      expect(count).toBe(1)
+    })
+  })
 })

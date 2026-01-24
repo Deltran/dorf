@@ -143,6 +143,27 @@ export const useExplorationsStore = defineStore('explorations', () => {
     }
   }
 
+  // Check all active explorations for completion
+  function checkCompletions() {
+    for (const nodeId of Object.keys(activeExplorations.value)) {
+      // Skip if already pending
+      if (pendingCompletions.value.includes(nodeId)) continue
+
+      const exploration = activeExplorations.value[nodeId]
+      const node = getExplorationNode(nodeId)
+      if (!node) continue
+
+      const config = node.explorationConfig
+      const elapsed = Date.now() - exploration.startedAt
+      const timeComplete = elapsed >= config.timeLimit * 60 * 1000
+      const fightsComplete = exploration.fightCount >= config.requiredFights
+
+      if (timeComplete || fightsComplete) {
+        pendingCompletions.value.push(nodeId)
+      }
+    }
+  }
+
   return {
     // State
     activeExplorations,
@@ -157,6 +178,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     checkPartyRequest,
     startExploration,
     cancelExploration,
-    incrementFightCount
+    incrementFightCount,
+    checkCompletions
   }
 })
