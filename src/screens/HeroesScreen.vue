@@ -201,6 +201,20 @@ const filteredAndSortedHeroes = computed(() => {
   return heroes
 })
 
+const hasActiveFilters = computed(() => {
+  return sortBy.value !== 'default' ||
+    selectedRoles.value.length > 0 ||
+    selectedClasses.value.length > 0 ||
+    hideOnExpedition.value
+})
+
+function clearAllFilters() {
+  sortBy.value = 'default'
+  selectedRoles.value = []
+  selectedClasses.value = []
+  hideOnExpedition.value = false
+}
+
 const xpItems = computed(() => {
   return inventoryStore.itemList.filter(item => item.type === 'xp')
 })
@@ -672,11 +686,19 @@ function getEffectTypeName(type) {
 
     <!-- Collection -->
     <section class="collection-section">
-      <div v-if="filteredAndSortedHeroes.length === 0" class="empty-collection">
+      <div v-if="heroesStore.collection.length === 0" class="empty-collection">
         <div class="empty-icon">⚔️</div>
         <p>No heroes yet!</p>
         <button class="summon-cta" @click="emit('navigate', 'gacha')">
           <span>Summon Heroes</span>
+        </button>
+      </div>
+
+      <div v-else-if="filteredAndSortedHeroes.length === 0" class="empty-filtered">
+        <div class="empty-icon">🔍</div>
+        <p>No heroes match filters</p>
+        <button class="clear-filters-btn" @click="clearAllFilters">
+          Clear Filters
         </button>
       </div>
 
@@ -1262,6 +1284,43 @@ function getEffectTypeName(type) {
 .summon-cta:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+.empty-filtered {
+  text-align: center;
+  padding: 48px 24px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border-radius: 16px;
+  border: 1px solid #334155;
+}
+
+.empty-filtered .empty-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.empty-filtered p {
+  color: #9ca3af;
+  margin-bottom: 20px;
+  font-size: 1rem;
+}
+
+.clear-filters-btn {
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-filters-btn:hover {
+  background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+  transform: translateY(-1px);
 }
 
 .hero-grid {
