@@ -32,6 +32,43 @@ export const useExplorationsStore = defineStore('explorations', () => {
     return Object.keys(activeExplorations.value).length
   })
 
+  // Get the exploration closest to completion (for home screen summary)
+  const nextCompletion = computed(() => {
+    const nodeIds = Object.keys(activeExplorations.value)
+    if (nodeIds.length === 0) return null
+
+    let closest = null
+    let closestScore = Infinity
+
+    for (const nodeId of nodeIds) {
+      const exploration = activeExplorations.value[nodeId]
+      const node = getExplorationNode(nodeId)
+      if (!node) continue
+
+      const config = node.explorationConfig
+      const fightsRemaining = Math.max(0, config.requiredFights - exploration.fightCount)
+      const elapsed = Date.now() - exploration.startedAt
+      const timeRemainingMs = Math.max(0, (config.timeLimit * 60 * 1000) - elapsed)
+
+      // Score by whichever is closer (lower = closer to completion)
+      // Use fights as primary metric, time as tiebreaker
+      const score = fightsRemaining + (timeRemainingMs / (60 * 60 * 1000)) // hours as fraction
+
+      if (score < closestScore) {
+        closestScore = score
+        closest = {
+          nodeId,
+          node,
+          fightsRemaining,
+          timeRemainingMs,
+          exploration
+        }
+      }
+    }
+
+    return closest
+  })
+
   // Get exploration node by ID
   function getExplorationNode(nodeId) {
     const node = questNodes[nodeId]
@@ -266,6 +303,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     allExplorationNodes,
     unlockedExplorations,
     activeExplorationCount,
+    nextCompletion,
     // Actions
     getExplorationNode,
     checkPartyRequest,

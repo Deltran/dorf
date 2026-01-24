@@ -491,6 +491,44 @@ describe('explorations store', () => {
     })
   })
 
+  describe('nextCompletion', () => {
+    it('returns null when no active explorations', () => {
+      expect(store.nextCompletion).toBeNull()
+    })
+
+    it('returns exploration closest to completion by fights', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      // 40 fights done, 10 remaining
+      for (let i = 0; i < 40; i++) store.incrementFightCount()
+
+      const next = store.nextCompletion
+      expect(next).toBeDefined()
+      expect(next.nodeId).toBe('cave_exploration')
+      expect(next.fightsRemaining).toBe(10)
+    })
+
+    it('calculates time remaining', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      // Started 60 minutes ago (1 hour), timeLimit is 240 minutes
+      store.activeExplorations['cave_exploration'].startedAt = Date.now() - (60 * 60 * 1000)
+
+      const next = store.nextCompletion
+      // ~180 minutes remaining (3 hours)
+      expect(next.timeRemainingMs).toBeGreaterThan(179 * 60 * 1000)
+      expect(next.timeRemainingMs).toBeLessThan(181 * 60 * 1000)
+    })
+  })
+
   describe('persistence', () => {
     it('saves and loads activeExplorations', () => {
       const heroes = []
