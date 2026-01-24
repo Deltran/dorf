@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore } from '../stores'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import questBg from '../assets/backgrounds/quests_bg.png'
+import fellowshipHallBg from '../assets/backgrounds/fellowship_hall_bg.png'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 
 const emit = defineEmits(['navigate'])
@@ -123,7 +124,11 @@ const hasParty = computed(() => {
       </button>
 
       <div class="room-buttons">
-        <button class="room-button" @click="emit('navigate', 'fellowship-hall')">
+        <button
+          class="room-button fellowship-hall-button"
+          :style="{ backgroundImage: `url(${fellowshipHallBg})` }"
+          @click="emit('navigate', 'fellowship-hall')"
+        >
           <div class="room-icon-wrapper fellowship">
             <span class="room-icon">🏰</span>
           </div>
@@ -788,5 +793,33 @@ const hasParty = computed(() => {
 .room-button.map-room-button:hover {
   border-color: #34d399;
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Fellowship Hall button with background image */
+.room-button.fellowship-hall-button {
+  background-size: cover;
+  background-position: center;
+  border-color: #ef4444;
+  position: relative;
+  overflow: hidden;
+}
+
+.room-button.fellowship-hall-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.75) 0%, rgba(239, 68, 68, 0.6) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.room-button.fellowship-hall-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.room-button.fellowship-hall-button:hover {
+  border-color: #f87171;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
 }
 </style>

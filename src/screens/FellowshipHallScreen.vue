@@ -1,4 +1,6 @@
 <script setup>
+import fellowshipHallBg from '../assets/backgrounds/fellowship_hall_bg.png'
+
 const emit = defineEmits(['navigate'])
 </script>
 
@@ -19,7 +21,11 @@ const emit = defineEmits(['navigate'])
     </header>
 
     <nav class="hub-nav">
-      <button class="nav-button" @click="emit('navigate', 'heroes')">
+      <button
+        class="nav-button heroes-button"
+        :style="{ backgroundImage: `url(${fellowshipHallBg})` }"
+        @click="emit('navigate', 'heroes')"
+      >
         <div class="nav-icon-wrapper heroes">
           <span class="nav-icon">⚔️</span>
         </div>
@@ -275,5 +281,31 @@ const emit = defineEmits(['navigate'])
 .nav-button:hover .nav-arrow {
   transform: translateX(4px);
   color: #6b7280;
+}
+
+/* Heroes button with background image */
+.nav-button.heroes-button {
+  background-size: cover;
+  background-position: center;
+  border-color: #ef4444;
+}
+
+.nav-button.heroes-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.75) 0%, rgba(239, 68, 68, 0.6) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.nav-button.heroes-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-button.heroes-button:hover {
+  border-color: #f87171;
+  box-shadow: 0 4px 25px rgba(239, 68, 68, 0.4);
 }
 </style>
