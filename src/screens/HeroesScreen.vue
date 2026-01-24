@@ -30,6 +30,26 @@ const heroImageError = ref(false)
 const showItemPicker = ref(false)
 const xpGainAnimation = ref(null) // { value: number }
 
+// Filter/Sort state
+const sortBy = ref('default')
+const selectedRoles = ref([])
+const selectedClasses = ref([])
+const hideOnExpedition = ref(false)
+
+// Dropdown visibility state
+const showSortDropdown = ref(false)
+const showRoleDropdown = ref(false)
+const showClassDropdown = ref(false)
+
+const sortOptions = [
+  { value: 'default', label: 'Default' },
+  { value: 'rarity', label: 'Rarity' },
+  { value: 'level', label: 'Level' },
+  { value: 'atk', label: 'ATK' },
+  { value: 'def', label: 'DEF' },
+  { value: 'spd', label: 'SPD' }
+]
+
 // Merge state
 const showMergeModal = ref(false)
 const mergeInfo = ref(null)
@@ -449,6 +469,58 @@ function getEffectTypeName(type) {
         <span class="count-label">owned</span>
       </div>
     </header>
+
+    <!-- Filter Bar -->
+    <section class="filter-bar">
+      <div class="filter-controls">
+        <!-- Sort Dropdown -->
+        <div class="dropdown-container">
+          <button
+            class="filter-btn"
+            :class="{ active: sortBy !== 'default' }"
+            @click="showSortDropdown = !showSortDropdown"
+          >
+            <span>Sort: {{ sortOptions.find(o => o.value === sortBy)?.label || 'Default' }}</span>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+        </div>
+
+        <!-- Role Dropdown -->
+        <div class="dropdown-container">
+          <button
+            class="filter-btn"
+            :class="{ active: selectedRoles.length > 0 }"
+            @click="showRoleDropdown = !showRoleDropdown"
+          >
+            <span>Role{{ selectedRoles.length > 0 ? ` (${selectedRoles.length})` : '' }}</span>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+        </div>
+
+        <!-- Class Dropdown -->
+        <div class="dropdown-container">
+          <button
+            class="filter-btn"
+            :class="{ active: selectedClasses.length > 0 }"
+            @click="showClassDropdown = !showClassDropdown"
+          >
+            <span>Class{{ selectedClasses.length > 0 ? ` (${selectedClasses.length})` : '' }}</span>
+            <span class="dropdown-arrow">▼</span>
+          </button>
+        </div>
+
+        <!-- Expedition Toggle -->
+        <button
+          class="expedition-toggle"
+          :class="{ active: hideOnExpedition }"
+          @click="hideOnExpedition = !hideOnExpedition"
+          title="Hide heroes on expedition"
+        >
+          <span class="toggle-icon">🧭</span>
+          <span class="toggle-indicator">{{ hideOnExpedition ? '●' : '○' }}</span>
+        </button>
+      </div>
+    </section>
 
     <!-- Collection -->
     <section class="collection-section">
@@ -2137,5 +2209,86 @@ function getEffectTypeName(type) {
 .upgrade-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4);
+}
+
+/* ===== Filter Bar ===== */
+.filter-bar {
+  position: relative;
+  z-index: 10;
+  margin-bottom: 16px;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dropdown-container {
+  position: relative;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+.filter-btn.active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.expedition-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.expedition-toggle:hover {
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+.expedition-toggle.active {
+  border-color: #06b6d4;
+  background: rgba(6, 182, 212, 0.15);
+  color: #06b6d4;
+}
+
+.toggle-icon {
+  font-size: 1rem;
+}
+
+.toggle-indicator {
+  font-size: 0.8rem;
 }
 </style>
