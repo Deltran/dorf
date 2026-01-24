@@ -94,6 +94,41 @@ export const useExplorationsStore = defineStore('explorations', () => {
     return 1 + (rankIndex * RANK_BONUS_PER_LEVEL / 100)
   }
 
+  // Check if upgrade is possible and return cost info
+  function canUpgradeExploration(nodeId) {
+    const inventoryStore = useInventoryStore()
+    const gachaStore = useGachaStore()
+
+    const node = getExplorationNode(nodeId)
+    if (!node) return { canUpgrade: false, reason: 'Invalid node' }
+
+    // Can't upgrade if active
+    if (activeExplorations.value[nodeId]) {
+      return { canUpgrade: false, reason: 'Exploration in progress' }
+    }
+
+    const currentRank = getExplorationRank(nodeId)
+    if (currentRank === 'S') {
+      return { canUpgrade: false, reason: 'Already max rank' }
+    }
+
+    const cost = RANK_UPGRADE_COSTS[currentRank]
+    const crestId = node.explorationConfig.requiredCrestId
+    const crestsHave = inventoryStore.getItemCount(crestId)
+    const goldHave = gachaStore.gold
+
+    return {
+      canUpgrade: crestsHave >= cost.crests && goldHave >= cost.gold,
+      currentRank,
+      nextRank: EXPLORATION_RANKS[EXPLORATION_RANKS.indexOf(currentRank) + 1],
+      crestId,
+      crestsNeeded: cost.crests,
+      crestsHave,
+      goldNeeded: cost.gold,
+      goldHave
+    }
+  }
+
   // Check if heroes meet party request conditions
   function checkPartyRequest(nodeId, heroInstanceIds) {
     const heroesStore = useHeroesStore()
@@ -327,6 +362,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     getExplorationNode,
     getExplorationRank,
     getRankMultiplier,
+    canUpgradeExploration,
     checkPartyRequest,
     startExploration,
     cancelExploration,

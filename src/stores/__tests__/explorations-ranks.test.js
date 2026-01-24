@@ -42,4 +42,36 @@ describe('explorations store - ranks', () => {
       expect(store.getRankMultiplier('cave_exploration')).toBe(1.25)
     })
   })
+
+  describe('canUpgradeExploration', () => {
+    it('returns canUpgrade false if exploration is active', () => {
+      store.activeExplorations['cave_exploration'] = { nodeId: 'cave_exploration' }
+      const result = store.canUpgradeExploration('cave_exploration')
+      expect(result.canUpgrade).toBe(false)
+      expect(result.reason).toBe('Exploration in progress')
+    })
+
+    it('returns canUpgrade false if already rank S', () => {
+      store.explorationRanks['cave_exploration'] = 'S'
+      const result = store.canUpgradeExploration('cave_exploration')
+      expect(result.canUpgrade).toBe(false)
+      expect(result.reason).toBe('Already max rank')
+    })
+
+    it('returns cost info for valid upgrade check', () => {
+      const result = store.canUpgradeExploration('cave_exploration')
+      expect(result.currentRank).toBe('E')
+      expect(result.nextRank).toBe('D')
+      expect(result.crestId).toBe('valinar_crest')
+      expect(result.crestsNeeded).toBe(1)
+      expect(result.goldNeeded).toBe(1000)
+    })
+
+    it('returns canUpgrade false if not enough crests', () => {
+      // No crests in inventory by default
+      const result = store.canUpgradeExploration('cave_exploration')
+      expect(result.canUpgrade).toBe(false)
+      expect(result.crestsHave).toBe(0)
+    })
+  })
 })
