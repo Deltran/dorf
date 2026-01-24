@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useGenusLociStore } from '../stores'
+import { getAllQuestNodes } from '../data/questNodes.js'
 
 const emit = defineEmits(['navigate'])
 
@@ -9,9 +10,24 @@ const genusLociStore = useGenusLociStore()
 // Enemy portraits for genus loci
 const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
 
+// Battle backgrounds for genus loci cards
+const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+
 function getBossPortraitUrl(bossId) {
   const portraitPath = `../assets/enemies/${bossId}_portrait.png`
   return enemyPortraits[portraitPath] || null
+}
+
+function getBossBackgroundUrl(bossId) {
+  // Find the quest node that has this genusLociId
+  const questNode = getAllQuestNodes().find(n => n.genusLociId === bossId)
+  if (questNode) {
+    const bgPath = `../assets/battle_backgrounds/${questNode.id}.png`
+    if (battleBackgrounds[bgPath]) {
+      return battleBackgrounds[bgPath]
+    }
+  }
+  return null
 }
 
 const unlockedGenusLoci = computed(() => genusLociStore.unlockedBosses)
@@ -44,6 +60,7 @@ function selectBoss(bossId) {
           v-for="boss in unlockedGenusLoci"
           :key="boss.id"
           class="boss-card"
+          :style="getBossBackgroundUrl(boss.id) ? { backgroundImage: `url(${getBossBackgroundUrl(boss.id)})` } : {}"
           @click="selectBoss(boss.id)"
         >
           <div class="boss-icon">
@@ -197,16 +214,37 @@ function selectBoss(bossId) {
   gap: 16px;
   padding: 16px 20px;
   background: linear-gradient(135deg, #2a1f3d 0%, #1f2937 100%);
+  background-size: cover;
+  background-position: center;
   border: 1px solid #6b21a8;
   border-radius: 14px;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.boss-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(42, 31, 61, 0.85) 0%, rgba(31, 41, 55, 0.8) 100%);
+  z-index: 0;
+}
+
+.boss-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .boss-card:hover {
   transform: translateX(6px);
   border-color: #9333ea;
   box-shadow: 0 4px 20px rgba(147, 51, 234, 0.3);
+}
+
+.boss-card:hover::before {
+  background: linear-gradient(135deg, rgba(42, 31, 61, 0.75) 0%, rgba(31, 41, 55, 0.7) 100%);
 }
 
 .boss-icon {
