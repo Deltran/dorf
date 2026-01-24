@@ -29,7 +29,7 @@ export const genusLociData = {
   },
   great_troll: {
     id: 'great_troll',
-    name: 'Great Troll',
+    name: 'The Great Troll Vurgorol',
     description: 'An ancient troll that has learned to regenerate by entering deep hibernation.',
     region: 'hibernation_den',
     imageSize: 180,
