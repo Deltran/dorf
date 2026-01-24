@@ -50,6 +50,43 @@ const sortOptions = [
   { value: 'spd', label: 'SPD' }
 ]
 
+const roleOptions = [
+  { value: 'tank', label: 'Tank', icon: '🛡️' },
+  { value: 'dps', label: 'DPS', icon: '⚔️' },
+  { value: 'healer', label: 'Healer', icon: '💚' },
+  { value: 'support', label: 'Support', icon: '✨' }
+]
+
+const classOptions = [
+  { value: 'berserker', label: 'Berserker' },
+  { value: 'ranger', label: 'Ranger' },
+  { value: 'knight', label: 'Knight' },
+  { value: 'paladin', label: 'Paladin' },
+  { value: 'mage', label: 'Mage' },
+  { value: 'cleric', label: 'Cleric' },
+  { value: 'druid', label: 'Druid' },
+  { value: 'bard', label: 'Bard' },
+  { value: 'alchemist', label: 'Alchemist' }
+]
+
+function toggleRole(role) {
+  const index = selectedRoles.value.indexOf(role)
+  if (index === -1) {
+    selectedRoles.value.push(role)
+  } else {
+    selectedRoles.value.splice(index, 1)
+  }
+}
+
+function toggleClass(classId) {
+  const index = selectedClasses.value.indexOf(classId)
+  if (index === -1) {
+    selectedClasses.value.push(classId)
+  } else {
+    selectedClasses.value.splice(index, 1)
+  }
+}
+
 // Merge state
 const showMergeModal = ref(false)
 const mergeInfo = ref(null)
@@ -483,6 +520,18 @@ function getEffectTypeName(type) {
             <span>Sort: {{ sortOptions.find(o => o.value === sortBy)?.label || 'Default' }}</span>
             <span class="dropdown-arrow">▼</span>
           </button>
+          <div v-if="showSortDropdown" class="dropdown-menu">
+            <div
+              v-for="option in sortOptions"
+              :key="option.value"
+              class="dropdown-item"
+              :class="{ selected: sortBy === option.value }"
+              @click="sortBy = option.value; showSortDropdown = false"
+            >
+              <span class="check-mark">{{ sortBy === option.value ? '✓' : '' }}</span>
+              <span>{{ option.label }}</span>
+            </div>
+          </div>
         </div>
 
         <!-- Role Dropdown -->
@@ -495,6 +544,21 @@ function getEffectTypeName(type) {
             <span>Role{{ selectedRoles.length > 0 ? ` (${selectedRoles.length})` : '' }}</span>
             <span class="dropdown-arrow">▼</span>
           </button>
+          <div v-if="showRoleDropdown" class="dropdown-menu">
+            <label
+              v-for="role in roleOptions"
+              :key="role.value"
+              class="dropdown-checkbox"
+            >
+              <input
+                type="checkbox"
+                :checked="selectedRoles.includes(role.value)"
+                @change="toggleRole(role.value)"
+              />
+              <span class="role-icon">{{ role.icon }}</span>
+              <span>{{ role.label }}</span>
+            </label>
+          </div>
         </div>
 
         <!-- Class Dropdown -->
@@ -507,6 +571,20 @@ function getEffectTypeName(type) {
             <span>Class{{ selectedClasses.length > 0 ? ` (${selectedClasses.length})` : '' }}</span>
             <span class="dropdown-arrow">▼</span>
           </button>
+          <div v-if="showClassDropdown" class="dropdown-menu class-dropdown">
+            <label
+              v-for="cls in classOptions"
+              :key="cls.value"
+              class="dropdown-checkbox"
+            >
+              <input
+                type="checkbox"
+                :checked="selectedClasses.includes(cls.value)"
+                @change="toggleClass(cls.value)"
+              />
+              <span>{{ cls.label }}</span>
+            </label>
+          </div>
         </div>
 
         <!-- Expedition Toggle -->
@@ -2290,5 +2368,77 @@ function getEffectTypeName(type) {
 
 .toggle-indicator {
   font-size: 0.8rem;
+}
+
+/* ===== Dropdown Menus ===== */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 150px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 6px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-menu.class-dropdown {
+  min-width: 140px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(55, 65, 81, 0.5);
+  color: #f3f4f6;
+}
+
+.dropdown-item.selected {
+  color: #60a5fa;
+}
+
+.check-mark {
+  width: 16px;
+  color: #60a5fa;
+}
+
+.dropdown-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.dropdown-checkbox:hover {
+  background: rgba(55, 65, 81, 0.5);
+  color: #f3f4f6;
+}
+
+.dropdown-checkbox input[type="checkbox"] {
+  accent-color: #3b82f6;
+  width: 16px;
+  height: 16px;
+}
+
+.role-icon {
+  font-size: 1rem;
 }
 </style>
