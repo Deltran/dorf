@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onUnmounted } from 'vue'
 import { useExplorationsStore, useHeroesStore } from '../stores'
 import HeroCard from './HeroCard.vue'
 
@@ -89,8 +89,17 @@ watch(isActive, (active) => {
     timer = setInterval(() => {}, 1000) // Force reactivity
   } else if (timer) {
     clearInterval(timer)
+    timer = null
   }
 }, { immediate: true })
+
+// Clean up timer on component unmount to prevent memory leak
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+})
 </script>
 
 <template>
