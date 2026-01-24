@@ -3,6 +3,25 @@ import { computed, ref, watch, onUnmounted } from 'vue'
 import { useExplorationsStore, useHeroesStore } from '../stores'
 import HeroCard from './HeroCard.vue'
 
+// Image imports
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
+const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+
+function getHeroImageUrl(templateId) {
+  if (!templateId) return null
+  const gifPath = `../assets/heroes/${templateId}.gif`
+  if (heroGifs[gifPath]) return heroGifs[gifPath]
+  const pngPath = `../assets/heroes/${templateId}.png`
+  return heroImages[pngPath] || null
+}
+
+function getBackgroundUrl(backgroundId) {
+  if (!backgroundId) return null
+  const path = `../assets/battle_backgrounds/${backgroundId}.png`
+  return battleBackgrounds[path] || battleBackgrounds['../assets/battle_backgrounds/default.png'] || null
+}
+
 const props = defineProps({
   nodeId: {
     type: String,
@@ -47,6 +66,24 @@ const timeDisplay = computed(() => {
 const progressPercent = computed(() => {
   if (!exploration.value || !config.value) return 0
   return Math.min(100, (exploration.value.fightCount / config.value.requiredFights) * 100)
+})
+
+// Banner background URL
+const backgroundUrl = computed(() => {
+  return getBackgroundUrl(node.value?.backgroundId)
+})
+
+// Heroes to display in banner (active exploration or selection in progress)
+const displayHeroes = computed(() => {
+  const heroIds = isActive.value
+    ? exploration.value?.heroes || []
+    : selectedHeroes.value
+
+  return [0, 1, 2, 3, 4].map(i => {
+    const instanceId = heroIds[i]
+    if (!instanceId) return null
+    return heroesStore.getHeroFull(instanceId)
+  })
 })
 
 function toggleHeroSelection(instanceId) {
@@ -110,6 +147,24 @@ onUnmounted(() => {
     </header>
 
     <div class="detail-content">
+      <!-- Exploration Banner with Heroes -->
+      <div class="exploration-banner" :style="backgroundUrl ? { backgroundImage: `url(${backgroundUrl})` } : {}">
+        <div class="banner-overlay"></div>
+        <div class="banner-heroes">
+          <div
+            v-for="(hero, index) in displayHeroes"
+            :key="index"
+            :class="['banner-hero', `slot-${index}`, { empty: !hero }]"
+          >
+            <img
+              v-if="hero && getHeroImageUrl(hero.templateId)"
+              :src="getHeroImageUrl(hero.templateId)"
+              :alt="hero.template?.name"
+            />
+          </div>
+        </div>
+      </div>
+
       <!-- Party Request -->
       <div class="party-request" :class="{ met: isActive ? exploration?.partyRequestMet : partyRequestMet }">
         <div class="request-label">Party Request:</div>
@@ -253,6 +308,98 @@ h3 {
 
 .detail-content {
   padding: 20px;
+}
+
+/* Exploration Banner */
+.exploration-banner {
+  position: relative;
+  height: 180px;
+  background-color: #1f2937;
+  background-size: cover;
+  background-position: center;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.5) 100%
+  );
+}
+
+.banner-heroes {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.banner-hero {
+  position: absolute;
+  bottom: 0;
+  transform: translateX(-50%);
+  transition: all 0.3s ease;
+}
+
+.banner-hero img {
+  height: 150px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+}
+
+.banner-hero.empty {
+  display: none;
+}
+
+/* Slot positions - staggered pyramid formation */
+.banner-hero.slot-0 {
+  left: 10%;
+  bottom: 5px;
+  z-index: 1;
+}
+.banner-hero.slot-0 img {
+  height: 120px;
+}
+
+.banner-hero.slot-1 {
+  left: 28%;
+  bottom: 10px;
+  z-index: 2;
+}
+.banner-hero.slot-1 img {
+  height: 135px;
+}
+
+.banner-hero.slot-2 {
+  left: 50%;
+  bottom: 15px;
+  z-index: 3;
+}
+.banner-hero.slot-2 img {
+  height: 150px;
+}
+
+.banner-hero.slot-3 {
+  left: 72%;
+  bottom: 10px;
+  z-index: 2;
+}
+.banner-hero.slot-3 img {
+  height: 135px;
+}
+
+.banner-hero.slot-4 {
+  left: 90%;
+  bottom: 5px;
+  z-index: 1;
+}
+.banner-hero.slot-4 img {
+  height: 120px;
 }
 
 .party-request {
