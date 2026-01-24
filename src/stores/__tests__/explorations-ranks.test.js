@@ -2,6 +2,8 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useExplorationsStore } from '../explorations.js'
+import { useInventoryStore } from '../inventory.js'
+import { useGachaStore } from '../gacha.js'
 
 describe('explorations store - ranks', () => {
   let store
@@ -72,6 +74,42 @@ describe('explorations store - ranks', () => {
       const result = store.canUpgradeExploration('cave_exploration')
       expect(result.canUpgrade).toBe(false)
       expect(result.crestsHave).toBe(0)
+    })
+  })
+
+  describe('upgradeExploration', () => {
+    it('returns error if exploration is active', () => {
+      store.activeExplorations['cave_exploration'] = { nodeId: 'cave_exploration' }
+      const result = store.upgradeExploration('cave_exploration')
+      expect(result.success).toBe(false)
+      expect(result.error).toBe('Exploration in progress')
+    })
+
+    it('successfully upgrades when requirements met', () => {
+      const inventoryStore = useInventoryStore()
+      const gachaStore = useGachaStore()
+
+      // Give player required resources
+      inventoryStore.addItem('valinar_crest', 1)
+      gachaStore.gold = 5000
+
+      const result = store.upgradeExploration('cave_exploration')
+      expect(result.success).toBe(true)
+      expect(result.newRank).toBe('D')
+      expect(store.getExplorationRank('cave_exploration')).toBe('D')
+    })
+
+    it('deducts crests and gold on upgrade', () => {
+      const inventoryStore = useInventoryStore()
+      const gachaStore = useGachaStore()
+
+      inventoryStore.addItem('valinar_crest', 5)
+      gachaStore.gold = 5000
+
+      store.upgradeExploration('cave_exploration')
+
+      expect(inventoryStore.getItemCount('valinar_crest')).toBe(4)
+      expect(gachaStore.gold).toBe(4000)
     })
   })
 })

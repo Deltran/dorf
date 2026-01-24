@@ -129,6 +129,26 @@ export const useExplorationsStore = defineStore('explorations', () => {
     }
   }
 
+  // Perform the upgrade
+  function upgradeExploration(nodeId) {
+    const inventoryStore = useInventoryStore()
+    const gachaStore = useGachaStore()
+
+    const check = canUpgradeExploration(nodeId)
+    if (!check.canUpgrade) {
+      return { success: false, error: check.reason }
+    }
+
+    // Deduct costs
+    inventoryStore.removeItem(check.crestId, check.crestsNeeded)
+    gachaStore.spendGold(check.goldNeeded)
+
+    // Upgrade rank
+    explorationRanks.value[nodeId] = check.nextRank
+
+    return { success: true, newRank: check.nextRank }
+  }
+
   // Check if heroes meet party request conditions
   function checkPartyRequest(nodeId, heroInstanceIds) {
     const heroesStore = useHeroesStore()
@@ -363,6 +383,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     getExplorationRank,
     getRankMultiplier,
     canUpgradeExploration,
+    upgradeExploration,
     checkPartyRequest,
     startExploration,
     cancelExploration,
