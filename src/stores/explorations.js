@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { questNodes } from '../data/questNodes.js'
+import {
+  RANK_BONUS_PER_LEVEL,
+  EXPLORATION_RANKS,
+  RANK_UPGRADE_COSTS
+} from '../data/explorationRanks.js'
 import { useQuestsStore } from './quests.js'
 import { useHeroesStore } from './heroes.js'
 import { useGachaStore } from './gacha.js'
@@ -13,6 +18,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
   const activeExplorations = ref({})
   const completedHistory = ref([])
   const pendingCompletions = ref([])
+  const explorationRanks = ref({})
 
   // Get all exploration nodes from questNodes
   const allExplorationNodes = computed(() => {
@@ -74,6 +80,18 @@ export const useExplorationsStore = defineStore('explorations', () => {
     const node = questNodes[nodeId]
     if (!node || node.type !== 'exploration') return null
     return node
+  }
+
+  // Get rank for an exploration (defaults to 'E')
+  function getExplorationRank(nodeId) {
+    return explorationRanks.value[nodeId] || 'E'
+  }
+
+  // Get reward multiplier based on rank (E=1.0, D=1.05, C=1.10, etc.)
+  function getRankMultiplier(nodeId) {
+    const rank = getExplorationRank(nodeId)
+    const rankIndex = EXPLORATION_RANKS.indexOf(rank)
+    return 1 + (rankIndex * RANK_BONUS_PER_LEVEL / 100)
   }
 
   // Check if heroes meet party request conditions
@@ -299,6 +317,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     activeExplorations,
     completedHistory,
     pendingCompletions,
+    explorationRanks,
     // Getters
     allExplorationNodes,
     unlockedExplorations,
@@ -306,6 +325,8 @@ export const useExplorationsStore = defineStore('explorations', () => {
     nextCompletion,
     // Actions
     getExplorationNode,
+    getExplorationRank,
+    getRankMultiplier,
     checkPartyRequest,
     startExploration,
     cancelExploration,
