@@ -81,6 +81,16 @@ function getExplorationRank(nodeId) {
   return explorationsStore.getExplorationRank(nodeId)
 }
 
+function getAdjustedRewards(nodeId) {
+  const node = explorationsStore.getExplorationNode(nodeId)
+  if (!node) return { gold: 0, gems: 0 }
+  const multiplier = explorationsStore.getRankMultiplier(nodeId)
+  return {
+    gold: Math.floor(node.explorationConfig.rewards.gold * multiplier),
+    gems: Math.floor(node.explorationConfig.rewards.gems * multiplier)
+  }
+}
+
 const showEnhanceModal = ref(false)
 const enhanceNodeId = ref(null)
 
@@ -187,8 +197,8 @@ function confirmEnhance() {
                 </div>
               </div>
               <div class="rewards-preview">
-                <span>{{ node.explorationConfig.rewards.gold }} gold</span>
-                <span>{{ node.explorationConfig.rewards.gems }} gems</span>
+                <span>{{ getAdjustedRewards(node.id).gold }} gold</span>
+                <span>{{ getAdjustedRewards(node.id).gems }} gems</span>
               </div>
             </template>
           </div>
