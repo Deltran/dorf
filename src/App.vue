@@ -18,6 +18,7 @@ import ExplorationsScreen from './screens/ExplorationsScreen.vue'
 import FellowshipHallScreen from './screens/FellowshipHallScreen.vue'
 import MapRoomScreen from './screens/MapRoomScreen.vue'
 import GenusLociListScreen from './screens/GenusLociListScreen.vue'
+import PartyScreen from './screens/PartyScreen.vue'
 import ExplorationDetailView from './components/ExplorationDetailView.vue'
 import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
 
@@ -37,6 +38,7 @@ const selectedBossId = ref(null)
 const genusLociBattleContext = ref(null)
 const selectedExplorationNodeId = ref(null)
 const currentCompletionPopup = ref(null)
+const placingHeroId = ref(null)
 
 // Load game on mount
 onMounted(() => {
@@ -169,6 +171,8 @@ function navigate(screen, param = null) {
     selectedBossId.value = param
   } else if (screen === 'exploration-detail') {
     selectedExplorationNodeId.value = param
+  } else if (screen === 'party') {
+    placingHeroId.value = param
   }
 }
 
@@ -243,6 +247,11 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
       />
       <GenusLociListScreen
         v-else-if="currentScreen === 'genus-loci-list'"
+        @navigate="navigate"
+      />
+      <PartyScreen
+        v-else-if="currentScreen === 'party'"
+        :placing-hero-id="placingHeroId"
         @navigate="navigate"
       />
       <GachaScreen
