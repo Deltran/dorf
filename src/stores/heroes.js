@@ -402,6 +402,117 @@ export const useHeroesStore = defineStore('heroes', () => {
     return duplicates.slice(0, count)
   }
 
+  function getLowerTierCopies(templateId, belowStarLevel) {
+    // Get all copies of this template with star level below the specified level
+    // Excludes heroes in party or on expedition
+    return collection.value.filter(h => {
+      if (h.templateId !== templateId) return false
+      const heroStar = getHeroStarLevel(h)
+      if (heroStar >= belowStarLevel) return false
+      // Exclude heroes in party
+      if (party.value.includes(h.instanceId)) return false
+      // Exclude heroes on expedition
+      if (h.explorationNodeId) return false
+      return true
+    })
+  }
+
+  function hasLowerTierCopies(templateId, belowStarLevel) {
+    return getLowerTierCopies(templateId, belowStarLevel).length > 0
+  }
+
+  function executeBulkMerge(templateId, mergeConfig) {
+    // mergeConfig = { tier1: 5, tier2: 3, tier3: 0, tier4: 0 }
+    // tier1 = number of 1*->2* merges, tier2 = 2*->3* merges, etc.
+    const gachaStore = useGachaStore()
+    const inventoryStore = useInventoryStore()
+
+    const results = {
+      success: true,
+      mergesCompleted: { tier1: 0, tier2: 0, tier3: 0, tier4: 0 },
+      totalGoldSpent: 0,
+      errors: []
+    }
+
+    // Calculate total costs upfront
+    const totalGold =
+      (mergeConfig.tier1 || 0) * 2000 +  // 1*->2* costs 2000
+      (mergeConfig.tier2 || 0) * 3000 +  // 2*->3* costs 3000
+      (mergeConfig.tier3 || 0) * 4000 +  // 3*->4* costs 4000
+      (mergeConfig.tier4 || 0) * 5000    // 4*->5* costs 5000
+
+    // Check gold
+    if (gachaStore.gold < totalGold) {
+      return { success: false, error: `Not enough gold (need ${totalGold}, have ${gachaStore.gold})` }
+    }
+
+    // Check materials for tier3 (3*->4*) merges
+    const tier3Materials = mergeConfig.tier3 || 0
+    if (tier3Materials > 0) {
+      const shardCount = inventoryStore.getItemCount('shard_dragon_heart')
+      if (shardCount < tier3Materials) {
+        return { success: false, error: `Not enough Dragon Heart Shards (need ${tier3Materials}, have ${shardCount})` }
+      }
+    }
+
+    // Check materials for tier4 (4*->5*) merges
+    const tier4Materials = mergeConfig.tier4 || 0
+    if (tier4Materials > 0) {
+      const heartCount = inventoryStore.getItemCount('dragon_heart')
+      if (heartCount < tier4Materials) {
+        return { success: false, error: `Not enough Dragon Hearts (need ${tier4Materials}, have ${heartCount})` }
+      }
+    }
+
+    // Execute merges bottom-up (1*->2* first, then 2*->3*, etc.)
+    const tiers = [
+      { key: 'tier1', fromStar: 1, toStar: 2, copiesNeeded: 1 },
+      { key: 'tier2', fromStar: 2, toStar: 3, copiesNeeded: 2 },
+      { key: 'tier3', fromStar: 3, toStar: 4, copiesNeeded: 3 },
+      { key: 'tier4', fromStar: 4, toStar: 5, copiesNeeded: 4 }
+    ]
+
+    for (const tier of tiers) {
+      const mergeCount = mergeConfig[tier.key] || 0
+      if (mergeCount === 0) continue
+
+      for (let i = 0; i < mergeCount; i++) {
+        // Get available copies at this star level (fresh each iteration)
+        const available = collection.value.filter(h =>
+          h.templateId === templateId &&
+          getHeroStarLevel(h) === tier.fromStar &&
+          !party.value.includes(h.instanceId) &&
+          !h.explorationNodeId
+        ).sort((a, b) => a.level - b.level) // Lowest level first
+
+        if (available.length < tier.copiesNeeded + 1) {
+          results.errors.push(`Not enough ${tier.fromStar}-star copies for merge ${i + 1}`)
+          results.success = false
+          break
+        }
+
+        // Pick base (first one) and fodder (next N)
+        const baseHero = available[0]
+        const fodder = available.slice(1, 1 + tier.copiesNeeded)
+
+        const mergeResult = mergeHero(baseHero.instanceId, fodder.map(h => h.instanceId))
+
+        if (!mergeResult.success) {
+          results.errors.push(`Tier ${tier.fromStar}->${tier.toStar} merge ${i + 1}: ${mergeResult.error}`)
+          results.success = false
+          break
+        }
+
+        results.mergesCompleted[tier.key]++
+        results.totalGoldSpent += (tier.toStar) * MERGE_GOLD_COST_PER_STAR
+      }
+
+      if (!results.success) break
+    }
+
+    return results
+  }
+
   // Material requirements for merging
   const MERGE_MATERIALS = {
     3: 'shard_dragon_heart', // 3* -> 4* requires Shard of Dragon Heart
@@ -586,6 +697,9 @@ export const useHeroesStore = defineStore('heroes', () => {
     canMergeHero,
     getMergeCandidates,
     mergeHero,
+    getLowerTierCopies,
+    hasLowerTierCopies,
+    executeBulkMerge,
     MERGE_GOLD_COST_PER_STAR,
     MERGE_MATERIALS,
     // Shards
