@@ -194,4 +194,38 @@ describe('explorations store', () => {
       expect(store.activeExplorations['cave_exploration'].partyRequestMet).toBe(false)
     })
   })
+
+  describe('cancelExploration', () => {
+    it('removes active exploration', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      store.cancelExploration('cave_exploration')
+
+      expect(store.activeExplorations['cave_exploration']).toBeUndefined()
+    })
+
+    it('unlocks all heroes', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      const heroIds = heroes.map(h => h.instanceId)
+      store.startExploration('cave_exploration', heroIds)
+
+      store.cancelExploration('cave_exploration')
+
+      heroIds.forEach(id => {
+        expect(heroesStore.isHeroLocked(id)).toBe(false)
+      })
+    })
+
+    it('does nothing if exploration not active', () => {
+      const result = store.cancelExploration('cave_exploration')
+      expect(result).toBe(false)
+    })
+  })
 })

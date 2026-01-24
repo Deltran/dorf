@@ -120,6 +120,22 @@ export const useExplorationsStore = defineStore('explorations', () => {
     return { success: true }
   }
 
+  // Cancel an exploration (forfeits all progress)
+  function cancelExploration(nodeId) {
+    const heroesStore = useHeroesStore()
+    const exploration = activeExplorations.value[nodeId]
+    if (!exploration) return false
+
+    // Unlock all heroes
+    for (const instanceId of exploration.heroes) {
+      heroesStore.unlockHeroFromExploration(instanceId)
+    }
+
+    // Remove active exploration
+    delete activeExplorations.value[nodeId]
+    return true
+  }
+
   return {
     // State
     activeExplorations,
@@ -132,6 +148,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     // Actions
     getExplorationNode,
     checkPartyRequest,
-    startExploration
+    startExploration,
+    cancelExploration
   }
 })
