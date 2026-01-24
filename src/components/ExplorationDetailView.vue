@@ -189,18 +189,6 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div class="assigned-heroes">
-          <h3>Assigned Heroes</h3>
-          <div class="hero-grid">
-            <HeroCard
-              v-for="instanceId in exploration.heroes"
-              :key="instanceId"
-              :hero="heroesStore.getHeroFull(instanceId)"
-              compact
-            />
-          </div>
-        </div>
-
         <button class="cancel-button" @click="confirmCancel">
           Cancel Exploration
         </button>
@@ -429,7 +417,7 @@ h3 {
   gap: 16px;
 }
 
-.hero-selection, .assigned-heroes {
+.hero-selection {
   margin-bottom: 20px;
 }
 
