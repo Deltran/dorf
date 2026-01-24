@@ -140,4 +140,58 @@ describe('explorations store', () => {
       expect(startedAt).toBeLessThanOrEqual(after)
     })
   })
+
+  describe('checkPartyRequest', () => {
+    it('returns true when role conditions met', () => {
+      // Need tank, dps, support for cave_exploration
+      const tank = heroesStore.addHero('militia_soldier') // Knight = tank
+      const dps = heroesStore.addHero('farm_hand') // Berserker = dps
+      const support = heroesStore.addHero('wandering_bard') // Bard = support
+      const filler1 = heroesStore.addHero('militia_soldier')
+      const filler2 = heroesStore.addHero('militia_soldier')
+
+      const heroIds = [tank, dps, support, filler1, filler2].map(h => h.instanceId)
+      const result = store.checkPartyRequest('cave_exploration', heroIds)
+
+      expect(result).toBe(true)
+    })
+
+    it('returns false when role conditions not met', () => {
+      // All same role - won't meet tank+dps+support
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier')) // All basic heroes
+      }
+
+      const result = store.checkPartyRequest('cave_exploration', heroes.map(h => h.instanceId))
+
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('startExploration sets partyRequestMet', () => {
+    it('sets partyRequestMet true when conditions met', () => {
+      const tank = heroesStore.addHero('militia_soldier')
+      const dps = heroesStore.addHero('farm_hand')
+      const support = heroesStore.addHero('wandering_bard')
+      const filler1 = heroesStore.addHero('militia_soldier')
+      const filler2 = heroesStore.addHero('militia_soldier')
+
+      const heroIds = [tank, dps, support, filler1, filler2].map(h => h.instanceId)
+      store.startExploration('cave_exploration', heroIds)
+
+      expect(store.activeExplorations['cave_exploration'].partyRequestMet).toBe(true)
+    })
+
+    it('sets partyRequestMet false when conditions not met', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      expect(store.activeExplorations['cave_exploration'].partyRequestMet).toBe(false)
+    })
+  })
 })

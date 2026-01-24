@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 import { questNodes } from '../data/questNodes.js'
 import { useQuestsStore } from './quests.js'
 import { useHeroesStore } from './heroes.js'
+import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getClass } from '../data/classes.js'
 
 export const useExplorationsStore = defineStore('explorations', () => {
   // State
@@ -33,6 +35,41 @@ export const useExplorationsStore = defineStore('explorations', () => {
     const node = questNodes[nodeId]
     if (!node || node.type !== 'exploration') return null
     return node
+  }
+
+  // Check if heroes meet party request conditions
+  function checkPartyRequest(nodeId, heroInstanceIds) {
+    const heroesStore = useHeroesStore()
+    const node = getExplorationNode(nodeId)
+    if (!node?.explorationConfig?.partyRequest) return true // No request = always met
+
+    const conditions = node.explorationConfig.partyRequest.conditions
+
+    // Get hero roles and classes
+    const heroData = heroInstanceIds.map(instanceId => {
+      const hero = heroesStore.collection.find(h => h.instanceId === instanceId)
+      if (!hero) return null
+      const template = getHeroTemplate(hero.templateId)
+      const heroClass = getClass(template?.classId)
+      return {
+        role: heroClass?.role,
+        classId: template?.classId
+      }
+    }).filter(Boolean)
+
+    // Check each condition
+    for (const condition of conditions) {
+      if (condition.role) {
+        const count = heroData.filter(h => h.role === condition.role).length
+        if (count < condition.count) return false
+      }
+      if (condition.classId) {
+        const count = heroData.filter(h => h.classId === condition.classId).length
+        if (count < condition.count) return false
+      }
+    }
+
+    return true
   }
 
   // Start an exploration
@@ -77,7 +114,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
       heroes: [...heroInstanceIds],
       startedAt: Date.now(),
       fightCount: 0,
-      partyRequestMet: false // Will be calculated
+      partyRequestMet: checkPartyRequest(nodeId, heroInstanceIds)
     }
 
     return { success: true }
@@ -94,6 +131,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     activeExplorationCount,
     // Actions
     getExplorationNode,
+    checkPartyRequest,
     startExploration
   }
 })
