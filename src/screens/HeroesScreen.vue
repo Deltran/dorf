@@ -208,6 +208,9 @@ const hasActiveFilters = computed(() => {
     hideOnExpedition.value
 })
 
+const filteredCount = computed(() => filteredAndSortedHeroes.value.length)
+const totalCount = computed(() => heroesStore.heroCount)
+
 function clearAllFilters() {
   sortBy.value = 'default'
   selectedRoles.value = []
@@ -586,8 +589,10 @@ function getEffectTypeName(type) {
       </button>
       <h1 class="screen-title">Heroes</h1>
       <div class="hero-count-badge">
-        <span class="count-value">{{ heroesStore.heroCount }}</span>
-        <span class="count-label">owned</span>
+        <span class="count-value">
+          <template v-if="hasActiveFilters">{{ filteredCount }}/</template>{{ totalCount }}
+        </span>
+        <span class="count-label">{{ hasActiveFilters ? 'shown' : 'owned' }}</span>
       </div>
     </header>
 
