@@ -1,15 +1,10 @@
 <script setup>
-import { computed, onMounted } from 'vue'
-import { useGenusLociStore, useTipsStore } from '../stores'
+import { computed } from 'vue'
+import { useGenusLociStore } from '../stores'
 
 const emit = defineEmits(['navigate'])
 
 const genusLociStore = useGenusLociStore()
-const tipsStore = useTipsStore()
-
-onMounted(() => {
-  tipsStore.showTip('genus_loci_intro')
-})
 
 // Enemy portraits for genus loci
 const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })

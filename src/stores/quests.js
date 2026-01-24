@@ -186,13 +186,24 @@ export const useQuestsStore = defineStore('quests', () => {
       unlockedNodes.value.push('coral_01')
     }
 
-    // Check if any newly unlocked node enables an exploration
-    const explorationNodes = getAllQuestNodes().filter(n => n.type === 'exploration')
+    // Check if any newly unlocked node enables an exploration or Genus Loci
+    const tipsStore = useTipsStore()
+    const allNodes = getAllQuestNodes()
+
+    // Check for exploration unlocks
+    const explorationNodes = allNodes.filter(n => n.type === 'exploration')
     for (const explorationNode of explorationNodes) {
       if (unlockedNodes.value.includes(explorationNode.unlockedBy)) {
-        // An exploration is now available - show the tip (only shows once)
-        const tipsStore = useTipsStore()
         tipsStore.showTip('explorations_intro')
+        break
+      }
+    }
+
+    // Check for Genus Loci unlocks
+    const genusLociNodes = allNodes.filter(n => n.type === 'genusLoci')
+    for (const glNode of genusLociNodes) {
+      if (unlockedNodes.value.includes(glNode.id)) {
+        tipsStore.showTip('genus_loci_intro')
         break
       }
     }
