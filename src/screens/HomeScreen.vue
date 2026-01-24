@@ -652,6 +652,24 @@ const hasParty = computed(() => {
   z-index: 1;
 }
 
+.nav-button.summon-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.summon-button .nav-hint {
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.summon-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.summon-button:hover:not(:disabled) .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .nav-button.summon-button:hover:not(:disabled) {
   border-color: #818cf8;
   box-shadow: 0 4px 25px rgba(99, 102, 241, 0.4);
@@ -790,6 +808,15 @@ const hasParty = computed(() => {
   z-index: 1;
 }
 
+.room-button.map-room-button .room-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.room-button.map-room-button .room-hint {
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
 .room-button.map-room-button:hover {
   border-color: #34d399;
   box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
@@ -816,6 +843,15 @@ const hasParty = computed(() => {
 .room-button.fellowship-hall-button > * {
   position: relative;
   z-index: 1;
+}
+
+.room-button.fellowship-hall-button .room-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.room-button.fellowship-hall-button .room-hint {
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .room-button.fellowship-hall-button:hover {

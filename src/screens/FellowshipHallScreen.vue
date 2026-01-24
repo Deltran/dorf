@@ -304,6 +304,24 @@ const emit = defineEmits(['navigate'])
   z-index: 1;
 }
 
+.nav-button.heroes-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.heroes-button .nav-hint {
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.heroes-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.heroes-button:hover .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .nav-button.heroes-button:hover {
   border-color: #f87171;
   box-shadow: 0 4px 25px rgba(239, 68, 68, 0.4);

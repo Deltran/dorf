@@ -298,6 +298,24 @@ const emit = defineEmits(['navigate'])
   z-index: 1;
 }
 
+.nav-button.quests-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.quests-button .nav-hint {
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.quests-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.quests-button:hover .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .nav-button.quests-button:hover {
   border-color: #34d399;
   box-shadow: 0 4px 25px rgba(16, 185, 129, 0.4);
@@ -324,6 +342,24 @@ const emit = defineEmits(['navigate'])
   z-index: 1;
 }
 
+.nav-button.genus-loci-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.genus-loci-button .nav-hint {
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.genus-loci-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.genus-loci-button:hover .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .nav-button.genus-loci-button:hover {
   border-color: #a855f7;
   box-shadow: 0 4px 25px rgba(147, 51, 234, 0.4);
@@ -348,6 +384,24 @@ const emit = defineEmits(['navigate'])
 .nav-button.explorations-button > * {
   position: relative;
   z-index: 1;
+}
+
+.nav-button.explorations-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.explorations-button .nav-hint {
+  color: rgba(255, 255, 255, 0.75);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.explorations-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.explorations-button:hover .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .nav-button.explorations-button:hover {
