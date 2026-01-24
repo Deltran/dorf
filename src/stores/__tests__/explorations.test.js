@@ -529,6 +529,39 @@ describe('explorations store', () => {
     })
   })
 
+  describe('claimCompletion with rank bonus', () => {
+    it('applies rank multiplier to rewards', () => {
+      // Setup: start and complete an exploration at rank C (+10%)
+      const store = useExplorationsStore()
+      const heroesStore = useHeroesStore()
+      const gachaStore = useGachaStore()
+
+      // Create 5 heroes
+      for (let i = 0; i < 5; i++) {
+        heroesStore.addHero('militia_soldier')
+      }
+      const heroIds = heroesStore.collection.map(h => h.instanceId)
+
+      // Set rank to C
+      store.explorationRanks['cave_exploration'] = 'C'
+
+      // Start exploration
+      store.startExploration('cave_exploration', heroIds)
+
+      // Force completion
+      store.activeExplorations['cave_exploration'].fightCount = 50
+
+      // Record starting gold
+      const startGold = gachaStore.gold
+
+      // Claim
+      const result = store.claimCompletion('cave_exploration')
+
+      // Base gold is 500, rank C = 1.10, no party bonus = 550
+      expect(result.gold).toBe(550)
+    })
+  })
+
   describe('persistence', () => {
     it('saves and loads activeExplorations', () => {
       const heroes = []

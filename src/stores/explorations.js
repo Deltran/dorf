@@ -289,7 +289,9 @@ export const useExplorationsStore = defineStore('explorations', () => {
     if (!node) return null
 
     const config = node.explorationConfig
-    const bonusMultiplier = exploration.partyRequestMet ? 1.10 : 1.0
+    const rankMultiplier = getRankMultiplier(nodeId)
+    const partyMultiplier = exploration.partyRequestMet ? 1.10 : 1.0
+    const bonusMultiplier = rankMultiplier * partyMultiplier
 
     // Calculate rewards
     const goldReward = Math.floor(config.rewards.gold * bonusMultiplier)
