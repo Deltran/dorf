@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useExplorationsStore, useHeroesStore } from '../stores'
 
 const emit = defineEmits(['navigate', 'back'])
@@ -9,6 +9,23 @@ const heroesStore = useHeroesStore()
 
 const unlockedExplorations = computed(() => explorationsStore.unlockedExplorations)
 const activeExplorations = computed(() => explorationsStore.activeExplorations)
+
+// Timer to update time display every minute
+const tick = ref(0)
+let timer = null
+
+onMounted(() => {
+  timer = setInterval(() => {
+    tick.value++
+  }, 60000)
+})
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer)
+    timer = null
+  }
+})
 
 function isActive(nodeId) {
   return !!activeExplorations.value[nodeId]
@@ -26,6 +43,9 @@ function getProgressPercent(nodeId) {
 }
 
 function getTimeRemaining(nodeId) {
+  // Reference tick to force reactivity on timer updates
+  void tick.value
+
   const exploration = getExploration(nodeId)
   const node = explorationsStore.getExplorationNode(nodeId)
   if (!exploration || !node) return ''
@@ -35,14 +55,21 @@ function getTimeRemaining(nodeId) {
   const hours = Math.floor(remaining / (60 * 60 * 1000))
   const minutes = Math.floor((remaining % (60 * 60 * 1000)) / 60000)
 
-  if (hours > 0) {
-    return `${hours}h ${minutes}m`
+  if (hours === 0 && minutes === 0) {
+    return 'Less than a minute'
   }
-  return `${minutes}m`
+  if (hours === 0) {
+    return `${minutes}m`
+  }
+  return `${hours}h ${minutes}m`
 }
 
 function openExploration(nodeId) {
   emit('navigate', 'exploration-detail', nodeId)
+}
+
+function getExplorationRank(nodeId) {
+  return explorationsStore.getExplorationRank(nodeId)
 }
 </script>
 
@@ -75,6 +102,9 @@ function openExploration(nodeId) {
           <div class="card-header">
             <span class="compass-icon">🧭</span>
             <h3>{{ node.name }}</h3>
+            <span :class="['rank-badge', `rank-${getExplorationRank(node.id)}`]">
+              {{ getExplorationRank(node.id) }}
+            </span>
           </div>
 
           <div class="card-body">
@@ -291,5 +321,44 @@ h1 {
 .status-badge.available {
   background: rgba(34, 197, 94, 0.2);
   color: #22c55e;
+}
+
+.rank-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+}
+
+.rank-badge.rank-E {
+  background: #4b5563;
+  color: #9ca3af;
+}
+
+.rank-badge.rank-D {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+}
+
+.rank-badge.rank-C {
+  background: rgba(59, 130, 246, 0.2);
+  color: #3b82f6;
+}
+
+.rank-badge.rank-B {
+  background: rgba(168, 85, 247, 0.2);
+  color: #a855f7;
+}
+
+.rank-badge.rank-A {
+  background: rgba(249, 115, 22, 0.2);
+  color: #f97316;
+}
+
+.rank-badge.rank-S {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.3) 0%, rgba(234, 179, 8, 0.3) 100%);
+  color: #fbbf24;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
 }
 </style>
