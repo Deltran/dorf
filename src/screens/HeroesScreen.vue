@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { useHeroesStore, useInventoryStore, useGachaStore } from '../stores'
+import { useHeroesStore, useInventoryStore, useGachaStore, useExplorationsStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
@@ -23,10 +23,9 @@ const emit = defineEmits(['navigate'])
 const heroesStore = useHeroesStore()
 const inventoryStore = useInventoryStore()
 const gachaStore = useGachaStore()
+const explorationsStore = useExplorationsStore()
 
 const selectedHero = ref(null)
-const viewMode = ref('collection') // 'collection' or 'party'
-const placingHero = ref(null) // hero being placed into party
 const heroImageError = ref(false)
 const showItemPicker = ref(false)
 const xpGainAnimation = ref(null) // { value: number }
@@ -75,13 +74,6 @@ const sortedHeroes = computed(() => {
   })
 })
 
-const partySlots = computed(() => {
-  return heroesStore.party.map((instanceId, index) => {
-    if (!instanceId) return { index, hero: null }
-    return { index, hero: heroesStore.getHeroFull(instanceId) }
-  })
-})
-
 const xpItems = computed(() => {
   return inventoryStore.itemList.filter(item => item.type === 'xp')
 })
@@ -91,24 +83,8 @@ function selectHero(hero) {
   heroImageError.value = false
 }
 
-function addToParty(slotIndex) {
-  const heroToPlace = placingHero.value || selectedHero.value
-  if (!heroToPlace) return
-  heroesStore.setPartySlot(slotIndex, heroToPlace.instanceId)
-  placingHero.value = null
-}
-
 function startPlacing(hero) {
-  placingHero.value = hero
-  viewMode.value = 'party'
-}
-
-function cancelPlacing() {
-  placingHero.value = null
-}
-
-function removeFromParty(slotIndex) {
-  heroesStore.clearPartySlot(slotIndex)
+  emit('navigate', 'party', hero.instanceId)
 }
 
 function isInParty(instanceId) {
@@ -139,18 +115,6 @@ function getExpProgress(hero) {
   const needed = getExpToNextLevel(hero.level)
   const percent = Math.floor((hero.exp / needed) * 100)
   return { current: hero.exp, needed, percent }
-}
-
-function isLeader(instanceId) {
-  return heroesStore.partyLeader === instanceId
-}
-
-function toggleLeader(hero) {
-  if (isLeader(hero.instanceId)) {
-    heroesStore.setPartyLeader(null)
-  } else {
-    heroesStore.setPartyLeader(hero.instanceId)
-  }
 }
 
 function openItemPicker() {
@@ -317,6 +281,18 @@ const isKnightHero = computed(() => {
   return selectedHero.value?.class?.resourceType === 'valor'
 })
 
+// Check if selected hero is on exploration
+const selectedHeroExplorationInfo = computed(() => {
+  if (!selectedHero.value) return null
+  const hero = heroesStore.collection.find(h => h.instanceId === selectedHero.value.instanceId)
+  if (!hero?.explorationNodeId) return null
+  const node = explorationsStore.getExplorationNode(hero.explorationNodeId)
+  return {
+    nodeId: hero.explorationNodeId,
+    nodeName: node?.name || 'Unknown'
+  }
+})
+
 // Shard tier info for selected hero
 const selectedHeroShardInfo = computed(() => {
   if (!selectedHero.value) return null
@@ -463,7 +439,7 @@ function getEffectTypeName(type) {
     <div class="bg-vignette"></div>
 
     <header class="heroes-header">
-      <button class="back-button" @click="emit('navigate', 'home')">
+      <button class="back-button" @click="emit('navigate', 'fellowship-hall')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>
@@ -474,80 +450,8 @@ function getEffectTypeName(type) {
       </div>
     </header>
 
-    <div class="view-tabs">
-      <button
-        :class="['tab', { active: viewMode === 'collection' }]"
-        @click="viewMode = 'collection'"
-      >
-        <span class="tab-icon">📚</span>
-        <span class="tab-label">Collection</span>
-      </button>
-      <button
-        :class="['tab', { active: viewMode === 'party' }]"
-        @click="viewMode = 'party'"
-      >
-        <span class="tab-icon">⚔️</span>
-        <span class="tab-label">Party</span>
-      </button>
-      <button
-        class="tab merge-tab"
-        @click="emit('navigate', 'merge')"
-      >
-        <span class="tab-icon">⭐</span>
-        <span class="tab-label">Fusion</span>
-      </button>
-    </div>
-
-    <!-- Party View -->
-    <section v-if="viewMode === 'party'" class="party-section">
-      <div class="section-header">
-        <div class="section-line"></div>
-        <h2>Your Party</h2>
-        <div class="section-line"></div>
-      </div>
-      <div class="party-slots">
-        <div
-          v-for="slot in partySlots"
-          :key="slot.index"
-          :class="['party-slot', { filled: slot.hero }]"
-        >
-          <template v-if="slot.hero">
-            <div class="party-slot-content">
-              <div v-if="isLeader(slot.hero.instanceId)" class="leader-crown">👑</div>
-              <HeroCard
-                :hero="slot.hero"
-                showStats
-                @click="selectHero(slot.hero)"
-              />
-            </div>
-            <button
-              class="remove-btn"
-              @click.stop="removeFromParty(slot.index)"
-            >
-              <span>Remove</span>
-            </button>
-          </template>
-          <template v-else>
-            <div
-              :class="['empty-slot', { clickable: placingHero && !isInParty(placingHero.instanceId) }]"
-              @click="placingHero && !isInParty(placingHero.instanceId) && addToParty(slot.index)"
-            >
-              <span class="slot-number">{{ slot.index + 1 }}</span>
-              <span class="slot-label">Empty Slot</span>
-              <p v-if="placingHero && !isInParty(placingHero.instanceId)" class="slot-hint">Tap to add</p>
-            </div>
-          </template>
-        </div>
-      </div>
-
-      <button class="auto-fill-btn" @click="heroesStore.autoFillParty">
-        <span class="btn-icon">✨</span>
-        <span>Auto-Fill Party</span>
-      </button>
-    </section>
-
-    <!-- Collection View -->
-    <section v-if="viewMode === 'collection'" class="collection-section">
+    <!-- Collection -->
+    <section class="collection-section">
       <div v-if="sortedHeroes.length === 0" class="empty-collection">
         <div class="empty-icon">⚔️</div>
         <p>No heroes yet!</p>
@@ -563,29 +467,21 @@ function getEffectTypeName(type) {
           :hero="hero"
           :selected="selectedHero?.instanceId === hero.instanceId"
           showStats
+          showExplorationStatus
           @click="selectHero(hero)"
         />
       </div>
     </section>
 
-    <!-- Placement Bar -->
-    <div v-if="placingHero" class="placement-bar">
-      <div class="placement-info">
-        <span class="placement-label">Placing:</span>
-        <span class="placement-name">{{ placingHero.template.name }}</span>
-      </div>
-      <button class="cancel-btn" @click="cancelPlacing">Cancel</button>
-    </div>
-
     <!-- Hero Detail Backdrop -->
     <div
-      v-if="selectedHero && !placingHero"
+      v-if="selectedHero"
       class="detail-backdrop"
       @click="selectedHero = null"
     ></div>
 
     <!-- Hero Detail Panel -->
-    <aside v-if="selectedHero && !placingHero" :class="['hero-detail', `rarity-${selectedHero.template.rarity}`]">
+    <aside v-if="selectedHero" :class="['hero-detail', `rarity-${selectedHero.template.rarity}`]">
       <div class="detail-header">
         <div class="header-left">
           <img
@@ -620,6 +516,11 @@ function getEffectTypeName(type) {
             <span class="info-label">Level</span>
             <span class="info-value level">{{ getLevelDisplay(selectedHero.level) }}</span>
           </div>
+        </div>
+
+        <div v-if="selectedHeroExplorationInfo" class="exploration-status">
+          <span class="exploration-icon">🧭</span>
+          <span class="exploration-text">Currently Exploring</span>
         </div>
 
         <div v-if="selectedHero.level < 250" class="exp-section">
@@ -777,23 +678,14 @@ function getEffectTypeName(type) {
         </div>
 
         <div class="detail-actions">
-          <template v-if="isInParty(selectedHero.instanceId)">
-            <button
-              v-if="selectedHero.template.rarity === 5 && selectedHero.template.leaderSkill"
-              :class="['leader-btn', { active: isLeader(selectedHero.instanceId) }]"
-              @click="toggleLeader(selectedHero)"
-            >
-              <span class="leader-icon">👑</span>
-              <span>{{ isLeader(selectedHero.instanceId) ? 'Leader' : 'Set as Leader' }}</span>
-            </button>
-            <span v-else class="in-party-badge">
-              <span class="badge-icon">✓</span>
-              <span>In Party</span>
-            </span>
-          </template>
+          <span v-if="isInParty(selectedHero.instanceId)" class="in-party-badge">
+            <span class="badge-icon">✓</span>
+            <span>In Party</span>
+          </span>
           <button
             v-else
             class="add-to-party-btn"
+            :disabled="!!selectedHeroExplorationInfo"
             @click="startPlacing(selectedHero)"
           >
             <span>Add to Party</span>
@@ -827,7 +719,7 @@ function getEffectTypeName(type) {
         <div v-if="canShowMergeButton" class="merge-section">
           <button
             class="merge-btn"
-            :disabled="!mergeButtonState.canMerge"
+            :disabled="!mergeButtonState.canMerge || !!selectedHeroExplorationInfo"
             @click="openMergeModal"
           >
             <span class="merge-icon">{{ mergeButtonState.icon }}</span>
@@ -837,7 +729,7 @@ function getEffectTypeName(type) {
 
         <!-- Use XP Item Button -->
         <div v-if="selectedHero.level < 250 && xpItems.length > 0" class="use-item-section">
-          <button class="use-item-btn" @click="openItemPicker">
+          <button class="use-item-btn" :disabled="!!selectedHeroExplorationInfo" @click="openItemPicker">
             <span class="btn-icon">📖</span>
             <span>Use XP Item</span>
             <span class="item-badge">{{ xpItems.length }}</span>
@@ -1084,58 +976,6 @@ function getEffectTypeName(type) {
   text-transform: uppercase;
 }
 
-/* ===== View Tabs ===== */
-.view-tabs {
-  display: flex;
-  gap: 8px;
-  position: relative;
-  z-index: 1;
-}
-
-.tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
-  border: 2px solid #374151;
-  border-radius: 12px;
-  color: #9ca3af;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.tab:hover {
-  border-color: #4b5563;
-}
-
-.tab.active {
-  border-color: #3b82f6;
-  color: #f3f4f6;
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(30, 41, 59, 0.8) 100%);
-}
-
-.tab.merge-tab {
-  border-color: #f59e0b;
-  color: #f59e0b;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(30, 41, 59, 0.8) 100%);
-}
-
-.tab.merge-tab:hover {
-  border-color: #fbbf24;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(30, 41, 59, 0.8) 100%);
-}
-
-.tab-icon {
-  font-size: 1.1rem;
-}
-
-.tab-label {
-  font-weight: 600;
-}
-
 /* ===== Section Headers ===== */
 .section-header {
   display: flex;
@@ -1157,121 +997,6 @@ function getEffectTypeName(type) {
   flex: 1;
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, #374151 50%, transparent 100%);
-}
-
-/* ===== Party Section ===== */
-.party-section {
-  position: relative;
-  z-index: 1;
-}
-
-.party-slots {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 16px;
-}
-
-.party-slot {
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
-  border: 1px solid #334155;
-  border-radius: 14px;
-  padding: 12px;
-  min-height: 200px;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s ease;
-}
-
-.party-slot.filled {
-  border-color: #4b5563;
-}
-
-.party-slot .empty-slot {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  border: 2px dashed #334155;
-  border-radius: 10px;
-  color: #6b7280;
-  transition: all 0.3s ease;
-  gap: 4px;
-}
-
-.party-slot .empty-slot.clickable {
-  cursor: pointer;
-  border-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.1);
-}
-
-.party-slot .empty-slot.clickable:hover {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: #60a5fa;
-}
-
-.slot-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #334155;
-}
-
-.slot-label {
-  font-size: 0.8rem;
-  color: #4b5563;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.slot-hint {
-  margin: 8px 0 0 0;
-  font-size: 0.75rem;
-  color: #60a5fa;
-}
-
-.remove-btn {
-  margin-top: 10px;
-  padding: 10px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
-  transition: all 0.2s ease;
-}
-
-.remove-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-}
-
-.auto-fill-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 14px;
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
-  border: 1px solid #4b5563;
-  border-radius: 12px;
-  color: #f3f4f6;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.auto-fill-btn:hover {
-  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
-  transform: translateY(-2px);
-}
-
-.btn-icon {
-  font-size: 1.1rem;
 }
 
 /* ===== Collection Section ===== */
@@ -1464,6 +1189,29 @@ function getEffectTypeName(type) {
 .info-value.level {
   font-size: 1.1rem;
   color: #60a5fa;
+}
+
+/* ===== Exploration Status ===== */
+.exploration-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(55, 65, 81, 0.3) 100%);
+  border: 1px solid #06b6d4;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.exploration-icon {
+  font-size: 1.1rem;
+}
+
+.exploration-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #06b6d4;
 }
 
 /* ===== EXP Section ===== */
@@ -1691,56 +1439,16 @@ function getEffectTypeName(type) {
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 
-.add-to-party-btn:hover {
+.add-to-party-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
 }
 
-/* ===== Placement Bar ===== */
-.placement-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  padding: 16px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.5);
-  border-top: 2px solid #3b82f6;
-  z-index: 98;
-  animation: slideUp 0.2s ease;
-}
-
-.placement-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.placement-label {
-  color: #9ca3af;
-}
-
-.placement-name {
-  color: #f3f4f6;
-  font-weight: 600;
-}
-
-.cancel-btn {
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
-  border: 1px solid #4b5563;
-  color: #f3f4f6;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cancel-btn:hover {
-  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+.add-to-party-btn:disabled {
+  background: #4b5563;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
 }
 
 /* ===== Leader Skill ===== */
@@ -1768,58 +1476,6 @@ function getEffectTypeName(type) {
   line-height: 1.4;
 }
 
-.leader-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
-  border: 2px solid #4b5563;
-  color: #f3f4f6;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.leader-btn:hover {
-  border-color: #f59e0b;
-  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
-}
-
-.leader-btn.active {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  border-color: #f59e0b;
-  color: #0f172a;
-}
-
-.leader-icon {
-  font-size: 1rem;
-}
-
-/* ===== Party Slot Leader Crown ===== */
-.party-slot-content {
-  position: relative;
-  flex: 1;
-}
-
-.leader-crown {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  font-size: 1.5rem;
-  z-index: 10;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-  animation: crownBob 2s ease-in-out infinite;
-}
-
-@keyframes crownBob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
-}
-
 /* ===== Use XP Item Section ===== */
 .use-item-section {
   margin-top: 16px;
@@ -1845,9 +1501,16 @@ function getEffectTypeName(type) {
   box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
 
-.use-item-btn:hover {
+.use-item-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(124, 58, 237, 0.4);
+}
+
+.use-item-btn:disabled {
+  background: #4b5563;
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
 }
 
 .use-item-btn .btn-icon {
