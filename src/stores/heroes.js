@@ -697,6 +697,7 @@ export const useHeroesStore = defineStore('heroes', () => {
     canMergeHero,
     getMergeCandidates,
     mergeHero,
+    getHeroStarLevel,
     getLowerTierCopies,
     hasLowerTierCopies,
     executeBulkMerge,
