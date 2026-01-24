@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useGenusLociStore } from '../stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useGenusLociStore, useExplorationsStore } from '../stores'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 
@@ -10,6 +10,13 @@ const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const questsStore = useQuestsStore()
 const genusLociStore = useGenusLociStore()
+const explorationsStore = useExplorationsStore()
+
+// Hero collection stats
+const uniqueHeroCount = computed(() => {
+  const uniqueTemplates = new Set(heroesStore.collection.map(h => h.templateId))
+  return uniqueTemplates.size
+})
 
 // Hero images (check for animated gif first, then static png)
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
@@ -139,7 +146,7 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
         </div>
         <div class="nav-content">
           <span class="nav-label">Heroes</span>
-          <span class="nav-hint">{{ heroesStore.heroCount }} owned</span>
+          <span class="nav-hint">{{ uniqueHeroCount }} owned · {{ heroesStore.heroCount }} total</span>
         </div>
         <div class="nav-arrow">›</div>
       </button>
@@ -177,6 +184,17 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
         <div class="nav-content">
           <span class="nav-label">Shards</span>
           <span class="nav-hint">Hero fragments</span>
+        </div>
+        <div class="nav-arrow">›</div>
+      </button>
+
+      <button class="nav-button explorations-button" @click="emit('navigate', 'explorations')">
+        <div class="nav-icon-wrapper explorations">
+          <span class="nav-icon">🧭</span>
+        </div>
+        <div class="nav-content">
+          <span class="nav-label">Explorations</span>
+          <span class="nav-hint">{{ explorationsStore.activeExplorationCount }} active</span>
         </div>
         <div class="nav-arrow">›</div>
       </button>
@@ -673,6 +691,11 @@ const hasAnyGenusLoci = computed(() => unlockedGenusLoci.value.length > 0)
 .nav-icon-wrapper.shards {
   background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
   box-shadow: 0 4px 12px rgba(192, 38, 211, 0.4);
+}
+
+.nav-icon-wrapper.explorations {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
 }
 
 .nav-icon {
