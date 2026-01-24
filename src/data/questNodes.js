@@ -283,8 +283,8 @@ export const questNodes = {
     id: 'cave_exploration',
     name: 'Echoing Caverns Exploration',
     region: 'Echoing Caverns',
-    x: 300,
-    y: 100,
+    x: 80,
+    y: 310,
     type: 'exploration',
     unlockedBy: 'cave_01',
     backgroundId: 'cave_01',
@@ -293,6 +293,7 @@ export const questNodes = {
       requiredFights: 50,
       timeLimit: 240,
       rewards: { gold: 500, gems: 20, xp: 300 },
+      requiredCrestId: 'valinar_crest',
       itemDrops: [
         { itemId: 'tome_medium', chance: 0.4 },
         { itemId: 'goblin_trinket', chance: 0.6 }
