@@ -4,6 +4,7 @@ import { useHeroesStore, useGachaStore, useQuestsStore } from '../stores'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import questBg from '../assets/backgrounds/quests_bg.png'
 import fellowshipHallBg from '../assets/backgrounds/fellowship_hall_bg.png'
+import storeRoomBg from '../assets/backgrounds/store_room.png'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 
 const emit = defineEmits(['navigate'])
@@ -148,7 +149,11 @@ const hasParty = computed(() => {
           <span class="room-hint">Explore world</span>
         </button>
 
-        <button class="room-button" @click="emit('navigate', 'inventory')">
+        <button
+          class="room-button store-room-button"
+          :style="{ backgroundImage: `url(${storeRoomBg})` }"
+          @click="emit('navigate', 'inventory')"
+        >
           <div class="room-icon-wrapper store">
             <span class="room-icon">📦</span>
           </div>
@@ -869,5 +874,46 @@ const hasParty = computed(() => {
 .room-button.fellowship-hall-button:hover {
   border-color: #f87171;
   box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+}
+
+/* Store Room button with background image */
+.room-button.store-room-button {
+  background-size: cover;
+  background-position: center;
+  border-color: #3b82f6;
+  position: relative;
+  overflow: hidden;
+}
+
+.room-button.store-room-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.75) 0%, rgba(59, 130, 246, 0.6) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.room-button.store-room-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.room-button.store-room-button .room-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.room-button.store-room-button .room-hint {
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.room-button.store-room-button .room-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.5);
+}
+
+.room-button.store-room-button:hover {
+  border-color: #60a5fa;
+  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
 }
 </style>

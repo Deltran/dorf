@@ -681,7 +681,9 @@ export const useBattleStore = defineStore('battle', () => {
       return { allyDamage: damage, guardianDamage: 0, guardian: null }
     }
 
-    const guardian = allHeroes.find(h => h.instanceId === guardianLink.guardianId)
+    // guardianId is set explicitly, or fall back to sourceId (who cast the link)
+    const guardianId = guardianLink.guardianId || guardianLink.sourceId
+    const guardian = allHeroes.find(h => h.instanceId === guardianId)
     if (!guardian || guardian.currentHp <= 0) {
       return { allyDamage: damage, guardianDamage: 0, guardian: null }
     }
@@ -790,6 +792,13 @@ export const useBattleStore = defineStore('battle', () => {
 
       addLog(`${guardian.template.name} absorbs ${redirectedDamage} damage for ${unit.template.name}!`)
       emitCombatEffect(guardian.instanceId, 'hero', 'damage', redirectedDamage)
+
+      // Check for valorOnRedirect (Oath of Protection grants Valor when absorbing damage)
+      const guardianLink = unit.statusEffects?.find(e => e.type === EffectType.GUARDIAN_LINK)
+      if (guardianLink?.valorOnRedirect && isKnight(guardian)) {
+        gainValor(guardian, guardianLink.valorOnRedirect)
+        addLog(`${guardian.template.name} gains ${guardianLink.valorOnRedirect} Valor!`)
+      }
 
       // Track damage for DAMAGE_STORE if guardian has it
       const damageStore = guardian.statusEffects?.find(e => e.type === EffectType.DAMAGE_STORE)
@@ -1894,7 +1903,24 @@ export const useBattleStore = defineStore('battle', () => {
               if (effect.target === 'ally' && shouldApplyEffect(effect, hero)) {
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
-                applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: true, ...(effect.onEvade && { onEvade: effect.onEvade }) })
+                const effectOptions = {
+                  duration: effectDuration,
+                  value: effectValue,
+                  sourceId: hero.instanceId,
+                  fromAllySkill: true
+                }
+                // Pass through additional properties for specific effect types
+                if (effect.onEvade) effectOptions.onEvade = effect.onEvade
+                // GUARDIAN_LINK specific properties
+                if (effect.type === EffectType.GUARDIAN_LINK) {
+                  // Resolve Valor-scaled redirectPercent
+                  const valorTier = getValorTier(hero)
+                  effectOptions.redirectPercent = typeof effect.redirectPercent === 'object'
+                    ? resolveValorScaling(effect.redirectPercent, valorTier)
+                    : effect.redirectPercent
+                  if (effect.valorOnRedirect) effectOptions.valorOnRedirect = effect.valorOnRedirect
+                }
+                applyEffect(target, effect.type, effectOptions)
                 emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
               }
             }

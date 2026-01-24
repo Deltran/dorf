@@ -271,12 +271,22 @@ export const heroTemplates = {
         ]
       },
       {
-        name: 'Valorous Strike',
-        description: 'Deal damage that scales with Valor',
+        name: 'Oath of Protection',
+        description: 'Link to an ally for 2 turns, taking 30% of damage dealt to them. Gain 5 Valor when damage is redirected. Redirect amount and duration scale with Valor.',
         skillUnlockLevel: 3,
-        valorRequired: 50,
-        targetType: 'enemy',
-        damage: { base: 110, at75: 125, at100: 140 }
+        valorRequired: 25,
+        targetType: 'ally',
+        noDamage: true,
+        defensive: true,
+        effects: [
+          {
+            type: EffectType.GUARDIAN_LINK,
+            target: 'ally',
+            duration: { base: 2, at75: 3 },
+            redirectPercent: { base: 30, at50: 40, at100: 50 },
+            valorOnRedirect: 5
+          }
+        ]
       },
       {
         name: 'Defensive Footwork',

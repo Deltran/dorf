@@ -1,5 +1,8 @@
 <script setup>
 import fellowshipHallBg from '../assets/backgrounds/fellowship_hall_bg.png'
+import partyBg from '../assets/backgrounds/party_bg.png'
+import fusionBg from '../assets/backgrounds/fusion.png'
+import shardsBg from '../assets/backgrounds/shards.png'
 
 const emit = defineEmits(['navigate'])
 </script>
@@ -36,7 +39,11 @@ const emit = defineEmits(['navigate'])
         <div class="nav-arrow">›</div>
       </button>
 
-      <button class="nav-button" @click="emit('navigate', 'party')">
+      <button
+        class="nav-button party-button"
+        :style="{ backgroundImage: `url(${partyBg})` }"
+        @click="emit('navigate', 'party')"
+      >
         <div class="nav-icon-wrapper party">
           <span class="nav-icon">🛡️</span>
         </div>
@@ -47,7 +54,11 @@ const emit = defineEmits(['navigate'])
         <div class="nav-arrow">›</div>
       </button>
 
-      <button class="nav-button" @click="emit('navigate', 'merge')">
+      <button
+        class="nav-button fusion-button"
+        :style="{ backgroundImage: `url(${fusionBg})` }"
+        @click="emit('navigate', 'merge')"
+      >
         <div class="nav-icon-wrapper fusion">
           <span class="nav-icon">⭐</span>
         </div>
@@ -58,7 +69,11 @@ const emit = defineEmits(['navigate'])
         <div class="nav-arrow">›</div>
       </button>
 
-      <button class="nav-button" @click="emit('navigate', 'shards')">
+      <button
+        class="nav-button shards-button"
+        :style="{ backgroundImage: `url(${shardsBg})` }"
+        @click="emit('navigate', 'shards')"
+      >
         <div class="nav-icon-wrapper shards">
           <span class="nav-icon">💎</span>
         </div>
@@ -329,5 +344,149 @@ const emit = defineEmits(['navigate'])
 .nav-button.heroes-button:hover {
   border-color: #f87171;
   box-shadow: 0 4px 25px rgba(239, 68, 68, 0.4);
+}
+
+/* Party button with background image */
+.nav-button.party-button {
+  background-size: cover;
+  background-position: center;
+  border-color: #10b981;
+}
+
+.nav-button.party-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.75) 0%, rgba(16, 185, 129, 0.6) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.nav-button.party-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-button.party-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.party-button .nav-hint {
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.nav-button.party-button .nav-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.5);
+}
+
+.nav-button.party-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.party-button:hover .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-button.party-button:hover {
+  border-color: #34d399;
+  box-shadow: 0 4px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Fusion button with background image */
+.nav-button.fusion-button {
+  background-size: cover;
+  background-position: center;
+  border-color: #fbbf24;
+}
+
+.nav-button.fusion-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.75) 0%, rgba(251, 191, 36, 0.6) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.nav-button.fusion-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-button.fusion-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.fusion-button .nav-hint {
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.nav-button.fusion-button .nav-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(251, 191, 36, 0.5);
+}
+
+.nav-button.fusion-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.fusion-button:hover .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-button.fusion-button:hover {
+  border-color: #fcd34d;
+  box-shadow: 0 4px 25px rgba(251, 191, 36, 0.4);
+}
+
+/* Shards button with background image */
+.nav-button.shards-button {
+  background-size: cover;
+  background-position: center;
+  border-color: #a855f7;
+}
+
+.nav-button.shards-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.75) 0%, rgba(192, 38, 211, 0.6) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.nav-button.shards-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-button.shards-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.shards-button .nav-hint {
+  color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.nav-button.shards-button .nav-icon-wrapper {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.5);
+}
+
+.nav-button.shards-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.shards-button:hover .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-button.shards-button:hover {
+  border-color: #c084fc;
+  box-shadow: 0 4px 25px rgba(168, 85, 247, 0.4);
 }
 </style>

@@ -740,6 +740,33 @@ export const questNodes = {
       { itemId: 'den_key', min: 1, max: 1, chance: 0.05 }
     ]
   },
+  summit_exploration: {
+    id: 'summit_exploration',
+    name: 'Summit Exploration',
+    region: 'The Summit',
+    x: 250,
+    y: 380,
+    type: 'exploration',
+    unlockedBy: 'summit_03',
+    backgroundId: 'summit_01',
+    connections: [],
+    explorationConfig: {
+      requiredFights: 70,
+      timeLimit: 300,
+      rewards: { gold: 800, gems: 35, xp: 500 },
+      requiredCrestId: 'great_troll_crest',
+      itemDrops: [
+        { itemId: 'tome_large', chance: 0.4 },
+        { itemId: 'magical_rocks', chance: 0.5 }
+      ],
+      partyRequest: {
+        description: 'Swift climbers (2+ DPS)',
+        conditions: [
+          { role: 'dps', count: 2 }
+        ]
+      }
+    }
+  },
 
   // Blistering Cliffsides (Volcanic) - No boss
   // Layout: cliffs_01 -> cliffs_02 -> (cliffs_03 OR cliffs_04) -> cliffs_05 -> cliffs_06
@@ -1721,6 +1748,16 @@ export const regions = [
     backgroundImage: whisperingWoodsMap
   },
   {
+    id: 'whisper_lake',
+    name: 'Whisper Lake',
+    superRegion: 'western_veros',
+    startNode: 'lake_01',
+    width: 500,
+    height: 450,
+    backgroundColor: '#1a2a2f',
+    backgroundImage: whisperLakeMap
+  },
+  {
     id: 'echoing_caverns',
     name: 'Echoing Caverns',
     superRegion: 'western_veros',
@@ -1749,16 +1786,6 @@ export const regions = [
     height: 500,
     backgroundColor: '#2a3a2a',
     backgroundImage: hibernationDenMap
-  },
-  {
-    id: 'whisper_lake',
-    name: 'Whisper Lake',
-    superRegion: 'western_veros',
-    startNode: 'lake_01',
-    width: 500,
-    height: 450,
-    backgroundColor: '#1a2a2f',
-    backgroundImage: whisperLakeMap
   },
   {
     id: 'the_summit',

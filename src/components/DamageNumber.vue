@@ -17,6 +17,10 @@ const emit = defineEmits(['complete'])
 
 const isVisible = ref(true)
 
+// Random variance for position so multiple hits don't stack exactly
+const offsetX = Math.round((Math.random() - 0.5) * 40) // -20px to +20px
+const offsetY = Math.round((Math.random() - 0.5) * 20) // -10px to +10px
+
 onMounted(() => {
   // Remove after animation completes
   setTimeout(() => {
@@ -32,6 +36,7 @@ const displayValue = props.type === 'miss' ? 'Miss!' : props.type === 'heal' ? `
   <div
     v-if="isVisible"
     :class="['damage-number', type]"
+    :style="{ '--offset-x': `${offsetX}px`, '--offset-y': `${offsetY}px` }"
   >
     {{ displayValue }}
   </div>
@@ -42,7 +47,7 @@ const displayValue = props.type === 'miss' ? 'Miss!' : props.type === 'heal' ? `
   position: absolute;
   top: 0;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(calc(-50% + var(--offset-x, 0px))) translateY(var(--offset-y, 0px));
   font-weight: 700;
   font-size: 1.25rem;
   pointer-events: none;
@@ -76,14 +81,14 @@ const displayValue = props.type === 'miss' ? 'Miss!' : props.type === 'heal' ? `
 @keyframes floatUp {
   0% {
     opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateX(calc(-50% + var(--offset-x, 0px))) translateY(var(--offset-y, 0px)) scale(1);
   }
   20% {
-    transform: translateX(-50%) translateY(-5px) scale(1.2);
+    transform: translateX(calc(-50% + var(--offset-x, 0px))) translateY(calc(-5px + var(--offset-y, 0px))) scale(1.2);
   }
   100% {
     opacity: 0;
-    transform: translateX(-50%) translateY(-40px) scale(1);
+    transform: translateX(calc(-50% + var(--offset-x, 0px))) translateY(calc(-40px + var(--offset-y, 0px))) scale(1);
   }
 }
 </style>

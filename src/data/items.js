@@ -95,6 +95,14 @@ export const items = {
     description: 'A mossy stone emblem torn from the Great Troll. Its purpose remains unknown.',
     type: 'genusLoci',
     rarity: 4
+  },
+  magical_rocks: {
+    id: 'magical_rocks',
+    name: 'Magical Rocks',
+    description: "I don't know how powerful the magic is, but they glow, so they are worth something.",
+    type: 'junk',
+    rarity: 3,
+    sellReward: { gold: 600 }
   }
 }
 
