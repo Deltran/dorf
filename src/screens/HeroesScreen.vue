@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useHeroesStore, useInventoryStore, useGachaStore, useExplorationsStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
@@ -87,6 +87,19 @@ function toggleClass(classId) {
   }
 }
 
+function closeAllDropdowns() {
+  showSortDropdown.value = false
+  showRoleDropdown.value = false
+  showClassDropdown.value = false
+}
+
+function handleClickOutside(event) {
+  const filterBar = event.target.closest('.filter-bar')
+  if (!filterBar) {
+    closeAllDropdowns()
+  }
+}
+
 // Merge state
 const showMergeModal = ref(false)
 const mergeInfo = ref(null)
@@ -107,6 +120,15 @@ onMounted(async () => {
       }
     }
   }
+})
+
+// Click-outside handler for dropdowns
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
 // Import all hero images
@@ -515,7 +537,7 @@ function getEffectTypeName(type) {
           <button
             class="filter-btn"
             :class="{ active: sortBy !== 'default' }"
-            @click="showSortDropdown = !showSortDropdown"
+            @click.stop="showSortDropdown = !showSortDropdown; showRoleDropdown = false; showClassDropdown = false"
           >
             <span>Sort: {{ sortOptions.find(o => o.value === sortBy)?.label || 'Default' }}</span>
             <span class="dropdown-arrow">▼</span>
@@ -539,7 +561,7 @@ function getEffectTypeName(type) {
           <button
             class="filter-btn"
             :class="{ active: selectedRoles.length > 0 }"
-            @click="showRoleDropdown = !showRoleDropdown"
+            @click.stop="showRoleDropdown = !showRoleDropdown; showSortDropdown = false; showClassDropdown = false"
           >
             <span>Role{{ selectedRoles.length > 0 ? ` (${selectedRoles.length})` : '' }}</span>
             <span class="dropdown-arrow">▼</span>
@@ -566,7 +588,7 @@ function getEffectTypeName(type) {
           <button
             class="filter-btn"
             :class="{ active: selectedClasses.length > 0 }"
-            @click="showClassDropdown = !showClassDropdown"
+            @click.stop="showClassDropdown = !showClassDropdown; showSortDropdown = false; showRoleDropdown = false"
           >
             <span>Class{{ selectedClasses.length > 0 ? ` (${selectedClasses.length})` : '' }}</span>
             <span class="dropdown-arrow">▼</span>
