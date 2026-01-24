@@ -1,10 +1,15 @@
 <script setup>
-import { computed } from 'vue'
-import { useGenusLociStore } from '../stores'
+import { computed, onMounted } from 'vue'
+import { useGenusLociStore, useTipsStore } from '../stores'
 
 const emit = defineEmits(['navigate'])
 
 const genusLociStore = useGenusLociStore()
+const tipsStore = useTipsStore()
+
+onMounted(() => {
+  tipsStore.showTip('genus_loci_intro')
+})
 
 // Enemy portraits for genus loci
 const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
@@ -38,7 +43,7 @@ function selectBoss(bossId) {
       <div class="header-spacer"></div>
     </header>
 
-    <section class="boss-section">
+    <section id="genus-loci-list" class="boss-section">
       <div v-if="hasAnyGenusLoci" class="boss-grid">
         <div
           v-for="boss in unlockedGenusLoci"
