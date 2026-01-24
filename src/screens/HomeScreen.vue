@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore } from '../stores'
 import summoningBg from '../assets/backgrounds/summoning.png'
+import questBg from '../assets/backgrounds/quest_bg.png'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 
 const emit = defineEmits(['navigate'])
@@ -130,7 +131,11 @@ const hasParty = computed(() => {
           <span class="room-hint">Manage heroes</span>
         </button>
 
-        <button class="room-button" @click="emit('navigate', 'map-room')">
+        <button
+          class="room-button map-room-button"
+          :style="{ backgroundImage: `url(${questBg})` }"
+          @click="emit('navigate', 'map-room')"
+        >
           <div class="room-icon-wrapper map">
             <span class="room-icon">🗺️</span>
           </div>
@@ -755,5 +760,33 @@ const hasParty = computed(() => {
 .room-hint {
   font-size: 0.7rem;
   color: #6b7280;
+}
+
+/* Map Room button with background image */
+.room-button.map-room-button {
+  background-size: cover;
+  background-position: center;
+  border-color: #10b981;
+  position: relative;
+  overflow: hidden;
+}
+
+.room-button.map-room-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.75) 0%, rgba(16, 185, 129, 0.6) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.room-button.map-room-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.room-button.map-room-button:hover {
+  border-color: #34d399;
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 </style>

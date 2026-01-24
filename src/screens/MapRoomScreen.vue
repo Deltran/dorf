@@ -1,4 +1,6 @@
 <script setup>
+import questBg from '../assets/backgrounds/quest_bg.png'
+
 const emit = defineEmits(['navigate'])
 </script>
 
@@ -19,7 +21,11 @@ const emit = defineEmits(['navigate'])
     </header>
 
     <nav class="hub-nav">
-      <button class="nav-button" @click="emit('navigate', 'worldmap')">
+      <button
+        class="nav-button quests-button"
+        :style="{ backgroundImage: `url(${questBg})` }"
+        @click="emit('navigate', 'worldmap')"
+      >
         <div class="nav-icon-wrapper quests">
           <span class="nav-icon">🗺️</span>
         </div>
@@ -259,5 +265,31 @@ const emit = defineEmits(['navigate'])
 .nav-button:hover .nav-arrow {
   transform: translateX(4px);
   color: #6b7280;
+}
+
+/* Quests button with background image */
+.nav-button.quests-button {
+  background-size: cover;
+  background-position: center;
+  border-color: #10b981;
+}
+
+.nav-button.quests-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(5, 150, 105, 0.75) 0%, rgba(16, 185, 129, 0.6) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.nav-button.quests-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-button.quests-button:hover {
+  border-color: #34d399;
+  box-shadow: 0 4px 25px rgba(16, 185, 129, 0.4);
 }
 </style>
