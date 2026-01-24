@@ -274,6 +274,35 @@ export const questNodes = {
     ]
   },
 
+  // Echoing Caverns Exploration
+  cave_exploration: {
+    id: 'cave_exploration',
+    name: 'Echoing Caverns Exploration',
+    region: 'Echoing Caverns',
+    x: 300,
+    y: 100,
+    type: 'exploration',
+    unlockedBy: 'cave_01',
+    backgroundId: 'cave_01',
+    explorationConfig: {
+      requiredFights: 50,
+      timeLimit: 240,
+      rewards: { gold: 500, gems: 20, xp: 300 },
+      itemDrops: [
+        { itemId: 'tome_medium', chance: 0.4 },
+        { itemId: 'goblin_trinket', chance: 0.6 }
+      ],
+      partyRequest: {
+        description: 'A tank, a DPS, and a support',
+        conditions: [
+          { role: 'tank', count: 1 },
+          { role: 'dps', count: 1 },
+          { role: 'support', count: 1 }
+        ]
+      }
+    }
+  },
+
   // Stormwind Peaks (Late Game)
   // Layout: mountain_01 -> (mountain_02 OR mountain_03) -> mountain_05 -> (mountain_06 OR mountain_07) -> mountain_04
   mountain_01: {
