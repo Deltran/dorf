@@ -59,8 +59,14 @@ const timeDisplay = computed(() => {
   const remaining = Math.max(0, (config.value.timeLimit * 60 * 1000) - elapsed)
   const hours = Math.floor(remaining / (60 * 60 * 1000))
   const minutes = Math.floor((remaining % (60 * 60 * 1000)) / 60000)
-  const seconds = Math.floor((remaining % 60000) / 1000)
-  return `${hours}h ${minutes}m ${seconds}s`
+
+  if (hours === 0 && minutes === 0) {
+    return 'Less than a minute'
+  }
+  if (hours === 0) {
+    return `${minutes}m`
+  }
+  return `${hours}h ${minutes}m`
 })
 
 const progressPercent = computed(() => {
