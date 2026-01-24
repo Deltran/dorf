@@ -1,5 +1,5 @@
 <script setup>
-import questBg from '../assets/backgrounds/quest_bg.png'
+import questBg from '../assets/backgrounds/quests_bg.png'
 
 const emit = defineEmits(['navigate'])
 </script>

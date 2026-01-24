@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore } from '../stores'
 import summoningBg from '../assets/backgrounds/summoning.png'
-import questBg from '../assets/backgrounds/quest_bg.png'
+import questBg from '../assets/backgrounds/quests_bg.png'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 
 const emit = defineEmits(['navigate'])
