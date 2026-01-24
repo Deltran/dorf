@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useHeroesStore, useGachaStore } from '../stores'
 import { getHeroTemplate } from '../data/heroTemplates.js'
+import MergePlannerModal from '../components/MergePlannerModal.vue'
 
 const emit = defineEmits(['navigate'])
 
@@ -63,6 +64,31 @@ const heroGroups = computed(() => {
     })
 })
 
+// Build Copies modal state
+const showBuildCopiesModal = ref(false)
+const buildCopiesHeroId = ref(null)
+
+function canBuildCopies(group) {
+  if (group.highestStar >= 5) return false
+  return heroesStore.hasLowerTierCopies(group.templateId, group.highestStar)
+}
+
+function openBuildCopies(group, event) {
+  event.stopPropagation() // Don't trigger selectGroup
+  buildCopiesHeroId.value = group.highestHero.instanceId
+  showBuildCopiesModal.value = true
+}
+
+function closeBuildCopies() {
+  showBuildCopiesModal.value = false
+  buildCopiesHeroId.value = null
+}
+
+function onBuildCopiesComplete(result) {
+  closeBuildCopies()
+  // heroGroups will auto-update since it's computed from the store
+}
+
 function selectGroup(group) {
   // Only navigate if the hero can be merged
   if (!group.canMerge) return
@@ -96,6 +122,14 @@ function selectGroup(group) {
         :class="[`rarity-${group.highestStar}`, { 'can-merge': group.canMerge }]"
         @click="selectGroup(group)"
       >
+        <button
+          v-if="canBuildCopies(group)"
+          class="build-copies-btn-small"
+          @click="openBuildCopies(group, $event)"
+          title="Build lower-star copies"
+        >
+          🔨
+        </button>
         <div class="group-image">
           <img
             v-if="getHeroImageUrl(group.templateId)"
@@ -129,6 +163,13 @@ function selectGroup(group) {
         <p class="empty-hint">Pull more duplicates to merge and power up your heroes!</p>
       </div>
     </div>
+
+    <MergePlannerModal
+      :show="showBuildCopiesModal"
+      :heroInstanceId="buildCopiesHeroId"
+      @close="closeBuildCopies"
+      @complete="onBuildCopiesComplete"
+    />
   </div>
 </template>
 
@@ -206,6 +247,7 @@ function selectGroup(group) {
 }
 
 .hero-group {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -344,5 +386,29 @@ function selectGroup(group) {
 .empty-hint {
   font-size: 0.85rem;
   color: #4b5563;
+}
+
+.build-copies-btn-small {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #374151;
+  background: rgba(59, 130, 246, 0.2);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 1;
+}
+
+.build-copies-btn-small:hover {
+  background: rgba(59, 130, 246, 0.4);
+  border-color: #3b82f6;
+  transform: scale(1.1);
 }
 </style>
