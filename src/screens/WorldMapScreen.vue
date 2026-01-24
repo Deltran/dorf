@@ -8,6 +8,13 @@ import MapCanvas from '../components/MapCanvas.vue'
 import SuperRegionSelect from '../components/SuperRegionSelect.vue'
 
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
+
+function getBossPortraitUrl(bossId) {
+  if (!bossId) return null
+  const portraitPath = `../assets/enemies/${bossId}_portrait.png`
+  return enemyPortraits[portraitPath] || null
+}
 
 const emit = defineEmits(['navigate', 'startBattle', 'startGenusLociBattle'])
 
@@ -20,6 +27,12 @@ const explorationsStore = useExplorationsStore()
 const selectedNode = ref(null)
 const selectedRegion = ref(regions[0].id)
 const selectedSuperRegion = ref(null)
+
+// Combine regular unlocked nodes with unlocked exploration nodes
+const allUnlockedNodes = computed(() => {
+  const explorationNodeIds = explorationsStore.unlockedExplorations.map(node => node.id)
+  return [...questsStore.unlockedNodes, ...explorationNodeIds]
+})
 
 // Track if we should skip the region reset on super-region change
 let skipNextRegionReset = false
@@ -302,7 +315,7 @@ function goToExplorationDetail() {
           v-if="currentRegion"
           :region="currentRegion"
           :nodes="currentRegionNodes"
-          :unlocked-nodes="questsStore.unlockedNodes"
+          :unlocked-nodes="allUnlockedNodes"
           :completed-nodes="questsStore.completedNodes"
           :selected-node-id="selectedNode?.id"
           @select-node="selectNode"
@@ -326,7 +339,15 @@ function goToExplorationDetail() {
         <!-- Genus Loci Preview -->
         <div v-if="selectedNode.isGenusLoci" class="preview-body genus-loci-preview">
           <div class="boss-info-card">
-            <div class="boss-icon">👹</div>
+            <div class="boss-icon">
+              <img
+                v-if="getBossPortraitUrl(selectedNode.genusLociId)"
+                :src="getBossPortraitUrl(selectedNode.genusLociId)"
+                :alt="selectedNode.bossData?.name"
+                class="boss-portrait"
+              />
+              <span v-else>👹</span>
+            </div>
             <div class="boss-details">
               <span class="boss-name">{{ selectedNode.bossData?.name }}</span>
               <span class="boss-desc">{{ selectedNode.bossData?.description }}</span>
@@ -353,18 +374,25 @@ function goToExplorationDetail() {
               <span class="label-line"></span>
             </h4>
             <div class="rewards-grid">
-              <div class="reward-card">
+              <div v-if="selectedNode.bossData?.currencyRewards?.base?.gold" class="reward-card">
                 <span class="reward-icon">🪙</span>
                 <div class="reward-info">
                   <span class="reward-label">Gold</span>
-                  <span class="reward-value gold">{{ selectedNode.bossData?.currencyRewards?.base?.gold }}+</span>
+                  <span class="reward-value gold">{{ selectedNode.bossData.currencyRewards.base.gold }}+</span>
                 </div>
               </div>
-              <div v-if="!selectedNode.isUnlocked" class="reward-card">
+              <div v-if="selectedNode.bossData?.currencyRewards?.base?.gems" class="reward-card">
+                <span class="reward-icon">💎</span>
+                <div class="reward-info">
+                  <span class="reward-label">Gems</span>
+                  <span class="reward-value">{{ selectedNode.bossData.currencyRewards.base.gems }}+</span>
+                </div>
+              </div>
+              <div v-if="!selectedNode.isUnlocked && selectedNode.bossData?.firstClearBonus?.gems" class="reward-card">
                 <span class="reward-icon">💎</span>
                 <div class="reward-info">
                   <span class="reward-label">First Clear</span>
-                  <span class="reward-value">{{ selectedNode.bossData?.firstClearBonus?.gems }}</span>
+                  <span class="reward-value">+{{ selectedNode.bossData.firstClearBonus.gems }}</span>
                 </div>
               </div>
             </div>
@@ -375,7 +403,15 @@ function goToExplorationDetail() {
             :disabled="selectedNode.keyCount <= 0"
             @click="startGenusLociChallenge"
           >
-            <span class="btn-icon">👹</span>
+            <span class="btn-icon">
+              <img
+                v-if="getBossPortraitUrl(selectedNode.genusLociId)"
+                :src="getBossPortraitUrl(selectedNode.genusLociId)"
+                :alt="selectedNode.bossData?.name"
+                class="btn-portrait"
+              />
+              <span v-else>👹</span>
+            </span>
             <span v-if="selectedNode.keyCount <= 0">No Keys</span>
             <span v-else-if="selectedNode.isUnlocked">Select Level</span>
             <span v-else>Challenge (🔑 x1)</span>
@@ -1070,6 +1106,26 @@ function goToExplorationDetail() {
   background: rgba(147, 51, 234, 0.3);
   border-radius: 12px;
   flex-shrink: 0;
+  overflow: hidden;
+}
+
+.genus-loci-preview .boss-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-portrait {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .genus-loci-preview .boss-details {
