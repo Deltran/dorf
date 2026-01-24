@@ -411,16 +411,23 @@ function handleGenusLociVictory() {
   const { isFirstClear } = genusLociStore.recordVictory(meta.genusLociId, meta.powerLevel)
 
   // Calculate rewards
-  const goldReward = bossData.currencyRewards.base.gold +
-    bossData.currencyRewards.perLevel.gold * (meta.powerLevel - 1)
+  const baseRewards = bossData.currencyRewards?.base || {}
+  const perLevelRewards = bossData.currencyRewards?.perLevel || {}
 
-  let gemsReward = 0
+  const goldReward = (baseRewards.gold || 0) +
+    (perLevelRewards.gold || 0) * (meta.powerLevel - 1)
+
+  let gemsReward = (baseRewards.gems || 0) +
+    (perLevelRewards.gems || 0) * (meta.powerLevel - 1)
+
   if (isFirstClear && bossData.firstClearBonus) {
-    gemsReward = bossData.firstClearBonus.gems
+    gemsReward += bossData.firstClearBonus.gems || 0
   }
 
   // Award currency
-  gachaStore.addGold(goldReward)
+  if (goldReward > 0) {
+    gachaStore.addGold(goldReward)
+  }
   if (gemsReward > 0) {
     gachaStore.addGems(gemsReward)
   }
@@ -870,6 +877,9 @@ function getStatChange(hero, stat) {
           { 'has-image': getEnemyImageUrl(enemy) }
         ]"
       >
+        <!-- Enemy name tooltip on hover -->
+        <div class="enemy-name-tooltip">{{ enemy.template?.name || enemy.name }}</div>
+
         <!-- Enemy with image -->
         <div
           v-if="getEnemyImageUrl(enemy)"
@@ -1049,7 +1059,7 @@ function getStatChange(hero, stat) {
           <p class="power-level-badge">Power Level {{ genusLociRewards.powerLevel }}</p>
 
           <div class="rewards">
-            <div class="reward-item gold-reward">
+            <div v-if="genusLociRewards.gold > 0" class="reward-item gold-reward">
               <span>🪙 Gold</span>
               <span class="reward-value">+{{ displayedGold }}</span>
             </div>
@@ -1470,6 +1480,30 @@ function getStatChange(hero, stat) {
 .enemy-wrapper {
   position: relative;
   z-index: 1;
+}
+
+.enemy-name-tooltip {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  background: rgba(0, 0, 0, 0.85);
+  color: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 100;
+  border: 1px solid #4b5563;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.enemy-wrapper:hover .enemy-name-tooltip {
+  opacity: 1;
 }
 
 /* Enemy Image Display */
