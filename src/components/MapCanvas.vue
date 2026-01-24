@@ -53,7 +53,7 @@ const trails = computed(() => {
   for (const node of props.nodes) {
     const isNodeUnlocked = props.unlockedNodes.includes(node.id)
 
-    for (const connectedId of node.connections) {
+    for (const connectedId of node.connections || []) {
       const connectedNode = getQuestNode(connectedId)
       if (!connectedNode) continue
 

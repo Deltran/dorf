@@ -19,11 +19,11 @@ export const useExplorationsStore = defineStore('explorations', () => {
     return Object.values(questNodes).filter(node => node.type === 'exploration')
   })
 
-  // Get unlocked explorations (based on completed prerequisite nodes)
+  // Get unlocked explorations (based on unlocked prerequisite nodes)
   const unlockedExplorations = computed(() => {
     const questsStore = useQuestsStore()
     return allExplorationNodes.value.filter(node =>
-      questsStore.completedNodes.includes(node.unlockedBy)
+      questsStore.unlockedNodes.includes(node.unlockedBy)
     )
   })
 
