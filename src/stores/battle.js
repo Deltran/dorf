@@ -1656,20 +1656,41 @@ export const useBattleStore = defineStore('battle', () => {
 
           // Apply skill effects
           if (skill.effects) {
-            for (const effect of skill.effects) {
-              if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
-                // Handle effect chance (e.g., 50% chance to stun)
-                if (effect.chance !== undefined) {
-                  const roll = Math.random() * 100
-                  if (roll >= effect.chance) {
-                    // Effect didn't proc
-                    continue
+            // Check for stunIfDebuffed: if target has any debuff, apply stun instead of normal effects
+            if (skill.stunIfDebuffed) {
+              const targetDebuffs = (target.statusEffects || []).filter(e => !e.definition?.isBuff)
+              if (targetDebuffs.length > 0) {
+                // Target has debuffs - apply stun for 1 turn instead of normal effects
+                applyEffect(target, EffectType.STUN, { duration: 1, value: 0, sourceId: hero.instanceId })
+                addLog(`${target.template.name} is stunned by the piercing noise!`)
+                emitCombatEffect(target.id, 'enemy', 'debuff', 0)
+              } else {
+                // No debuffs - apply normal effects
+                for (const effect of skill.effects) {
+                  if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
+                    const effectDuration = resolveEffectDuration(effect, hero)
+                    const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
+                    applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
+                    emitCombatEffect(target.id, 'enemy', 'debuff', 0)
                   }
                 }
-                const effectDuration = resolveEffectDuration(effect, hero)
-                const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
-                applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
-                emitCombatEffect(target.id, 'enemy', 'debuff', 0)
+              }
+            } else {
+              for (const effect of skill.effects) {
+                if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
+                  // Handle effect chance (e.g., 50% chance to stun)
+                  if (effect.chance !== undefined) {
+                    const roll = Math.random() * 100
+                    if (roll >= effect.chance) {
+                      // Effect didn't proc
+                      continue
+                    }
+                  }
+                  const effectDuration = resolveEffectDuration(effect, hero)
+                  const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
+                  applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
+                  emitCombatEffect(target.id, 'enemy', 'debuff', 0)
+                }
               }
             }
           }
