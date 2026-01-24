@@ -1,5 +1,6 @@
 <script setup>
 import questBg from '../assets/backgrounds/quests_bg.png'
+import genusLociBg from '../assets/backgrounds/genus_loci.png'
 
 const emit = defineEmits(['navigate'])
 </script>
@@ -47,7 +48,11 @@ const emit = defineEmits(['navigate'])
         <div class="nav-arrow">›</div>
       </button>
 
-      <button class="nav-button" @click="emit('navigate', 'genus-loci-list')">
+      <button
+        class="nav-button genus-loci-button"
+        :style="{ backgroundImage: `url(${genusLociBg})` }"
+        @click="emit('navigate', 'genus-loci-list')"
+      >
         <div class="nav-icon-wrapper genus-loci">
           <span class="nav-icon">👹</span>
         </div>
@@ -291,5 +296,31 @@ const emit = defineEmits(['navigate'])
 .nav-button.quests-button:hover {
   border-color: #34d399;
   box-shadow: 0 4px 25px rgba(16, 185, 129, 0.4);
+}
+
+/* Genus Loci button with background image */
+.nav-button.genus-loci-button {
+  background-size: cover;
+  background-position: center;
+  border-color: #9333ea;
+}
+
+.nav-button.genus-loci-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(107, 33, 168, 0.75) 0%, rgba(147, 51, 234, 0.6) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.nav-button.genus-loci-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-button.genus-loci-button:hover {
+  border-color: #a855f7;
+  box-shadow: 0 4px 25px rgba(147, 51, 234, 0.4);
 }
 </style>
