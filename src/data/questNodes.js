@@ -4,6 +4,7 @@ import whisperLakeMap from '../assets/maps/whisper_lake.png'
 import stormwindPeaksMap from '../assets/maps/stormwind_peaks.png'
 import hibernationDenMap from '../assets/maps/hibernation_den.png'
 import summitMap from '../assets/maps/summit.png'
+import blisteringCliffsMap from '../assets/maps/blistering_cliffsides.png'
 
 export const questNodes = {
   // Whispering Woods (Tutorial / Early Game)
@@ -1775,8 +1776,9 @@ export const regions = [
     superRegion: 'western_veros',
     startNode: 'cliffs_01',
     width: 800,
-    height: 500,
-    backgroundColor: '#2f1a1a' // Dark volcanic red
+    height: 800,
+    backgroundColor: '#2f1a1a',
+    backgroundImage: blisteringCliffsMap
   },
   {
     id: 'janxier_floodplain',
