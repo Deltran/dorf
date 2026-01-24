@@ -1014,6 +1014,61 @@ export const heroTemplates = {
         ]
       }
     ]
+  },
+  street_busker: {
+    id: 'street_busker',
+    name: 'Penny Whistler',
+    rarity: 1,
+    classId: 'bard',
+    baseStats: { hp: 65, atk: 15, def: 18, spd: 14, mp: 55 },
+    skills: [
+      {
+        name: 'Jarring Whistle',
+        description: 'A piercing off-key note that makes enemies flinch',
+        mpCost: 8,
+        skillUnlockLevel: 1,
+        targetType: 'enemy',
+        noDamage: true,
+        effects: [
+          { type: EffectType.DEF_DOWN, target: 'enemy', duration: 2, value: 15 }
+        ]
+      },
+      {
+        name: 'Distracting Jingle',
+        description: 'An annoying tune that throws off enemy timing',
+        mpCost: 10,
+        skillUnlockLevel: 3,
+        targetType: 'enemy',
+        noDamage: true,
+        effects: [
+          { type: EffectType.SPD_DOWN, target: 'enemy', duration: 2, value: 15 }
+        ]
+      },
+      {
+        name: 'Street Racket',
+        description: 'A cacophony of noise that disrupts all foes',
+        mpCost: 18,
+        skillUnlockLevel: 6,
+        targetType: 'all_enemies',
+        noDamage: true,
+        effects: [
+          { type: EffectType.ATK_DOWN, target: 'all_enemies', duration: 2, value: 10 },
+          { type: EffectType.DEF_DOWN, target: 'all_enemies', duration: 2, value: 10 }
+        ]
+      },
+      {
+        name: 'Ear-Splitting Finale',
+        description: "A piercing note that's unbearable to those already off-balance",
+        mpCost: 20,
+        skillUnlockLevel: 12,
+        targetType: 'enemy',
+        noDamage: true,
+        stunIfDebuffed: true,
+        effects: [
+          { type: EffectType.SPD_DOWN, target: 'enemy', duration: 2, value: 20 }
+        ]
+      }
+    ]
   }
 }
 
