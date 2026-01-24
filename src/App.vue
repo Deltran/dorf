@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
 
@@ -21,6 +21,7 @@ import GenusLociListScreen from './screens/GenusLociListScreen.vue'
 import PartyScreen from './screens/PartyScreen.vue'
 import ExplorationDetailView from './components/ExplorationDetailView.vue'
 import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
+import TipPopup from './components/TipPopup.vue'
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
@@ -29,6 +30,7 @@ const inventoryStore = useInventoryStore()
 const shardsStore = useShardsStore()
 const genusLociStore = useGenusLociStore()
 const explorationsStore = useExplorationsStore()
+const tipsStore = useTipsStore()
 
 const currentScreen = ref('home')
 const isLoaded = ref(false)
@@ -43,6 +45,7 @@ const placingHeroId = ref(null)
 // Load game on mount
 onMounted(() => {
   const hasData = hasSaveData()
+  tipsStore.loadTips()
 
   if (hasData) {
     loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore })
@@ -316,6 +319,9 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
         :completion="currentCompletionPopup"
         @claim="claimCompletionPopup"
       />
+
+      <!-- Tip Popup (global) -->
+      <TipPopup />
     </template>
 
     <div v-else class="loading">
