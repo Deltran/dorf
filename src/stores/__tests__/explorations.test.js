@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useExplorationsStore } from '../explorations'
 import { useHeroesStore } from '../heroes'
+import { useGachaStore } from '../gacha'
+import { useInventoryStore } from '../inventory'
 
 describe('explorations store', () => {
   let store
@@ -332,6 +334,160 @@ describe('explorations store', () => {
 
       const count = store.pendingCompletions.filter(id => id === 'cave_exploration').length
       expect(count).toBe(1)
+    })
+  })
+
+  describe('claimCompletion', () => {
+    let gachaStore
+    let inventoryStore
+
+    beforeEach(() => {
+      gachaStore = useGachaStore()
+      inventoryStore = useInventoryStore()
+    })
+
+    it('adds gold and gems to gacha store', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+      for (let i = 0; i < 50; i++) store.incrementFightCount()
+      store.checkCompletions()
+
+      const initialGold = gachaStore.gold
+      const initialGems = gachaStore.gems
+
+      store.claimCompletion('cave_exploration')
+
+      // Base rewards: gold 500, gems 20
+      expect(gachaStore.gold).toBe(initialGold + 500)
+      expect(gachaStore.gems).toBe(initialGems + 20)
+    })
+
+    it('applies +10% bonus when partyRequestMet', () => {
+      // Create party that meets request (tank, dps, support)
+      // militia_soldier = knight = tank
+      // farm_hand = berserker = dps
+      // wandering_bard = bard = support
+      const tank = heroesStore.addHero('militia_soldier')
+      const dps = heroesStore.addHero('farm_hand')
+      const support = heroesStore.addHero('wandering_bard')
+      const filler1 = heroesStore.addHero('militia_soldier')
+      const filler2 = heroesStore.addHero('militia_soldier')
+
+      const heroIds = [tank, dps, support, filler1, filler2].map(h => h.instanceId)
+      store.startExploration('cave_exploration', heroIds)
+      for (let i = 0; i < 50; i++) store.incrementFightCount()
+      store.checkCompletions()
+
+      const initialGold = gachaStore.gold
+
+      store.claimCompletion('cave_exploration')
+
+      // 500 * 1.10 = 550
+      expect(gachaStore.gold).toBe(initialGold + 550)
+    })
+
+    it('distributes XP to heroes', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      const heroIds = heroes.map(h => h.instanceId)
+      store.startExploration('cave_exploration', heroIds)
+      for (let i = 0; i < 50; i++) store.incrementFightCount()
+      store.checkCompletions()
+
+      store.claimCompletion('cave_exploration')
+
+      // XP 300 / 5 heroes = 60 each
+      heroIds.forEach(id => {
+        const hero = heroesStore.collection.find(h => h.instanceId === id)
+        expect(hero.exp).toBeGreaterThan(0)
+      })
+    })
+
+    it('unlocks heroes', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      const heroIds = heroes.map(h => h.instanceId)
+      store.startExploration('cave_exploration', heroIds)
+      for (let i = 0; i < 50; i++) store.incrementFightCount()
+      store.checkCompletions()
+
+      store.claimCompletion('cave_exploration')
+
+      heroIds.forEach(id => {
+        expect(heroesStore.isHeroLocked(id)).toBe(false)
+      })
+    })
+
+    it('removes from pendingCompletions', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+      for (let i = 0; i < 50; i++) store.incrementFightCount()
+      store.checkCompletions()
+
+      store.claimCompletion('cave_exploration')
+
+      expect(store.pendingCompletions).not.toContain('cave_exploration')
+    })
+
+    it('removes from activeExplorations', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+      for (let i = 0; i < 50; i++) store.incrementFightCount()
+      store.checkCompletions()
+
+      store.claimCompletion('cave_exploration')
+
+      expect(store.activeExplorations['cave_exploration']).toBeUndefined()
+    })
+
+    it('adds to completedHistory', () => {
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      const heroIds = heroes.map(h => h.instanceId)
+      store.startExploration('cave_exploration', heroIds)
+      for (let i = 0; i < 50; i++) store.incrementFightCount()
+      store.checkCompletions()
+
+      store.claimCompletion('cave_exploration')
+
+      expect(store.completedHistory.length).toBe(1)
+      expect(store.completedHistory[0].nodeId).toBe('cave_exploration')
+      expect(store.completedHistory[0].heroes).toEqual(heroIds)
+    })
+
+    it('limits completedHistory to 10 entries', () => {
+      // Add 10 entries manually
+      for (let i = 0; i < 10; i++) {
+        store.completedHistory.push({ nodeId: `old_${i}`, heroes: [], completedAt: Date.now() })
+      }
+
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+      for (let i = 0; i < 50; i++) store.incrementFightCount()
+      store.checkCompletions()
+
+      store.claimCompletion('cave_exploration')
+
+      expect(store.completedHistory.length).toBe(10)
+      expect(store.completedHistory[9].nodeId).toBe('cave_exploration')
     })
   })
 })

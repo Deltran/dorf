@@ -3,6 +3,8 @@ import { ref, computed } from 'vue'
 import { questNodes } from '../data/questNodes.js'
 import { useQuestsStore } from './quests.js'
 import { useHeroesStore } from './heroes.js'
+import { useGachaStore } from './gacha.js'
+import { useInventoryStore } from './inventory.js'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 
@@ -164,6 +166,79 @@ export const useExplorationsStore = defineStore('explorations', () => {
     }
   }
 
+  // Claim a completed exploration and distribute rewards
+  function claimCompletion(nodeId) {
+    const heroesStore = useHeroesStore()
+    const gachaStore = useGachaStore()
+    const inventoryStore = useInventoryStore()
+
+    const exploration = activeExplorations.value[nodeId]
+    if (!exploration) return null
+
+    const node = getExplorationNode(nodeId)
+    if (!node) return null
+
+    const config = node.explorationConfig
+    const bonusMultiplier = exploration.partyRequestMet ? 1.10 : 1.0
+
+    // Calculate rewards
+    const goldReward = Math.floor(config.rewards.gold * bonusMultiplier)
+    const gemsReward = Math.floor(config.rewards.gems * bonusMultiplier)
+    const xpReward = Math.floor(config.rewards.xp * bonusMultiplier)
+    const xpPerHero = Math.floor(xpReward / 5)
+
+    // Apply currency rewards
+    gachaStore.addGold(goldReward)
+    gachaStore.addGems(gemsReward)
+
+    // Distribute XP to heroes
+    for (const instanceId of exploration.heroes) {
+      heroesStore.addExp(instanceId, xpPerHero)
+    }
+
+    // Roll item drops
+    const itemsDropped = []
+    for (const drop of config.itemDrops || []) {
+      if (Math.random() < drop.chance) {
+        inventoryStore.addItem(drop.itemId, 1)
+        itemsDropped.push(drop.itemId)
+      }
+    }
+
+    // Unlock heroes
+    for (const instanceId of exploration.heroes) {
+      heroesStore.unlockHeroFromExploration(instanceId)
+    }
+
+    // Add to history (limit to 10)
+    completedHistory.value.push({
+      nodeId,
+      heroes: [...exploration.heroes],
+      completedAt: Date.now(),
+      rewards: { gold: goldReward, gems: gemsReward, xp: xpReward },
+      itemsDropped
+    })
+    if (completedHistory.value.length > 10) {
+      completedHistory.value.shift()
+    }
+
+    // Remove from active and pending
+    delete activeExplorations.value[nodeId]
+    const pendingIndex = pendingCompletions.value.indexOf(nodeId)
+    if (pendingIndex !== -1) {
+      pendingCompletions.value.splice(pendingIndex, 1)
+    }
+
+    return {
+      gold: goldReward,
+      gems: gemsReward,
+      xp: xpReward,
+      xpPerHero,
+      itemsDropped,
+      partyRequestMet: exploration.partyRequestMet
+    }
+  }
+
   return {
     // State
     activeExplorations,
@@ -179,6 +254,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     startExploration,
     cancelExploration,
     incrementFightCount,
-    checkCompletions
+    checkCompletions,
+    claimCompletion
   }
 })
