@@ -136,6 +136,13 @@ export const useExplorationsStore = defineStore('explorations', () => {
     return true
   }
 
+  // Increment fight count for all active explorations
+  function incrementFightCount() {
+    for (const nodeId of Object.keys(activeExplorations.value)) {
+      activeExplorations.value[nodeId].fightCount++
+    }
+  }
+
   return {
     // State
     activeExplorations,
@@ -149,6 +156,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     getExplorationNode,
     checkPartyRequest,
     startExploration,
-    cancelExploration
+    cancelExploration,
+    incrementFightCount
   }
 })

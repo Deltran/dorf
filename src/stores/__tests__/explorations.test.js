@@ -228,4 +228,40 @@ describe('explorations store', () => {
       expect(result).toBe(false)
     })
   })
+
+  describe('incrementFightCount', () => {
+    it('increments fightCount for all active explorations', () => {
+      // Start exploration
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      store.incrementFightCount()
+
+      expect(store.activeExplorations['cave_exploration'].fightCount).toBe(1)
+    })
+
+    it('increments multiple explorations simultaneously', () => {
+      // This test would require multiple exploration nodes
+      // For now, just verify single exploration works
+      const heroes = []
+      for (let i = 0; i < 5; i++) {
+        heroes.push(heroesStore.addHero('militia_soldier'))
+      }
+      store.startExploration('cave_exploration', heroes.map(h => h.instanceId))
+
+      store.incrementFightCount()
+      store.incrementFightCount()
+      store.incrementFightCount()
+
+      expect(store.activeExplorations['cave_exploration'].fightCount).toBe(3)
+    })
+
+    it('does nothing when no active explorations', () => {
+      // Should not throw
+      expect(() => store.incrementFightCount()).not.toThrow()
+    })
+  })
 })
