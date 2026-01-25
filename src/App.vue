@@ -19,6 +19,8 @@ import FellowshipHallScreen from './screens/FellowshipHallScreen.vue'
 import MapRoomScreen from './screens/MapRoomScreen.vue'
 import GenusLociListScreen from './screens/GenusLociListScreen.vue'
 import PartyScreen from './screens/PartyScreen.vue'
+import GoodsAndMarketsScreen from './screens/GoodsAndMarketsScreen.vue'
+import ShopsScreen from './screens/ShopsScreen.vue'
 import ExplorationDetailView from './components/ExplorationDetailView.vue'
 import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
 import TipPopup from './components/TipPopup.vue'
@@ -313,6 +315,14 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
         @close="handleExplorationDetailClose"
         @started="handleExplorationStarted"
         @cancelled="handleExplorationCancelled"
+      />
+      <GoodsAndMarketsScreen
+        v-else-if="currentScreen === 'goodsAndMarkets'"
+        @navigate="navigate"
+      />
+      <ShopsScreen
+        v-else-if="currentScreen === 'shops'"
+        @navigate="navigate"
       />
 
       <!-- Exploration Completion Popup -->

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useShopsStore, useGachaStore, useInventoryStore } from '../stores'
+import { useShopsStore, useGachaStore } from '../stores'
 import { getAllShops, getShop } from '../data/shops.js'
 import { getItem } from '../data/items.js'
 import StarRating from '../components/StarRating.vue'
@@ -9,7 +9,6 @@ const emit = defineEmits(['navigate'])
 
 const shopsStore = useShopsStore()
 const gachaStore = useGachaStore()
-const inventoryStore = useInventoryStore()
 
 const shops = getAllShops()
 const activeShopId = ref(shops[0]?.id || null)
