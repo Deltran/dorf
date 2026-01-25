@@ -138,7 +138,8 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.35 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_whisper_lake', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cave_02: {
@@ -161,7 +162,8 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.4 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.15 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_whisper_lake', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cave_03: {
@@ -184,7 +186,8 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.4 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.15 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_whisper_lake', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cave_04: {
@@ -207,7 +210,8 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.5 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.1 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_whisper_lake', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cave_05: {
@@ -230,7 +234,8 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.4 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.15 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_whisper_lake', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cave_06: {
@@ -253,7 +258,8 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.45 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.1 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_whisper_lake', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cave_07: {
@@ -276,7 +282,8 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.45 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.1 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_whisper_lake', min: 1, max: 1, chance: 0.1 }
     ]
   },
 
@@ -332,7 +339,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 1, chance: 0.3 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.5 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_echoing_caverns', min: 1, max: 1, chance: 0.1 }
     ]
   },
   mountain_02: {
@@ -354,7 +362,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 1, chance: 0.4 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_echoing_caverns', min: 1, max: 1, chance: 0.1 }
     ]
   },
   mountain_03: {
@@ -376,7 +385,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 1, chance: 0.4 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_echoing_caverns', min: 1, max: 1, chance: 0.1 }
     ]
   },
   mountain_04: {
@@ -399,7 +409,8 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.7 },
       { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'den_key', min: 1, max: 1, chance: 0.25 }
+      { itemId: 'den_key', min: 1, max: 1, chance: 0.25 },
+      { itemId: 'token_echoing_caverns', min: 1, max: 1, chance: 0.1 }
     ]
   },
   mountain_05: {
@@ -421,7 +432,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 1, chance: 0.35 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.55 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_echoing_caverns', min: 1, max: 1, chance: 0.1 }
     ]
   },
   mountain_06: {
@@ -443,7 +455,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 1, chance: 0.45 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_echoing_caverns', min: 1, max: 1, chance: 0.1 }
     ]
   },
   mountain_07: {
@@ -465,7 +478,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 1, chance: 0.45 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.6 },
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.15 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_echoing_caverns', min: 1, max: 1, chance: 0.1 }
     ]
   },
 
@@ -547,7 +561,8 @@ export const questNodes = {
       { itemId: 'tome_medium', min: 1, max: 1, chance: 0.35 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.3 },
       { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.2 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_whispering_woods', min: 1, max: 1, chance: 0.1 }
     ]
   },
   lake_02: {
@@ -571,7 +586,8 @@ export const questNodes = {
       { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.35 },
       { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 },
       { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
-      { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.25 }
+      { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.25 },
+      { itemId: 'token_whispering_woods', min: 1, max: 1, chance: 0.1 }
     ]
   },
   lake_genus_loci: {
@@ -789,7 +805,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.7 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_stormwind_peaks', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cliffs_02: {
@@ -811,7 +828,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.75 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_stormwind_peaks', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cliffs_03: {
@@ -833,7 +851,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.75 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_stormwind_peaks', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cliffs_04: {
@@ -855,7 +874,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.75 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_stormwind_peaks', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cliffs_05: {
@@ -878,7 +898,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.8 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_stormwind_peaks', min: 1, max: 1, chance: 0.1 }
     ]
   },
   cliffs_06: {
@@ -901,7 +922,8 @@ export const questNodes = {
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
       { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.85 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_stormwind_peaks', min: 1, max: 1, chance: 0.1 }
     ]
   },
 
