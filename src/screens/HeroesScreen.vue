@@ -977,6 +977,16 @@ function getEffectTypeName(type) {
         <!-- Next Star Requirements -->
         <div v-if="canShowMergeButton && mergeInfo" class="next-star-requirements">
           <div class="nsr-header">Next ★ Requirements</div>
+          <!-- Build Copies Button -->
+          <button
+            v-if="canShowBuildCopies"
+            class="build-copies-btn-inline"
+            :disabled="!!selectedHeroExplorationInfo"
+            @click="openBuildCopies"
+          >
+            <span class="btn-icon">🔨</span>
+            <span>Build Copies</span>
+          </button>
           <div class="nsr-row">
             <span class="nsr-label">{{ mergeInfo.copiesNeeded }}× {{ '★'.repeat(mergeInfo.requiredStarLevel) }} copies</span>
             <span class="nsr-value" :class="mergeInfo.copiesHave >= mergeInfo.copiesNeeded ? 'met' : 'unmet'">
@@ -1006,18 +1016,6 @@ function getEffectTypeName(type) {
           >
             <span class="merge-icon">{{ mergeButtonState.icon }}</span>
             <span>{{ mergeButtonState.text }}</span>
-          </button>
-        </div>
-
-        <!-- Build Copies Button -->
-        <div v-if="canShowBuildCopies" class="build-copies-section">
-          <button
-            class="build-copies-btn"
-            :disabled="!!selectedHeroExplorationInfo"
-            @click="openBuildCopies"
-          >
-            <span class="btn-icon">🔨</span>
-            <span>Build Copies</span>
           </button>
         </div>
 
@@ -2632,41 +2630,37 @@ function getEffectTypeName(type) {
 }
 
 /* ===== Build Copies Section ===== */
-.build-copies-section {
-  margin-top: 12px;
-}
-
-.build-copies-btn {
+.build-copies-btn-inline {
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border: none;
-  border-radius: 10px;
-  color: white;
-  font-size: 0.95rem;
-  font-weight: 600;
+  gap: 6px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  border-radius: 6px;
+  color: #60a5fa;
+  font-size: 0.85rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
 }
 
-.build-copies-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+.build-copies-btn-inline:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: #3b82f6;
 }
 
-.build-copies-btn:disabled {
-  background: #4b5563;
+.build-copies-btn-inline:disabled {
+  background: rgba(75, 85, 99, 0.2);
+  border-color: rgba(75, 85, 99, 0.3);
+  color: #6b7280;
   cursor: not-allowed;
-  opacity: 0.7;
-  box-shadow: none;
 }
 
-.build-copies-btn .btn-icon {
-  font-size: 1.1rem;
+.build-copies-btn-inline .btn-icon {
+  font-size: 0.9rem;
 }
 </style>
