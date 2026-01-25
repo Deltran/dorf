@@ -4,6 +4,7 @@ import { getQuestNode, getAllQuestNodes, regions, superRegions, getRegionsBySupe
 import { useInventoryStore } from './inventory.js'
 import { useShardsStore } from './shards.js'
 import { useTipsStore } from './tips.js'
+import { getTokenForRegion } from '../data/items.js'
 
 export const useQuestsStore = defineStore('quests', () => {
   // State
@@ -255,6 +256,69 @@ export const useQuestsStore = defineStore('quests', () => {
     return rewards
   }
 
+  function collectWithToken(nodeId) {
+    const node = getQuestNode(nodeId)
+    if (!node) {
+      return { success: false, error: 'Quest not found' }
+    }
+
+    // Must be completed
+    if (!completedNodes.value.includes(nodeId)) {
+      return { success: false, error: 'Quest not yet completed' }
+    }
+
+    // Cannot use on Genus Loci or Exploration
+    if (node.type === 'genusLoci' || node.type === 'exploration') {
+      return { success: false, error: 'Cannot use token on this quest type' }
+    }
+
+    // Find matching token for this region
+    const token = getTokenForRegion(node.region)
+    if (!token) {
+      return { success: false, error: 'No token exists for this region' }
+    }
+
+    // Check if player has the token
+    const inventoryStore = useInventoryStore()
+    if (inventoryStore.getItemCount(token.id) <= 0) {
+      return { success: false, error: 'No token available' }
+    }
+
+    // Consume token
+    inventoryStore.removeItem(token.id, 1)
+
+    // Roll item drops (reuse existing function)
+    const itemDrops = rollItemDrops(node)
+
+    // Grant items
+    for (const drop of itemDrops) {
+      inventoryStore.addItem(drop.itemId, drop.count)
+    }
+
+    // Roll shard drops
+    const shardsStore = useShardsStore()
+    let shardDrop = null
+    if (node.shardDropChance && Math.random() < node.shardDropChance) {
+      shardDrop = shardsStore.rollShardDrop()
+      if (shardDrop) {
+        shardsStore.addShards(shardDrop.templateId, shardDrop.count)
+      }
+    }
+
+    // Calculate rewards (no first clear bonus)
+    const baseGold = node.rewards.gold || Math.floor(node.rewards.exp * 2)
+    const rewards = {
+      gems: node.rewards.gems,
+      exp: node.rewards.exp,
+      gold: baseGold,
+      items: itemDrops,
+      shardDrop,
+      usedToken: token.name
+    }
+
+    return { success: true, rewards }
+  }
+
   function abandonRun() {
     currentRun.value = null
   }
@@ -309,6 +373,7 @@ export const useQuestsStore = defineStore('quests', () => {
     updatePartyState,
     applyBetweenBattleRecovery,
     completeRun,
+    collectWithToken,
     abandonRun,
     failRun,
     // Persistence
