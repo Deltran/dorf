@@ -280,6 +280,14 @@ export default function adminPlugin() {
 
           try {
             const { assetPath, dataUrl } = JSON.parse(body)
+
+            if (!assetPath || typeof assetPath !== 'string' || !dataUrl || typeof dataUrl !== 'string') {
+              res.statusCode = 400
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'assetPath and dataUrl are required strings' }))
+              return
+            }
+
             const assetsDir = path.resolve(process.cwd(), 'src/assets')
             const fullPath = path.resolve(assetsDir, assetPath)
 
@@ -302,7 +310,7 @@ export default function adminPlugin() {
             fs.writeFileSync(fullPath, buffer)
 
             res.setHeader('Content-Type', 'application/json')
-            res.end(JSON.stringify({ success: true, path: fullPath }))
+            res.end(JSON.stringify({ success: true }))
           } catch (e) {
             res.statusCode = 500
             res.setHeader('Content-Type', 'application/json')
