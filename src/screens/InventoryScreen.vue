@@ -84,7 +84,7 @@ const sellValue = computed(() => {
     <div class="bg-vignette"></div>
 
     <header class="inventory-header">
-      <button class="back-button" @click="emit('navigate', 'home')">
+      <button class="back-button" @click="emit('navigate', 'goodsAndMarkets')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>
