@@ -9,8 +9,13 @@ import HeroAssetModal from '../../components/admin/HeroAssetModal.vue'
 const heroImages = import.meta.glob('../../assets/heroes/*.png', { eager: true, import: 'default' })
 const heroGifs = import.meta.glob('../../assets/heroes/*.gif', { eager: true, import: 'default' })
 
-// --- Asset lookup helpers ---
+// --- Override map for newly saved assets (avoids page reload) ---
+const imageOverrides = ref({})
+const portraitOverrides = ref({})
+
+// --- Asset lookup helpers (overrides take priority) ---
 function getImageUrl(heroId) {
+  if (imageOverrides.value[heroId]) return imageOverrides.value[heroId]
   const path = `../../assets/heroes/${heroId}.png`
   return heroImages[path] || null
 }
@@ -21,6 +26,7 @@ function getGifUrl(heroId) {
 }
 
 function getPortraitUrl(heroId) {
+  if (portraitOverrides.value[heroId]) return portraitOverrides.value[heroId]
   const path = `../../assets/heroes/${heroId}_portrait.png`
   return heroImages[path] || null
 }
@@ -63,7 +69,7 @@ async function saveImage({ heroId, dataUrl, prompt }) {
       body: JSON.stringify(assetPrompts.value)
     })
 
-    window.location.reload()
+    imageOverrides.value[heroId] = dataUrl
   } catch (err) {
     alert('Failed to save image: ' + (err.message || err))
   }
@@ -77,7 +83,7 @@ async function savePortrait({ heroId, dataUrl }) {
       body: JSON.stringify({ assetPath: `heroes/${heroId}_portrait.png`, dataUrl })
     })
 
-    window.location.reload()
+    portraitOverrides.value[heroId] = dataUrl
   } catch (err) {
     alert('Failed to save portrait: ' + (err.message || err))
   }
