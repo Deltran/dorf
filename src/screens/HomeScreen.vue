@@ -152,13 +152,13 @@ const hasParty = computed(() => {
         <button
           class="room-button store-room-button"
           :style="{ backgroundImage: `url(${storeRoomBg})` }"
-          @click="emit('navigate', 'inventory')"
+          @click="emit('navigate', 'goodsAndMarkets')"
         >
           <div class="room-icon-wrapper store">
             <span class="room-icon">📦</span>
           </div>
-          <span class="room-label">Store Room</span>
-          <span class="room-hint">Items</span>
+          <span class="room-label">Goods & Markets</span>
+          <span class="room-hint">Buy and sell</span>
         </button>
       </div>
     </nav>
