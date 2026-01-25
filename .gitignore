@@ -25,4 +25,11 @@ dist-ssr
 
 # Git worktrees
 .worktrees/
-.worktrees/
+
+# Android build artifacts
+android/app/build/
+android/.gradle/
+android/build/
+android/local.properties
+*.apk
+*.aab
