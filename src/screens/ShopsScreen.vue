@@ -1,6 +1,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useShopsStore, useGachaStore } from '../stores'
+import { useShopsStore, useGachaStore, useInventoryStore } from '../stores'
+import { useQuestsStore } from '../stores/quests'
+import { useShardsStore } from '../stores/shards'
 import { getAllShops, getShop } from '../data/shops.js'
 import { getItem } from '../data/items.js'
 import StarRating from '../components/StarRating.vue'
@@ -9,6 +11,9 @@ const emit = defineEmits(['navigate'])
 
 const shopsStore = useShopsStore()
 const gachaStore = useGachaStore()
+const inventoryStore = useInventoryStore()
+const questsStore = useQuestsStore()
+const shardsStore = useShardsStore()
 
 const shops = getAllShops()
 const activeShopId = ref(shops[0]?.id || null)
@@ -17,8 +22,31 @@ const confirmingItem = ref(null)
 
 const activeShop = computed(() => getShop(activeShopId.value))
 
+// Crest shop section filtering
+const unlockedSections = computed(() => {
+  if (!activeShop.value?.sections) return []
+  return activeShop.value.sections.filter(section =>
+    questsStore.completedNodes.includes(section.unlockCondition?.completedNode)
+  )
+})
+
+const isSectionUnlocked = computed(() => {
+  return (sectionId) => unlockedSections.value.some(s => s.id === sectionId)
+})
+
 const shopInventory = computed(() => {
   if (!activeShop.value) return []
+
+  // For crest shop, filter by unlocked sections
+  if (activeShop.value.currency === 'crest') {
+    return activeShop.value.inventory.filter(item => {
+      if (!isSectionUnlocked.value(item.sectionId)) return false
+      if (item.requiresShardsUnlocked && !shardsStore.isUnlocked) return false
+      return true
+    })
+  }
+
+  // For gold/gems shops, map with stock info
   return activeShop.value.inventory.map(shopItem => {
     const item = getItem(shopItem.itemId)
     const remaining = shopsStore.getRemainingStock(
@@ -34,6 +62,12 @@ const shopInventory = computed(() => {
     }
   })
 })
+
+const getCrestCount = (sectionId) => {
+  const section = activeShop.value?.sections?.find(s => s.id === sectionId)
+  if (!section) return 0
+  return inventoryStore.getItemCount(section.crestId)
+}
 
 const currentCurrency = computed(() => {
   if (!activeShop.value) return 0
@@ -68,13 +102,51 @@ onUnmounted(() => {
 })
 
 function handleItemClick(shopItem) {
-  if (shopItem.soldOut) return
+  // Check stock for crest shop items
+  if (activeShop.value?.currency === 'crest') {
+    if (getItemStock(shopItem) === 0) return
+    if (getCrestCount(shopItem.sectionId) < shopItem.price) return
+  } else {
+    if (shopItem.soldOut) return
+  }
 
   if (shopItem.price >= activeShop.value.confirmThreshold) {
     confirmingItem.value = shopItem
   } else {
     executePurchase(shopItem)
   }
+}
+
+// Crest shop helper methods
+function getItemsForSection(sectionId) {
+  return shopInventory.value.filter(item => item.sectionId === sectionId)
+}
+
+function getItemStock(item) {
+  if (item.stockType === 'weekly') {
+    return shopsStore.getRemainingWeeklyStock(activeShop.value.id, item.itemId, item.maxStock)
+  }
+  if (item.maxStock) {
+    return shopsStore.getRemainingStock(activeShop.value.id, item.itemId, item.maxStock)
+  }
+  return Infinity
+}
+
+function getWeeklyStockRemaining(item) {
+  return shopsStore.getRemainingWeeklyStock(activeShop.value.id, item.itemId, item.maxStock)
+}
+
+function getItemIcon(item) {
+  if (item.heroId) return '✨'
+  const itemData = getItem(item.itemId)
+  if (!itemData) return '📦'
+  const icons = { xp: '📖', junk: '🪨', token: '🎟️', key: '🗝️', merge: '💎', genusLoci: '🏅' }
+  return icons[itemData.type] || '📦'
+}
+
+function getItemName(itemId) {
+  const itemData = getItem(itemId)
+  return itemData?.name || itemId
 }
 
 function executePurchase(shopItem) {
@@ -150,8 +222,51 @@ function typeIcon(type) {
       </div>
     </div>
 
-    <!-- Item Grid -->
-    <div class="item-grid">
+    <!-- Crest Shop Sectioned Layout -->
+    <template v-if="activeShop?.currency === 'crest'">
+      <div v-if="unlockedSections.length === 0" class="no-sections">
+        <p>Defeat a Genus Loci to unlock their offerings.</p>
+      </div>
+
+      <div v-for="section in unlockedSections" :key="section.id" class="shop-section">
+        <div class="section-header">
+          <span class="section-name">{{ section.name }}</span>
+          <span class="section-currency">🏅 {{ getCrestCount(section.id) }}</span>
+        </div>
+
+        <div class="item-grid">
+          <div
+            v-for="item in getItemsForSection(section.id)"
+            :key="`${section.id}-${item.itemId}`"
+            class="shop-item"
+            :class="{
+              'sold-out': getItemStock(item) === 0,
+              'cannot-afford': getCrestCount(section.id) < item.price
+            }"
+            @click="handleItemClick(item)"
+          >
+            <div class="item-header">
+              <span class="item-type-icon">{{ getItemIcon(item) }}</span>
+            </div>
+            <div class="item-body">
+              <div class="item-name">{{ item.name || getItemName(item.itemId) }}</div>
+            </div>
+            <div class="item-footer">
+              <div class="item-price">
+                <span class="price-icon">🏅</span>
+                <span class="price-value">{{ item.price }}</span>
+              </div>
+              <div v-if="item.stockType === 'weekly'" class="item-stock">
+                {{ getWeeklyStockRemaining(item) }}/{{ item.maxStock }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Gold/Gems Item Grid -->
+    <div v-else class="item-grid">
       <div
         v-for="shopItem in shopInventory"
         :key="shopItem.itemId"
@@ -186,7 +301,17 @@ function typeIcon(type) {
     <div v-if="confirmingItem" class="confirm-backdrop" @click="cancelConfirm">
       <div class="confirm-modal" @click.stop>
         <h3>Confirm Purchase</h3>
-        <p>Buy <strong>{{ confirmingItem.item?.name }}</strong> for <strong>{{ confirmingItem.price }} {{ currencyIcon }}</strong>?</p>
+        <p>
+          Buy <strong>{{ confirmingItem.name || confirmingItem.item?.name }}</strong> for
+          <strong>
+            <template v-if="activeShop?.currency === 'crest'">
+              🏅 {{ confirmingItem.price }}
+            </template>
+            <template v-else>
+              {{ confirmingItem.price }} {{ currencyIcon }}
+            </template>
+          </strong>?
+        </p>
         <div class="confirm-actions">
           <button class="cancel-btn" @click="cancelConfirm">Cancel</button>
           <button class="confirm-btn" @click="executePurchase(confirmingItem)">Buy</button>
@@ -568,5 +693,51 @@ function typeIcon(type) {
 
 .confirm-btn:hover {
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+/* Crest Shop Sections */
+.shop-section {
+  margin-bottom: 24px;
+  position: relative;
+  z-index: 1;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.section-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.section-currency {
+  font-size: 1rem;
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.no-sections {
+  text-align: center;
+  padding: 48px 24px;
+  color: #9ca3af;
+  position: relative;
+  z-index: 1;
+}
+
+.shop-item.cannot-afford {
+  opacity: 0.6;
+}
+
+.shop-item.sold-out {
+  opacity: 0.4;
+  pointer-events: none;
 }
 </style>

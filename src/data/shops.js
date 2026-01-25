@@ -54,6 +54,45 @@ export const shops = {
         maxStock: 2
       }
     ]
+  },
+
+  crest_shop: {
+    id: 'crest_shop',
+    name: 'Crest Shop',
+    description: 'Trade trophies from fallen giants',
+    currency: 'crest',
+    confirmThreshold: 10,
+    sections: [
+      {
+        id: 'valinar',
+        name: "Valinar's Offerings",
+        crestId: 'valinar_crest',
+        unlockCondition: { completedNode: 'lake_genus_loci' }
+      },
+      {
+        id: 'great_troll',
+        name: "Great Troll's Hoard",
+        crestId: 'great_troll_crest',
+        unlockCondition: { completedNode: 'hibernation_den' }
+      }
+    ],
+    inventory: [
+      // Valinar's Offerings
+      { itemId: 'tome_large', name: "Guardian's Tome", price: 2, sectionId: 'valinar' },
+      { itemId: 'token_whisper_lake', name: 'Whisper Lake Token', price: 3, sectionId: 'valinar' },
+      { itemId: 'shard_dragon_heart', name: 'Shard of Dragon Heart', price: 5, sectionId: 'valinar' },
+      { itemId: 'dragon_heart', name: 'Dragon Heart', price: 20, sectionId: 'valinar' },
+      { itemId: 'shards_sir_gallan', heroId: 'sir_gallan', shardCount: 10, price: 8, maxStock: 1, stockType: 'weekly', sectionId: 'valinar', requiresShardsUnlocked: true },
+      { itemId: 'shards_kensin_squire', heroId: 'kensin_squire', shardCount: 10, price: 5, maxStock: 1, stockType: 'weekly', sectionId: 'valinar', requiresShardsUnlocked: true },
+
+      // Great Troll's Hoard
+      { itemId: 'tome_large', name: 'Primal Tome', price: 2, sectionId: 'great_troll' },
+      { itemId: 'token_echoing_caverns', name: 'Echoing Caverns Token', price: 3, sectionId: 'great_troll' },
+      { itemId: 'shard_dragon_heart', name: 'Shard of Dragon Heart', price: 5, sectionId: 'great_troll' },
+      { itemId: 'dragon_heart', name: 'Dragon Heart', price: 20, sectionId: 'great_troll' },
+      { itemId: 'shards_darl', heroId: 'darl', shardCount: 10, price: 5, maxStock: 1, stockType: 'weekly', sectionId: 'great_troll', requiresShardsUnlocked: true },
+      { itemId: 'shards_shadow_king', heroId: 'shadow_king', shardCount: 10, price: 12, maxStock: 1, stockType: 'weekly', sectionId: 'great_troll', requiresShardsUnlocked: true }
+    ]
   }
 }
 
