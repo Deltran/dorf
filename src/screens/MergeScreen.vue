@@ -122,14 +122,6 @@ function selectGroup(group) {
         :class="[`rarity-${group.highestStar}`, { 'can-merge': group.canMerge }]"
         @click="selectGroup(group)"
       >
-        <button
-          v-if="canBuildCopies(group)"
-          class="build-copies-btn-small"
-          @click="openBuildCopies(group, $event)"
-          title="Build lower-star copies"
-        >
-          🔨
-        </button>
         <div class="group-image">
           <img
             v-if="getHeroImageUrl(group.templateId)"
@@ -151,6 +143,12 @@ function selectGroup(group) {
             <span class="copy-count">{{ group.copies.length }} copies</span>
             <span v-if="group.canMerge" class="merge-ready">Ready to merge!</span>
             <span v-else class="merge-progress">
+              <button
+                v-if="canBuildCopies(group)"
+                class="build-copies-btn-inline"
+                @click="openBuildCopies(group, $event)"
+                title="Build lower-star copies"
+              >🔨</button>
               {{ group.copiesHave }}/{{ group.copiesNeeded }} for next ★
             </span>
           </div>
@@ -247,7 +245,6 @@ function selectGroup(group) {
 }
 
 .hero-group {
-  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -388,26 +385,24 @@ function selectGroup(group) {
   color: #4b5563;
 }
 
-.build-copies-btn-small {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid #374151;
-  background: rgba(59, 130, 246, 0.2);
-  font-size: 0.9rem;
-  cursor: pointer;
-  display: flex;
+.build-copies-btn-inline {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.15);
+  font-size: 0.75rem;
+  cursor: pointer;
   transition: all 0.2s ease;
-  z-index: 1;
+  vertical-align: middle;
 }
 
-.build-copies-btn-small:hover {
-  background: rgba(59, 130, 246, 0.4);
+.build-copies-btn-inline:hover {
+  background: rgba(59, 130, 246, 0.3);
   border-color: #3b82f6;
   transform: scale(1.1);
 }
