@@ -1,5 +1,5 @@
-// Pixellab API client
-const API_BASE = 'https://api.pixellab.ai'
+// Pixellab API client - uses v2 REST API
+const API_BASE = 'https://api.pixellab.ai/v2'
 
 function getToken() {
   const token = process.env.PIXELLAB_TOKEN
@@ -12,53 +12,74 @@ function getToken() {
 export async function createMapObject({ prompt, width, height }) {
   const token = getToken()
 
-  const response = await fetch(`${API_BASE}/mcp`, {
+  const response = await fetch(`${API_BASE}/map-objects`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      tool: 'create_map_object',
-      params: {
-        description: prompt,
+      description: prompt,
+      image_size: {
         width,
         height
       }
     })
   })
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Pixellab API error: ${response.status} - ${error}`)
+  const responseText = await response.text()
+
+  // Debug: log raw response
+  if (process.env.DEBUG_PIXELLAB) {
+    console.log('Pixellab raw response:', responseText)
   }
 
-  return response.json()
+  if (!response.ok) {
+    throw new Error(`Pixellab API error: ${response.status} - ${responseText}`)
+  }
+
+  const jsonResponse = JSON.parse(responseText)
+
+  if (jsonResponse.success === false) {
+    throw new Error(`Pixellab API error: ${jsonResponse.error || JSON.stringify(jsonResponse)}`)
+  }
+
+  return jsonResponse.data || jsonResponse
 }
 
-export async function getMapObject(objectId) {
+export async function getBackgroundJob(jobId) {
   const token = getToken()
 
-  const response = await fetch(`${API_BASE}/mcp`, {
-    method: 'POST',
+  const response = await fetch(`${API_BASE}/background-jobs/${jobId}`, {
+    method: 'GET',
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      tool: 'get_map_object',
-      params: {
-        object_id: objectId
-      }
-    })
+      'Authorization': `Bearer ${token}`
+    }
   })
 
-  if (!response.ok) {
-    const error = await response.text()
-    throw new Error(`Pixellab API error: ${response.status} - ${error}`)
+  const responseText = await response.text()
+
+  // Debug: log raw response
+  if (process.env.DEBUG_PIXELLAB) {
+    console.log('Background job response:', responseText.substring(0, 1000))
   }
 
-  return response.json()
+  if (!response.ok) {
+    throw new Error(`Pixellab API error: ${response.status} - ${responseText}`)
+  }
+
+  const jsonResponse = JSON.parse(responseText)
+
+  if (jsonResponse.success === false) {
+    throw new Error(`Pixellab API error: ${jsonResponse.error || JSON.stringify(jsonResponse)}`)
+  }
+
+  return jsonResponse.data || jsonResponse
+}
+
+// Keep for backwards compat with tests
+export async function getMapObject(objectId) {
+  return getBackgroundJob(objectId)
 }
 
 export async function downloadAsset(downloadUrl) {
@@ -96,17 +117,62 @@ export async function waitForCompletion(objectId, options = {}) {
 }
 
 export async function generateAndDownload({ prompt, width, height }) {
-  // Start generation
-  const { object_id } = await createMapObject({ prompt, width, height })
+  // Start generation - returns background_job_id, object_id, and status: "queued"
+  const result = await createMapObject({ prompt, width, height })
 
-  // Wait for completion
-  const result = await waitForCompletion(object_id)
-
-  // Download the image
-  const imageData = await downloadAsset(result.download_url)
-
-  return {
-    objectId: object_id,
-    imageData: Buffer.from(imageData)
+  // Debug log
+  if (process.env.DEBUG_PIXELLAB) {
+    console.log('Create result:', JSON.stringify(result, null, 2))
   }
+
+  // Check if we got image data directly (base64)
+  if (result.image) {
+    const imageData = Buffer.from(result.image, 'base64')
+    return { objectId: result.object_id || 'direct', imageData }
+  }
+
+  // v2 API returns background_job_id for polling
+  const jobId = result.background_job_id
+  const objectId = result.object_id
+
+  if (jobId) {
+    // Poll for completion using background job ID
+    const completed = await waitForCompletion(jobId)
+
+    if (process.env.DEBUG_PIXELLAB) {
+      console.log('Completed result:', JSON.stringify(completed, null, 2))
+    }
+
+    // Check various ways the image might be returned
+    // v2 API returns image in last_response.image.base64
+    if (completed.last_response?.image?.base64) {
+      const imageData = Buffer.from(completed.last_response.image.base64, 'base64')
+      return { objectId, imageData }
+    }
+
+    if (completed.image?.base64) {
+      const imageData = Buffer.from(completed.image.base64, 'base64')
+      return { objectId, imageData }
+    }
+
+    if (completed.image && typeof completed.image === 'string') {
+      const imageData = Buffer.from(completed.image, 'base64')
+      return { objectId, imageData }
+    }
+
+    if (completed.download_url) {
+      const imageData = await downloadAsset(completed.download_url)
+      return { objectId, imageData: Buffer.from(imageData) }
+    }
+
+    throw new Error('No image in completed response: ' + JSON.stringify(completed))
+  }
+
+  // If we got a download URL directly
+  if (result.download_url) {
+    const imageData = await downloadAsset(result.download_url)
+    return { objectId: result.object_id || 'direct', imageData: Buffer.from(imageData) }
+  }
+
+  throw new Error('Unexpected response format from Pixellab API: ' + JSON.stringify(result))
 }
