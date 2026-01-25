@@ -2,7 +2,7 @@
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import { useQuestsStore, useHeroesStore, useInventoryStore, useGenusLociStore, useExplorationsStore, useGachaStore } from '../stores'
 import { regions, superRegions, getQuestNode, getNodesByRegion, getRegion, getRegionsBySuperRegion } from '../data/questNodes.js'
-import { getTokenForRegion } from '../data/items.js'
+import { getItem, getTokenForRegion } from '../data/items.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import MapCanvas from '../components/MapCanvas.vue'
@@ -639,6 +639,53 @@ function closeTokenResults() {
           </button>
         </div>
       </aside>
+    </Transition>
+
+    <!-- Token Results Modal -->
+    <Transition name="fade">
+      <div v-if="showTokenResults" class="token-results-backdrop" @click="closeTokenResults"></div>
+    </Transition>
+    <Transition name="slide-up">
+      <div v-if="showTokenResults && tokenResults" class="token-results-modal">
+        <div class="token-results-header">
+          <h3>Token Rewards Collected</h3>
+          <span class="token-node-name">{{ selectedNode?.name }}</span>
+        </div>
+
+        <div class="token-results-body">
+          <div class="token-currency-rewards">
+            <div class="currency-item">
+              <span class="currency-icon">🪙</span>
+              <span class="currency-value">{{ tokenResults.gold }}</span>
+            </div>
+            <div class="currency-item">
+              <span class="currency-icon">💎</span>
+              <span class="currency-value">{{ tokenResults.gems }}</span>
+            </div>
+            <div class="currency-item">
+              <span class="currency-icon">⭐</span>
+              <span class="currency-value">{{ tokenResults.exp }} XP</span>
+            </div>
+          </div>
+
+          <div v-if="tokenResults.items && tokenResults.items.length > 0" class="token-item-drops">
+            <h4>Items</h4>
+            <div class="token-items-grid">
+              <div v-for="(item, index) in tokenResults.items" :key="index" class="token-item">
+                <span class="item-name">{{ getItem(item.itemId)?.name }}</span>
+                <span class="item-count">x{{ item.count }}</span>
+              </div>
+            </div>
+          </div>
+          <div v-else class="no-items-dropped">
+            No items dropped
+          </div>
+        </div>
+
+        <button class="collect-btn" @click="closeTokenResults">
+          Collect
+        </button>
+      </div>
     </Transition>
 
     <!-- Backdrop for modal -->
@@ -1482,5 +1529,139 @@ function closeTokenResults() {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+/* Token Results Modal */
+.token-results-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 300;
+}
+
+.token-results-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 360px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #374151;
+  border-radius: 16px;
+  padding: 20px;
+  z-index: 301;
+}
+
+.token-results-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.token-results-header h3 {
+  margin: 0 0 4px 0;
+  color: #a78bfa;
+  font-size: 1.1rem;
+}
+
+.token-node-name {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.token-currency-rewards {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.currency-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.currency-icon {
+  font-size: 1.2rem;
+}
+
+.currency-value {
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.token-item-drops h4 {
+  margin: 0 0 12px 0;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.token-items-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.token-item {
+  background: rgba(55, 65, 81, 0.5);
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.item-name {
+  color: #d1d5db;
+  font-size: 0.85rem;
+}
+
+.item-count {
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.no-items-dropped {
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.9rem;
+  padding: 12px;
+}
+
+.collect-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.collect-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+/* Slide up transition for modal */
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: all 0.3s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  opacity: 0;
+  transform: translate(-50%, -40%);
 }
 </style>
