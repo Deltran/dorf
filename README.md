@@ -111,11 +111,73 @@ dorf/
 │   │   └── items.js         # Item definitions
 │   └── utils/
 │       └── storage.js       # Local storage helpers
+├── scripts/
+│   ├── generate-assets.js   # Asset generation CLI
+│   └── lib/                 # Asset checker, prompt builder, Pixellab client
 ├── docs/
 │   └── plans/               # Design documents
 ├── index.html               # HTML entry point
 ├── package.json
 └── vite.config.js
+```
+
+## Asset Generation
+
+Generate missing enemy sprites and battle backgrounds using the [Pixellab.ai](https://pixellab.ai) API.
+
+### Setup
+
+1. Get an API token from Pixellab.ai
+2. Create a `.env` file in the project root:
+   ```
+   PIXELLAB_TOKEN=your-token-here
+   ```
+
+### Commands
+
+```bash
+# List all missing assets
+npm run generate-assets -- list
+
+# Preview enemy generation (no API calls)
+npm run generate-assets -- enemies --dry-run
+
+# Generate all missing enemy sprites
+npm run generate-assets -- enemies
+
+# Generate all missing battle backgrounds
+npm run generate-assets -- backgrounds
+
+# Generate everything
+npm run generate-assets -- all
+
+# Regenerate a specific asset (even if it exists)
+npm run generate-assets -- enemies --id cave_leech
+npm run generate-assets -- backgrounds --id forest_01
+```
+
+### Asset Sizes
+
+- **Enemies**: 64x64 (regular) or 128x128 (bosses/large creatures)
+- **Backgrounds**: 320x128
+
+### Custom Prompts
+
+Override auto-generated prompts in `src/data/assetPrompts.js`:
+
+```js
+export const enemyPrompts = {
+  cave_leech: {
+    prompt: 'A slimy cave leech. Pale white skin. Circular mouth with teeth. High fantasy.',
+    size: 64
+  }
+}
+
+export const backgroundPrompts = {
+  forest_01: {
+    prompt: 'Dense forest clearing. Sunlight through canopy. Moss-covered rocks. Dark fantasy.'
+  }
+}
 ```
 
 ## Game Mechanics
