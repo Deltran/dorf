@@ -305,7 +305,9 @@ export const questNodes = {
       requiredCrestId: 'valinar_crest',
       itemDrops: [
         { itemId: 'tome_medium', chance: 0.4 },
-        { itemId: 'goblin_trinket', chance: 0.6 }
+        { itemId: 'goblin_trinket', chance: 0.6 },
+        { itemId: 'token_whispering_woods', chance: 0.15 },
+        { itemId: 'token_echoing_caverns', chance: 0.15 }
       ],
       partyRequest: {
         description: 'A tank, a DPS, and a support',
