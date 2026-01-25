@@ -34,14 +34,18 @@ const roleIcons = {
   support: '\u2728'
 }
 
+const effectiveRole = computed(() => {
+  return props.hero.role || heroClass.value?.role
+})
+
 const roleIcon = computed(() => {
-  return roleIcons[heroClass.value?.role] || '\u2753'
+  return roleIcons[effectiveRole.value] || '\u2753'
 })
 
 const classBadge = computed(() => {
   const title = heroClass.value?.title || 'Unknown'
-  const roleName = heroClass.value?.role
-    ? heroClass.value.role.charAt(0).toUpperCase() + heroClass.value.role.slice(1)
+  const roleName = effectiveRole.value
+    ? effectiveRole.value.charAt(0).toUpperCase() + effectiveRole.value.slice(1)
     : 'Unknown'
   return `${title} / ${roleName}`
 })

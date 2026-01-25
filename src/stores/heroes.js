@@ -252,11 +252,14 @@ export const useHeroesStore = defineStore('heroes', () => {
     if (!template) return null
 
     const heroClass = getClass(template.classId)
+    const effectiveClass = template.role
+      ? { ...heroClass, role: template.role }
+      : heroClass
 
     return {
       ...hero,
       template,
-      class: heroClass,
+      class: effectiveClass,
       stats: getHeroStats(instanceId)
     }
   }
@@ -526,6 +529,11 @@ export const useHeroesStore = defineStore('heroes', () => {
     const hero = collection.value.find(h => h.instanceId === baseInstanceId)
     if (!hero) return { success: false, error: 'Base hero not found' }
 
+    // Check if base hero is on exploration
+    if (isHeroLocked(baseInstanceId)) {
+      return { success: false, error: 'Cannot merge hero on exploration' }
+    }
+
     const currentStar = getHeroStarLevel(hero)
 
     if (currentStar >= 5) {
@@ -544,6 +552,11 @@ export const useHeroesStore = defineStore('heroes', () => {
 
     if (fodderHeroes.some(h => !h)) {
       return { success: false, error: 'One or more fodder heroes not found' }
+    }
+
+    // Check if any fodder hero is on exploration
+    if (fodderInstanceIds.some(id => isHeroLocked(id))) {
+      return { success: false, error: 'Cannot use hero on exploration as merge fodder' }
     }
 
     if (fodderHeroes.some(h => h.templateId !== hero.templateId)) {

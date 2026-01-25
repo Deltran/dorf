@@ -164,7 +164,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
       const template = getHeroTemplate(hero.templateId)
       const heroClass = getClass(template?.classId)
       return {
-        role: heroClass?.role,
+        role: template?.role || heroClass?.role,
         classId: template?.classId
       }
     }).filter(Boolean)

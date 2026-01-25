@@ -98,15 +98,16 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
-    // Role-based conditions
+    // Role-based conditions (hero template role overrides class role)
     if (condition.role) {
       const heroClass = getClass(template.classId)
       if (!heroClass) return false
+      const effectiveRole = template.role || heroClass.role
 
       if (typeof condition.role === 'string') {
-        if (heroClass.role !== condition.role) return false
+        if (effectiveRole !== condition.role) return false
       } else if (condition.role.not) {
-        if (heroClass.role === condition.role.not) return false
+        if (effectiveRole === condition.role.not) return false
       }
     }
 

@@ -1079,6 +1079,29 @@ export const heroTemplates = {
         ]
       }
     ]
+  },
+
+  // 2-star (Uncommon) - Evasion tank
+  fennick: {
+    id: 'fennick',
+    name: 'Fennick',
+    rarity: 2,
+    classId: 'ranger',
+    role: 'tank',
+    baseStats: { hp: 80, atk: 16, def: 8, spd: 16, mp: 30 },
+    skills: [
+      {
+        name: 'Come and Get Me',
+        description: 'Taunt all enemies for 2 turns and gain 30% evasion for 2 turns.',
+        skillUnlockLevel: 1,
+        targetType: 'self',
+        noDamage: true,
+        effects: [
+          { type: EffectType.TAUNT, target: 'self', duration: 2 },
+          { type: EffectType.EVASION, target: 'self', duration: 2, value: 30 }
+        ]
+      }
+    ]
   }
 }
 
