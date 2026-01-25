@@ -22,7 +22,8 @@ export function buildEnemyPrompt(enemy) {
 
   // Name (convert to lowercase for natural sentence)
   const name = enemy.name.toLowerCase()
-  parts.push(`A ${name}.`)
+  const article = /^[aeiou]/i.test(name) ? 'An' : 'A'
+  parts.push(`${article} ${name}.`)
 
   // Skill flavor if available
   if (enemy.skill?.name) {

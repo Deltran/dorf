@@ -108,6 +108,13 @@ describe('prompt-builder', () => {
 
       expect(prompt).toBe('A simple beast. High fantasy.')
     })
+
+    it('uses "An" for names starting with vowels', () => {
+      const enemy = { id: 'abyssal', name: 'Abyssal Lurker' }
+      const prompt = buildEnemyPrompt(enemy)
+
+      expect(prompt).toBe('An abyssal lurker. High fantasy.')
+    })
   })
 
   describe('buildBackgroundPrompt edge cases', () => {

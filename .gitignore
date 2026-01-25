@@ -34,3 +34,6 @@ android/local.properties
 *.apk
 *.aab
 .env
+
+# Asset generation
+scripts/generation-errors.log
