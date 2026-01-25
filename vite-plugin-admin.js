@@ -269,6 +269,74 @@ export default function adminPlugin() {
         }
         next()
       })
+
+      // POST /__admin/save-asset - save a generated image asset to disk
+      server.middlewares.use(async (req, res, next) => {
+        if (req.method === 'POST' && req.url === '/__admin/save-asset') {
+          let body = ''
+          for await (const chunk of req) {
+            body += chunk
+          }
+
+          try {
+            const { assetPath, dataUrl } = JSON.parse(body)
+            const assetsDir = path.resolve(process.cwd(), 'src/assets')
+            const fullPath = path.resolve(assetsDir, assetPath)
+
+            // Path traversal protection: ensure resolved path is within src/assets/
+            if (!fullPath.startsWith(assetsDir + path.sep)) {
+              res.statusCode = 400
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'Invalid asset path' }))
+              return
+            }
+
+            // Extract base64 data from data URL (strip "data:image/...;base64," prefix)
+            const base64Data = dataUrl.replace(/^data:image\/[^;]+;base64,/, '')
+            const buffer = Buffer.from(base64Data, 'base64')
+
+            // Create directories if needed
+            fs.mkdirSync(path.dirname(fullPath), { recursive: true })
+
+            // Write the file
+            fs.writeFileSync(fullPath, buffer)
+
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true, path: fullPath }))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
+
+      // POST /__admin/save-prompts - save asset prompts JSON to disk
+      server.middlewares.use(async (req, res, next) => {
+        if (req.method === 'POST' && req.url === '/__admin/save-prompts') {
+          let body = ''
+          for await (const chunk of req) {
+            body += chunk
+          }
+
+          try {
+            const prompts = JSON.parse(body)
+            const promptsPath = path.resolve(process.cwd(), 'src/data/assetPrompts.json')
+            fs.writeFileSync(promptsPath, JSON.stringify(prompts, null, 2) + '\n', 'utf-8')
+
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true }))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
     }
   }
 }
