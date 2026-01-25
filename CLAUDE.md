@@ -97,7 +97,7 @@ const roleIcons = {
 - `src/data/classes.js` - Class definitions (role, resource name)
 - `src/data/statusEffects.js` - Buff/debuff definitions
 - `src/data/questNodes.js` - Quest node definitions, region data
-- `src/data/items.js` - Item definitions (XP tomes, junk items, keys)
+- `src/data/items.js` - Item definitions (XP tomes, junk items, keys, region tokens)
 
 ### Components
 - `src/components/HeroCard.vue` - Hero display card
@@ -233,6 +233,55 @@ itemDrops: [
 ```
 
 Victory screen shows item drops with sequential reveal animation.
+
+### Region Tokens
+
+Tokens are consumable items that instantly collect rewards from a completed quest without replaying the battle. Each region has its own token.
+
+**Token Structure:**
+```js
+{
+  id: 'token_whispering_woods',
+  name: 'Whispering Woods Token',
+  description: 'Instantly collect rewards from a completed Whispering Woods quest.',
+  type: 'token',
+  rarity: 3,
+  region: 'Whispering Woods'  // Must match region name exactly
+}
+```
+
+**Token Drop Pattern:**
+Tokens drop from the NEXT region in progression, rewarding players for advancing:
+
+| Token For | Drops From |
+|-----------|------------|
+| Whispering Woods | Whisper Lake quests |
+| Whisper Lake | Echoing Caverns quests |
+| Echoing Caverns | Stormwind Peaks quests |
+| Stormwind Peaks | Blistering Cliffsides quests |
+| Blistering Cliffsides | The Summit quests |
+| The Summit | Summit exploration |
+
+Exploration nodes drop tokens for their region AND the previous region (e.g., cave_exploration drops both Whispering Woods and Echoing Caverns tokens).
+
+**Helper Function:**
+```js
+import { getTokenForRegion } from '@/data/items'
+
+const token = getTokenForRegion('Whispering Woods')
+// Returns the token item object or undefined
+```
+
+**Using Tokens:**
+```js
+import { useQuestsStore } from '@/stores/quests'
+
+const questsStore = useQuestsStore()
+const result = questsStore.collectWithToken(nodeId, tokenItemId)
+// Returns { success, rewards: { gold, gems, xp, items }, message }
+```
+
+The WorldMapScreen shows a "Use Token" button on completed quest nodes when the player has a matching token.
 
 ## World Map System
 
