@@ -1,21 +1,11 @@
 <script setup>
 import { ref } from 'vue'
-import ItemsAdmin from './admin/ItemsAdmin.vue'
-import ClassesAdmin from './admin/ClassesAdmin.vue'
-import StatusEffectsAdmin from './admin/StatusEffectsAdmin.vue'
-import EnemiesAdmin from './admin/EnemiesAdmin.vue'
-import HeroesAdmin from './admin/HeroesAdmin.vue'
-import QuestsAdmin from './admin/QuestsAdmin.vue'
+import AssetViewerHeroes from './admin/AssetViewerHeroes.vue'
 
 const activeSection = ref('heroes')
 
 const sections = [
-  { id: 'heroes', label: 'Heroes' },
-  { id: 'enemies', label: 'Enemies' },
-  { id: 'classes', label: 'Classes' },
-  { id: 'statusEffects', label: 'Status Effects' },
-  { id: 'questNodes', label: 'Quest Nodes' },
-  { id: 'items', label: 'Items' }
+  { id: 'heroes', label: 'Heroes' }
 ]
 
 const emit = defineEmits(['navigate'])
@@ -29,7 +19,7 @@ function exitAdmin() {
   <div class="admin-screen">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h2>Admin</h2>
+        <h2>Assets</h2>
         <button class="exit-btn" @click="exitAdmin">Exit</button>
       </div>
       <nav class="sidebar-nav">
@@ -50,12 +40,7 @@ function exitAdmin() {
       </div>
 
       <div class="content-body">
-        <HeroesAdmin v-if="activeSection === 'heroes'" />
-        <EnemiesAdmin v-else-if="activeSection === 'enemies'" />
-        <ClassesAdmin v-else-if="activeSection === 'classes'" />
-        <StatusEffectsAdmin v-else-if="activeSection === 'statusEffects'" />
-        <QuestsAdmin v-else-if="activeSection === 'questNodes'" />
-        <ItemsAdmin v-else-if="activeSection === 'items'" />
+        <AssetViewerHeroes v-if="activeSection === 'heroes'" />
       </div>
     </main>
   </div>
