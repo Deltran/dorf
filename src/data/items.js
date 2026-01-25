@@ -103,7 +103,54 @@ export const items = {
     type: 'junk',
     rarity: 3,
     sellReward: { gold: 600 }
+  },
+  // Region tokens - auto-collect rewards from completed quests
+  token_whispering_woods: {
+    id: 'token_whispering_woods',
+    name: 'Whispering Woods Token',
+    description: 'Instantly collect rewards from a completed Whispering Woods quest.',
+    type: 'token',
+    rarity: 3,
+    region: 'Whispering Woods'
+  },
+  token_whisper_lake: {
+    id: 'token_whisper_lake',
+    name: 'Whisper Lake Token',
+    description: 'Instantly collect rewards from a completed Whisper Lake quest.',
+    type: 'token',
+    rarity: 3,
+    region: 'Whisper Lake'
+  },
+  token_echoing_caverns: {
+    id: 'token_echoing_caverns',
+    name: 'Echoing Caverns Token',
+    description: 'Instantly collect rewards from a completed Echoing Caverns quest.',
+    type: 'token',
+    rarity: 3,
+    region: 'Echoing Caverns'
+  },
+  token_stormwind_peaks: {
+    id: 'token_stormwind_peaks',
+    name: 'Stormwind Peaks Token',
+    description: 'Instantly collect rewards from a completed Stormwind Peaks quest.',
+    type: 'token',
+    rarity: 3,
+    region: 'Stormwind Peaks'
+  },
+  token_blistering_cliffs: {
+    id: 'token_blistering_cliffs',
+    name: 'Blistering Cliffs Token',
+    description: 'Instantly collect rewards from a completed Blistering Cliffsides quest.',
+    type: 'token',
+    rarity: 3,
+    region: 'Blistering Cliffsides'
   }
+}
+
+export function getTokenForRegion(regionName) {
+  return Object.values(items).find(item =>
+    item.type === 'token' && item.region === regionName
+  )
 }
 
 export function getItem(itemId) {
