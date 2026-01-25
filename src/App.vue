@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
 
@@ -31,6 +31,7 @@ const shardsStore = useShardsStore()
 const genusLociStore = useGenusLociStore()
 const explorationsStore = useExplorationsStore()
 const tipsStore = useTipsStore()
+const shopsStore = useShopsStore()
 
 const currentScreen = ref('home')
 const isLoaded = ref(false)
@@ -48,7 +49,7 @@ onMounted(() => {
   tipsStore.loadTips()
 
   if (hasData) {
-    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore })
+    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore })
   } else {
     // New player: give them a starter hero
     initNewPlayer()
@@ -89,11 +90,12 @@ watch(
     shardsStore.unlocked,
     genusLociStore.progress,
     explorationsStore.activeExplorations,
-    explorationsStore.completedHistory
+    explorationsStore.completedHistory,
+    shopsStore.purchases
   ],
   () => {
     if (isLoaded.value) {
-      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore })
+      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore })
     }
   },
   { deep: true }

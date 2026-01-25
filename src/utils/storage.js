@@ -1,8 +1,8 @@
 const SAVE_KEY = 'dorf_save'
-const SAVE_VERSION = 5  // Bump version for explorations addition
+const SAVE_VERSION = 6  // Bump version for shops addition
 
 export function saveGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops } = stores
 
   const saveData = {
     version: SAVE_VERSION,
@@ -13,7 +13,8 @@ export function saveGame(stores) {
     inventory: inventory?.saveState() || { items: {} },
     shards: shards?.saveState() || { huntingSlots: [null, null, null, null, null], unlocked: false },
     genusLoci: genusLoci?.saveState() || { progress: {} },
-    explorations: explorations?.saveState() || { activeExplorations: {}, completedHistory: [] }
+    explorations: explorations?.saveState() || { activeExplorations: {}, completedHistory: [] },
+    shops: shops?.saveState() || { purchases: {} }
   }
 
   try {
@@ -26,7 +27,7 @@ export function saveGame(stores) {
 }
 
 export function loadGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops } = stores
 
   try {
     const saved = localStorage.getItem(SAVE_KEY)
@@ -47,6 +48,7 @@ export function loadGame(stores) {
     if (saveData.shards && shards) shards.loadState(saveData.shards)
     if (saveData.genusLoci && genusLoci) genusLoci.loadState(saveData.genusLoci)
     if (saveData.explorations && explorations) explorations.loadState(saveData.explorations)
+    if (saveData.shops && shops) shops.loadState(saveData.shops)
 
     return true
   } catch (e) {
