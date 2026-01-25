@@ -10,7 +10,8 @@
     "test": "vitest",
     "cap:sync": "npm run build && npx cap sync",
     "cap:open": "npx cap open android",
-    "cap:run": "npx cap run android"
+    "cap:run": "npx cap run android",
+    "generate-assets": "node scripts/generate-assets.js"
   },
   "dependencies": {
     "@capacitor/android": "^8.0.1",
