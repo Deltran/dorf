@@ -21,6 +21,44 @@ export const useShopsStore = defineStore('shops', () => {
     }
   }
 
+  function getWeekStart(date) {
+    const d = new Date(date)
+    const day = d.getDay()
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Monday
+    d.setDate(diff)
+    d.setHours(0, 0, 0, 0)
+    return d.toISOString().split('T')[0]
+  }
+
+  function checkWeeklyReset() {
+    const weekStart = getWeekStart(new Date())
+    if (purchases.value.lastWeeklyReset !== weekStart) {
+      purchases.value.weekly = {}
+      purchases.value.lastWeeklyReset = weekStart
+    }
+  }
+
+  function getWeeklyPurchaseCount(shopId, itemId) {
+    checkWeeklyReset()
+    return purchases.value.weekly?.[shopId]?.[itemId] || 0
+  }
+
+  function getRemainingWeeklyStock(shopId, itemId, maxStock) {
+    return maxStock - getWeeklyPurchaseCount(shopId, itemId)
+  }
+
+  function purchaseWeekly(shopId, itemId) {
+    checkWeeklyReset()
+    if (!purchases.value.weekly) {
+      purchases.value.weekly = {}
+    }
+    if (!purchases.value.weekly[shopId]) {
+      purchases.value.weekly[shopId] = {}
+    }
+    purchases.value.weekly[shopId][itemId] =
+      (purchases.value.weekly[shopId][itemId] || 0) + 1
+  }
+
   function getRemainingStock(shopId, itemId, maxStock) {
     checkMidnightReset()
     const purchased = purchases.value[shopId]?.[itemId] || 0
@@ -82,6 +120,7 @@ export const useShopsStore = defineStore('shops', () => {
       purchases.value = savedState.purchases
     }
     checkMidnightReset()
+    checkWeeklyReset()
   }
 
   return {
@@ -91,6 +130,10 @@ export const useShopsStore = defineStore('shops', () => {
     purchase,
     getSecondsUntilReset,
     saveState,
-    loadState
+    loadState,
+    getWeekStart,
+    getWeeklyPurchaseCount,
+    getRemainingWeeklyStock,
+    purchaseWeekly
   }
 })
