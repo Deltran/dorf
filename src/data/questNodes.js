@@ -775,7 +775,9 @@ export const questNodes = {
       requiredCrestId: 'great_troll_crest',
       itemDrops: [
         { itemId: 'tome_large', chance: 0.4 },
-        { itemId: 'magical_rocks', chance: 0.5 }
+        { itemId: 'magical_rocks', chance: 0.5 },
+        { itemId: 'token_summit', chance: 0.15 },
+        { itemId: 'token_stormwind_peaks', chance: 0.15 }
       ],
       partyRequest: {
         description: 'Swift climbers (2+ DPS)',

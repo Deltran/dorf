@@ -144,6 +144,14 @@ export const items = {
     type: 'token',
     rarity: 3,
     region: 'Blistering Cliffsides'
+  },
+  token_summit: {
+    id: 'token_summit',
+    name: 'Summit Token',
+    description: 'Instantly collect rewards from a completed Summit quest.',
+    type: 'token',
+    rarity: 3,
+    region: 'The Summit'
   }
 }
 
