@@ -123,17 +123,21 @@ function createPortrait() {
   const img = new Image()
   img.crossOrigin = 'anonymous'
   img.onload = () => {
-    const canvas = document.createElement('canvas')
-    canvas.width = 32
-    canvas.height = 32
-    const ctx = canvas.getContext('2d')
+    try {
+      const canvas = document.createElement('canvas')
+      canvas.width = 32
+      canvas.height = 32
+      const ctx = canvas.getContext('2d')
 
-    const sx = Math.floor((img.width - 32) / 2)
-    const sy = 0
-    ctx.drawImage(img, sx, sy, 32, 32, 0, 0, 32, 32)
+      const sx = Math.max(0, Math.floor((img.width - 32) / 2))
+      const sy = 0
+      ctx.drawImage(img, sx, sy, 32, 32, 0, 0, 32, 32)
 
-    portraitPreviewUrl.value = canvas.toDataURL('image/png')
-    showPortraitCrop.value = true
+      portraitPreviewUrl.value = canvas.toDataURL('image/png')
+      showPortraitCrop.value = true
+    } catch (e) {
+      generationError.value = 'Failed to crop portrait: ' + e.message
+    }
   }
   img.onerror = () => {
     generationError.value = 'Failed to load image for portrait crop'
