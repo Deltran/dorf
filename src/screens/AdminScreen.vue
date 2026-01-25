@@ -1,11 +1,13 @@
 <script setup>
 import { ref } from 'vue'
 import AssetViewerHeroes from './admin/AssetViewerHeroes.vue'
+import AssetViewerEnemies from './admin/AssetViewerEnemies.vue'
 
 const activeSection = ref('heroes')
 
 const sections = [
-  { id: 'heroes', label: 'Heroes' }
+  { id: 'heroes', label: 'Heroes' },
+  { id: 'enemies', label: 'Enemies' }
 ]
 
 const emit = defineEmits(['navigate'])
@@ -41,6 +43,7 @@ function exitAdmin() {
 
       <div class="content-body">
         <AssetViewerHeroes v-if="activeSection === 'heroes'" />
+        <AssetViewerEnemies v-else-if="activeSection === 'enemies'" />
       </div>
     </main>
   </div>
