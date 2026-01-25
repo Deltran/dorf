@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
-import { useQuestsStore, useHeroesStore, useInventoryStore, useGenusLociStore, useExplorationsStore } from '../stores'
+import { useQuestsStore, useHeroesStore, useInventoryStore, useGenusLociStore, useExplorationsStore, useGachaStore } from '../stores'
 import { regions, superRegions, getQuestNode, getNodesByRegion, getRegion, getRegionsBySuperRegion } from '../data/questNodes.js'
+import { getTokenForRegion } from '../data/items.js'
 import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import MapCanvas from '../components/MapCanvas.vue'
@@ -23,15 +24,33 @@ const heroesStore = useHeroesStore()
 const inventoryStore = useInventoryStore()
 const genusLociStore = useGenusLociStore()
 const explorationsStore = useExplorationsStore()
+const gachaStore = useGachaStore()
 
 const selectedNode = ref(null)
 const selectedRegion = ref(regions[0].id)
 const selectedSuperRegion = ref(null)
+const showTokenResults = ref(false)
+const tokenResults = ref(null)
 
 // Combine regular unlocked nodes with unlocked exploration nodes
 const allUnlockedNodes = computed(() => {
   const explorationNodeIds = explorationsStore.unlockedExplorations.map(node => node.id)
   return [...questsStore.unlockedNodes, ...explorationNodeIds]
+})
+
+// Get token for selected node (only for completed regular quests)
+const selectedNodeToken = computed(() => {
+  if (!selectedNode.value) return null
+  if (!selectedNode.value.isCompleted) return null
+  if (selectedNode.value.isGenusLoci || selectedNode.value.isExploration) return null
+
+  const token = getTokenForRegion(selectedNode.value.region)
+  if (!token) return null
+
+  return {
+    ...token,
+    count: inventoryStore.getItemCount(token.id)
+  }
 })
 
 // Track if we should skip the region reset on super-region change
@@ -249,6 +268,27 @@ function startGenusLociChallenge() {
 function goToExplorationDetail() {
   if (!selectedNode.value?.isExploration) return
   emit('navigate', 'exploration-detail', selectedNode.value.id)
+}
+
+function useToken() {
+  if (!selectedNode.value || !selectedNodeToken.value) return
+
+  const result = questsStore.collectWithToken(selectedNode.value.id)
+  if (result.success) {
+    // Grant currency rewards
+    gachaStore.addGems(result.rewards.gems)
+    gachaStore.addGold(result.rewards.gold)
+    heroesStore.addExpToParty(result.rewards.exp)
+
+    tokenResults.value = result.rewards
+    showTokenResults.value = true
+  }
+}
+
+function closeTokenResults() {
+  showTokenResults.value = false
+  tokenResults.value = null
+  selectedNode.value = null
 }
 </script>
 
@@ -577,6 +617,18 @@ function goToExplorationDetail() {
               </div>
             </div>
           </div>
+
+          <!-- Use Token Button (for completed quests) -->
+          <button
+            v-if="selectedNodeToken"
+            class="use-token-btn"
+            :disabled="selectedNodeToken.count <= 0"
+            @click="useToken"
+          >
+            <span class="btn-icon">🎫</span>
+            <span v-if="selectedNodeToken.count > 0">Use Token ({{ selectedNodeToken.count }})</span>
+            <span v-else>No Token</span>
+          </button>
 
           <button
             class="start-quest-btn"
@@ -1378,6 +1430,36 @@ function goToExplorationDetail() {
 
 .start-quest-btn.exploration-btn:hover {
   box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
+}
+
+/* Use Token Button */
+.use-token-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.use-token-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.use-token-btn:disabled {
+  background: #4b5563;
+  cursor: not-allowed;
+  opacity: 0.7;
 }
 
 /* Transitions */
