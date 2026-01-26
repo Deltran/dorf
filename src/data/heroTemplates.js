@@ -276,6 +276,7 @@ export const heroTemplates = {
         skillUnlockLevel: 3,
         valorRequired: 25,
         targetType: 'ally',
+        excludeSelf: true,
         noDamage: true,
         defensive: true,
         effects: [
@@ -694,11 +695,19 @@ export const heroTemplates = {
     rarity: 3,
     classId: 'bard',
     baseStats: { hp: 75, atk: 20, def: 20, spd: 15, mp: 70 },
+    finale: {
+      name: 'Standing Ovation',
+      description: 'Restore resources to all allies based on their class and heal for 5% of ATK.',
+      target: 'all_allies',
+      effects: [
+        { type: 'resource_grant', rageAmount: 15, focusGrant: true, valorAmount: 10, mpAmount: 15, verseAmount: 1 },
+        { type: 'heal', value: 5 }
+      ]
+    },
     skills: [
       {
         name: 'Inspiring Song',
         description: 'Increase all allies ATK by 15% for 2 turns',
-        mpCost: 18,
         targetType: 'all_allies',
         effects: [
           { type: EffectType.ATK_UP, target: 'all_allies', duration: 2, value: 15 }
@@ -707,7 +716,6 @@ export const heroTemplates = {
       {
         name: 'Mana Melody',
         description: 'Restore 10 MP to all allies',
-        mpCost: 20,
         skillUnlockLevel: 1,
         targetType: 'all_allies',
         mpRestore: 10
@@ -715,7 +723,6 @@ export const heroTemplates = {
       {
         name: 'Soothing Serenade',
         description: 'Heal all allies for 15% of ATK',
-        mpCost: 22,
         skillUnlockLevel: 3,
         targetType: 'all_allies',
         healFromStat: { stat: 'atk', percent: 15 }
@@ -723,7 +730,6 @@ export const heroTemplates = {
       {
         name: 'Ballad of Blackwall',
         description: 'Grant all allies DEF +20% for 2 turns',
-        mpCost: 20,
         skillUnlockLevel: 6,
         targetType: 'all_allies',
         effects: [
@@ -733,7 +739,6 @@ export const heroTemplates = {
       {
         name: 'Encore',
         description: 'Extend buff durations on ally by 2 turns. Grant +15 MP, +10 Rage, +10 Valor, +15% SPD for 1 turn.',
-        mpCost: 30,
         skillUnlockLevel: 12,
         targetType: 'ally',
         extendBuffs: 2,
@@ -1031,11 +1036,19 @@ export const heroTemplates = {
     rarity: 1,
     classId: 'bard',
     baseStats: { hp: 65, atk: 15, def: 18, spd: 14, mp: 55 },
+    finale: {
+      name: 'Discordant Shriek',
+      description: 'A piercing wave of sound that weakens all enemies.',
+      target: 'all_enemies',
+      effects: [
+        { type: EffectType.ATK_DOWN, duration: 2, value: 10 },
+        { type: EffectType.DEF_DOWN, duration: 2, value: 10 }
+      ]
+    },
     skills: [
       {
         name: 'Jarring Whistle',
         description: 'A piercing off-key note that makes enemies flinch',
-        mpCost: 8,
         skillUnlockLevel: 1,
         targetType: 'enemy',
         noDamage: true,
@@ -1046,7 +1059,6 @@ export const heroTemplates = {
       {
         name: 'Distracting Jingle',
         description: 'An annoying tune that throws off enemy timing',
-        mpCost: 10,
         skillUnlockLevel: 3,
         targetType: 'enemy',
         noDamage: true,
@@ -1057,7 +1069,6 @@ export const heroTemplates = {
       {
         name: 'Street Racket',
         description: 'A cacophony of noise that disrupts all foes',
-        mpCost: 18,
         skillUnlockLevel: 6,
         targetType: 'all_enemies',
         noDamage: true,
@@ -1067,9 +1078,8 @@ export const heroTemplates = {
         ]
       },
       {
-        name: 'Ear-Splitting Finale',
+        name: 'Ear-Splitting Crescendo',
         description: "A piercing note that's unbearable to those already off-balance",
-        mpCost: 20,
         skillUnlockLevel: 12,
         targetType: 'enemy',
         noDamage: true,
