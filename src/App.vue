@@ -35,7 +35,9 @@ const explorationsStore = useExplorationsStore()
 const tipsStore = useTipsStore()
 const shopsStore = useShopsStore()
 
-const currentScreen = ref('home')
+const currentScreen = ref(
+  import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_screen') || 'home') : 'home'
+)
 const isLoaded = ref(false)
 const initialHeroId = ref(null)
 const autoOpenMerge = ref(false)
@@ -62,13 +64,14 @@ onMounted(() => {
 
   isLoaded.value = true
 
-  // Dev-only: Ctrl+Shift+A opens admin
+  // Dev-only: Ctrl+Shift+A opens admin, persist screen across HMR reloads
   if (import.meta.env.DEV) {
     window.addEventListener('keydown', (e) => {
       if (e.ctrlKey && e.shiftKey && e.key === 'A') {
         currentScreen.value = 'admin'
       }
     })
+    watch(currentScreen, (val) => sessionStorage.setItem('dorf_dev_screen', val))
   }
 })
 

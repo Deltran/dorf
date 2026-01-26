@@ -1,11 +1,17 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import AssetViewerHeroes from './admin/AssetViewerHeroes.vue'
 import AssetViewerEnemies from './admin/AssetViewerEnemies.vue'
 import AssetViewerBackgrounds from './admin/AssetViewerBackgrounds.vue'
 import AssetViewerMaps from './admin/AssetViewerMaps.vue'
 
-const activeSection = ref('heroes')
+const activeSection = ref(
+  import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_admin_section') || 'heroes') : 'heroes'
+)
+
+if (import.meta.env.DEV) {
+  watch(activeSection, (val) => sessionStorage.setItem('dorf_dev_admin_section', val))
+}
 
 const sections = [
   { id: 'heroes', label: 'Heroes' },
