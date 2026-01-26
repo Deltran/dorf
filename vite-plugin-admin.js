@@ -345,6 +345,75 @@ export default function adminPlugin() {
         }
         next()
       })
+
+      // POST /__admin/save-node-positions - update x/y in questNodes.js
+      server.middlewares.use(async (req, res, next) => {
+        if (req.method === 'POST' && req.url === '/__admin/save-node-positions') {
+          let body = ''
+          for await (const chunk of req) {
+            body += chunk
+          }
+
+          try {
+            const { positions } = JSON.parse(body)
+
+            if (!positions || typeof positions !== 'object') {
+              res.statusCode = 400
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'positions object is required' }))
+              return
+            }
+
+            const filePath = path.resolve(process.cwd(), 'src/data/questNodes.js')
+            let content = fs.readFileSync(filePath, 'utf-8')
+
+            for (const [nodeId, pos] of Object.entries(positions)) {
+              const x = Math.round(pos.x)
+              const y = Math.round(pos.y)
+
+              // Find the node block by its id property
+              const idPattern = new RegExp(`id:\\s*'${nodeId}'`)
+              const idMatch = content.match(idPattern)
+              if (!idMatch) continue
+
+              // Replace x: and y: values within a reasonable range after the id match
+              const idIndex = idMatch.index
+              const blockSlice = content.slice(idIndex, idIndex + 200)
+
+              const xMatch = blockSlice.match(/x:\s*\d+/)
+              const yMatch = blockSlice.match(/y:\s*\d+/)
+
+              if (xMatch) {
+                const absoluteIndex = idIndex + xMatch.index
+                content = content.slice(0, absoluteIndex) + `x: ${x}` + content.slice(absoluteIndex + xMatch[0].length)
+              }
+
+              if (yMatch) {
+                // Re-find after x replacement may have shifted indices
+                const updatedIdMatch = content.match(idPattern)
+                const updatedIdIndex = updatedIdMatch.index
+                const updatedSlice = content.slice(updatedIdIndex, updatedIdIndex + 200)
+                const updatedYMatch = updatedSlice.match(/y:\s*\d+/)
+                if (updatedYMatch) {
+                  const absoluteIndex = updatedIdIndex + updatedYMatch.index
+                  content = content.slice(0, absoluteIndex) + `y: ${y}` + content.slice(absoluteIndex + updatedYMatch[0].length)
+                }
+              }
+            }
+
+            fs.writeFileSync(filePath, content, 'utf-8')
+
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true }))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
     }
   }
 }
