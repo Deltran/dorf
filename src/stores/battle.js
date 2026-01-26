@@ -31,6 +31,7 @@ export const useBattleStore = defineStore('battle', () => {
   const selectedTarget = ref(null)
   const combatEffects = ref([]) // For visual feedback: { id, targetId, targetType, effectType, value }
   const leaderSkillActivation = ref(null) // { skillName, leaderId } - for visual announcement
+  const finaleActivation = ref(null) // { bardId, finaleName } - for visual announcement
   const battleType = ref('normal') // 'normal' or 'genusLoci'
   const genusLociMeta = ref(null) // { genusLociId, powerLevel, triggeredTowersWrath }
 
@@ -415,6 +416,108 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     return true // Can act
+  }
+
+  // Execute a Bard's Finale effect
+  function executeFinale(bard) {
+    const finale = bard.template.finale
+    if (!finale) return
+
+    addLog(`${bard.template.name}'s Finale: ${finale.name}!`)
+    finaleActivation.value = { bardId: bard.instanceId, finaleName: finale.name }
+
+    // Reset verses
+    bard.currentVerses = 0
+    bard.lastSkillName = null
+
+    if (!finale.effects) return
+
+    for (const effect of finale.effects) {
+      if (finale.target === 'all_allies') {
+        for (const hero of heroes.value) {
+          if (hero.currentHp <= 0) continue
+          applyFinaleEffect(bard, hero, effect)
+        }
+      } else if (finale.target === 'all_enemies') {
+        for (const enemy of enemies.value) {
+          if (enemy.currentHp <= 0) continue
+          applyFinaleEffectToEnemy(bard, enemy, effect)
+        }
+      }
+    }
+  }
+
+  function applyFinaleEffect(bard, target, effect) {
+    // Resource grants
+    if (effect.type === 'resource_grant') {
+      if (effect.rageAmount && isBerserker(target)) {
+        gainRage(target, effect.rageAmount)
+        addLog(`${target.template.name} gains ${effect.rageAmount} Rage!`)
+        emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+      }
+      if (effect.focusGrant && isRanger(target)) {
+        grantFocus(target)
+        emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+      }
+      if (effect.valorAmount && isKnight(target)) {
+        gainValor(target, effect.valorAmount)
+        addLog(`${target.template.name} gains ${effect.valorAmount} Valor!`)
+        emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+      }
+      if (effect.mpAmount && !isBerserker(target) && !isRanger(target) && !isKnight(target) && !isBard(target)) {
+        const oldMp = target.currentMp || 0
+        target.currentMp = Math.min(target.maxMp || 100, oldMp + effect.mpAmount)
+        const actual = target.currentMp - oldMp
+        if (actual > 0) {
+          addLog(`${target.template.name} gains ${actual} MP!`)
+          emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+        }
+      }
+      if (effect.verseAmount && isBard(target) && target.instanceId !== bard.instanceId) {
+        gainVerse(target)
+        addLog(`${target.template.name} gains 1 Verse!`)
+        emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+      }
+    }
+
+    // Heal (percentage of Bard's ATK)
+    if (effect.type === 'heal' && effect.value) {
+      const bardAtk = getEffectiveStat(bard, 'atk')
+      const healAmount = Math.floor(bardAtk * (effect.value / 100))
+      const oldHp = target.currentHp
+      target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
+      const actual = target.currentHp - oldHp
+      if (actual > 0) {
+        emitCombatEffect(target.instanceId, 'hero', 'heal', actual)
+      }
+    }
+  }
+
+  function applyFinaleEffectToEnemy(bard, enemy, effect) {
+    // Damage (percentage of Bard's ATK)
+    if (effect.type === 'damage' && effect.damagePercent) {
+      const bardAtk = getEffectiveStat(bard, 'atk')
+      const damage = Math.floor(bardAtk * (effect.damagePercent / 100))
+      applyDamage(enemy, damage, 'skill', bard)
+      emitCombatEffect(enemy.id, 'enemy', 'damage', damage)
+    }
+
+    // Status effects
+    if (effect.type && effect.duration) {
+      const definition = getEffectDefinition(effect.type)
+      if (definition) {
+        enemy.statusEffects = enemy.statusEffects || []
+        enemy.statusEffects.push({
+          type: effect.type,
+          definition,
+          duration: effect.duration,
+          value: effect.value,
+          sourceId: bard.instanceId
+        })
+        addLog(`${enemy.template.name} receives ${definition.name}!`)
+        emitCombatEffect(enemy.id, 'enemy', 'debuff', 0)
+      }
+    }
   }
 
   // Process effects at end of turn (DoT damage, tick durations)
@@ -1275,6 +1378,11 @@ export const useBattleStore = defineStore('battle', () => {
             advanceTurnIndex()
             setTimeout(() => startNextTurn(), 600)
             return
+          }
+
+          // Check for Bard Finale (auto-trigger at 3 verses)
+          if (isBard(hero) && hero.currentVerses >= 3 && hero.template.finale) {
+            executeFinale(hero)
           }
 
           state.value = BattleState.PLAYER_TURN
@@ -2858,6 +2966,7 @@ export const useBattleStore = defineStore('battle', () => {
     selectedTarget,
     combatEffects,
     leaderSkillActivation,
+    finaleActivation,
     battleType,
     genusLociMeta,
     // Getters
