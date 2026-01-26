@@ -152,6 +152,14 @@ export const items = {
     type: 'token',
     rarity: 3,
     region: 'The Summit'
+  },
+  token_gate_to_aquaria: {
+    id: 'token_gate_to_aquaria',
+    name: 'Gate to Aquaria Token',
+    description: 'Instantly collect rewards from a completed Gate to Aquaria quest.',
+    type: 'token',
+    rarity: 3,
+    region: 'Gate to Aquaria'
   }
 }
 
