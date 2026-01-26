@@ -228,6 +228,13 @@ export const useBattleStore = defineStore('battle', () => {
     return null
   })
 
+  const currentSkillExcludesSelf = computed(() => {
+    const skillIndex = parseSkillIndex(selectedAction.value)
+    if (skillIndex === null) return false
+    const skill = getSkillByIndex(currentUnit.value, skillIndex)
+    return skill?.excludeSelf || false
+  })
+
   const needsTargetSelection = computed(() => {
     const targetType = currentTargetType.value
     return targetType === 'enemy' || targetType === 'ally' || targetType === 'dead_ally'
@@ -557,6 +564,19 @@ export const useBattleStore = defineStore('battle', () => {
     if (unit.currentRage !== undefined) {
       unit.currentRage = Math.max(0, unit.currentRage - amount)
     }
+  }
+
+  // ========== VERSE HELPERS (Bards) ==========
+
+  // Check if a unit is a Bard (uses Verse)
+  function isBard(unit) {
+    return unit.class?.resourceType === 'verse'
+  }
+
+  // Gain a verse for a bard (capped at 3)
+  function gainVerse(unit) {
+    if (unit.currentVerses === undefined) return
+    unit.currentVerses = Math.min(3, unit.currentVerses + 1)
   }
 
   // Check if a unit can use their skill based on resource type
@@ -2831,6 +2851,7 @@ export const useBattleStore = defineStore('battle', () => {
     aliveEnemies,
     isBattleOver,
     currentTargetType,
+    currentSkillExcludesSelf,
     needsTargetSelection,
     // Actions
     initBattle,
@@ -2859,6 +2880,9 @@ export const useBattleStore = defineStore('battle', () => {
     isBerserker,
     gainRage,
     spendRage,
+// Verse helpers (for UI)
+    isBard,
+    gainVerse,
     canUseSkill,
     // Valor helpers (for UI)
     isKnight,
