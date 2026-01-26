@@ -497,7 +497,38 @@ Each class has a unique resource besides MP:
 | Mage | Mana | Standard MP |
 | Cleric | Divine Power | Standard MP |
 | Druid | Nature | Standard MP |
-| Bard | Inspiration | Standard MP |
+| Bard | Verse | Free skills build 3 verses toward Finale. No consecutive repeats. |
+
+## Bard Verse System
+
+Bards use a unique Verse resource that replaces MP. All Bard skills are free to use, but each skill adds +1 Verse (0-3 max). When a Bard reaches 3/3 Verses, a **Finale** auto-triggers at the start of their next turn.
+
+**Key rules:**
+- Skills have no cost (no `mpCost`)
+- Cannot repeat the same skill on consecutive turns
+- 1-skill Bards have no repeat restriction and don't build Verses
+- Finale auto-triggers at start of turn with 3/3 Verses (free action, Bard still gets normal turn)
+- Finale resets Verses to 0 and clears `lastSkillName`
+- Verses are preserved when stunned/CC'd (no decay)
+- Verses reset to 0 on death/revive
+
+**Finale** is defined per hero in the template:
+```js
+finale: {
+  name: 'Standing Ovation',
+  description: 'Restore resources to all allies and heal.',
+  target: 'all_allies',  // or 'all_enemies'
+  effects: [
+    { type: 'resource_grant', rageAmount: 15, focusGrant: true, valorAmount: 10, mpAmount: 15, verseAmount: 1 },
+    { type: 'heal', value: 5 }  // % of Bard's ATK
+  ]
+}
+```
+
+**Battle state properties:**
+- `hero.currentVerses` — 0-3 counter
+- `hero.lastSkillName` — tracks last skill for repeat prevention
+- `finaleActivation` ref — `{ bardId, finaleName }` for UI visual
 
 ## Hero Roster
 
