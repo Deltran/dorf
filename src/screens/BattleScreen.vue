@@ -11,6 +11,7 @@ import ItemCard from '../components/ItemCard.vue'
 import FocusIndicator from '../components/FocusIndicator.vue'
 import ValorBar from '../components/ValorBar.vue'
 import RageBar from '../components/RageBar.vue'
+import VerseIndicator from '../components/VerseIndicator.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode, getAllQuestNodes } from '../data/questNodes.js'
 import { getHeroTemplate } from '../data/heroTemplates.js'
@@ -63,6 +64,8 @@ const enemyImpactIcons = ref({}) // { id: 'attack' | 'magic' | 'heal' | ... }
 const attackingEnemies = ref({}) // { id: true } - enemies currently in attack animation
 const leaderActivating = ref(null) // instanceId of leader during skill activation
 const leaderSkillName = ref(null) // name of activating leader skill
+const finaleActivating = ref(null)
+const finaleName = ref(null)
 
 const currentNode = computed(() => questsStore.currentNode)
 const currentBattleIndex = computed(() => questsStore.currentBattleIndex)
@@ -107,6 +110,11 @@ const isCurrentHeroBerserker = computed(() => {
   return currentHero.value?.class?.resourceType === 'rage'
 })
 
+// Check if current hero is a bard (uses Verse)
+const isCurrentHeroBard = computed(() => {
+  return currentHero.value?.class?.resourceType === 'verse'
+})
+
 // Check if inspected hero is a ranger (uses Focus)
 const isInspectedHeroRanger = computed(() => {
   return inspectedHero.value?.class?.resourceType === 'focus'
@@ -120,6 +128,11 @@ const isInspectedHeroKnight = computed(() => {
 // Check if inspected hero is a berserker (uses Rage)
 const isInspectedHeroBerserker = computed(() => {
   return inspectedHero.value?.class?.resourceType === 'rage'
+})
+
+// Check if inspected hero is a bard (uses Verse)
+const isInspectedHeroBard = computed(() => {
+  return inspectedHero.value?.class?.resourceType === 'verse'
 })
 
 // Helper functions for skill display
@@ -136,6 +149,9 @@ function getSkillDescription(skill) {
       return `Requires ${rageCost} Rage`
     }
   }
+  if (isCurrentHeroBard.value && currentHero.value.lastSkillName === skill.name) {
+    return 'Cannot repeat the same song!'
+  }
   return skill.description
 }
 
@@ -149,6 +165,9 @@ function getSkillCost(skill) {
   if (isCurrentHeroBerserker.value) {
     return skill.rageCost || 0
   }
+  if (isCurrentHeroBard.value) {
+    return null
+  }
   return skill.mpCost
 }
 
@@ -161,6 +180,9 @@ function getSkillCostLabel(skill) {
   }
   if (isCurrentHeroBerserker.value) {
     return 'Rage'
+  }
+  if (isCurrentHeroBard.value) {
+    return null
   }
   return currentHero.value?.class?.resourceName
 }
@@ -186,6 +208,15 @@ function canUseSkill(skill) {
   if (isCurrentHeroBerserker.value) {
     const rageCost = skill.rageCost ?? 0
     return (currentHero.value.currentRage || 0) >= rageCost
+  }
+
+  // Bards can always use skills, except can't repeat same skill consecutively
+  if (isCurrentHeroBard.value) {
+    // 1-skill bards have no restrictions
+    if (availableSkills.value.length <= 1) return true
+    // Can't repeat same skill consecutively
+    if (currentHero.value.lastSkillName === skill.name) return false
+    return true
   }
 
   return currentHero.value.currentMp >= skill.mpCost
@@ -526,8 +557,14 @@ function selectEnemyTarget(enemy) {
   }
 }
 
+function isHeroTargetable(hero) {
+  if (!alliesTargetable.value || hero.currentHp <= 0) return false
+  if (battleStore.currentSkillExcludesSelf && hero.instanceId === battleStore.currentUnit?.instanceId) return false
+  return true
+}
+
 function selectHeroTarget(hero) {
-  if (alliesTargetable.value && hero.currentHp > 0) {
+  if (isHeroTargetable(hero)) {
     battleStore.selectTarget(hero.instanceId, 'ally')
   }
 }
@@ -759,6 +796,20 @@ watch(() => battleStore.leaderSkillActivation, (activation) => {
   }, 1500)
 })
 
+// Watch for Bard Finale activation
+watch(() => battleStore.finaleActivation, (activation) => {
+  if (!activation) return
+
+  finaleActivating.value = activation.bardId
+  finaleName.value = activation.finaleName
+
+  setTimeout(() => {
+    finaleActivating.value = null
+    finaleName.value = null
+    battleStore.finaleActivation = null
+  }, 1500)
+})
+
 function removeDamageNumber(id) {
   damageNumbers.value = damageNumbers.value.filter(d => d.id !== id)
 }
@@ -799,7 +850,7 @@ function handleHeroClick(hero) {
   }
 
   // Also handle ally targeting if applicable
-  if (alliesTargetable.value && hero.currentHp > 0) {
+  if (isHeroTargetable(hero)) {
     selectHeroTarget(hero)
   }
 
@@ -964,10 +1015,11 @@ function getStatChange(hero, stat) {
         :key="hero.instanceId"
         :class="['hero-wrapper', {
           active: battleStore.currentUnit?.instanceId === hero.instanceId,
-          targetable: alliesTargetable && hero.currentHp > 0,
+          targetable: alliesTargetable && hero.currentHp > 0 && !(battleStore.currentSkillExcludesSelf && hero.instanceId === battleStore.currentUnit?.instanceId),
           'dead-ally-targetable': deadAlliesTargetable && hero.currentHp <= 0,
           selected: battleStore.selectedTarget?.id === hero.instanceId,
           'leader-activating': leaderActivating === hero.instanceId,
+          'finale-activating': finaleActivating === hero.instanceId,
           dead: hero.currentHp <= 0
         }]"
         @click="handleHeroClick(hero)"
@@ -975,6 +1027,9 @@ function getStatChange(hero, stat) {
         <!-- Leader Skill Announcement -->
         <div v-if="leaderActivating === hero.instanceId" class="leader-skill-announce">
           {{ leaderSkillName }}
+        </div>
+        <div v-if="finaleActivating === hero.instanceId" class="finale-announce">
+          {{ finaleName }}
         </div>
         <div class="hero-image-container">
           <img
@@ -1257,6 +1312,10 @@ function getStatChange(hero, stat) {
           <div v-else-if="isInspectedHeroBerserker" class="inspect-bar-row">
             <span class="bar-label">Rage</span>
             <RageBar :currentRage="inspectedHero.currentRage || 0" size="md" />
+          </div>
+          <div v-else-if="isInspectedHeroBard" class="inspect-bar-row">
+            <span class="bar-label">Verse</span>
+            <VerseIndicator :currentVerses="inspectedHero.currentVerses || 0" size="md" />
           </div>
           <div v-else class="inspect-bar-row">
             <span class="bar-label">{{ inspectedHero.class?.resourceName || 'MP' }}</span>
@@ -2506,5 +2565,64 @@ function getStatChange(hero, stat) {
   padding: 12px;
   border-top: 1px solid #374151;
   margin-top: 12px;
+}
+
+/* ===== Bard Finale Activation ===== */
+.hero-wrapper.finale-activating {
+  animation: finaleGlow 1.5s ease-out;
+  z-index: 20;
+}
+
+@keyframes finaleGlow {
+  0% {
+    filter: drop-shadow(0 0 0 transparent);
+    transform: scale(1);
+  }
+  30% {
+    filter: drop-shadow(0 0 20px #fbbf24) drop-shadow(0 0 40px #fbbf24);
+    transform: scale(1.05);
+  }
+  70% {
+    filter: drop-shadow(0 0 15px #fbbf24) drop-shadow(0 0 30px #fbbf24);
+    transform: scale(1.03);
+  }
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+    transform: scale(1);
+  }
+}
+
+.finale-announce {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fbbf24;
+  text-shadow: 0 0 10px #f59e0b, 0 2px 4px rgba(0, 0, 0, 0.8);
+  z-index: 30;
+  animation: finaleNameFloat 1.5s ease-out forwards;
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes finaleNameFloat {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-15px);
+  }
 }
 </style>
