@@ -5,6 +5,7 @@ import StatBar from './StatBar.vue'
 import FocusIndicator from './FocusIndicator.vue'
 import ValorBar from './ValorBar.vue'
 import RageBar from './RageBar.vue'
+import VerseIndicator from './VerseIndicator.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 
@@ -75,6 +76,10 @@ const isKnightHero = computed(() => {
 
 const isBerserkerHero = computed(() => {
   return heroClass.value?.resourceType === 'rage'
+})
+
+const isBardHero = computed(() => {
+  return heroClass.value?.resourceType === 'verse'
 })
 
 const isDead = computed(() => {
@@ -188,6 +193,12 @@ const isOnExploration = computed(() => {
       <RageBar
         v-else-if="isBerserkerHero"
         :currentRage="hero.currentRage || 0"
+        size="sm"
+      />
+      <!-- Verse indicator for Bards -->
+      <VerseIndicator
+        v-else-if="isBardHero"
+        :currentVerses="hero.currentVerses || 0"
         size="sm"
       />
       <!-- MP bar for others -->
