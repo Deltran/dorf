@@ -869,6 +869,7 @@ function getEffectTypeName(type) {
             <div v-if="getSkillCostDisplay(skill, selectedHero.class)" class="skill-cost">
               {{ getSkillCostDisplay(skill, selectedHero.class) }}
             </div>
+            <div v-if="skill.cooldown" class="skill-cooldown">{{ skill.cooldown }} turn cooldown</div>
             <div class="skill-desc">{{ skill.description }}</div>
 
             <!-- Valor Breakdown for Knights -->
@@ -1669,6 +1670,12 @@ function getEffectTypeName(type) {
 .skill-cost {
   font-size: 0.8rem;
   color: #60a5fa;
+  margin-bottom: 8px;
+}
+
+.skill-cooldown {
+  font-size: 0.8rem;
+  color: #f59e0b;
   margin-bottom: 8px;
 }
 

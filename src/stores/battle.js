@@ -1256,6 +1256,14 @@ export const useBattleStore = defineStore('battle', () => {
 
       const savedState = partyState?.[instanceId]
 
+      // Build cooldowns for hero skills
+      const heroCooldowns = {}
+      if (heroFull.template.skills) {
+        for (const skill of heroFull.template.skills) {
+          if (skill.cooldown) heroCooldowns[skill.name] = 0
+        }
+      }
+
       heroes.value.push({
         instanceId,
         templateId: heroFull.templateId,
@@ -1268,6 +1276,7 @@ export const useBattleStore = defineStore('battle', () => {
         template: heroFull.template,
         class: heroFull.class,
         statusEffects: [],
+        currentCooldowns: heroCooldowns,
         hasFocus: heroFull.class?.resourceType === 'focus' ? true : undefined,
         currentValor: heroFull.class?.resourceType === 'valor' ? 0 : undefined,
         currentRage: heroFull.class?.resourceType === 'rage' ? (savedState?.currentRage ?? 0) : undefined,
@@ -1474,6 +1483,17 @@ export const useBattleStore = defineStore('battle', () => {
         }
       }
 
+      // Reduce hero cooldowns
+      for (const hero of heroes.value) {
+        if (hero.currentCooldowns) {
+          for (const skillName of Object.keys(hero.currentCooldowns)) {
+            if (hero.currentCooldowns[skillName] > 0) {
+              hero.currentCooldowns[skillName]--
+            }
+          }
+        }
+      }
+
       calculateTurnOrder()
     }
   }
@@ -1600,6 +1620,11 @@ export const useBattleStore = defineStore('battle', () => {
         hero.currentMp -= skill.mpCost
       }
       usedSkill = true
+
+      // Apply cooldown if skill has one
+      if (skill.cooldown && hero.currentCooldowns) {
+        hero.currentCooldowns[skill.name] = skill.cooldown
+      }
 
       // Knights gain Valor for using defensive skills
       if (isKnight(hero) && skill.defensive) {

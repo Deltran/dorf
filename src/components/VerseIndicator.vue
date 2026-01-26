@@ -24,36 +24,24 @@ defineProps({
         :class="['verse-pip', { filled: i <= currentVerses }]"
       >&#9679;</span>
     </div>
-    <span class="verse-label">{{ currentVerses }}/3</span>
+    <span class="verse-label">Verse</span>
   </div>
 </template>
 
 <style scoped>
 .verse-indicator {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background: #374151;
-  border: 1px solid #4b5563;
+  gap: 2px;
   transition: all 0.3s ease;
-}
-
-.verse-indicator.sm {
-  padding: 2px 6px;
-  gap: 4px;
-}
-
-.verse-indicator.primed {
-  background: linear-gradient(135deg, #f59e0b22, #d9770622);
-  border-color: #f59e0b55;
 }
 
 .verse-pips {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   align-items: center;
+  justify-content: center;
 }
 
 .verse-pip {
@@ -69,6 +57,7 @@ defineProps({
 
 .md .verse-pip {
   font-size: 0.8rem;
+  gap: 8px;
 }
 
 .verse-pip.filled {
@@ -83,17 +72,21 @@ defineProps({
 }
 
 .verse-label {
-  font-size: 0.7rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.3s ease;
 }
 
 .sm .verse-label {
-  font-size: 0.6rem;
+  font-size: 0.55rem;
 }
 
 .primed .verse-label {
   color: #fbbf24;
+  text-shadow: 0 0 6px #f59e0b66;
 }
 
 @keyframes versePulse {

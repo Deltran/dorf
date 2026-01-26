@@ -137,6 +137,11 @@ const isInspectedHeroBard = computed(() => {
 
 // Helper functions for skill display
 function getSkillDescription(skill) {
+  // Check cooldown first (applies to all classes)
+  const cd = currentHero.value?.currentCooldowns?.[skill.name]
+  if (cd > 0) {
+    return `On cooldown (${cd} round${cd > 1 ? 's' : ''})`
+  }
   if (isCurrentHeroKnight.value && skill.valorRequired && (currentHero.value.currentValor || 0) < skill.valorRequired) {
     return `Requires ${skill.valorRequired} Valor`
   }
@@ -190,6 +195,9 @@ function getSkillCostLabel(skill) {
 // Check if a specific skill can be used (has enough MP, Focus, or Valor)
 function canUseSkill(skill) {
   if (!currentHero.value || !skill) return false
+
+  // Check cooldown (applies to all classes)
+  if (currentHero.value.currentCooldowns?.[skill.name] > 0) return false
 
   // Knights check Valor requirement
   if (isCurrentHeroKnight.value) {

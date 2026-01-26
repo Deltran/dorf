@@ -244,15 +244,16 @@ export const heroTemplates = {
     skills: [
       {
         name: 'Challenge',
-        description: 'Force all enemies to target Sir Gallan until the end of his next turn. At 100 Valor, also gain +10% DEF.',
+        description: 'Force all enemies to target Sir Gallan for 1 turn. At 50 Valor, also gain +10% DEF. At 100 Valor, duration extends to 2 turns. 1 turn cooldown.',
         skillUnlockLevel: 1,
         valorRequired: 0,
         targetType: 'self',
         noDamage: true,
         defensive: true,
+        cooldown: 1,
         effects: [
-          { type: EffectType.TAUNT, target: 'self', duration: 2 },
-          { type: EffectType.DEF_UP, target: 'self', duration: 2, value: 10, valorThreshold: 100 }
+          { type: EffectType.TAUNT, target: 'self', duration: { base: 2, at100: 3 } },
+          { type: EffectType.DEF_UP, target: 'self', duration: { base: 2, at100: 3 }, value: 10, valorThreshold: 50 }
         ]
       },
       {
@@ -697,11 +698,11 @@ export const heroTemplates = {
     baseStats: { hp: 75, atk: 20, def: 20, spd: 15, mp: 70 },
     finale: {
       name: 'Standing Ovation',
-      description: 'Restore resources to all allies based on their class and heal for 5% of ATK.',
+      description: 'Provide MP, Valor, or Focus to all allies and heal for 15% ATK.',
       target: 'all_allies',
       effects: [
-        { type: 'resource_grant', rageAmount: 15, focusGrant: true, valorAmount: 10, mpAmount: 15, verseAmount: 1 },
-        { type: 'heal', value: 5 }
+        { type: 'resource_grant', focusGrant: true, valorAmount: 10, mpAmount: 15, verseAmount: 1 },
+        { type: 'heal', value: 15 }
       ]
     },
     skills: [

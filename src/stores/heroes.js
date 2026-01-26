@@ -31,7 +31,15 @@ export const useHeroesStore = defineStore('heroes', () => {
 
   const availableForParty = computed(() => {
     const partyIds = new Set(party.value.filter(Boolean))
-    return collection.value.filter(h => !partyIds.has(h.instanceId))
+    const partyTemplateIds = new Set(
+      party.value.filter(Boolean).map(id => {
+        const hero = collection.value.find(h => h.instanceId === id)
+        return hero?.templateId
+      }).filter(Boolean)
+    )
+    return collection.value.filter(h =>
+      !partyIds.has(h.instanceId) && !partyTemplateIds.has(h.templateId)
+    )
   })
 
   // Heroes available for exploration (not in party, not already on exploration)
@@ -107,11 +115,20 @@ export const useHeroesStore = defineStore('heroes', () => {
     // Check if hero is locked to exploration
     if (isHeroLocked(instanceId)) return false
 
-    // If hero is already in another slot, swap or remove
+    const hero = collection.value.find(h => h.instanceId === instanceId)
+    if (!hero) return false
+
+    // If hero is already in another slot, it's a swap — always allowed
     const existingSlot = party.value.findIndex(id => id === instanceId)
     if (existingSlot !== -1 && existingSlot !== slotIndex) {
-      // Swap with current slot
       party.value[existingSlot] = party.value[slotIndex]
+    } else if (existingSlot === -1) {
+      // New hero being added — check for duplicate templateId
+      const partyTemplateIds = party.value
+        .filter((id, idx) => id && idx !== slotIndex) // exclude the slot being replaced
+        .map(id => collection.value.find(h => h.instanceId === id)?.templateId)
+        .filter(Boolean)
+      if (partyTemplateIds.includes(hero.templateId)) return false
     }
 
     party.value[slotIndex] = instanceId
@@ -151,9 +168,22 @@ export const useHeroesStore = defineStore('heroes', () => {
       return b.level - a.level
     })
 
+    // Track templateIds used during this fill to prevent duplicates
+    const usedTemplateIds = new Set(
+      party.value.filter(Boolean).map(id => {
+        const hero = collection.value.find(h => h.instanceId === id)
+        return hero?.templateId
+      }).filter(Boolean)
+    )
+
     for (let i = 0; i < 4; i++) {
-      if (!party.value[i] && available.length > 0) {
-        party.value[i] = available.shift().instanceId
+      if (!party.value[i]) {
+        const candidate = available.find(h => !usedTemplateIds.has(h.templateId))
+        if (candidate) {
+          available.splice(available.indexOf(candidate), 1)
+          party.value[i] = candidate.instanceId
+          usedTemplateIds.add(candidate.templateId)
+        }
       }
     }
   }
