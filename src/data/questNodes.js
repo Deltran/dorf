@@ -1740,7 +1740,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
       { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   coral_02: {
     id: 'coral_02',
@@ -1760,7 +1761,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
       { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   coral_03: {
     id: 'coral_03',
@@ -1780,7 +1782,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
       { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   coral_04: {
     id: 'coral_04',
@@ -1801,7 +1804,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
       { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   coral_05: {
     id: 'coral_05',
@@ -1822,7 +1826,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
       { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 }
-    ]
+    ],
+    shardDropChance: 0.25
   },
   coral_06: {
     id: 'coral_06',
@@ -1844,7 +1849,8 @@ export const questNodes = {
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
       { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 }
-    ]
+    ],
+    shardDropChance: 0.25
   }
 }
 
