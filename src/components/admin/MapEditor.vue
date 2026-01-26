@@ -227,16 +227,14 @@ function getNodeStyle(nodeId) {
     <div
       ref="mapContainer"
       class="map-canvas-container"
-      :style="{ height: scaledHeight + 'px' }"
+      :style="{ maxWidth: region.width + 'px', height: scaledHeight + 'px' }"
     >
       <!-- Map background -->
       <div
         class="map-background"
         :style="{
           backgroundColor: region.backgroundColor || '#1a1a2a',
-          backgroundImage: imageUrl ? `url(${imageUrl})` : 'none',
-          width: (region.width * scale) + 'px',
-          height: (region.height * scale) + 'px'
+          backgroundImage: imageUrl ? `url(${imageUrl})` : 'none'
         }"
       ></div>
 
@@ -393,19 +391,16 @@ function getNodeStyle(nodeId) {
 
 .map-background {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
   image-rendering: pixelated;
 }
 
 /* --- Trail Connections --- */
 .trail-svg {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
   height: 100%;
   pointer-events: none;
