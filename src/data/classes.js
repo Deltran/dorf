@@ -48,7 +48,8 @@ export const classes = {
     id: 'bard',
     title: 'Bard',
     role: 'support',
-    resourceName: 'Inspiration'
+    resourceName: 'Verse',
+    resourceType: 'verse'
   },
   alchemist: {
     id: 'alchemist',
