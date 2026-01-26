@@ -594,6 +594,11 @@ export const useBattleStore = defineStore('battle', () => {
       return unit.currentRage >= rageCost
     }
 
+    // Bards can always use skills (no cost) - repeat restriction checked in BattleScreen
+    if (isBard(unit)) {
+      return true
+    }
+
     // MP-based classes
     const mpCost = unit.skill.mpCost ?? 0
     return unit.currentMp >= mpCost
@@ -1163,6 +1168,8 @@ export const useBattleStore = defineStore('battle', () => {
         hasFocus: heroFull.class?.resourceType === 'focus' ? true : undefined,
         currentValor: heroFull.class?.resourceType === 'valor' ? 0 : undefined,
         currentRage: heroFull.class?.resourceType === 'rage' ? (savedState?.currentRage ?? 0) : undefined,
+        currentVerses: heroFull.class?.resourceType === 'verse' ? 0 : undefined,
+        lastSkillName: heroFull.class?.resourceType === 'verse' ? null : undefined,
         wasAttacked: false
       })
     }
@@ -1344,7 +1351,7 @@ export const useBattleStore = defineStore('battle', () => {
 
       // MP recovery at start of round
       for (const hero of heroes.value) {
-        if (hero.currentHp > 0) {
+        if (hero.currentHp > 0 && !isBard(hero)) {
           const recovery = Math.floor(hero.maxMp * 0.1)
           hero.currentMp = Math.min(hero.currentMp + recovery, hero.maxMp)
         }
@@ -1473,6 +1480,9 @@ export const useBattleStore = defineStore('battle', () => {
           }
           hero.currentRage -= rageCost
         }
+      } else if (isBard(hero)) {
+        // Bards have no resource cost — skills are free
+        // Repeat restriction is handled by BattleScreen canUseSkill
       } else {
         if (hero.currentMp < skill.mpCost) {
           addLog(`Not enough ${hero.class.resourceName}!`)
@@ -1495,6 +1505,13 @@ export const useBattleStore = defineStore('battle', () => {
       // Rangers lose focus when using a skill
       if (isRanger(hero)) {
         removeFocus(hero, true)  // silent - skill use is implied
+      }
+
+      // Bards gain a verse when using a skill
+      if (isBard(hero)) {
+        gainVerse(hero)
+        hero.lastSkillName = skill.name
+        addLog(`${hero.template.name} plays ${skill.name}! (Verse ${hero.currentVerses}/3)`)
       }
 
       const targetType = skill.targetType || 'enemy'
