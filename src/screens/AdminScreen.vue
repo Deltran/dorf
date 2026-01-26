@@ -3,13 +3,15 @@ import { ref } from 'vue'
 import AssetViewerHeroes from './admin/AssetViewerHeroes.vue'
 import AssetViewerEnemies from './admin/AssetViewerEnemies.vue'
 import AssetViewerBackgrounds from './admin/AssetViewerBackgrounds.vue'
+import AssetViewerMaps from './admin/AssetViewerMaps.vue'
 
 const activeSection = ref('heroes')
 
 const sections = [
   { id: 'heroes', label: 'Heroes' },
   { id: 'enemies', label: 'Enemies' },
-  { id: 'backgrounds', label: 'Backgrounds' }
+  { id: 'backgrounds', label: 'Backgrounds' },
+  { id: 'maps', label: 'Maps' }
 ]
 
 const emit = defineEmits(['navigate'])
@@ -47,6 +49,7 @@ function exitAdmin() {
         <AssetViewerHeroes v-if="activeSection === 'heroes'" />
         <AssetViewerEnemies v-else-if="activeSection === 'enemies'" />
         <AssetViewerBackgrounds v-else-if="activeSection === 'backgrounds'" />
+        <AssetViewerMaps v-else-if="activeSection === 'maps'" />
       </div>
     </main>
   </div>
