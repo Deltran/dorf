@@ -414,6 +414,68 @@ export default function adminPlugin() {
         }
         next()
       })
+
+      // POST /__admin/save-region-size - update width/height for a region in questNodes.js
+      server.middlewares.use(async (req, res, next) => {
+        if (req.method === 'POST' && req.url === '/__admin/save-region-size') {
+          let body = ''
+          for await (const chunk of req) {
+            body += chunk
+          }
+
+          try {
+            const { regionId, width, height } = JSON.parse(body)
+
+            if (!regionId || !width || !height) {
+              res.statusCode = 400
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'regionId, width, and height are required' }))
+              return
+            }
+
+            const filePath = path.resolve(process.cwd(), 'src/data/questNodes.js')
+            let content = fs.readFileSync(filePath, 'utf-8')
+
+            const idPattern = new RegExp(`id:\\s*'${regionId}'`)
+            const idMatch = content.match(idPattern)
+            if (!idMatch) {
+              res.statusCode = 404
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: `Region ${regionId} not found` }))
+              return
+            }
+
+            const idIndex = idMatch.index
+            const blockSlice = content.slice(idIndex, idIndex + 200)
+
+            const wMatch = blockSlice.match(/width:\s*\d+/)
+            if (wMatch) {
+              const absIdx = idIndex + wMatch.index
+              content = content.slice(0, absIdx) + `width: ${Math.round(width)}` + content.slice(absIdx + wMatch[0].length)
+            }
+
+            // Re-find after width replacement
+            const updatedMatch = content.match(idPattern)
+            const updatedSlice = content.slice(updatedMatch.index, updatedMatch.index + 200)
+            const hMatch = updatedSlice.match(/height:\s*\d+/)
+            if (hMatch) {
+              const absIdx = updatedMatch.index + hMatch.index
+              content = content.slice(0, absIdx) + `height: ${Math.round(height)}` + content.slice(absIdx + hMatch[0].length)
+            }
+
+            fs.writeFileSync(filePath, content, 'utf-8')
+
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true }))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
     }
   }
 }

@@ -95,8 +95,8 @@ export const questNodes = {
     id: 'forest_05',
     name: 'Goblin Cavern',
     region: 'Whispering Woods',
-    x: 570,
-    y: 210,
+    x: 586,
+    y: 164,
     battles: [
       { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_shaman'] },
       { enemies: ['goblin_thrower', 'goblin_thrower', 'goblin_bulwark', 'goblin_warrior', 'goblin_trapper'] },
@@ -1778,8 +1778,8 @@ export const regions = [
     name: 'Whisper Lake',
     superRegion: 'western_veros',
     startNode: 'lake_01',
-    width: 500,
-    height: 450,
+    width: 800,
+    height: 500,
     backgroundColor: '#1a2a2f',
     backgroundImage: whisperLakeMap
   },

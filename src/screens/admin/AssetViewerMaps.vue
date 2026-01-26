@@ -93,6 +93,21 @@ async function savePositions(positions) {
     alert('Failed to save positions: ' + (err.message || err))
   }
 }
+
+async function resizeRegion({ width, height }) {
+  if (!editingRegion.value) return
+  const regionId = editingRegion.value.id
+  try {
+    await fetch('/__admin/save-region-size', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ regionId, width, height })
+    })
+    editingRegion.value = { ...editingRegion.value, width, height }
+  } catch (err) {
+    alert('Failed to resize region: ' + (err.message || err))
+  }
+}
 </script>
 
 <template>
@@ -107,6 +122,7 @@ async function savePositions(positions) {
       @back="closeEditor"
       @save-image="saveImage"
       @save-positions="savePositions"
+      @resize-region="resizeRegion"
     />
 
     <!-- Card grid view -->

@@ -9,7 +9,7 @@ const props = defineProps({
   savedPrompt: { type: String, default: null }
 })
 
-const emit = defineEmits(['back', 'save-image', 'save-positions'])
+const emit = defineEmits(['back', 'save-image', 'save-positions', 'resize-region'])
 
 // --- Local node positions (mutable copies) ---
 const nodePositions = ref({})
@@ -204,6 +204,16 @@ function getNodeStyle(nodeId) {
     <div class="editor-top-bar">
       <button class="btn btn-secondary" @click="emit('back')">Back</button>
       <h2 class="editor-title">{{ region.name }}</h2>
+      <div class="region-size-toggle">
+        <button
+          :class="['size-btn', { active: region.width === 800 && region.height === 500 }]"
+          @click="emit('resize-region', { width: 800, height: 500 })"
+        >800x500</button>
+        <button
+          :class="['size-btn', { active: region.width === 800 && region.height === 800 }]"
+          @click="emit('resize-region', { width: 800, height: 800 })"
+        >800x800</button>
+      </div>
       <button
         class="btn btn-success"
         :disabled="!hasChanges"
@@ -344,6 +354,33 @@ function getNodeStyle(nodeId) {
   margin: 0;
   font-size: 20px;
   color: #f3f4f6;
+}
+
+.region-size-toggle {
+  display: flex;
+  gap: 4px;
+}
+
+.size-btn {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.size-btn.active {
+  border-color: #3b82f6;
+  color: #f3f4f6;
+  background: rgba(59, 130, 246, 0.15);
+}
+
+.size-btn:hover:not(.active) {
+  border-color: #4b5563;
+  color: #d1d5db;
 }
 
 /* --- Map Canvas --- */
