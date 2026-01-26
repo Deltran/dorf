@@ -1778,8 +1778,8 @@ export const regions = [
     name: 'Whisper Lake',
     superRegion: 'western_veros',
     startNode: 'lake_01',
-    width: 800,
-    height: 500,
+    width: 500,
+    height: 450,
     backgroundColor: '#1a2a2f',
     backgroundImage: whisperLakeMap
   },
