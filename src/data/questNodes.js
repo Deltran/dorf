@@ -3,7 +3,7 @@ import echoingCavernsMap from '../assets/maps/echoing_caverns.png'
 import whisperLakeMap from '../assets/maps/whisper_lake.png'
 import stormwindPeaksMap from '../assets/maps/stormwind_peaks.png'
 import hibernationDenMap from '../assets/maps/hibernation_den.png'
-import summitMap from '../assets/maps/summit.png'
+import summitMap from '../assets/maps/the_summit.png'
 import blisteringCliffsMap from '../assets/maps/blistering_cliffsides.png'
 
 export const questNodes = {
@@ -794,8 +794,8 @@ export const questNodes = {
     id: 'cliffs_01',
     name: 'Scorched Trail',
     region: 'Blistering Cliffsides',
-    x: 100,
-    y: 250,
+    x: 170,
+    y: 278,
     battles: [
       { enemies: ['ash_crawler', 'ash_crawler', 'ash_crawler'] },
       { enemies: ['fire_elemental', 'ash_crawler'] },
@@ -817,8 +817,8 @@ export const questNodes = {
     id: 'cliffs_02',
     name: 'Ember Fields',
     region: 'Blistering Cliffsides',
-    x: 230,
-    y: 180,
+    x: 54,
+    y: 434,
     battles: [
       { enemies: ['fire_elemental', 'fire_elemental', 'ash_crawler'] },
       { enemies: ['flame_salamander', 'flame_salamander'] },
@@ -840,8 +840,8 @@ export const questNodes = {
     id: 'cliffs_03',
     name: 'Magma Pools',
     region: 'Blistering Cliffsides',
-    x: 400,
-    y: 100,
+    x: 225,
+    y: 631,
     battles: [
       { enemies: ['magma_golem', 'fire_elemental'] },
       { enemies: ['flame_salamander', 'flame_salamander', 'flame_salamander'] },
@@ -863,8 +863,8 @@ export const questNodes = {
     id: 'cliffs_04',
     name: 'Sulfur Vents',
     region: 'Blistering Cliffsides',
-    x: 400,
-    y: 400,
+    x: 259,
+    y: 420,
     battles: [
       { enemies: ['ash_crawler', 'ash_crawler', 'ash_crawler', 'ash_crawler', 'ash_crawler'] },
       { enemies: ['fire_elemental', 'fire_elemental', 'fire_elemental'] },
@@ -886,8 +886,8 @@ export const questNodes = {
     id: 'cliffs_05',
     name: 'Caldera Ridge',
     region: 'Blistering Cliffsides',
-    x: 570,
-    y: 250,
+    x: 481,
+    y: 323,
     battles: [
       { enemies: ['volcanic_drake', 'fire_elemental'] },
       { enemies: ['magma_golem', 'magma_golem', 'ash_crawler', 'ash_crawler'] },
@@ -910,8 +910,8 @@ export const questNodes = {
     id: 'cliffs_06',
     name: 'Inferno Peak',
     region: 'Blistering Cliffsides',
-    x: 700,
-    y: 250,
+    x: 720,
+    y: 230,
     battles: [
       { enemies: ['volcanic_drake', 'volcanic_drake'] },
       { enemies: ['magma_golem', 'magma_golem', 'flame_salamander'] },
