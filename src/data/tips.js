@@ -10,6 +10,10 @@ export const tips = {
     title: 'Explorations',
     message: 'Send heroes on expeditions to gather resources while you\'re away. Higher rank explorations yield better rewards.',
     anchor: 'exploration-panel'
+  },
+  shard_drop_intro: {
+    title: 'Shards',
+    message: 'Shards power up your heroes! Collect them in Aquaria and beyond, then visit the Shards screen to upgrade your heroes\' skills.'
   }
 }
 

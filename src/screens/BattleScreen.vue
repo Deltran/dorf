@@ -12,9 +12,10 @@ import FocusIndicator from '../components/FocusIndicator.vue'
 import ValorBar from '../components/ValorBar.vue'
 import RageBar from '../components/RageBar.vue'
 import { getItem } from '../data/items.js'
-import { getQuestNode } from '../data/questNodes.js'
+import { getQuestNode, getAllQuestNodes } from '../data/questNodes.js'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getGenusLoci } from '../data/genusLoci.js'
+import { useTipsStore } from '../stores/tips.js'
 
 const props = defineProps({
   genusLociContext: {
@@ -32,6 +33,7 @@ const gachaStore = useGachaStore()
 const inventoryStore = useInventoryStore()
 const genusLociStore = useGenusLociStore()
 const explorationsStore = useExplorationsStore()
+const tipsStore = useTipsStore()
 
 const showVictoryModal = ref(false)
 const showDefeatModal = ref(false)
@@ -331,6 +333,7 @@ function handleVictory() {
           template: getHeroTemplate(rewards.value.shardDrop.templateId),
           count: rewards.value.shardDrop.count
         }
+        tipsStore.showTip('shard_drop_intro')
       } else {
         shardDropDisplay.value = null
       }
@@ -409,6 +412,12 @@ function handleGenusLociVictory() {
 
   // Record victory in genus loci store
   const { isFirstClear } = genusLociStore.recordVictory(meta.genusLociId, meta.powerLevel)
+
+  // Mark quest node as completed (unlocks crest shop sections, etc.)
+  const glNode = getAllQuestNodes().find(n => n.genusLociId === meta.genusLociId)
+  if (glNode && !questsStore.completedNodes.includes(glNode.id)) {
+    questsStore.completedNodes.push(glNode.id)
+  }
 
   // Calculate rewards
   const baseRewards = bossData.currencyRewards?.base || {}

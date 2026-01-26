@@ -114,6 +114,7 @@ const generateWidth = ref(800)
 const generateHeight = ref(500)
 const generating = ref(false)
 const generationError = ref(null)
+const generationStatus = ref(null)
 const generatedDataUrl = ref(null)
 
 watch(() => props.region, (region) => {
@@ -137,13 +138,15 @@ async function generate() {
   if (generating.value) return
   generating.value = true
   generationError.value = null
+  generationStatus.value = null
   generatedDataUrl.value = null
 
   try {
     const dataUrl = await generateMapImage({
       prompt: prompt.value,
       width: generateWidth.value,
-      height: generateHeight.value
+      height: generateHeight.value,
+      onStatus: (msg) => { generationStatus.value = msg }
     })
     generatedDataUrl.value = dataUrl
   } catch (e) {
@@ -306,6 +309,10 @@ function getNodeStyle(nodeId) {
       >
         {{ generating ? 'Generating...' : 'Generate' }}
       </button>
+
+      <div v-if="generating && generationStatus" class="status-msg">
+        {{ generationStatus }}
+      </div>
 
       <div v-if="generationError" class="error-msg">
         {{ generationError }}
@@ -588,6 +595,12 @@ function getNodeStyle(nodeId) {
 
 .btn-secondary:hover:not(:disabled) {
   background: #4b5563;
+}
+
+.status-msg {
+  color: #facc15;
+  font-size: 13px;
+  padding: 8px;
 }
 
 .error-msg {
