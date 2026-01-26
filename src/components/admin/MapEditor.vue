@@ -167,6 +167,26 @@ function tryAgain() {
   generationError.value = null
 }
 
+// --- Trail connections ---
+const trails = computed(() => {
+  const result = []
+  const regionNodes = new Set(props.nodes.map(n => n.id))
+  for (const node of props.nodes) {
+    for (const connId of node.connections || []) {
+      if (!regionNodes.has(connId)) continue
+      const fromPos = nodePositions.value[node.id]
+      const toPos = nodePositions.value[connId]
+      if (!fromPos || !toPos) continue
+      result.push({
+        id: `${node.id}-${connId}`,
+        x1: fromPos.x, y1: fromPos.y,
+        x2: toPos.x, y2: toPos.y
+      })
+    }
+  }
+  return result
+})
+
 // --- Node style helper ---
 function getNodeStyle(nodeId) {
   const pos = nodePositions.value[nodeId]
@@ -209,6 +229,22 @@ function getNodeStyle(nodeId) {
           height: (region.height * scale) + 'px'
         }"
       ></div>
+
+      <!-- Trail connections -->
+      <svg
+        class="trail-svg"
+        :viewBox="`0 0 ${region.width} ${region.height}`"
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <line
+          v-for="trail in trails"
+          :key="trail.id"
+          :x1="trail.x1" :y1="trail.y1"
+          :x2="trail.x2" :y2="trail.y2"
+          class="trail-line"
+          stroke-dasharray="8 8"
+        />
+      </svg>
 
       <!-- Node markers -->
       <div
@@ -326,6 +362,23 @@ function getNodeStyle(nodeId) {
   background-position: center;
   background-repeat: no-repeat;
   image-rendering: pixelated;
+}
+
+/* --- Trail Connections --- */
+.trail-svg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.trail-line {
+  stroke: rgba(255, 255, 255, 0.5);
+  stroke-width: 3;
+  stroke-linecap: round;
 }
 
 /* --- Node Markers --- */
