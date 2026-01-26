@@ -3,6 +3,18 @@ import { computed } from 'vue'
 import { useHeroesStore } from '../stores'
 import { getItem } from '../data/items.js'
 
+// Hero image imports
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
+
+function getHeroImageUrl(templateId) {
+  if (!templateId) return null
+  const gifPath = `../assets/heroes/${templateId}.gif`
+  if (heroGifs[gifPath]) return heroGifs[gifPath]
+  const pngPath = `../assets/heroes/${templateId}.png`
+  return heroImages[pngPath] || null
+}
+
 const props = defineProps({
   completion: {
     type: Object,
@@ -43,7 +55,13 @@ const itemDisplays = computed(() => {
           :key="hero.instanceId"
           class="hero-portrait"
         >
-          <div class="portrait-placeholder">{{ hero.template?.name?.charAt(0) }}</div>
+          <img
+            v-if="getHeroImageUrl(hero.template?.id)"
+            :src="getHeroImageUrl(hero.template?.id)"
+            :alt="hero.template?.name"
+            class="portrait-image"
+          />
+          <div v-else class="portrait-placeholder">{{ hero.template?.name?.charAt(0) }}</div>
           <div class="hero-xp">+{{ completion.rewards.xpPerHero }} XP</div>
         </div>
       </div>
@@ -156,6 +174,15 @@ h2 {
 
 .hero-portrait {
   text-align: center;
+}
+
+.portrait-image {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 4px;
+  border: 2px solid #374151;
 }
 
 .portrait-placeholder {

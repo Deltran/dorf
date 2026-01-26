@@ -2,6 +2,30 @@
 import { ref, computed } from 'vue'
 import { useGenusLociStore, useInventoryStore } from '../stores'
 import { getGenusLoci, getAllGenusLoci } from '../data/genusLoci.js'
+import { getAllQuestNodes } from '../data/questNodes.js'
+
+// Enemy portraits for genus loci
+const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
+
+// Battle backgrounds for genus loci cards
+const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+
+function getBossPortraitUrl(bossId) {
+  const portraitPath = `../assets/enemies/${bossId}_portrait.png`
+  return enemyPortraits[portraitPath] || null
+}
+
+function getBossBackgroundUrl(bossId) {
+  // Find the quest node that has this genusLociId
+  const questNode = getAllQuestNodes().find(n => n.genusLociId === bossId)
+  if (questNode) {
+    const bgPath = `../assets/battle_backgrounds/${questNode.id}.png`
+    if (battleBackgrounds[bgPath]) {
+      return battleBackgrounds[bgPath]
+    }
+  }
+  return null
+}
 
 const emit = defineEmits(['navigate', 'startGenusLociBattle'])
 
@@ -74,8 +98,20 @@ function goBack() {
     </header>
 
     <div v-if="selectedBoss" class="boss-detail">
-      <div class="boss-header">
-        <div class="boss-icon">👹</div>
+      <div
+        class="boss-header"
+        :style="getBossBackgroundUrl(selectedBoss.id) ? { backgroundImage: `url(${getBossBackgroundUrl(selectedBoss.id)})` } : {}"
+      >
+        <div class="boss-header-overlay"></div>
+        <div class="boss-icon">
+          <img
+            v-if="getBossPortraitUrl(selectedBoss.id)"
+            :src="getBossPortraitUrl(selectedBoss.id)"
+            :alt="selectedBoss.name"
+            class="boss-portrait"
+          />
+          <span v-else>👹</span>
+        </div>
         <div class="boss-title">
           <h2>{{ selectedBoss.name }}</h2>
           <p class="boss-description">{{ selectedBoss.description }}</p>
@@ -170,8 +206,25 @@ function goBack() {
   gap: 16px;
   padding: 20px;
   background: linear-gradient(135deg, #2a1f3d 0%, #1f2937 100%);
+  background-size: cover;
+  background-position: center;
   border-radius: 16px;
   border: 1px solid #6b21a8;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(147, 51, 234, 0.2);
+}
+
+.boss-header-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(42, 31, 61, 0.85) 0%, rgba(31, 41, 55, 0.8) 100%);
+  z-index: 0;
+}
+
+.boss-header > *:not(.boss-header-overlay) {
+  position: relative;
+  z-index: 1;
 }
 
 .boss-icon {
@@ -181,20 +234,31 @@ function goBack() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(147, 51, 234, 0.2);
+  background: rgba(147, 51, 234, 0.3);
   border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  flex-shrink: 0;
+}
+
+.boss-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .boss-title h2 {
   margin: 0 0 8px 0;
   font-size: 1.3rem;
   color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .boss-description {
   margin: 0;
-  color: #9ca3af;
+  color: #d1d5db;
   font-size: 0.9rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .key-status {

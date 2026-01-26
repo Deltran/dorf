@@ -618,25 +618,27 @@ function closeTokenResults() {
             </div>
           </div>
 
-          <!-- Use Token Button (for completed quests) -->
-          <button
-            v-if="selectedNodeToken"
-            class="use-token-btn"
-            :disabled="selectedNodeToken.count <= 0"
-            @click="useToken"
-          >
-            <span class="btn-icon">🎫</span>
-            <span v-if="selectedNodeToken.count > 0">Use Token ({{ selectedNodeToken.count }})</span>
-            <span v-else>No Token</span>
-          </button>
+          <div :class="['quest-buttons', { 'has-token': selectedNodeToken }]">
+            <!-- Use Token Button (for completed quests) -->
+            <button
+              v-if="selectedNodeToken"
+              class="use-token-btn"
+              :disabled="selectedNodeToken.count <= 0"
+              @click="useToken"
+            >
+              <span class="btn-icon">🎫</span>
+              <span v-if="selectedNodeToken.count > 0">Use Token ({{ selectedNodeToken.count }})</span>
+              <span v-else>No Token</span>
+            </button>
 
-          <button
-            class="start-quest-btn"
-            @click="startQuest"
-          >
-            <span class="btn-icon">⚔️</span>
-            <span>{{ selectedNode.isCompleted ? 'Replay Quest' : 'Start Quest' }}</span>
-          </button>
+            <button
+              class="start-quest-btn"
+              @click="startQuest"
+            >
+              <span class="btn-icon">⚔️</span>
+              <span>{{ selectedNode.isCompleted ? 'Replay Quest' : 'Start Quest' }}</span>
+            </button>
+          </div>
         </div>
       </aside>
     </Transition>
@@ -1152,6 +1154,17 @@ function closeTokenResults() {
   }
 }
 
+/* Quest Buttons Container */
+.quest-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.quest-buttons.has-token .start-quest-btn,
+.quest-buttons.has-token .use-token-btn {
+  flex: 1;
+}
+
 /* Start Quest Button */
 .start-quest-btn {
   width: 100%;
@@ -1169,6 +1182,10 @@ function closeTokenResults() {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.quest-buttons.has-token .start-quest-btn {
+  width: auto;
 }
 
 .start-quest-btn:hover {
@@ -1481,13 +1498,11 @@ function closeTokenResults() {
 
 /* Use Token Button */
 .use-token-btn {
-  width: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 20px;
-  margin-bottom: 10px;
+  padding: 12px 16px;
   background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
   border: none;
   border-radius: 10px;
@@ -1496,6 +1511,7 @@ function closeTokenResults() {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
 .use-token-btn:hover:not(:disabled) {
