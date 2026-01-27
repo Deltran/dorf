@@ -22,6 +22,10 @@ describe('battle store - evasion effect', () => {
       expect(effectDefinitions[EffectType.EVASION].isBuff).toBe(true)
       expect(effectDefinitions[EffectType.EVASION].isEvasion).toBe(true)
     })
+
+    it('should be stackable', () => {
+      expect(effectDefinitions[EffectType.EVASION].stackable).toBe(true)
+    })
   })
 
   describe('hasEffect', () => {
