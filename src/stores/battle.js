@@ -2829,7 +2829,7 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   function calculateDamage(atk, multiplier, def) {
-    const raw = atk * multiplier - def * 0.5
+    const raw = atk * multiplier * (100 / (100 + def))
     return Math.max(1, Math.floor(raw))
   }
 
@@ -2842,7 +2842,7 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   function calculateDamageWithMarked(atk, multiplier, def, markedMultiplier = 1) {
-    const raw = atk * multiplier - def * 0.5
+    const raw = atk * multiplier * (100 / (100 + def))
     const baseDamage = Math.max(1, Math.floor(raw))
     return Math.floor(baseDamage * markedMultiplier)
   }
