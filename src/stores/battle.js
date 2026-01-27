@@ -1962,7 +1962,8 @@ export const useBattleStore = defineStore('battle', () => {
 
             applyDamage(target, damage, 'attack', hero)
             if (skill.bonusDamagePerDebuff && debuffCount > 0) {
-              addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage! (${debuffCount} debuffs consumed)`)
+              const debuffNote = skill.consumeDebuffs ? `${debuffCount} debuffs consumed` : `${debuffCount} debuffs`
+              addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage! (${debuffNote})`)
             } else {
               addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage!`)
             }
