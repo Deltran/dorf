@@ -746,6 +746,17 @@ export const useBattleStore = defineStore('battle', () => {
       return unit.currentRage >= rageCost
     }
 
+    // Knights check valor requirements
+    if (isKnight(unit)) {
+      if (unit.skill.valorCost === 'all') {
+        // 'all' cost skills require valorRequired minimum (or any valor > 0)
+        const required = unit.skill.valorRequired || 1
+        return (unit.currentValor || 0) >= required
+      }
+      // Knights with no valorCost can always use their skills (no MP cost)
+      return true
+    }
+
     // Bards can always use skills (no cost) - repeat restriction checked in BattleScreen
     if (isBard(unit)) {
       return true
@@ -808,6 +819,18 @@ export const useBattleStore = defineStore('battle', () => {
       return resolveValorScaling(skill.damage, tier)
     }
     return null // Use standard multiplier parsing
+  }
+
+  // Resolve valorCost: 'all' consumption for Valor-consuming finishers (e.g., Judgment of Steel)
+  // Returns { valorConsumed, damagePercent } — consumes all Valor and calculates scaled damage
+  function resolveValorCost(hero, skill) {
+    if (skill.valorCost !== 'all' || !isKnight(hero)) {
+      return { valorConsumed: 0, damagePercent: 0 }
+    }
+    const valorConsumed = hero.currentValor || 0
+    hero.currentValor = 0
+    const damagePercent = (skill.baseDamage || 0) + valorConsumed * (skill.damagePerValor || 0)
+    return { valorConsumed, damagePercent }
   }
 
   // Check if an effect should be applied based on valorThreshold
@@ -903,6 +926,26 @@ export const useBattleStore = defineStore('battle', () => {
   function calculateHealSelfPercent(damageDealt, healPercent) {
     if (!healPercent || healPercent <= 0) return 0
     return Math.floor(damageDealt * healPercent / 100)
+  }
+
+  // Check if riposte triggers on a target hit by an enemy
+  // Returns { triggered, damage } - noDefCheck bypasses the DEF comparison
+  function checkRiposte(target, enemy) {
+    const riposteEffect = target.statusEffects?.find(e => e.definition?.isRiposte)
+    if (!riposteEffect || enemy.currentHp <= 0 || target.currentHp <= 0) {
+      return { triggered: false, damage: 0 }
+    }
+
+    const targetDef = getEffectiveStat(target, 'def')
+    const enemyDef = getEffectiveStat(enemy, 'def')
+
+    if (riposteEffect.noDefCheck || enemyDef < targetDef) {
+      const targetAtk = getEffectiveStat(target, 'atk')
+      const riposteDamage = Math.floor(targetAtk * (riposteEffect.value || 100) / 100)
+      return { triggered: true, damage: riposteDamage }
+    }
+
+    return { triggered: false, damage: 0 }
   }
 
   // Apply damage to a unit and handle focus loss for rangers
@@ -1670,6 +1713,15 @@ export const useBattleStore = defineStore('battle', () => {
           state.value = BattleState.PLAYER_TURN
           return
         }
+        // Handle 'all' valor cost (consume all valor) — deferred to damage calculation
+        if (skill.valorCost === 'all') {
+          if ((hero.currentValor || 0) <= 0) {
+            addLog(`Not enough ${hero.class.resourceName}!`)
+            state.value = BattleState.PLAYER_TURN
+            return
+          }
+          // Valor will be consumed in resolveValorCost during damage calculation
+        }
         // Knights don't spend MP
       } else if (isRanger(hero)) {
         if (!hero.hasFocus) {
@@ -1808,6 +1860,42 @@ export const useBattleStore = defineStore('battle', () => {
             }
 
             addLog(`${hero.template.name} deals ${totalDamage} total damage in ${skill.multiHit} hits!`)
+
+            if (target.currentHp <= 0) {
+              addLog(`${target.template.name} defeated!`)
+            }
+          }
+          // Handle single-hit valor-consuming skills (e.g., Judgment of Steel)
+          else if (skill.valorCost === 'all' && skill.baseDamage !== undefined && skill.damagePerValor !== undefined) {
+            const { valorConsumed, damagePercent } = resolveValorCost(hero, skill)
+
+            const effectiveDef = getEffectiveStat(target, 'def')
+            const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
+            const reducedDef = effectiveDef * (1 - defReduction)
+
+            // Apply shard bonus to the calculated damage percentage
+            const multiplier = (damagePercent + shardBonus) / 100
+            const markedMultiplier = getMarkedDamageMultiplier(target)
+            const damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+
+            applyDamage(target, damage, 'attack', hero)
+            addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage! (${valorConsumed} Valor consumed)`)
+            emitCombatEffect(target.id, 'enemy', 'damage', damage)
+
+            // Handle healSelfPercent (lifesteal)
+            if (skill.healSelfPercent && damage > 0) {
+              const healAmount = calculateHealSelfPercent(damage, skill.healSelfPercent)
+              if (healAmount > 0) {
+                const maxHp = hero.stats?.hp || hero.maxHp
+                const oldHp = hero.currentHp
+                hero.currentHp = Math.min(maxHp, hero.currentHp + healAmount)
+                const actualHeal = hero.currentHp - oldHp
+                if (actualHeal > 0) {
+                  addLog(`${hero.template.name} heals for ${actualHeal}!`)
+                  emitCombatEffect(hero.instanceId, 'hero', 'heal', actualHeal)
+                }
+              }
+            }
 
             if (target.currentHp <= 0) {
               addLog(`${target.template.name} defeated!`)
@@ -2823,23 +2911,14 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
-    // Check for riposte effect on the target (counter-attack if enemy has lower DEF)
-    const riposteEffect = target.statusEffects?.find(e => e.definition?.isRiposte)
-    if (riposteEffect && enemy.currentHp > 0 && target.currentHp > 0) {
-      const targetDef = getEffectiveStat(target, 'def')
-      const enemyDef = getEffectiveStat(enemy, 'def')
-
-      if (enemyDef < targetDef) {
-        const targetAtk = getEffectiveStat(target, 'atk')
-        const riposteDamage = Math.floor(targetAtk * (riposteEffect.value || 100) / 100)
-        if (riposteDamage > 0) {
-          applyDamage(enemy, riposteDamage, 'riposte')
-          addLog(`${target.template.name} ripostes ${enemy.template.name} for ${riposteDamage} damage!`)
-          emitCombatEffect(enemy.id, 'enemy', 'damage', riposteDamage)
-          if (enemy.currentHp <= 0) {
-            addLog(`${enemy.template.name} defeated!`)
-          }
-        }
+    // Check for riposte effect on the target (counter-attack if enemy has lower DEF, or noDefCheck bypasses)
+    const riposteResult = checkRiposte(target, enemy)
+    if (riposteResult.triggered && riposteResult.damage > 0) {
+      applyDamage(enemy, riposteResult.damage, 'riposte')
+      addLog(`${target.template.name} ripostes ${enemy.template.name} for ${riposteResult.damage} damage!`)
+      emitCombatEffect(enemy.id, 'enemy', 'damage', riposteResult.damage)
+      if (enemy.currentHp <= 0) {
+        addLog(`${enemy.template.name} defeated!`)
       }
     }
 
@@ -3142,6 +3221,8 @@ export const useBattleStore = defineStore('battle', () => {
     // Valor helpers (for UI)
     isKnight,
     getValorTier,
+    resolveValorCost,
+    gainValor,
     // Chain bounce helpers
     getChainTargets,
     // Flame Shield trigger (for reactive burn)
@@ -3158,6 +3239,8 @@ export const useBattleStore = defineStore('battle', () => {
     releaseDamageStore,
     // Divine Sacrifice (for Aurora's ally damage interception)
     checkDivineSacrifice,
+    // Riposte (counter-attack check with optional noDefCheck bypass)
+    checkRiposte,
     // Heal Self Percent (lifesteal for skills)
     calculateHealSelfPercent,
     // Passive regen leader effects

@@ -497,34 +497,31 @@ export const heroTemplates = {
   // 3-star (Rare)
   town_guard: {
     id: 'town_guard',
-    name: 'Kensin, Squire',
+    name: 'Kensin',
     rarity: 3,
     classId: 'knight',
     baseStats: { hp: 110, atk: 22, def: 35, spd: 8 },
     skills: [
       {
-        name: 'Defensive Stance',
-        description: 'Increase own DEF by 50% for 2 turns. At 50 Valor: 3 turns. At 75 Valor: 65% DEF.',
+        name: 'Stand and Fight',
+        description: 'Taunt all enemies for 2 turns. At 50 Valor: 3 turns. At 75 Valor: also gain 15% damage reduction.',
         valorRequired: 25,
         targetType: 'self',
         skillUnlockLevel: 1,
         noDamage: true,
         defensive: true,
         effects: [
-          { type: EffectType.DEF_UP, target: 'self', duration: { base: 2, at50: 3 }, value: { base: 50, at75: 65 } }
+          { type: EffectType.TAUNT, target: 'self', duration: { base: 2, at50: 3 } },
+          { type: EffectType.DAMAGE_REDUCTION, target: 'self', duration: { base: 2, at50: 3 }, value: 15, valorThreshold: 75 }
         ]
       },
       {
-        name: 'Shield Allies',
-        description: 'Increase ally DEF by 15% for 2 turns. At 50 Valor: 30% DEF. At 100 Valor: 3 turns.',
+        name: 'Retribution',
+        description: 'Deal damage to one enemy. Damage scales with Valor: 100% ATK base, up to 180% at max Valor.',
         valorRequired: 0,
-        targetType: 'ally',
+        targetType: 'enemy',
         skillUnlockLevel: 1,
-        noDamage: true,
-        defensive: true,
-        effects: [
-          { type: EffectType.DEF_UP, target: 'ally', duration: { base: 2, at100: 3 }, value: { base: 15, at50: 30 } }
-        ]
+        damage: { base: 100, at25: 120, at50: 140, at75: 160, at100: 180 }
       },
       {
         name: 'Reinforce',
@@ -538,32 +535,29 @@ export const heroTemplates = {
         healFromStat: { stat: 'def', percent: { base: 10, at75: 15 } }
       },
       {
-        name: 'Riposte Strike',
-        description: 'Gain Riposte for 3 turns: retaliate with 100% ATK when attacked by enemies with lower DEF. At 75 Valor: 4 turns. At 100 Valor: 5 turns.',
-        valorRequired: 50,
+        name: 'Riposte',
+        description: 'Gain Riposte for 2 turns: counter-attack for 80% ATK when hit. No DEF requirement. At 50 Valor: 100% ATK. At 75 Valor: 3 turns.',
+        valorRequired: 0,
         targetType: 'self',
         skillUnlockLevel: 6,
         noDamage: true,
         defensive: true,
         effects: [
-          { type: EffectType.RIPOSTE, target: 'self', duration: { base: 3, at75: 4, at100: 5 }, value: 100 }
+          { type: EffectType.RIPOSTE, target: 'self', duration: { base: 2, at75: 3 }, value: { base: 80, at50: 100 }, noDefCheck: true }
         ]
       },
       {
-        name: "Guardian's Sacrifice",
-        description: 'Redirect all damage from one ally to Kensin. Gain DEF buff while active. Duration and DEF scale with Valor.',
-        valorRequired: 0,
-        targetType: 'ally',
+        name: 'Judgment of Steel',
+        description: 'Consume ALL Valor. Deal 50% ATK + 2% per Valor consumed to one enemy. Apply 20% DEF debuff for 2 turns.',
+        valorCost: 'all',
+        valorRequired: 50,
+        targetType: 'enemy',
         skillUnlockLevel: 12,
-        noDamage: true,
-        defensive: true,
+        baseDamage: 50,
+        damagePerValor: 2,
         effects: [
-          { type: EffectType.DEF_UP, target: 'self', duration: { base: 2, at75: 3 }, value: { base: 20, at25: 25, at50: 30, at100: 35 } }
-        ],
-        redirect: {
-          percent: 100,
-          duration: { base: 2, at75: 3 }
-        }
+          { type: EffectType.DEF_DOWN, target: 'enemy', duration: 2, value: 20 }
+        ]
       }
     ]
   },
@@ -935,7 +929,7 @@ export const heroTemplates = {
         description: 'Deal 80% ATK damage to one enemy. Get an extra turn.',
         skillUnlockLevel: 1,
         targetType: 'enemy',
-        damageMultiplier: 0.8,
+        damagePercent: 80,
         grantsExtraTurn: true
       },
       {
@@ -943,7 +937,7 @@ export const heroTemplates = {
         description: 'Deal 150% ATK damage to one enemy. Receive a -15% DEF debuff.',
         skillUnlockLevel: 3,
         targetType: 'enemy',
-        damageMultiplier: 1.5,
+        damagePercent: 150,
         effects: [
           { type: EffectType.DEF_DOWN, target: 'self', duration: 2, value: 15 }
         ]
@@ -967,7 +961,7 @@ export const heroTemplates = {
         description: 'Deal 120% ATK damage to target enemy. Become untargetable until the end of next round.',
         skillUnlockLevel: 12,
         targetType: 'enemy',
-        damageMultiplier: 1.2,
+        damagePercent: 120,
         effects: [
           { type: EffectType.UNTARGETABLE, target: 'self', duration: 2, value: 0 }
         ]
