@@ -865,7 +865,13 @@ export const useBattleStore = defineStore('battle', () => {
     const rawValue = effect.value
     if (typeof rawValue === 'number') {
       // Effect values are percentages (e.g., 20 = +20% stat), add shard bonus
-      return rawValue + shardBonus
+      let value = rawValue + shardBonus
+      // Desperation scaling: bonus based on party average missing HP
+      if (effect.desperationBonus) {
+        const missingHpPercent = calculatePartyMissingHpPercent(aliveHeroes.value)
+        value += Math.floor(effect.desperationBonus * missingHpPercent)
+      }
+      return value
     }
     if (typeof rawValue === 'object' && rawValue !== null) {
       const tier = getValorTier(hero)
@@ -926,6 +932,19 @@ export const useBattleStore = defineStore('battle', () => {
   function calculateHealSelfPercent(damageDealt, healPercent) {
     if (!healPercent || healPercent <= 0) return 0
     return Math.floor(damageDealt * healPercent / 100)
+  }
+
+  // Calculate heal with desperation scaling (bonus based on missing HP percentage)
+  function calculateDesperationHeal(atk, healPercent, desperationBonus, missingHpPercent, shardBonus = 0) {
+    const totalPercent = healPercent + shardBonus + Math.floor(desperationBonus * missingHpPercent)
+    return Math.floor(atk * totalPercent / 100)
+  }
+
+  // Calculate average missing HP percentage across a set of heroes
+  function calculatePartyMissingHpPercent(heroList) {
+    if (!heroList || heroList.length === 0) return 0
+    const totalMissing = heroList.reduce((sum, h) => sum + (1 - h.currentHp / h.maxHp), 0)
+    return totalMissing / heroList.length
   }
 
   // Check if riposte triggers on a target hit by an enemy
@@ -2123,7 +2142,13 @@ export const useBattleStore = defineStore('battle', () => {
 
           // Heal unless skill is effect-only
           if (!skill.noDamage) {
-            const healAmount = calculateHeal(effectiveAtk, skill.description, shardBonus)
+            let healAmount
+            if (skill.desperationHealBonus) {
+              const missingHpPercent = 1 - (target.currentHp / target.maxHp)
+              healAmount = calculateDesperationHeal(effectiveAtk, skill.healPercent || 0, skill.desperationHealBonus, missingHpPercent, shardBonus)
+            } else {
+              healAmount = calculateHeal(effectiveAtk, skill.description, shardBonus)
+            }
             const oldHp = target.currentHp
             target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
             const actualHeal = target.currentHp - oldHp
@@ -2559,8 +2584,14 @@ export const useBattleStore = defineStore('battle', () => {
 
         case 'all_allies': {
           addLog(`${hero.template.name} uses ${skill.name} on all allies!`)
-          if (skill.description.toLowerCase().includes('heal')) {
-            const healAmount = calculateHeal(effectiveAtk, skill.description, shardBonus)
+          if (skill.healPercent || skill.description.toLowerCase().includes('heal')) {
+            let healAmount
+            if (skill.desperationHealBonus) {
+              const missingHpPercent = calculatePartyMissingHpPercent(aliveHeroes.value)
+              healAmount = calculateDesperationHeal(effectiveAtk, skill.healPercent || 0, skill.desperationHealBonus, missingHpPercent, shardBonus)
+            } else {
+              healAmount = calculateHeal(effectiveAtk, skill.description, shardBonus)
+            }
             for (const target of aliveHeroes.value) {
               const oldHp = target.currentHp
               target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
@@ -3198,6 +3229,7 @@ export const useBattleStore = defineStore('battle', () => {
     applyDamage,
     reviveUnit,
     // Effect helpers (for UI)
+    resolveEffectValue,
     getEffectiveStat,
     hasEffect,
     checkDeathPrevention,
@@ -3244,6 +3276,9 @@ export const useBattleStore = defineStore('battle', () => {
     checkRiposte,
     // Heal Self Percent (lifesteal for skills)
     calculateHealSelfPercent,
+    // Desperation heal scaling (bonus based on missing HP)
+    calculateDesperationHeal,
+    calculatePartyMissingHpPercent,
     // Passive regen leader effects
     applyPassiveRegenLeaderEffects,
     // Constants
