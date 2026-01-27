@@ -94,6 +94,18 @@ async function savePositions(positions) {
   }
 }
 
+async function saveLinkPositions(positions) {
+  try {
+    await fetch('/__admin/save-link-positions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ positions })
+    })
+  } catch (err) {
+    alert('Failed to save link positions: ' + (err.message || err))
+  }
+}
+
 async function resizeRegion({ width, height }) {
   if (!editingRegion.value) return
   const regionId = editingRegion.value.id
@@ -122,6 +134,7 @@ async function resizeRegion({ width, height }) {
       @back="closeEditor"
       @save-image="saveImage"
       @save-positions="savePositions"
+      @save-link-positions="saveLinkPositions"
       @resize-region="resizeRegion"
     />
 

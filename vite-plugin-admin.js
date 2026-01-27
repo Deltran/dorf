@@ -415,6 +415,67 @@ export default function adminPlugin() {
         next()
       })
 
+      // POST /__admin/save-link-positions - update regionLinkPosition in questNodes.js
+      server.middlewares.use(async (req, res, next) => {
+        if (req.method === 'POST' && req.url === '/__admin/save-link-positions') {
+          let body = ''
+          for await (const chunk of req) body += chunk
+
+          try {
+            const { positions } = JSON.parse(body)
+            if (!positions || typeof positions !== 'object') {
+              res.statusCode = 400
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'positions required' }))
+              return
+            }
+
+            const filePath = path.resolve(process.cwd(), 'src/data/questNodes.js')
+            let content = fs.readFileSync(filePath, 'utf-8')
+
+            for (const [nodeId, pos] of Object.entries(positions)) {
+              const x = Math.round(pos.x)
+              const y = Math.round(pos.y)
+              const idPattern = new RegExp(`id:\\s*'${nodeId}'`)
+              const idMatch = content.match(idPattern)
+              if (!idMatch) continue
+
+              const idIndex = idMatch.index
+              const blockSlice = content.slice(idIndex, idIndex + 400)
+
+              // Check if regionLinkPosition already exists
+              const existingMatch = blockSlice.match(/regionLinkPosition:\s*\{[^}]*\}/)
+              if (existingMatch) {
+                const absIndex = idIndex + existingMatch.index
+                content = content.slice(0, absIndex) +
+                  `regionLinkPosition: { x: ${x}, y: ${y} }` +
+                  content.slice(absIndex + existingMatch[0].length)
+              } else {
+                // Insert after the y: line
+                const yLineMatch = blockSlice.match(/y:\s*\d+,?\s*\n/)
+                if (yLineMatch) {
+                  const insertIndex = idIndex + yLineMatch.index + yLineMatch[0].length
+                  const indent = '    '
+                  content = content.slice(0, insertIndex) +
+                    `${indent}regionLinkPosition: { x: ${x}, y: ${y} },\n` +
+                    content.slice(insertIndex)
+                }
+              }
+            }
+
+            fs.writeFileSync(filePath, content, 'utf-8')
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true }))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
+
       // POST /__admin/save-region-size - update width/height for a region in questNodes.js
       server.middlewares.use(async (req, res, next) => {
         if (req.method === 'POST' && req.url === '/__admin/save-region-size') {
