@@ -53,6 +53,7 @@ export const questNodes = {
     region: 'Whispering Woods',
     x: 480,
     y: 400,
+    regionLinkPosition: { x: 480, y: 470 },
     battles: [
       { enemies: ['forest_spider', 'forest_spider', 'forest_spider'] },
       { enemies: ['forest_spider', 'forest_spider', 'goblin_warrior'] },
@@ -97,6 +98,7 @@ export const questNodes = {
     region: 'Whispering Woods',
     x: 586,
     y: 164,
+    regionLinkPosition: { x: 660, y: 164 },
     battles: [
       { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_shaman'] },
       { enemies: ['goblin_thrower', 'goblin_thrower', 'goblin_bulwark', 'goblin_warrior', 'goblin_trapper'] },
@@ -196,6 +198,7 @@ export const questNodes = {
     region: 'Echoing Caverns',
     x: 600,
     y: 250,
+    regionLinkPosition: { x: 680, y: 250 },
     battles: [
       { enemies: ['rock_golem', 'rock_golem'] },
       { enemies: ['cave_troll', 'dark_cultist', 'dark_cultist'] },
@@ -351,6 +354,7 @@ export const questNodes = {
     region: 'Stormwind Peaks',
     x: 380,
     y: 550,
+    regionLinkPosition: { x: 380, y: 630 },
     battles: [
       { enemies: ['frost_elemental', 'harpy'] },
       { enemies: ['frost_elemental', 'frost_elemental'] },
@@ -397,6 +401,7 @@ export const questNodes = {
     region: 'Stormwind Peaks',
     x: 405,
     y: 185,
+    regionLinkPosition: { x: 490, y: 120 },
     battles: [
       { enemies: ['frost_elemental', 'frost_elemental', 'harpy', 'harpy'] },
       { enemies: ['mountain_giant', 'mountain_giant'] },
@@ -738,6 +743,7 @@ export const questNodes = {
     region: 'The Summit',
     x: 700,
     y: 250,
+    regionLinkPosition: { x: 770, y: 250 },
     battles: [
       { enemies: ['summit_giant', 'summit_giant'] },
       { enemies: ['ancient_guardian', 'ancient_guardian', 'ice_wraith', 'ice_wraith'] },
@@ -912,6 +918,7 @@ export const questNodes = {
     region: 'Blistering Cliffsides',
     x: 720,
     y: 230,
+    regionLinkPosition: { x: 775, y: 160 },
     battles: [
       { enemies: ['volcanic_drake', 'volcanic_drake'] },
       { enemies: ['magma_golem', 'magma_golem', 'flame_salamander'] },
@@ -1074,6 +1081,7 @@ export const questNodes = {
     region: 'Janxier Floodplain',
     x: 720,
     y: 250,
+    regionLinkPosition: { x: 775, y: 180 },
     battles: [
       { enemies: ['giant_crocodile', 'giant_crocodile', 'giant_crocodile'] },
       { enemies: ['water_naga', 'water_naga', 'mud_elemental', 'mud_elemental'] },
@@ -1213,6 +1221,7 @@ export const questNodes = {
     region: 'Old Fort Calindash',
     x: 700,
     y: 250,
+    regionLinkPosition: { x: 770, y: 180 },
     battles: [
       { enemies: ['ghostly_knight', 'ghostly_knight', 'ghostly_knight'] },
       { enemies: ['deserter_captain', 'fort_specter', 'skeletal_soldier', 'skeletal_soldier'] },
@@ -1374,6 +1383,7 @@ export const questNodes = {
     region: 'Ancient Catacombs',
     x: 720,
     y: 250,
+    regionLinkPosition: { x: 775, y: 180 },
     battles: [
       { enemies: ['tomb_guardian', 'tomb_guardian', 'tomb_guardian'] },
       { enemies: ['necromancer', 'necromancer', 'tomb_wraith', 'tomb_wraith'] },
@@ -1513,6 +1523,7 @@ export const questNodes = {
     region: 'Underground Morass',
     x: 700,
     y: 250,
+    regionLinkPosition: { x: 770, y: 180 },
     battles: [
       { enemies: ['blind_horror', 'swamp_hag', 'swamp_hag'] },
       { enemies: ['gloom_stalker', 'gloom_stalker', 'gloom_stalker', 'gloom_stalker'] },
@@ -1704,6 +1715,7 @@ export const questNodes = {
     region: 'Gate to Aquaria',
     x: 740,
     y: 250,
+    regionLinkPosition: { x: 775, y: 180 },
     battles: [
       { enemies: ['abyssal_lurker', 'abyssal_lurker', 'abyssal_lurker'] },
       { enemies: ['sea_serpent', 'sea_serpent', 'coral_golem', 'coral_golem'] },
