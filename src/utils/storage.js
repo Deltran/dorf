@@ -1,5 +1,5 @@
 const SAVE_KEY = 'dorf_save'
-const SAVE_VERSION = 6  // Bump version for shops addition
+const SAVE_VERSION = 7  // Bump version for banner system
 
 export function saveGame(stores) {
   const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops } = stores
