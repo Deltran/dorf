@@ -1024,11 +1024,11 @@ export const heroTemplates = {
     baseStats: { hp: 65, atk: 15, def: 18, spd: 14, mp: 55 },
     finale: {
       name: 'Discordant Shriek',
-      description: 'A piercing wave of sound that weakens all enemies.',
+      description: 'A piercing wave of sound that damages and weakens all enemies.',
       target: 'all_enemies',
       effects: [
-        { type: EffectType.ATK_DOWN, duration: 2, value: 10 },
-        { type: EffectType.DEF_DOWN, duration: 2, value: 10 }
+        { type: 'damage', damagePercent: 80 },
+        { type: EffectType.ATK_DOWN, duration: 2, value: 15 }
       ]
     },
     skills: [
@@ -1045,7 +1045,7 @@ export const heroTemplates = {
       {
         name: 'Distracting Jingle',
         description: 'An annoying tune that throws off enemy timing',
-        skillUnlockLevel: 3,
+        skillUnlockLevel: 6,
         targetType: 'enemy',
         noDamage: true,
         effects: [
@@ -1054,14 +1054,11 @@ export const heroTemplates = {
       },
       {
         name: 'Street Racket',
-        description: 'A cacophony of noise that disrupts all foes',
-        skillUnlockLevel: 6,
-        targetType: 'all_enemies',
-        noDamage: true,
-        effects: [
-          { type: EffectType.ATK_DOWN, target: 'all_enemies', duration: 2, value: 10 },
-          { type: EffectType.DEF_DOWN, target: 'all_enemies', duration: 2, value: 10 }
-        ]
+        description: 'A cacophony of noise that hits harder against weakened foes. 90% ATK + 25% per debuff.',
+        skillUnlockLevel: 3,
+        targetType: 'enemy',
+        damageMultiplier: 0.9,
+        bonusDamagePerDebuff: 25
       },
       {
         name: 'Ear-Splitting Crescendo',
