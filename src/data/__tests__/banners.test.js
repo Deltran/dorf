@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { banners, isDateInRange, getActiveBanners, getBannerById, getBannerAvailabilityText } from '../banners.js'
+import { banners, getActiveBanners, getBannerById, getBannerAvailabilityText, getDayOfYear, ROTATION_CHUNK_DAYS } from '../banners.js'
 
 describe('banners data', () => {
   describe('standard banner', () => {
@@ -41,6 +41,15 @@ describe('banners data', () => {
       }
     })
   })
+
+  it('has exactly 3 rotating banners', () => {
+    const rotating = banners.filter(b => !b.permanent)
+    expect(rotating).toHaveLength(3)
+  })
+
+  it('rotation chunk is 10 days', () => {
+    expect(ROTATION_CHUNK_DAYS).toBe(10)
+  })
 })
 
 describe('getBannerById', () => {
@@ -63,28 +72,17 @@ describe('getBannerById', () => {
   })
 })
 
-describe('isDateInRange', () => {
-  it('returns true when date is within range', () => {
-    expect(isDateInRange(1, 10, 1, 1, 1, 15)).toBe(true)
+describe('getDayOfYear', () => {
+  it('returns 1 for January 1', () => {
+    expect(getDayOfYear(new Date(2026, 0, 1))).toBe(1)
   })
 
-  it('returns false when date is outside range', () => {
-    expect(isDateInRange(2, 10, 1, 1, 1, 15)).toBe(false)
+  it('returns 32 for February 1', () => {
+    expect(getDayOfYear(new Date(2026, 1, 1))).toBe(32)
   })
 
-  it('returns true on the start boundary', () => {
-    expect(isDateInRange(1, 1, 1, 1, 1, 15)).toBe(true)
-  })
-
-  it('returns true on the end boundary', () => {
-    expect(isDateInRange(1, 15, 1, 1, 1, 15)).toBe(true)
-  })
-
-  it('handles year-boundary wrapping (Dec 20 – Jan 5)', () => {
-    expect(isDateInRange(12, 25, 12, 20, 1, 5)).toBe(true)
-    expect(isDateInRange(1, 3, 12, 20, 1, 5)).toBe(true)
-    expect(isDateInRange(11, 15, 12, 20, 1, 5)).toBe(false)
-    expect(isDateInRange(2, 1, 12, 20, 1, 5)).toBe(false)
+  it('returns 365 for December 31 (non-leap year)', () => {
+    expect(getDayOfYear(new Date(2026, 11, 31))).toBe(365)
   })
 })
 
@@ -93,6 +91,12 @@ describe('getActiveBanners', () => {
     vi.useRealTimers()
   })
 
+  // With 3 rotating banners and 10-day chunks (cycle = 30 days):
+  // Days 1-10:  Shields of Valor (index 0)
+  // Days 11-20: Flames of War (index 1)
+  // Days 21-30: Nature's Call (index 2)
+  // Days 31-40: Shields of Valor (repeats)
+
   it('always includes the permanent standard banner', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 5, 15))
@@ -100,47 +104,48 @@ describe('getActiveBanners', () => {
     expect(active.some(b => b.id === 'standard')).toBe(true)
   })
 
-  it('includes shields_of_valor during Jan 1-15', () => {
+  it('always includes exactly one rotating banner', () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 0, 10))
+    vi.setSystemTime(new Date(2026, 5, 15))
+    const active = getActiveBanners()
+    expect(active).toHaveLength(2)
+    expect(active.filter(b => !b.permanent)).toHaveLength(1)
+  })
+
+  it('shows Shields of Valor on day 1 (Jan 1)', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 1)) // day 1
     const active = getActiveBanners()
     expect(active.some(b => b.id === 'shields_of_valor')).toBe(true)
   })
 
-  it('excludes shields_of_valor outside its date range', () => {
+  it('shows Flames of War on day 11 (Jan 11)', () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 1, 10))
-    const active = getActiveBanners()
-    expect(active.some(b => b.id === 'shields_of_valor')).toBe(false)
-  })
-
-  it('includes flames_of_war during Feb 1-15', () => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 1, 5))
+    vi.setSystemTime(new Date(2026, 0, 11)) // day 11
     const active = getActiveBanners()
     expect(active.some(b => b.id === 'flames_of_war')).toBe(true)
   })
 
-  it('excludes flames_of_war outside its date range', () => {
+  it('shows Nature\'s Call on day 21 (Jan 21)', () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 0, 10))
-    const active = getActiveBanners()
-    expect(active.some(b => b.id === 'flames_of_war')).toBe(false)
-  })
-
-  it('includes natures_call during Mar 1-15', () => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 2, 8))
+    vi.setSystemTime(new Date(2026, 0, 21)) // day 21
     const active = getActiveBanners()
     expect(active.some(b => b.id === 'natures_call')).toBe(true)
   })
 
-  it('excludes all rotating banners when none are in season', () => {
+  it('cycles back to Shields of Valor on day 31 (Jan 31)', () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 5, 15))
+    vi.setSystemTime(new Date(2026, 0, 31)) // day 31
     const active = getActiveBanners()
-    expect(active).toHaveLength(1)
-    expect(active[0].id).toBe('standard')
+    expect(active.some(b => b.id === 'shields_of_valor')).toBe(true)
+  })
+
+  it('works later in the year (day 166 = Jun 15 → Flames of War)', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 5, 15)) // day 166
+    // (166-1) % 30 = 165 % 30 = 15, floor(15/10) = 1 → Flames of War
+    const active = getActiveBanners()
+    expect(active.some(b => b.id === 'flames_of_war')).toBe(true)
   })
 })
 
@@ -154,39 +159,24 @@ describe('getBannerAvailabilityText', () => {
     expect(getBannerAvailabilityText(standard)).toBe('Always Available')
   })
 
-  it('returns date range for rotating banners not near expiry', () => {
+  it('returns days remaining for a rotating banner', () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 0, 2)) // Jan 2
+    vi.setSystemTime(new Date(2026, 0, 1)) // day 1, position 0 in chunk → 9 days remaining
     const banner = banners.find(b => b.id === 'shields_of_valor')
-    const text = getBannerAvailabilityText(banner)
-    expect(text).toBe('Jan 1 \u2013 Jan 15')
-    vi.useRealTimers()
+    expect(getBannerAvailabilityText(banner)).toBe('9 days remaining')
   })
 
-  it('returns countdown when 3 or fewer days remaining', () => {
+  it('returns "1 day remaining" on the second-to-last day', () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 0, 13)) // Jan 13 — 2 days until Jan 15
+    vi.setSystemTime(new Date(2026, 0, 9)) // day 9, position 8 in chunk → 1 day remaining
     const banner = banners.find(b => b.id === 'shields_of_valor')
-    const text = getBannerAvailabilityText(banner)
-    expect(text).toBe('2 days remaining')
-    vi.useRealTimers()
+    expect(getBannerAvailabilityText(banner)).toBe('1 day remaining')
   })
 
-  it('returns "Last day!" when 0 days remaining', () => {
+  it('returns "Last day!" on the final day of the chunk', () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 0, 15)) // Jan 15 — last day
+    vi.setSystemTime(new Date(2026, 0, 10)) // day 10, position 9 in chunk → 0 remaining
     const banner = banners.find(b => b.id === 'shields_of_valor')
-    const text = getBannerAvailabilityText(banner)
-    expect(text).toBe('Last day!')
-    vi.useRealTimers()
-  })
-
-  it('returns "1 day remaining" on the day before end', () => {
-    vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 0, 14)) // Jan 14
-    const banner = banners.find(b => b.id === 'shields_of_valor')
-    const text = getBannerAvailabilityText(banner)
-    expect(text).toBe('1 day remaining')
-    vi.useRealTimers()
+    expect(getBannerAvailabilityText(banner)).toBe('Last day!')
   })
 })

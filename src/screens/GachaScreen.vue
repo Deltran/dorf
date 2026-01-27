@@ -48,6 +48,12 @@ const bannerAvailability = computed(() => {
   if (!selectedBanner.value) return ''
   return getBannerAvailabilityText(selectedBanner.value)
 })
+const bannerUrgent = computed(() => {
+  return bannerAvailability.value === 'Last day!'
+    || bannerAvailability.value === '1 day remaining'
+    || bannerAvailability.value === '2 days remaining'
+    || bannerAvailability.value === '3 days remaining'
+})
 const bannerImageUrl = computed(() => {
   if (!selectedBanner.value) return null
   return getBannerImageUrl(selectedBanner.value.id)
@@ -160,7 +166,7 @@ function nextBanner() {
         </div>
       </div>
       <div class="banner-availability">
-        <span class="availability-text" :class="{ 'availability-urgent': bannerAvailability.includes('remaining') || bannerAvailability.includes('Last') }">
+        <span class="availability-text" :class="{ 'availability-urgent': bannerUrgent }">
           {{ bannerAvailability }}
         </span>
         <div class="banner-dots" v-if="activeBanners.length > 1">
