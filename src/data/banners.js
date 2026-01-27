@@ -5,6 +5,17 @@
  * permanent (always available) or rotating (active during a date range).
  */
 
+const bannerImages = import.meta.glob('../assets/banners/*.png', { eager: true, import: 'default' })
+
+/**
+ * Get the header image URL for a banner.
+ * Returns null if no image exists.
+ */
+export function getBannerImageUrl(bannerId) {
+  const path = `../assets/banners/${bannerId}.png`
+  return bannerImages[path] || null
+}
+
 export const banners = [
   {
     id: 'standard',
