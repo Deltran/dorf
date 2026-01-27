@@ -289,6 +289,14 @@ function cancelExploration() {
           </div>
         </div>
 
+        <button
+          class="start-button start-button-top"
+          :disabled="!canStart"
+          @click="startExploration"
+        >
+          Start Exploration
+        </button>
+
         <div class="hero-selection">
           <h3>Select 5 Heroes ({{ selectedHeroes.length }}/5)</h3>
           <div v-if="availableHeroes.length === 0" class="no-heroes">
@@ -567,6 +575,10 @@ h3 {
 .start-button {
   background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
   color: white;
+}
+
+.start-button-top {
+  margin-bottom: 20px;
 }
 
 .start-button:disabled {

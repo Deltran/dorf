@@ -5,6 +5,10 @@ import stormwindPeaksMap from '../assets/maps/stormwind_peaks.png'
 import hibernationDenMap from '../assets/maps/hibernation_den.png'
 import summitMap from '../assets/maps/the_summit.png'
 import blisteringCliffsMap from '../assets/maps/blistering_cliffsides.png'
+import eruptionVentMap from '../assets/maps/eruption_vent.png'
+import janxierFloodplainMap from '../assets/maps/janxier_floodplain.png'
+import oldFortCalindashMap from '../assets/maps/old_fort_calindash.png'
+import ancientCatacombsMap from '../assets/maps/ancient_catacombs.png'
 
 export const questNodes = {
   // Whispering Woods (Tutorial / Early Game)
@@ -2045,7 +2049,8 @@ export const regions = [
     startNode: 'eruption_vent_01',
     width: 800,
     height: 500,
-    backgroundColor: '#3f1a0a'
+    backgroundColor: '#3f1a0a',
+    backgroundImage: eruptionVentMap
   },
   {
     id: 'janxier_floodplain',
@@ -2054,7 +2059,8 @@ export const regions = [
     startNode: 'flood_01',
     width: 800,
     height: 500,
-    backgroundColor: '#1a2a1f' // Dark swampy green
+    backgroundColor: '#1a2a1f', // Dark swampy green
+    backgroundImage: janxierFloodplainMap
   },
   {
     id: 'old_fort_calindash',
@@ -2063,7 +2069,8 @@ export const regions = [
     startNode: 'fort_01',
     width: 800,
     height: 800,
-    backgroundColor: '#2a2a2a' // Dark stone gray
+    backgroundColor: '#2a2a2a', // Dark stone gray
+    backgroundImage: oldFortCalindashMap
   },
   {
     id: 'ancient_catacombs',
@@ -2072,7 +2079,8 @@ export const regions = [
     startNode: 'cata_01',
     width: 800,
     height: 500,
-    backgroundColor: '#1f1a2a' // Dark tomb purple
+    backgroundColor: '#1f1a2a', // Dark tomb purple
+    backgroundImage: ancientCatacombsMap
   },
   {
     id: 'underground_morass',

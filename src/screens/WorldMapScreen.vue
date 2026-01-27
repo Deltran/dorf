@@ -739,9 +739,18 @@ function closeTokenResults() {
           </div>
         </div>
 
-        <button class="collect-btn" @click="closeTokenResults">
-          Collect
-        </button>
+        <div class="token-results-actions">
+          <button class="collect-btn" @click="closeTokenResults">
+            Collect
+          </button>
+          <button
+            v-if="selectedNodeToken && selectedNodeToken.count > 0"
+            class="spend-token-btn"
+            @click="useToken"
+          >
+            🎫 Spend Token ({{ selectedNodeToken.count }})
+          </button>
+        </div>
       </div>
     </Transition>
 
@@ -1750,9 +1759,15 @@ function closeTokenResults() {
   padding: 12px;
 }
 
+.token-results-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
 .collect-btn {
   width: 100%;
-  margin-top: 20px;
   padding: 14px;
   background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
   border: none;
@@ -1767,6 +1782,25 @@ function closeTokenResults() {
 .collect-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+}
+
+.spend-token-btn {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #475569;
+  border-radius: 10px;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.spend-token-btn:hover {
+  border-color: #64748b;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Slide up transition for modal */

@@ -969,7 +969,7 @@ export const useBattleStore = defineStore('battle', () => {
 
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
-  function applyDamage(unit, damage, source = 'attack', attacker = null) {
+  function applyDamage(unit, damage, source = 'attack', attacker = null, result = null) {
     if (damage <= 0) return 0
 
     // Check for EVASION effects (sum all additively, cap at 100%)
@@ -994,6 +994,7 @@ export const useBattleStore = defineStore('battle', () => {
           }
         }
 
+        if (result) result.evaded = true
         return 0 // No damage dealt
       }
     }
@@ -1854,6 +1855,8 @@ export const useBattleStore = defineStore('battle', () => {
           // Recalculate damage stat after pre-buff (in case pre-buff affects the stat used for damage)
           const finalDamageStat = skill.useStat ? getEffectiveStat(hero, skill.useStat) : effectiveAtk
 
+          let targetEvaded = false
+
           // Handle multi-hit rage-consuming skills (e.g., Crushing Eternity)
           if (skill.rageCost === 'all' && skill.multiHit && skill.baseDamage !== undefined && skill.damagePerRage !== undefined) {
             const rageConsumed = hero.currentRage || 0
@@ -1979,7 +1982,9 @@ export const useBattleStore = defineStore('battle', () => {
               damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
             }
 
-            applyDamage(target, damage, 'attack', hero)
+            const dmgResult = {}
+            applyDamage(target, damage, 'attack', hero, dmgResult)
+            if (dmgResult.evaded) targetEvaded = true
             if (skill.bonusDamagePerDebuff && debuffCount > 0) {
               const debuffNote = skill.consumeDebuffs ? `${debuffCount} debuffs consumed` : `${debuffCount} debuffs`
               addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage! (${debuffNote})`)
@@ -2029,8 +2034,8 @@ export const useBattleStore = defineStore('battle', () => {
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
           }
 
-          // Apply skill effects
-          if (skill.effects) {
+          // Apply skill effects (skip enemy-targeted effects if attack was evaded)
+          if (skill.effects && !targetEvaded) {
             // Check for stunIfDebuffed: if target has any debuff, apply stun instead of normal effects
             if (skill.stunIfDebuffed) {
               const targetDebuffs = (target.statusEffects || []).filter(e => !e.definition?.isBuff)
@@ -2542,11 +2547,12 @@ export const useBattleStore = defineStore('battle', () => {
             const effectiveDef = getEffectiveStat(target, 'def')
             const markedMultiplier = getMarkedDamageMultiplier(target)
             const damage = calculateDamageWithMarked(effectiveAtk, multiplier, effectiveDef, markedMultiplier)
-            applyDamage(target, damage, 'attack', hero)
+            const aoeResult = {}
+            applyDamage(target, damage, 'attack', hero, aoeResult)
             totalDamage += damage
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
 
-            if (skill.effects) {
+            if (skill.effects && !aoeResult.evaded) {
               for (const effect of skill.effects) {
                 if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
                   const effectDuration = resolveEffectDuration(effect, hero)
@@ -2792,14 +2798,15 @@ export const useBattleStore = defineStore('battle', () => {
         for (const heroTarget of aliveHeroes.value) {
           const heroDef = getEffectiveStat(heroTarget, 'def')
           const damage = calculateDamage(effectiveAtk, multiplier, heroDef)
-          const actualDamage = applyDamage(heroTarget, damage)
+          const aoeHeroResult = {}
+          const actualDamage = applyDamage(heroTarget, damage, 'attack', null, aoeHeroResult)
           totalDamage += actualDamage
           if (actualDamage > 0) {
             emitCombatEffect(heroTarget.instanceId, 'hero', 'damage', actualDamage)
           }
 
-          // Apply debuffs to each hero if applicable
-          if (skill.effects) {
+          // Apply debuffs to each hero if applicable (skip if this hero evaded)
+          if (skill.effects && !aoeHeroResult.evaded) {
             for (const effect of skill.effects) {
               if (effect.target === 'enemy' || effect.target === 'hero') {
                 const effectValue = calculateEffectValue(effect, effectiveAtk)
@@ -2867,7 +2874,8 @@ export const useBattleStore = defineStore('battle', () => {
         // Standard single-target damage skill
         const multiplier = parseSkillMultiplier(skill.description)
         const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
-        const actualDamage = applyDamage(target, damage)
+        const enemyDmgResult = {}
+        const actualDamage = applyDamage(target, damage, 'attack', null, enemyDmgResult)
         if (actualDamage > 0) {
           addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name} for ${actualDamage} damage!`)
           emitCombatEffect(target.instanceId, 'hero', 'damage', actualDamage)
@@ -2875,8 +2883,8 @@ export const useBattleStore = defineStore('battle', () => {
           addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name}!`)
         }
 
-        // Remove buffs if skill has cleanse
-        if (skill.cleanse === 'buffs') {
+        // Remove buffs if skill has cleanse (skip if evaded)
+        if (skill.cleanse === 'buffs' && !enemyDmgResult.evaded) {
           const removedEffects = target.statusEffects?.filter(e => e.definition?.isBuff) || []
           if (removedEffects.length > 0) {
             target.statusEffects = target.statusEffects.filter(e => !e.definition?.isBuff)
@@ -2887,11 +2895,11 @@ export const useBattleStore = defineStore('battle', () => {
           }
         }
 
-        // Apply skill effects
+        // Apply skill effects (skip hero-targeted effects if evaded)
         if (skill.effects) {
           for (const effect of skill.effects) {
             const effectValue = calculateEffectValue(effect, effectiveAtk)
-            if (effect.target === 'enemy' || effect.target === 'hero') {
+            if ((effect.target === 'enemy' || effect.target === 'hero') && !enemyDmgResult.evaded) {
               applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
               emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
             } else if (effect.target === 'self') {

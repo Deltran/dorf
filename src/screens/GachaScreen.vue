@@ -5,6 +5,7 @@ import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import { getBannerAvailabilityText, getBannerImageUrl } from '../data/banners.js'
+import { getHeroTemplate } from '../data/heroTemplates.js'
 
 const emit = defineEmits(['navigate'])
 
@@ -13,6 +14,8 @@ const gachaStore = useGachaStore()
 const pullResults = ref([])
 const isAnimating = ref(false)
 const showResults = ref(false)
+const showPool = ref(false)
+const showPityTooltip = ref(false)
 const revealedCount = ref(0)
 
 // Sequentially reveal heroes when results are shown
@@ -60,6 +63,14 @@ const bannerImageUrl = computed(() => {
 })
 const currentBannerIndex = computed(() => {
   return activeBanners.value.findIndex(b => b.id === gachaStore.selectedBannerId)
+})
+const poolByRarity = computed(() => {
+  if (!selectedBanner.value) return []
+  const pool = selectedBanner.value.heroPool
+  return [5, 4, 3, 2, 1].map(rarity => ({
+    rarity,
+    heroes: (pool[rarity] || []).map(id => getHeroTemplate(id)).filter(Boolean)
+  }))
 })
 
 async function doSinglePull() {
@@ -169,6 +180,7 @@ function nextBanner() {
         <span class="availability-text" :class="{ 'availability-urgent': bannerUrgent }">
           {{ bannerAvailability }}
         </span>
+        <button class="view-pool-button" @click="showPool = true">View Pool</button>
         <div class="banner-dots" v-if="activeBanners.length > 1">
           <span
             v-for="(b, i) in activeBanners"
@@ -210,13 +222,22 @@ function nextBanner() {
           <span class="rate-label">Rare</span>
         </div>
       </div>
+      <p class="rate-footer">2★ Uncommon: 30% · 1★ Common: 40%</p>
     </section>
 
     <section class="pity-info">
       <div class="section-header">
         <div class="section-line"></div>
         <h3>Pity Progress</h3>
+        <button class="pity-info-button" @click="showPityTooltip = !showPityTooltip">?</button>
         <div class="section-line"></div>
+      </div>
+      <div v-if="showPityTooltip" class="pity-tooltip-backdrop" @click="showPityTooltip = false"></div>
+      <div v-if="showPityTooltip" class="pity-tooltip">
+        <p>Pity ensures you get rare heroes even with bad luck. Counters are shared across all banners.</p>
+        <p><strong>4★ Pity:</strong> Every {{ gachaStore.FOUR_STAR_PITY }} pulls without a 4★+ hero guarantees one on your next pull.</p>
+        <p><strong>5★ Soft Pity:</strong> After {{ gachaStore.SOFT_PITY_START }} pulls without a 5★, the legendary drop rate starts increasing with every pull.</p>
+        <p><strong>5★ Hard Pity:</strong> At {{ gachaStore.HARD_PITY }} pulls without a 5★, your next pull is a guaranteed legendary.</p>
       </div>
       <div class="pity-grid">
         <div class="pity-item">
@@ -329,6 +350,29 @@ function nextBanner() {
           <button class="close-button" @click="closeResults">
             <span>{{ revealedCount < pullResults.length ? 'Skip' : 'Continue' }}</span>
           </button>
+        </div>
+      </div>
+    </div>
+    <!-- Pool modal -->
+    <div v-if="showPool" class="pool-modal" @click.self="showPool = false">
+      <div class="pool-content">
+        <div class="pool-header">
+          <h2>{{ selectedBanner?.name }} - Hero Pool</h2>
+          <button class="pool-close" @click="showPool = false">&times;</button>
+        </div>
+        <div class="pool-body">
+          <div v-for="group in poolByRarity" :key="group.rarity" class="pool-rarity-group">
+            <div class="pool-rarity-header">
+              <StarRating :rating="group.rarity" size="sm" />
+              <span class="pool-rarity-label">{{ ['', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'][group.rarity] }}</span>
+            </div>
+            <div class="pool-heroes">
+              <div v-for="hero in group.heroes" :key="hero.id" class="pool-hero" :class="`pool-hero-rarity-${group.rarity}`">
+                <span class="pool-hero-name">{{ hero.name }}</span>
+                <span class="pool-hero-class">{{ hero.classId }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -639,10 +683,17 @@ function nextBanner() {
   text-transform: uppercase;
 }
 
+.rate-footer {
+  margin: 10px 0 0;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: center;
+}
+
 /* ===== Pity ===== */
 .pity-info {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
   border-radius: 12px;
   padding: 16px;
@@ -689,6 +740,66 @@ function nextBanner() {
   height: 100%;
   border-radius: 4px;
   transition: width 0.5s ease;
+}
+
+.pity-info-button {
+  background: none;
+  border: 1px solid #4b5563;
+  color: #9ca3af;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.pity-info-button:hover {
+  color: #f3f4f6;
+  border-color: #6b7280;
+}
+
+.pity-tooltip-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+}
+
+.pity-tooltip {
+  position: absolute;
+  top: 44px;
+  left: 16px;
+  right: 16px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 8px;
+  padding: 12px 14px;
+  z-index: 51;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.pity-tooltip p {
+  margin: 0 0 6px;
+  font-size: 0.78rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+.pity-tooltip p:last-child {
+  margin-bottom: 0;
+}
+
+.pity-tooltip strong {
+  color: #d1d5db;
 }
 
 .pity-fill.pity-4 {
@@ -1129,5 +1240,145 @@ function nextBanner() {
 
 .banner-dot:hover {
   background: #6b7280;
+}
+
+/* ===== View Pool Button ===== */
+.view-pool-button {
+  background: rgba(55, 65, 81, 0.6);
+  border: 1px solid #4b5563;
+  border-radius: 6px;
+  color: #c4b5fd;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+}
+
+.view-pool-button:hover {
+  background: rgba(75, 85, 99, 0.8);
+  color: #e9d5ff;
+  border-color: #6b7280;
+}
+
+/* ===== Pool Modal ===== */
+.pool-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.pool-content {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 85vh;
+  overflow: hidden;
+  border: 1px solid #334155;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+}
+
+.pool-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #334155;
+  flex-shrink: 0;
+}
+
+.pool-header h2 {
+  color: #f3f4f6;
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.pool-close {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.pool-close:hover {
+  color: #f3f4f6;
+}
+
+.pool-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pool-rarity-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pool-rarity-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pool-rarity-label {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pool-heroes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 4px;
+}
+
+.pool-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
+  background: rgba(55, 65, 81, 0.4);
+  border-radius: 6px;
+  border-left: 3px solid #4b5563;
+}
+
+.pool-hero-rarity-5 { border-left-color: #f59e0b; }
+.pool-hero-rarity-4 { border-left-color: #a855f7; }
+.pool-hero-rarity-3 { border-left-color: #3b82f6; }
+.pool-hero-rarity-2 { border-left-color: #22c55e; }
+.pool-hero-rarity-1 { border-left-color: #9ca3af; }
+
+.pool-hero-name {
+  color: #f3f4f6;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.pool-hero-class {
+  color: #6b7280;
+  font-size: 0.75rem;
+  text-transform: capitalize;
 }
 </style>

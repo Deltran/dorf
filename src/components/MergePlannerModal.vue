@@ -2,6 +2,7 @@
 import { ref, computed, watch } from 'vue'
 import { useHeroesStore, useGachaStore, useInventoryStore } from '../stores'
 import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getItem } from '../data/items.js'
 import StarRating from './StarRating.vue'
 
 const props = defineProps({
@@ -270,14 +271,34 @@ function increment(tier) {
   const usedAtTier = currentCount * copiesNeeded
   const remainingAtTier = availableAtTier - usedAtTier
 
-  if (remainingAtTier >= copiesNeeded) {
-    switch (tier) {
-      case 1: tier1Count.value++; break
-      case 2: tier2Count.value++; break
-      case 3: tier3Count.value++; break
-      case 4: tier4Count.value++; break
-    }
+  if (remainingAtTier < copiesNeeded) return
+
+  // Check material availability for this tier
+  const materialId = MERGE_COSTS[tier].material
+  if (materialId) {
+    const owned = inventoryStore.getItemCount(materialId)
+    if (currentCount + 1 > owned) return
   }
+
+  switch (tier) {
+    case 1: tier1Count.value++; break
+    case 2: tier2Count.value++; break
+    case 3: tier3Count.value++; break
+    case 4: tier4Count.value++; break
+  }
+}
+
+function getMaterialName(tier) {
+  const materialId = MERGE_COSTS[tier].material
+  if (!materialId) return ''
+  const item = getItem(materialId)
+  return item?.name || materialId
+}
+
+function getMaterialOwned(tier) {
+  const materialId = MERGE_COSTS[tier].material
+  if (!materialId) return 0
+  return inventoryStore.getItemCount(materialId)
 }
 
 function decrement(tier) {
@@ -356,6 +377,9 @@ function closeModal() {
                 <span v-if="tier > 1 && getCount(tier - 1) > 0" class="cascade-note">
                   (+{{ getCount(tier - 1) }} from merges)
                 </span>
+              </div>
+              <div v-if="MERGE_COSTS[tier].material" class="material-req" :class="{ insufficient: getMaterialOwned(tier) === 0 }">
+                {{ getMaterialName(tier) }}: {{ getMaterialOwned(tier) }} owned
               </div>
             </div>
 
@@ -559,6 +583,15 @@ function closeModal() {
 
 .cascade-note {
   color: #22c55e;
+}
+
+.material-req {
+  color: #9ca3af;
+  font-size: 0.8rem;
+}
+
+.material-req.insufficient {
+  color: #ef4444;
 }
 
 .tier-controls {

@@ -713,10 +713,10 @@ export const heroTemplates = {
       },
       {
         name: 'Soothing Serenade',
-        description: 'Heal all allies for 15% of ATK',
+        description: 'Heal all allies for 20% of ATK',
         skillUnlockLevel: 3,
         targetType: 'all_allies',
-        healFromStat: { stat: 'atk', percent: 15 }
+        healFromStat: { stat: 'atk', percent: 20 }
       },
       {
         name: 'Ballad of Blackwall',
