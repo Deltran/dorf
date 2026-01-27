@@ -72,6 +72,8 @@ export const banners = [
   }
 ]
 
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
 /**
  * Check whether a given month/day falls within a date range.
  * Handles year-boundary wrapping (e.g., Dec 20 – Jan 5).
@@ -123,4 +125,41 @@ export function getActiveBanners() {
  */
 export function getBannerById(bannerId) {
   return banners.find(b => b.id === bannerId)
+}
+
+/**
+ * Return human-readable availability text for a banner.
+ *
+ * Permanent banners always say "Always Available". Rotating banners
+ * show a countdown when close to expiry, or a date range otherwise.
+ *
+ * @param {object} banner
+ * @returns {string}
+ */
+export function getBannerAvailabilityText(banner) {
+  if (banner.permanent) return 'Always Available'
+
+  const now = new Date()
+  const currentYear = now.getFullYear()
+
+  // Calculate end date for this year's occurrence
+  let endDate = new Date(currentYear, banner.endMonth - 1, banner.endDay)
+
+  // If banner wraps year boundary and we're in the start portion (Dec side),
+  // the end is in the next year
+  if (banner.startMonth > banner.endMonth && now.getMonth() + 1 >= banner.startMonth) {
+    endDate = new Date(currentYear + 1, banner.endMonth - 1, banner.endDay)
+  }
+
+  const diffMs = endDate - now
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays <= 0) return 'Last day!'
+  if (diffDays <= 3) {
+    return diffDays === 1 ? '1 day remaining' : `${diffDays} days remaining`
+  }
+
+  const startStr = `${MONTH_NAMES[banner.startMonth - 1]} ${banner.startDay}`
+  const endStr = `${MONTH_NAMES[banner.endMonth - 1]} ${banner.endDay}`
+  return `${startStr} – ${endStr}`
 }

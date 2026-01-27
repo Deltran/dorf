@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { banners, isDateInRange, getActiveBanners, getBannerById } from '../banners.js'
+import { banners, isDateInRange, getActiveBanners, getBannerById, getBannerAvailabilityText } from '../banners.js'
 
 describe('banners data', () => {
   describe('standard banner', () => {
@@ -141,5 +141,52 @@ describe('getActiveBanners', () => {
     const active = getActiveBanners()
     expect(active).toHaveLength(1)
     expect(active[0].id).toBe('standard')
+  })
+})
+
+describe('getBannerAvailabilityText', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('returns "Always Available" for permanent banners', () => {
+    const standard = banners.find(b => b.id === 'standard')
+    expect(getBannerAvailabilityText(standard)).toBe('Always Available')
+  })
+
+  it('returns date range for rotating banners not near expiry', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 2)) // Jan 2
+    const banner = banners.find(b => b.id === 'shields_of_valor')
+    const text = getBannerAvailabilityText(banner)
+    expect(text).toBe('Jan 1 \u2013 Jan 15')
+    vi.useRealTimers()
+  })
+
+  it('returns countdown when 3 or fewer days remaining', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 13)) // Jan 13 — 2 days until Jan 15
+    const banner = banners.find(b => b.id === 'shields_of_valor')
+    const text = getBannerAvailabilityText(banner)
+    expect(text).toBe('2 days remaining')
+    vi.useRealTimers()
+  })
+
+  it('returns "Last day!" when 0 days remaining', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 15)) // Jan 15 — last day
+    const banner = banners.find(b => b.id === 'shields_of_valor')
+    const text = getBannerAvailabilityText(banner)
+    expect(text).toBe('Last day!')
+    vi.useRealTimers()
+  })
+
+  it('returns "1 day remaining" on the day before end', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 14)) // Jan 14
+    const banner = banners.find(b => b.id === 'shields_of_valor')
+    const text = getBannerAvailabilityText(banner)
+    expect(text).toBe('1 day remaining')
+    vi.useRealTimers()
   })
 })
