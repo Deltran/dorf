@@ -219,16 +219,12 @@ export const heroTemplates = {
     ],
     leaderSkill: {
       name: 'Ancient Awakening',
-      description: "On round 1, all allies are healed for 10% of Yggra's ATK",
+      description: 'All allies regenerate 3% of their max HP at the start of each round',
       effects: [
         {
-          type: 'timed',
-          triggerRound: 1,
+          type: 'passive_regen',
           target: 'all_allies',
-          apply: {
-            effectType: 'heal',
-            value: 10
-          }
+          percentMaxHp: 3
         }
       ]
     }

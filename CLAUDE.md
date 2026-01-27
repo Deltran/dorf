@@ -144,19 +144,15 @@ leaderSkill: {
 }
 ```
 
-**Timed Heal** - Round-triggered healing based on leader's ATK:
+**Passive Regen** - Per-round healing based on each ally's max HP:
 ```js
 leaderSkill: {
   name: 'Ancient Awakening',
-  description: "On round 1, all allies are healed for 10% of Yggra's ATK",
+  description: 'All allies regenerate 3% of their max HP at the start of each round',
   effects: [{
-    type: 'timed',
-    triggerRound: 1,
+    type: 'passive_regen',
     target: 'all_allies',
-    apply: {
-      effectType: 'heal',
-      value: 10  // Percentage of leader's ATK
-    }
+    percentMaxHp: 3
   }]
 }
 ```

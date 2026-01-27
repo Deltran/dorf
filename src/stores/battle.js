@@ -218,6 +218,30 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // Apply passive regen leader skill effects each round
+  function applyPassiveRegenLeaderEffects() {
+    const leaderSkill = getActiveLeaderSkill()
+    if (!leaderSkill) return
+
+    for (const effect of leaderSkill.effects) {
+      if (effect.type !== 'passive_regen') continue
+
+      const targets = getLeaderEffectTargets(effect.target, effect.condition)
+
+      for (const target of targets) {
+        const maxHp = target.maxHp
+        const healAmount = Math.floor(maxHp * effect.percentMaxHp / 100)
+        const oldHp = target.currentHp
+        target.currentHp = Math.min(maxHp, target.currentHp + healAmount)
+        const actualHeal = target.currentHp - oldHp
+        if (actualHeal > 0) {
+          emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+          addLog(`${target.template.name} regenerates ${actualHeal} HP!`)
+        }
+      }
+    }
+  }
+
   const currentTargetType = computed(() => {
     if (selectedAction.value === 'attack') {
       return 'enemy'
@@ -1389,6 +1413,7 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Apply round 1 timed effects
     applyTimedLeaderEffects(1)
+    applyPassiveRegenLeaderEffects()
 
     calculateTurnOrder()
 
@@ -1526,6 +1551,7 @@ export const useBattleStore = defineStore('battle', () => {
 
       // Check for round-triggered leader effects
       applyTimedLeaderEffects(roundNumber.value)
+      applyPassiveRegenLeaderEffects()
 
       // MP recovery at start of round
       for (const hero of heroes.value) {
@@ -3134,6 +3160,8 @@ export const useBattleStore = defineStore('battle', () => {
     checkDivineSacrifice,
     // Heal Self Percent (lifesteal for skills)
     calculateHealSelfPercent,
+    // Passive regen leader effects
+    applyPassiveRegenLeaderEffects,
     // Constants
     BattleState,
     EffectType

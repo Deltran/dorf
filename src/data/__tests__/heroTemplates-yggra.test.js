@@ -113,4 +113,18 @@ describe('Yggra hero template', () => {
       expect(skill.skillUnlockLevel).toBe(12)
     })
   })
+
+  describe('leader skill', () => {
+    it('is Ancient Awakening — passive regen for all allies', () => {
+      expect(yggra.leaderSkill).toBeDefined()
+      expect(yggra.leaderSkill.name).toBe('Ancient Awakening')
+    })
+
+    it('has passive_regen effect targeting all allies at 3% max HP', () => {
+      const effect = yggra.leaderSkill.effects[0]
+      expect(effect.type).toBe('passive_regen')
+      expect(effect.target).toBe('all_allies')
+      expect(effect.percentMaxHp).toBe(3)
+    })
+  })
 })
