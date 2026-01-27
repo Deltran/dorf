@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { generateMapImage } from '../../lib/gemini.js'
+import { getQuestNode } from '../../data/questNodes.js'
 
 const props = defineProps({
   region: { type: Object, required: true },
@@ -9,11 +10,15 @@ const props = defineProps({
   savedPrompt: { type: String, default: null }
 })
 
-const emit = defineEmits(['back', 'save-image', 'save-positions', 'resize-region'])
+const emit = defineEmits(['back', 'save-image', 'save-positions', 'resize-region', 'save-link-positions'])
 
 // --- Local node positions (mutable copies) ---
 const nodePositions = ref({})
 const movedNodes = ref({})
+
+// --- Region link positions (mutable copies) ---
+const linkPositions = ref({})
+const movedLinks = ref({})
 
 watch(() => props.nodes, (nodes) => {
   const positions = {}
@@ -24,7 +29,24 @@ watch(() => props.nodes, (nodes) => {
   movedNodes.value = {}
 }, { immediate: true })
 
-const hasChanges = computed(() => Object.keys(movedNodes.value).length > 0)
+watch(() => props.nodes, (nodes) => {
+  const positions = {}
+  for (const node of nodes) {
+    for (const connId of node.connections || []) {
+      const connNode = getQuestNode(connId)
+      if (!connNode || connNode.region === node.region) continue
+      const linkId = `link-${node.id}`
+      const pos = node.regionLinkPosition || { x: node.x + 60, y: node.y }
+      positions[linkId] = { x: pos.x, y: pos.y, sourceNodeId: node.id }
+    }
+  }
+  linkPositions.value = positions
+  movedLinks.value = {}
+}, { immediate: true })
+
+const hasChanges = computed(() =>
+  Object.keys(movedNodes.value).length > 0 || Object.keys(movedLinks.value).length > 0
+)
 
 // --- Map canvas scaling ---
 const mapContainer = ref(null)
@@ -58,6 +80,7 @@ onUnmounted(() => {
 
 // --- Node dragging ---
 const draggingNodeId = ref(null)
+const draggingLinkId = ref(null)
 const dragOffset = ref({ x: 0, y: 0 })
 
 function onNodeMouseDown(e, nodeId) {
@@ -73,22 +96,41 @@ function onNodeMouseDown(e, nodeId) {
   document.addEventListener('mouseup', onMouseUp)
 }
 
+function onLinkMouseDown(e, linkId) {
+  e.preventDefault()
+  draggingLinkId.value = linkId
+  const pos = linkPositions.value[linkId]
+  const rect = mapContainer.value.getBoundingClientRect()
+  dragOffset.value = {
+    x: e.clientX - (pos.x * scale.value + rect.left),
+    y: e.clientY - (pos.y * scale.value + rect.top)
+  }
+  document.addEventListener('mousemove', onMouseMove)
+  document.addEventListener('mouseup', onMouseUp)
+}
+
 function onMouseMove(e) {
-  if (!draggingNodeId.value) return
+  const activeId = draggingNodeId.value || draggingLinkId.value
+  if (!activeId) return
   const rect = mapContainer.value.getBoundingClientRect()
   const rawX = (e.clientX - rect.left - dragOffset.value.x) / scale.value
   const rawY = (e.clientY - rect.top - dragOffset.value.y) / scale.value
-
-  // Clamp to region bounds
   const x = Math.max(0, Math.min(props.region.width, Math.round(rawX)))
   const y = Math.max(0, Math.min(props.region.height, Math.round(rawY)))
 
-  nodePositions.value[draggingNodeId.value] = { x, y }
-  movedNodes.value[draggingNodeId.value] = true
+  if (draggingNodeId.value) {
+    nodePositions.value[draggingNodeId.value] = { x, y }
+    movedNodes.value[draggingNodeId.value] = true
+  } else if (draggingLinkId.value) {
+    const existing = linkPositions.value[draggingLinkId.value]
+    linkPositions.value[draggingLinkId.value] = { ...existing, x, y }
+    movedLinks.value[draggingLinkId.value] = true
+  }
 }
 
 function onMouseUp() {
   draggingNodeId.value = null
+  draggingLinkId.value = null
   document.removeEventListener('mousemove', onMouseMove)
   document.removeEventListener('mouseup', onMouseUp)
 }
@@ -100,8 +142,19 @@ function saveLayout() {
   for (const nodeId of Object.keys(movedNodes.value)) {
     positions[nodeId] = nodePositions.value[nodeId]
   }
-  emit('save-positions', positions)
+  const linkPosPayload = {}
+  for (const linkId of Object.keys(movedLinks.value)) {
+    const link = linkPositions.value[linkId]
+    linkPosPayload[link.sourceNodeId] = { x: link.x, y: link.y }
+  }
+  if (Object.keys(positions).length > 0) {
+    emit('save-positions', positions)
+  }
+  if (Object.keys(linkPosPayload).length > 0) {
+    emit('save-link-positions', linkPosPayload)
+  }
   movedNodes.value = {}
+  movedLinks.value = {}
 }
 
 // --- Image generation ---
@@ -190,9 +243,32 @@ const trails = computed(() => {
   return result
 })
 
+const linkTrails = computed(() => {
+  const result = []
+  for (const [linkId, link] of Object.entries(linkPositions.value)) {
+    const sourcePos = nodePositions.value[link.sourceNodeId]
+    if (!sourcePos) continue
+    result.push({
+      id: linkId,
+      x1: sourcePos.x, y1: sourcePos.y,
+      x2: link.x, y2: link.y
+    })
+  }
+  return result
+})
+
 // --- Node style helper ---
 function getNodeStyle(nodeId) {
   const pos = nodePositions.value[nodeId]
+  if (!pos) return {}
+  return {
+    left: `${pos.x * scale.value}px`,
+    top: `${pos.y * scale.value}px`
+  }
+}
+
+function getLinkStyle(linkId) {
+  const pos = linkPositions.value[linkId]
   if (!pos) return {}
   return {
     left: `${pos.x * scale.value}px`,
@@ -255,6 +331,15 @@ function getNodeStyle(nodeId) {
           class="trail-line"
           stroke-dasharray="8 8"
         />
+        <!-- Region link trails -->
+        <line
+          v-for="trail in linkTrails"
+          :key="trail.id"
+          :x1="trail.x1" :y1="trail.y1"
+          :x2="trail.x2" :y2="trail.y2"
+          class="trail-line link-trail"
+          stroke-dasharray="8 8"
+        />
       </svg>
 
       <!-- Node markers -->
@@ -273,6 +358,22 @@ function getNodeStyle(nodeId) {
       >
         <div class="node-dot"></div>
         <div class="node-label">{{ node.name }}</div>
+      </div>
+
+      <!-- Region link markers -->
+      <div
+        v-for="(link, linkId) in linkPositions"
+        :key="linkId"
+        :class="['node-marker', 'node-link', {
+          'node-moved': movedLinks[linkId],
+          'node-dragging': draggingLinkId === linkId
+        }]"
+        :style="getLinkStyle(linkId)"
+        :title="`Region Link (${link.x}, ${link.y})`"
+        @mousedown="onLinkMouseDown($event, linkId)"
+      >
+        <div class="node-dot"></div>
+        <div class="node-label">Link</div>
       </div>
     </div>
 
@@ -467,6 +568,16 @@ function getNodeStyle(nodeId) {
 
 .node-dragging .node-dot {
   transform: scale(1.3);
+}
+
+.node-link .node-dot {
+  background: #3b82f6;
+  border-color: #60a5fa;
+  box-shadow: 0 0 6px rgba(59, 130, 246, 0.5);
+}
+
+.trail-line.link-trail {
+  stroke: rgba(59, 130, 246, 0.5);
 }
 
 .node-label {
