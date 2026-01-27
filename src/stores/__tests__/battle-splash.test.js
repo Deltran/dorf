@@ -159,7 +159,7 @@ describe('Splash damage mechanics', () => {
 
       store.applySplashDamage(attacker, primaryTarget, otherEnemies, skill)
 
-      // With 0 DEF (min 1 via getEffectiveStat), splash damage = 100*0.5 - 1*0.5 = 49
+      // With 0 DEF (min 1 via getEffectiveStat), splash damage = floor(100 * 0.5 * (100/101)) = 49
       const splashDamage = 500 - otherEnemies[0].currentHp
       expect(splashDamage).toBe(49)
     })
