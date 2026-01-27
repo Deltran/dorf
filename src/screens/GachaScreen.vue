@@ -4,6 +4,7 @@ import { useGachaStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
+import { getBannerAvailabilityText, getBannerImageUrl } from '../data/banners.js'
 
 const emit = defineEmits(['navigate'])
 
@@ -40,6 +41,20 @@ const pityInfo = computed(() => ({
   pity5SoftPercent: Math.min(100, (gachaStore.pullsSince5Star / gachaStore.SOFT_PITY_START) * 100),
   pity5HardPercent: Math.min(100, (gachaStore.pullsSince5Star / gachaStore.HARD_PITY) * 100)
 }))
+
+const activeBanners = computed(() => gachaStore.activeBanners)
+const selectedBanner = computed(() => gachaStore.selectedBanner)
+const bannerAvailability = computed(() => {
+  if (!selectedBanner.value) return ''
+  return getBannerAvailabilityText(selectedBanner.value)
+})
+const bannerImageUrl = computed(() => {
+  if (!selectedBanner.value) return null
+  return getBannerImageUrl(selectedBanner.value.id)
+})
+const currentBannerIndex = computed(() => {
+  return activeBanners.value.findIndex(b => b.id === gachaStore.selectedBannerId)
+})
 
 async function doSinglePull() {
   if (!gachaStore.canSinglePull || isAnimating.value) return
@@ -92,6 +107,20 @@ function getResultHeroData(result) {
     stats: result.template.baseStats
   }
 }
+
+function prevBanner() {
+  const banners = activeBanners.value
+  if (banners.length <= 1) return
+  const idx = (currentBannerIndex.value - 1 + banners.length) % banners.length
+  gachaStore.selectBanner(banners[idx].id)
+}
+
+function nextBanner() {
+  const banners = activeBanners.value
+  if (banners.length <= 1) return
+  const idx = (currentBannerIndex.value + 1) % banners.length
+  gachaStore.selectBanner(banners[idx].id)
+}
 </script>
 
 <template>
@@ -115,15 +144,33 @@ function getResultHeroData(result) {
     </header>
 
     <section class="banner-area">
-      <div class="banner">
+      <div class="banner" :style="bannerImageUrl ? { backgroundImage: `url(${bannerImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}">
         <div class="banner-glow"></div>
+        <div class="banner-nav" v-if="activeBanners.length > 1">
+          <button class="banner-arrow banner-arrow-left" @click="prevBanner">‹</button>
+          <button class="banner-arrow banner-arrow-right" @click="nextBanner">›</button>
+        </div>
         <div class="banner-content">
-          <span class="banner-label">Standard Banner</span>
-          <h2>Hero Summoning</h2>
-          <p>Call forth powerful heroes to join your party!</p>
+          <span class="banner-label">{{ selectedBanner?.name || 'Standard Banner' }}</span>
+          <h2>{{ selectedBanner?.name || 'Hero Summoning' }}</h2>
+          <p>{{ selectedBanner?.description || 'Call forth powerful heroes to join your party!' }}</p>
         </div>
         <div class="banner-stars">
-          <span>✦</span><span>✦</span><span>✦</span>
+          <span>&#10022;</span><span>&#10022;</span><span>&#10022;</span>
+        </div>
+      </div>
+      <div class="banner-availability">
+        <span class="availability-text" :class="{ 'availability-urgent': bannerAvailability.includes('remaining') || bannerAvailability.includes('Last') }">
+          {{ bannerAvailability }}
+        </span>
+        <div class="banner-dots" v-if="activeBanners.length > 1">
+          <span
+            v-for="(b, i) in activeBanners"
+            :key="b.id"
+            class="banner-dot"
+            :class="{ active: i === currentBannerIndex }"
+            @click="gachaStore.selectBanner(b.id)"
+          ></span>
         </div>
       </div>
     </section>
@@ -996,5 +1043,85 @@ function getResultHeroData(result) {
 .close-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+/* ===== Banner Navigation ===== */
+.banner-nav {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.banner-arrow {
+  pointer-events: auto;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f3f4f6;
+  font-size: 1.8rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin: 0 8px;
+  line-height: 1;
+}
+
+.banner-arrow:hover {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: scale(1.1);
+}
+
+/* ===== Banner Availability + Dots ===== */
+.banner-availability {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 4px 0;
+}
+
+.availability-text {
+  font-size: 0.8rem;
+  color: #9ca3af;
+  letter-spacing: 0.5px;
+}
+
+.availability-text.availability-urgent {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+.banner-dots {
+  display: flex;
+  gap: 8px;
+}
+
+.banner-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #4b5563;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.banner-dot.active {
+  background: #a78bfa;
+  box-shadow: 0 0 6px rgba(167, 139, 250, 0.5);
+}
+
+.banner-dot:hover {
+  background: #6b7280;
 }
 </style>
