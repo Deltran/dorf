@@ -32,6 +32,7 @@ export const useBattleStore = defineStore('battle', () => {
   const combatEffects = ref([]) // For visual feedback: { id, targetId, targetType, effectType, value }
   const leaderSkillActivation = ref(null) // { skillName, leaderId } - for visual announcement
   const finaleActivation = ref(null) // { bardId, finaleName } - for visual announcement
+  const enemySkillActivation = ref(null) // { enemyId, skillName } - for visual announcement
   const battleType = ref('normal') // 'normal' or 'genusLoci'
   const genusLociMeta = ref(null) // { genusLociId, powerLevel, triggeredTowersWrath }
 
@@ -413,6 +414,30 @@ export const useBattleStore = defineStore('battle', () => {
       }
       addLog(`${unitName} is asleep and cannot act!`)
       return false // Cannot act
+    }
+
+    // Check for start-of-turn buff passives (e.g., Pyroclast's Tectonic Charge)
+    if (unit.passiveAbilities) {
+      for (const passive of unit.passiveAbilities) {
+        if (passive.startOfTurnBuff) {
+          let buffValue = passive.startOfTurnBuff.value
+          // Check for modifying passives (e.g., Pyroclastic Flow - stronger buff below HP threshold)
+          const modifier = unit.passiveAbilities.find(p => p.modifies === passive.id)
+          if (modifier) {
+            const hpPercent = (unit.currentHp / unit.maxHp) * 100
+            if (modifier.triggerCondition === 'hp_below_50' && hpPercent < 50) {
+              buffValue = modifier.modifiedValue
+            }
+          }
+          applyEffect(unit, passive.startOfTurnBuff.type, {
+            duration: passive.startOfTurnBuff.duration,
+            value: buffValue,
+            sourceId: unit.id
+          })
+          addLog(`${unitName}'s ${passive.name} increases ATK by ${buffValue}%!`)
+          emitCombatEffect(unit.id, 'enemy', 'buff', 0)
+        }
+      }
     }
 
     return true // Can act
@@ -1150,6 +1175,38 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Check for HP-threshold triggered passives (e.g., Tower's Wrath, Cataclysm)
+    if (unit.passiveAbilities && unit.currentHp > 0 && unit.triggeredPassives) {
+      for (const passive of unit.passiveAbilities) {
+        if (passive.triggerOnce && passive.targetType === 'all_heroes' && !unit.triggeredPassives.has(passive.id)) {
+          let threshold = 50
+          if (passive.triggerCondition === 'hp_below_50') threshold = 50
+          else if (passive.triggerCondition === 'hp_below_25') threshold = 25
+          const hpPercent = (unit.currentHp / unit.maxHp) * 100
+          if (hpPercent < threshold) {
+            unit.triggeredPassives.add(passive.id)
+            const unitName = unit.template?.name || 'Unknown'
+            const multiplier = (passive.damagePercent || 100) / 100
+            addLog(`${unitName} triggers ${passive.name}!`)
+            enemySkillActivation.value = { enemyId: unit.id, skillName: passive.name }
+            for (const hero of aliveHeroes.value) {
+              const heroDef = getEffectiveStat(hero, 'def')
+              const passiveDamage = calculateDamage(unit.stats.atk, multiplier, heroDef)
+              const heroActual = Math.min(hero.currentHp, Math.max(1, passiveDamage))
+              hero.currentHp = Math.max(0, hero.currentHp - heroActual)
+              if (heroActual > 0) {
+                emitCombatEffect(hero.instanceId, 'hero', 'damage', heroActual)
+              }
+              if (hero.currentHp <= 0) {
+                addLog(`${hero.template.name} has fallen!`)
+                if (hero.statusEffects?.length > 0) hero.statusEffects = []
+              }
+            }
+          }
+        }
+      }
+    }
+
     return actualDamage
   }
 
@@ -1201,10 +1258,10 @@ export const useBattleStore = defineStore('battle', () => {
     const activeSkills = abilities.filter(a => !a.isPassive)
     const passiveAbilities = abilities.filter(a => a.isPassive)
 
-    // Initialize cooldowns for active skills
+    // Initialize cooldowns for active skills (support initialCooldown for delayed availability)
     const cooldowns = {}
     for (const skill of activeSkills) {
-      cooldowns[skill.name] = 0
+      cooldowns[skill.name] = skill.initialCooldown || 0
     }
 
     return {
@@ -1222,6 +1279,7 @@ export const useBattleStore = defineStore('battle', () => {
       currentCooldowns: cooldowns,
       statusEffects: [],
       passiveAbilities, // Store for checking passive triggers
+      triggeredPassives: new Set(), // Track one-time passive triggers
       shield: 0, // For Iron Guard shield
       isGenusLoci: true
     }
@@ -1304,10 +1362,10 @@ export const useBattleStore = defineStore('battle', () => {
         const cooldowns = {}
         if (template.skills) {
           for (const skill of template.skills) {
-            cooldowns[skill.name] = 0
+            cooldowns[skill.name] = skill.initialCooldown || 0
           }
         } else if (template.skill) {
-          cooldowns[template.skill.name] = 0
+          cooldowns[template.skill.name] = template.skill.initialCooldown || 0
         }
 
         enemies.value.push({
@@ -2413,6 +2471,19 @@ export const useBattleStore = defineStore('battle', () => {
               }
             }
           }
+          // Extend buff durations on all allies
+          if (skill.extendBuffs) {
+            for (const target of aliveHeroes.value) {
+              const buffsExtended = target.statusEffects?.filter(e => e.definition?.isBuff) || []
+              if (buffsExtended.length > 0) {
+                for (const buff of buffsExtended) {
+                  buff.duration += skill.extendBuffs
+                }
+                addLog(`${target.template.name}'s buffs extended by ${skill.extendBuffs} turns!`)
+                emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              }
+            }
+          }
           if (skill.effects) {
             for (const effect of skill.effects) {
               if ((effect.target === 'ally' || effect.target === 'all_allies') && shouldApplyEffect(effect, hero)) {
@@ -2558,6 +2629,9 @@ export const useBattleStore = defineStore('battle', () => {
     const effectiveDef = getEffectiveStat(target, 'def')
 
     if (skill) {
+      // Announce skill name for UI floating text
+      enemySkillActivation.value = { enemyId: enemy.id, skillName: skill.name }
+
       // Check if skill targets heroes at all or is self/ally only
       const skillTargetType = skill.targetType || 'hero'
       const isAoeSkill = skillTargetType === 'all_heroes'
@@ -2992,6 +3066,7 @@ export const useBattleStore = defineStore('battle', () => {
     combatEffects,
     leaderSkillActivation,
     finaleActivation,
+    enemySkillActivation,
     battleType,
     genusLociMeta,
     // Getters

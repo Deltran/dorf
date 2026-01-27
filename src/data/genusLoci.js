@@ -53,6 +53,33 @@ export const genusLociData = {
       base: { gems: 10 },
       perLevel: { gems: 2 }
     }
+  },
+  pyroclast: {
+    id: 'pyroclast',
+    name: 'Pyroclast, the Living Eruption',
+    description: 'A molten elemental born from the heart of the volcano. It builds pressure with each passing moment, growing stronger until it erupts with devastating force.',
+    region: 'eruption_vent',
+    imageSize: 180,
+    nodeId: 'eruption_vent_gl',
+    keyItemId: 'eruption_vent_key',
+    maxPowerLevel: 20,
+    baseStats: { hp: 700, atk: 65, def: 20, spd: 12 },
+    statScaling: { hp: 1.15, atk: 1.12, def: 1.06 },
+    abilities: [
+      { id: 'magma_surge', unlocksAt: 1 },
+      { id: 'tectonic_charge', unlocksAt: 1 },
+      { id: 'eruption', unlocksAt: 1 },
+      { id: 'molten_armor', unlocksAt: 5 },
+      { id: 'pyroclastic_flow', unlocksAt: 10 },
+      { id: 'magma_pool', unlocksAt: 15 },
+      { id: 'cataclysm', unlocksAt: 20 }
+    ],
+    uniqueDrop: { itemId: 'pyroclast_crest', guaranteed: true },
+    firstClearBonus: { gems: 20 },
+    currencyRewards: {
+      base: { gold: 120 },
+      perLevel: { gold: 30 }
+    }
   }
 }
 

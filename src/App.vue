@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
+import { getAllQuestNodes } from './data/questNodes.js'
 
 import HomeScreen from './screens/HomeScreen.vue'
 import GachaScreen from './screens/GachaScreen.vue'
@@ -47,6 +48,17 @@ const selectedExplorationNodeId = ref(null)
 const currentCompletionPopup = ref(null)
 const placingHeroId = ref(null)
 
+// Repair: sync genus loci victories with completedNodes
+// Older saves may have genus loci progress without the quest node marked complete
+function repairGenusLociCompletions() {
+  const glNodes = getAllQuestNodes().filter(n => n.type === 'genusLoci' && n.genusLociId)
+  for (const node of glNodes) {
+    if (genusLociStore.isUnlocked(node.genusLociId) && !questsStore.completedNodes.includes(node.id)) {
+      questsStore.completedNodes.push(node.id)
+    }
+  }
+}
+
 // Load game on mount
 onMounted(() => {
   const hasData = hasSaveData()
@@ -54,6 +66,7 @@ onMounted(() => {
 
   if (hasData) {
     loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore })
+    repairGenusLociCompletions()
   } else {
     // New player: give them a starter hero
     initNewPlayer()

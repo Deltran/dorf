@@ -96,6 +96,20 @@ export const items = {
     type: 'genusLoci',
     rarity: 4
   },
+  eruption_vent_key: {
+    id: 'eruption_vent_key',
+    name: 'Eruption Vent Key',
+    description: 'A key forged in volcanic glass. It pulses with heat, granting passage to the Eruption Vent.',
+    type: 'key',
+    rarity: 3
+  },
+  pyroclast_crest: {
+    id: 'pyroclast_crest',
+    name: "Pyroclast's Crest",
+    description: 'A searing emblem torn from the Living Eruption. Its surface still glows with molten fury.',
+    type: 'genusLoci',
+    rarity: 4
+  },
   magical_rocks: {
     id: 'magical_rocks',
     name: 'Magical Rocks',

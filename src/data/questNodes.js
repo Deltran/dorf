@@ -51,9 +51,9 @@ export const questNodes = {
     id: 'forest_03',
     name: 'Spider Nest',
     region: 'Whispering Woods',
-    x: 480,
-    y: 400,
-    regionLinkPosition: { x: 480, y: 470 },
+    x: 433,
+    y: 355,
+    regionLinkPosition: { x: 456, y: 394 },
     battles: [
       { enemies: ['forest_spider', 'forest_spider', 'forest_spider'] },
       { enemies: ['forest_spider', 'forest_spider', 'goblin_warrior'] },
@@ -98,7 +98,7 @@ export const questNodes = {
     region: 'Whispering Woods',
     x: 586,
     y: 164,
-    regionLinkPosition: { x: 660, y: 164 },
+    regionLinkPosition: { x: 600, y: 115 },
     battles: [
       { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_shaman'] },
       { enemies: ['goblin_thrower', 'goblin_thrower', 'goblin_bulwark', 'goblin_warrior', 'goblin_trapper'] },
@@ -198,7 +198,7 @@ export const questNodes = {
     region: 'Echoing Caverns',
     x: 600,
     y: 250,
-    regionLinkPosition: { x: 680, y: 250 },
+    regionLinkPosition: { x: 574, y: 359 },
     battles: [
       { enemies: ['rock_golem', 'rock_golem'] },
       { enemies: ['cave_troll', 'dark_cultist', 'dark_cultist'] },
@@ -354,7 +354,7 @@ export const questNodes = {
     region: 'Stormwind Peaks',
     x: 380,
     y: 550,
-    regionLinkPosition: { x: 380, y: 630 },
+    regionLinkPosition: { x: 562, y: 559 },
     battles: [
       { enemies: ['frost_elemental', 'harpy'] },
       { enemies: ['frost_elemental', 'frost_elemental'] },
@@ -399,9 +399,9 @@ export const questNodes = {
     id: 'mountain_04',
     name: 'Dragon\'s Lair',
     region: 'Stormwind Peaks',
-    x: 405,
-    y: 185,
-    regionLinkPosition: { x: 490, y: 120 },
+    x: 378,
+    y: 119,
+    regionLinkPosition: { x: 432, y: 227 },
     battles: [
       { enemies: ['frost_elemental', 'frost_elemental', 'harpy', 'harpy'] },
       { enemies: ['mountain_giant', 'mountain_giant'] },
@@ -614,8 +614,8 @@ export const questNodes = {
     id: 'summit_01',
     name: 'Windswept Ascent',
     region: 'The Summit',
-    x: 100,
-    y: 250,
+    x: 78,
+    y: 322,
     battles: [
       { enemies: ['wind_spirit', 'wind_spirit'] },
       { enemies: ['frost_elemental', 'wind_spirit'] },
@@ -639,8 +639,8 @@ export const questNodes = {
     id: 'summit_02',
     name: 'Frozen Shrine',
     region: 'The Summit',
-    x: 250,
-    y: 180,
+    x: 183,
+    y: 262,
     battles: [
       { enemies: ['ice_wraith', 'ice_wraith', 'ancient_guardian'] },
       { enemies: ['frost_elemental', 'frost_elemental', 'wind_spirit'] },
@@ -664,8 +664,8 @@ export const questNodes = {
     id: 'summit_03',
     name: 'Guardian\'s Gate',
     region: 'The Summit',
-    x: 400,
-    y: 250,
+    x: 299,
+    y: 188,
     battles: [
       { enemies: ['ancient_guardian', 'ancient_guardian'] },
       { enemies: ['summit_giant', 'ice_wraith', 'ice_wraith'] },
@@ -689,8 +689,8 @@ export const questNodes = {
     id: 'summit_04',
     name: 'Hall of Winds',
     region: 'The Summit',
-    x: 550,
-    y: 120,
+    x: 386,
+    y: 70,
     battles: [
       { enemies: ['wind_spirit', 'wind_spirit', 'wind_spirit', 'wind_spirit'] },
       { enemies: ['storm_elemental', 'storm_elemental', 'wind_spirit'] },
@@ -715,8 +715,8 @@ export const questNodes = {
     id: 'summit_05',
     name: 'Frost Sanctum',
     region: 'The Summit',
-    x: 550,
-    y: 380,
+    x: 416,
+    y: 224,
     battles: [
       { enemies: ['ice_wraith', 'ice_wraith', 'ice_wraith'] },
       { enemies: ['frost_elemental', 'frost_elemental', 'ice_wraith'] },
@@ -741,9 +741,9 @@ export const questNodes = {
     id: 'summit_06',
     name: 'Titan\'s Throne',
     region: 'The Summit',
-    x: 700,
-    y: 250,
-    regionLinkPosition: { x: 770, y: 250 },
+    x: 497,
+    y: 152,
+    regionLinkPosition: { x: 595, y: 285 },
     battles: [
       { enemies: ['summit_giant', 'summit_giant'] },
       { enemies: ['ancient_guardian', 'ancient_guardian', 'ice_wraith', 'ice_wraith'] },
@@ -768,8 +768,8 @@ export const questNodes = {
     id: 'summit_exploration',
     name: 'Summit Exploration',
     region: 'The Summit',
-    x: 250,
-    y: 380,
+    x: 275,
+    y: 433,
     type: 'exploration',
     unlockedBy: 'summit_03',
     backgroundId: 'summit_01',
@@ -894,6 +894,7 @@ export const questNodes = {
     region: 'Blistering Cliffsides',
     x: 481,
     y: 323,
+    regionLinkPosition: { x: 626, y: 401 },
     battles: [
       { enemies: ['volcanic_drake', 'fire_elemental'] },
       { enemies: ['magma_golem', 'magma_golem', 'ash_crawler', 'ash_crawler'] },
@@ -902,7 +903,7 @@ export const questNodes = {
       { enemies: ['magma_golem', 'volcanic_drake'] },
       { enemies: ['fire_elemental', 'fire_elemental', 'magma_golem', 'flame_salamander'] }
     ],
-    connections: ['cliffs_06'],
+    connections: ['cliffs_06', 'eruption_vent_01'],
     rewards: { gems: 100, gold: 800, exp: 800 },
     firstClearBonus: { gems: 155 },
     itemDrops: [
@@ -916,9 +917,9 @@ export const questNodes = {
     id: 'cliffs_06',
     name: 'Inferno Peak',
     region: 'Blistering Cliffsides',
-    x: 720,
-    y: 230,
-    regionLinkPosition: { x: 775, y: 160 },
+    x: 616,
+    y: 270,
+    regionLinkPosition: { x: 742, y: 202 },
     battles: [
       { enemies: ['volcanic_drake', 'volcanic_drake'] },
       { enemies: ['magma_golem', 'magma_golem', 'flame_salamander'] },
@@ -936,6 +937,61 @@ export const questNodes = {
       { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
       { itemId: 'token_stormwind_peaks', min: 1, max: 1, chance: 0.1 }
     ]
+  },
+
+  // Eruption Vent (Pyroclast Genus Loci)
+  // Layout: eruption_vent_01 -> eruption_vent_02 -> eruption_vent_gl
+  eruption_vent_01: {
+    id: 'eruption_vent_01',
+    name: 'Basalt Corridor',
+    region: 'Eruption Vent',
+    x: 550,
+    y: 480,
+    battles: [
+      { enemies: ['magma_golem', 'fire_elemental'] },
+      { enemies: ['volcanic_drake', 'flame_salamander', 'ash_crawler'] },
+      { enemies: ['magma_golem', 'magma_golem'] }
+    ],
+    connections: ['eruption_vent_02'],
+    rewards: { gems: 95, gold: 780, exp: 780 },
+    firstClearBonus: { gems: 145 },
+    itemDrops: [
+      { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'goblin_trinket', min: 1, max: 2, chance: 0.7 },
+      { itemId: 'eruption_vent_key', min: 1, max: 1, chance: 0.15 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+    ]
+  },
+  eruption_vent_02: {
+    id: 'eruption_vent_02',
+    name: 'Molten Chamber',
+    region: 'Eruption Vent',
+    x: 430,
+    y: 300,
+    battles: [
+      { enemies: ['volcanic_drake', 'volcanic_drake'] },
+      { enemies: ['magma_golem', 'fire_elemental', 'fire_elemental'] },
+      { enemies: ['flame_salamander', 'flame_salamander', 'magma_golem'] }
+    ],
+    connections: ['eruption_vent_gl'],
+    rewards: { gems: 100, gold: 800, exp: 800 },
+    firstClearBonus: { gems: 150 },
+    itemDrops: [
+      { itemId: 'tome_large', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'goblin_trinket', min: 1, max: 3, chance: 0.75 },
+      { itemId: 'eruption_vent_key', min: 1, max: 1, chance: 0.25 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 }
+    ]
+  },
+  eruption_vent_gl: {
+    id: 'eruption_vent_gl',
+    name: 'Eruption Vent',
+    region: 'Eruption Vent',
+    x: 220,
+    y: 120,
+    type: 'genusLoci',
+    genusLociId: 'pyroclast',
+    connections: []
   },
 
   // Janxier Floodplain (Flooded Plains) - BOSS: Hydra
@@ -1952,6 +2008,15 @@ export const regions = [
     height: 800,
     backgroundColor: '#2f1a1a',
     backgroundImage: blisteringCliffsMap
+  },
+  {
+    id: 'eruption_vent',
+    name: 'Eruption Vent',
+    superRegion: 'western_veros',
+    startNode: 'eruption_vent_01',
+    width: 800,
+    height: 500,
+    backgroundColor: '#3f1a0a'
   },
   {
     id: 'janxier_floodplain',

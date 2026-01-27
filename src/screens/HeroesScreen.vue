@@ -537,9 +537,10 @@ function getValorBreakdown(skill) {
     for (const effect of skill.effects) {
       // valorThreshold effects (only apply at certain Valor)
       if (effect.valorThreshold !== undefined) {
+        const tierValue = effect.value !== undefined ? `+${effect.value}%` : 'Active'
         breakdown.push({
           type: getEffectTypeName(effect.type),
-          tiers: [{ valor: effect.valorThreshold, label: `${effect.valorThreshold}+`, value: `+${effect.value}%` }]
+          tiers: [{ valor: effect.valorThreshold, label: `${effect.valorThreshold}+`, value: tierValue }]
         })
       }
 
@@ -604,7 +605,27 @@ function getEffectTypeName(type) {
     spd_down: 'SPD Debuff',
     taunt: 'Taunt',
     poison: 'Poison',
-    burn: 'Burn'
+    burn: 'Burn',
+    regen: 'Regen',
+    mp_regen: 'MP Regen',
+    stun: 'Stun',
+    sleep: 'Sleep',
+    shield: 'Shield',
+    thorns: 'Thorns',
+    riposte: 'Riposte',
+    untargetable: 'Untargetable',
+    evasion: 'Evasion',
+    guarding: 'Guarding',
+    guardian_link: 'Guardian Link',
+    damage_store: 'Damage Store',
+    divine_sacrifice: 'Divine Sacrifice',
+    damage_reduction: 'Damage Reduction',
+    reflect: 'Reflect',
+    debuff_immune: 'Debuff Immunity',
+    well_fed: 'Well Fed',
+    flame_shield: 'Flame Shield',
+    marked: 'Marked',
+    death_prevention: 'Death Prevention'
   }
   return names[type] || type
 }

@@ -738,17 +738,12 @@ export const heroTemplates = {
         ]
       },
       {
-        name: 'Encore',
-        description: 'Extend buff durations on ally by 2 turns. Grant +15 MP, +10 Rage, +10 Valor, +15% SPD for 1 turn.',
+        name: 'Ballad of Echoes',
+        description: 'Extend all buff durations on all allies by 1 turn.',
         skillUnlockLevel: 12,
-        targetType: 'ally',
-        extendBuffs: 2,
-        grantMp: 15,
-        grantRage: 10,
-        grantValor: 10,
-        effects: [
-          { type: EffectType.SPD_UP, target: 'ally', duration: 1, value: 15 }
-        ]
+        targetType: 'all_allies',
+        noDamage: true,
+        extendBuffs: 1
       }
     ]
   },

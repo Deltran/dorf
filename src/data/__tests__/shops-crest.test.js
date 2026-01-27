@@ -17,7 +17,7 @@ describe('Crest Shop', () => {
 
   it('should have sections with unlock conditions', () => {
     const shop = getShop('crest_shop')
-    expect(shop.sections).toHaveLength(2)
+    expect(shop.sections).toHaveLength(3)
 
     const valinar = shop.sections.find(s => s.id === 'valinar')
     expect(valinar.crestId).toBe('valinar_crest')
@@ -26,6 +26,10 @@ describe('Crest Shop', () => {
     const troll = shop.sections.find(s => s.id === 'great_troll')
     expect(troll.crestId).toBe('great_troll_crest')
     expect(troll.unlockCondition.completedNode).toBe('hibernation_den')
+
+    const pyroclast = shop.sections.find(s => s.id === 'pyroclast')
+    expect(pyroclast.crestId).toBe('pyroclast_crest')
+    expect(pyroclast.unlockCondition.completedNode).toBe('eruption_vent_gl')
   })
 
   it('should have inventory items with sectionId', () => {
@@ -34,9 +38,11 @@ describe('Crest Shop', () => {
 
     const valinarItems = shop.inventory.filter(i => i.sectionId === 'valinar')
     const trollItems = shop.inventory.filter(i => i.sectionId === 'great_troll')
+    const pyroclastItems = shop.inventory.filter(i => i.sectionId === 'pyroclast')
 
     expect(valinarItems.length).toBeGreaterThan(0)
     expect(trollItems.length).toBeGreaterThan(0)
+    expect(pyroclastItems.length).toBeGreaterThan(0)
   })
 
   it('should have hero shard items with requiresShardsUnlocked flag', () => {

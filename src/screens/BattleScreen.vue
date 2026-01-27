@@ -66,6 +66,7 @@ const leaderActivating = ref(null) // instanceId of leader during skill activati
 const leaderSkillName = ref(null) // name of activating leader skill
 const finaleActivating = ref(null)
 const finaleName = ref(null)
+const enemySkillDisplay = ref({}) // { [enemyId]: skillName }
 
 const currentNode = computed(() => questsStore.currentNode)
 const currentBattleIndex = computed(() => questsStore.currentBattleIndex)
@@ -818,6 +819,18 @@ watch(() => battleStore.finaleActivation, (activation) => {
   }, 1500)
 })
 
+// Watch for enemy skill activation
+watch(() => battleStore.enemySkillActivation, (activation) => {
+  if (!activation) return
+
+  enemySkillDisplay.value[activation.enemyId] = activation.skillName
+
+  setTimeout(() => {
+    delete enemySkillDisplay.value[activation.enemyId]
+    battleStore.enemySkillActivation = null
+  }, 2000)
+})
+
 function removeDamageNumber(id) {
   damageNumbers.value = damageNumbers.value.filter(d => d.id !== id)
 }
@@ -945,6 +958,11 @@ function getStatChange(hero, stat) {
       >
         <!-- Enemy name tooltip on hover -->
         <div class="enemy-name-tooltip">{{ enemy.template?.name || enemy.name }}</div>
+
+        <!-- Enemy skill name announcement -->
+        <div v-if="enemySkillDisplay[enemy.id]" class="enemy-skill-announce">
+          {{ enemySkillDisplay[enemy.id] }}
+        </div>
 
         <!-- Enemy with image -->
         <div
@@ -1588,6 +1606,41 @@ function getStatChange(hero, stat) {
 
 .enemy-wrapper:hover .enemy-name-tooltip {
   opacity: 1;
+}
+
+.enemy-skill-announce {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  text-shadow: 0 0 8px rgba(148, 163, 184, 0.5), 0 2px 4px rgba(0, 0, 0, 0.8);
+  z-index: 30;
+  animation: enemySkillFloat 2s ease-out forwards;
+  pointer-events: none;
+  user-select: none;
+}
+
+@keyframes enemySkillFloat {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(4px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  70% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-8px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
 }
 
 /* Enemy Image Display */

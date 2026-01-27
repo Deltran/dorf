@@ -74,6 +74,12 @@ export const shops = {
         name: "Great Troll's Hoard",
         crestId: 'great_troll_crest',
         unlockCondition: { completedNode: 'hibernation_den' }
+      },
+      {
+        id: 'pyroclast',
+        name: "Pyroclast's Forge",
+        crestId: 'pyroclast_crest',
+        unlockCondition: { completedNode: 'eruption_vent_gl' }
       }
     ],
     inventory: [
@@ -91,7 +97,15 @@ export const shops = {
       { itemId: 'shard_dragon_heart', name: 'Shard of Dragon Heart', price: 5, sectionId: 'great_troll' },
       { itemId: 'dragon_heart', name: 'Dragon Heart', price: 20, sectionId: 'great_troll' },
       { itemId: 'shards_darl', heroId: 'darl', shardCount: 10, price: 5, maxStock: 1, stockType: 'weekly', sectionId: 'great_troll', requiresShardsUnlocked: true },
-      { itemId: 'shards_shadow_king', heroId: 'shadow_king', shardCount: 10, price: 12, maxStock: 1, stockType: 'weekly', sectionId: 'great_troll', requiresShardsUnlocked: true }
+      { itemId: 'shards_shadow_king', heroId: 'shadow_king', shardCount: 10, price: 12, maxStock: 1, stockType: 'weekly', sectionId: 'great_troll', requiresShardsUnlocked: true },
+
+      // Pyroclast's Forge
+      { itemId: 'tome_large', name: "Volcanic Tome", price: 2, sectionId: 'pyroclast' },
+      { itemId: 'token_blistering_cliffs', name: 'Blistering Cliffs Token', price: 3, sectionId: 'pyroclast' },
+      { itemId: 'shard_dragon_heart', name: 'Shard of Dragon Heart', price: 5, sectionId: 'pyroclast' },
+      { itemId: 'dragon_heart', name: 'Dragon Heart', price: 20, sectionId: 'pyroclast' },
+      { itemId: 'shards_ember_witch', heroId: 'ember_witch', shardCount: 10, price: 8, maxStock: 1, stockType: 'weekly', sectionId: 'pyroclast', requiresShardsUnlocked: true },
+      { itemId: 'shards_hedge_wizard', heroId: 'hedge_wizard', shardCount: 10, price: 5, maxStock: 1, stockType: 'weekly', sectionId: 'pyroclast', requiresShardsUnlocked: true }
     ]
   }
 }

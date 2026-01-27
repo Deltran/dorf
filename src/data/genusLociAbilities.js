@@ -123,10 +123,86 @@ export const greatTrollAbilities = {
   }
 }
 
+// Pyroclast's abilities
+export const pyroclastAbilities = {
+  magma_surge: {
+    id: 'magma_surge',
+    name: 'Magma Surge',
+    description: 'Deal 130% ATK damage to one hero and inflict burn for 2 turns.',
+    cooldown: 2,
+    damagePercent: 130,
+    effects: [
+      { type: EffectType.BURN, target: 'hero', duration: 2, value: 0 }
+    ]
+  },
+  tectonic_charge: {
+    id: 'tectonic_charge',
+    name: 'Tectonic Charge',
+    description: 'At the start of each turn, gain +15% ATK for 3 turns. Stacks with previous charges.',
+    isPassive: true,
+    startOfTurnBuff: { type: EffectType.ATK_UP, value: 15, duration: 3 }
+  },
+  eruption: {
+    id: 'eruption',
+    name: 'Eruption',
+    description: 'Deal 150% ATK damage to all heroes. Reduces own DEF by 30% for 2 turns.',
+    cooldown: 4,
+    initialCooldown: 4,
+    targetType: 'all_heroes',
+    damagePercent: 150,
+    effects: [
+      { type: EffectType.DEF_DOWN, target: 'self', duration: 2, value: 30 }
+    ]
+  },
+  molten_armor: {
+    id: 'molten_armor',
+    name: 'Molten Armor',
+    description: 'Coat in molten rock, gaining 25% damage reduction and reflecting damage to attackers for 3 turns.',
+    cooldown: 4,
+    noDamage: true,
+    targetType: 'self',
+    effects: [
+      { type: EffectType.DAMAGE_REDUCTION, target: 'self', duration: 3, value: 25 },
+      { type: EffectType.THORNS, target: 'self', duration: 3, value: 40 }
+    ]
+  },
+  pyroclastic_flow: {
+    id: 'pyroclastic_flow',
+    name: 'Pyroclastic Flow',
+    description: 'When HP falls below 50%, Tectonic Charge grants +25% ATK instead of +15%.',
+    isPassive: true,
+    modifies: 'tectonic_charge',
+    triggerCondition: 'hp_below_50',
+    modifiedValue: 25
+  },
+  magma_pool: {
+    id: 'magma_pool',
+    name: 'Magma Pool',
+    description: 'Deal 120% ATK damage to all heroes and reduce their DEF by 20% for 2 turns.',
+    cooldown: 5,
+    targetType: 'all_heroes',
+    damagePercent: 120,
+    effects: [
+      { type: EffectType.DEF_DOWN, target: 'hero', duration: 2, value: 20 }
+    ]
+  },
+  cataclysm: {
+    id: 'cataclysm',
+    name: 'Cataclysm',
+    description: 'When HP falls below 25%, erupt with devastating force, dealing 150% ATK damage to all heroes. Can only trigger once.',
+    isPassive: true,
+    triggerCondition: 'hp_below_25',
+    triggerOnce: true,
+    targetType: 'all_heroes',
+    damagePercent: 150
+  }
+}
+
 // Map of boss ID to their abilities
 export const genusLociAbilities = {
   valinar: valinarAbilities,
-  great_troll: greatTrollAbilities
+  great_troll: greatTrollAbilities,
+  pyroclast: pyroclastAbilities
 }
 
 export function getGenusLociAbility(bossId, abilityId) {
