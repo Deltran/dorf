@@ -32,6 +32,7 @@ const selectedSuperRegion = ref(null)
 const showTokenResults = ref(false)
 const tokenResults = ref(null)
 const isSliding = ref(false)
+const isTabSwitching = ref(false)
 
 // Combine regular unlocked nodes with unlocked exploration nodes
 const allUnlockedNodes = computed(() => {
@@ -199,6 +200,19 @@ function clearSelection() {
   selectedNode.value = null
 }
 
+function handleTabSwitch(regionId) {
+  if (regionId === selectedRegion.value) return
+  if (isTabSwitching.value || isSliding.value) return
+
+  isTabSwitching.value = true
+  setTimeout(() => {
+    selectedRegion.value = regionId
+    setTimeout(() => {
+      isTabSwitching.value = false
+    }, 50)
+  }, 350)
+}
+
 function handleRegionNavigate({ targetRegion }) {
   if (isSliding.value) return
 
@@ -354,7 +368,7 @@ function closeTokenResults() {
           :key="region.id"
           :class="['region-tab', { active: selectedRegion === region.id }]"
           :style="getRegionBackground(region) ? { backgroundImage: `url(${getRegionBackground(region)})` } : {}"
-          @click="selectedRegion = region.id"
+          @click="handleTabSwitch(region.id)"
         >
           <div class="region-tab-overlay"></div>
           <span class="region-tab-label">{{ region.name }}</span>
@@ -374,7 +388,7 @@ function closeTokenResults() {
 
       <!-- Map Canvas -->
       <section class="map-section">
-        <Transition :name="isSliding ? 'region-slide' : 'none'">
+        <Transition :name="isSliding ? 'region-slide' : isTabSwitching ? 'page-turn' : 'none'">
           <MapCanvas
             v-if="currentRegion"
             :key="selectedRegion"
@@ -951,6 +965,7 @@ function closeTokenResults() {
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  perspective: 1200px;
 }
 
 /* Region slide transitions */
@@ -971,6 +986,26 @@ function closeTokenResults() {
 
 .region-slide-leave-to {
   transform: translateX(-100%);
+  opacity: 0;
+}
+
+.page-turn-leave-active {
+  transition: transform 0.35s ease-in, opacity 0.35s ease-in;
+  transform-origin: left center;
+}
+
+.page-turn-leave-to {
+  transform: rotateY(-90deg);
+  opacity: 0;
+}
+
+.page-turn-enter-active {
+  transition: transform 0.35s ease-out, opacity 0.35s ease-out;
+  transform-origin: left center;
+}
+
+.page-turn-enter-from {
+  transform: rotateY(90deg);
   opacity: 0;
 }
 
