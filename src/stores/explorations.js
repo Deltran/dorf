@@ -180,6 +180,10 @@ export const useExplorationsStore = defineStore('explorations', () => {
         const count = heroData.filter(h => h.classId === condition.classId).length
         if (count < condition.count) return false
       }
+      if (condition.uniqueClasses) {
+        const uniqueCount = new Set(heroData.map(h => h.classId)).size
+        if (uniqueCount < condition.uniqueClasses) return false
+      }
     }
 
     return true
