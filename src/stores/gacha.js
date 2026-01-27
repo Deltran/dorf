@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getHeroTemplatesByRarity } from '../data/heroTemplates.js'
+import { getHeroTemplatesByRarity, getHeroTemplate } from '../data/heroTemplates.js'
+import { getActiveBanners, getBannerById } from '../data/banners.js'
 import { useHeroesStore } from './heroes.js'
 
 // Rarity rates (base)
@@ -29,6 +30,7 @@ export const useGachaStore = defineStore('gacha', () => {
   const pullsSince4Star = ref(0)
   const pullsSince5Star = ref(0)
   const totalPulls = ref(0)
+  const selectedBannerId = ref('standard')
 
   // Getters
   const canSinglePull = computed(() => gems.value >= SINGLE_PULL_COST)
@@ -44,6 +46,9 @@ export const useGachaStore = defineStore('gacha', () => {
     }
     return BASE_RATES[5]
   })
+
+  const activeBanners = computed(() => getActiveBanners())
+  const selectedBanner = computed(() => getBannerById(selectedBannerId.value))
 
   // Internal: Calculate rates with pity
   function getRatesWithPity(guarantee4Star = false) {
@@ -104,9 +109,15 @@ export const useGachaStore = defineStore('gacha', () => {
 
   // Internal: Get random hero of rarity
   function getRandomHeroOfRarity(rarity) {
+    const banner = getBannerById(selectedBannerId.value)
+    if (banner && banner.heroPool[rarity] && banner.heroPool[rarity].length > 0) {
+      const heroIds = banner.heroPool[rarity]
+      const heroId = heroIds[Math.floor(Math.random() * heroIds.length)]
+      return getHeroTemplate(heroId)
+    }
+    // Fallback to global pool
     const heroes = getHeroTemplatesByRarity(rarity)
     if (heroes.length === 0) {
-      // Fallback to lower rarity if none exist
       return getRandomHeroOfRarity(Math.max(1, rarity - 1))
     }
     return heroes[Math.floor(Math.random() * heroes.length)]
@@ -134,6 +145,10 @@ export const useGachaStore = defineStore('gacha', () => {
   }
 
   // Actions
+  function selectBanner(bannerId) {
+    selectedBannerId.value = bannerId
+  }
+
   function singlePull() {
     if (!canSinglePull.value) return null
 
@@ -201,6 +216,7 @@ export const useGachaStore = defineStore('gacha', () => {
     if (savedState.pullsSince4Star !== undefined) pullsSince4Star.value = savedState.pullsSince4Star
     if (savedState.pullsSince5Star !== undefined) pullsSince5Star.value = savedState.pullsSince5Star
     if (savedState.totalPulls !== undefined) totalPulls.value = savedState.totalPulls
+    if (savedState.selectedBannerId !== undefined) selectedBannerId.value = savedState.selectedBannerId
   }
 
   function saveState() {
@@ -209,7 +225,8 @@ export const useGachaStore = defineStore('gacha', () => {
       gold: gold.value,
       pullsSince4Star: pullsSince4Star.value,
       pullsSince5Star: pullsSince5Star.value,
-      totalPulls: totalPulls.value
+      totalPulls: totalPulls.value,
+      selectedBannerId: selectedBannerId.value
     }
   }
 
@@ -220,11 +237,15 @@ export const useGachaStore = defineStore('gacha', () => {
     pullsSince4Star,
     pullsSince5Star,
     totalPulls,
+    selectedBannerId,
     // Getters
     canSinglePull,
     canTenPull,
     current5StarRate,
+    activeBanners,
+    selectedBanner,
     // Actions
+    selectBanner,
     singlePull,
     tenPull,
     addGems,
