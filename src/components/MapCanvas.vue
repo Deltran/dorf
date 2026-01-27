@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { getQuestNode } from '../data/questNodes.js'
+import { getQuestNode, regions } from '../data/questNodes.js'
 import NodeMarker from './NodeMarker.vue'
+import RegionLinkMarker from './RegionLinkMarker.vue'
 
 const props = defineProps({
   region: {
@@ -26,7 +27,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['selectNode'])
+const emit = defineEmits(['selectNode', 'navigateRegion'])
 
 const containerRef = ref(null)
 const containerWidth = ref(0)
@@ -80,6 +81,28 @@ const trails = computed(() => {
   return result
 })
 
+// Detect cross-region connections from completed nodes
+const regionLinks = computed(() => {
+  const links = []
+  for (const node of props.nodes) {
+    if (!props.completedNodes.includes(node.id)) continue
+    for (const connId of node.connections || []) {
+      const connNode = getQuestNode(connId)
+      if (!connNode || connNode.region === props.region.name) continue
+      const targetRegion = regions.find(r => r.name === connNode.region)
+      if (!targetRegion) continue
+      links.push({
+        id: `link-${node.id}-${connId}`,
+        sourceNode: node,
+        targetNode: connNode,
+        targetRegion,
+        position: node.regionLinkPosition || { x: node.x + 60, y: node.y }
+      })
+    }
+  }
+  return links
+})
+
 function handleResize() {
   if (containerRef.value) {
     containerWidth.value = containerRef.value.clientWidth
@@ -97,6 +120,10 @@ onUnmounted(() => {
 
 function selectNode(node) {
   emit('selectNode', node)
+}
+
+function navigateRegion(payload) {
+  emit('navigateRegion', payload)
 }
 </script>
 
@@ -133,6 +160,17 @@ function selectNode(node) {
             stroke-dasharray="8 8"
           />
         </template>
+        <!-- Region link trails -->
+        <template v-for="link in regionLinks" :key="link.id">
+          <line
+            :x1="link.sourceNode.x"
+            :y1="link.sourceNode.y"
+            :x2="link.position.x"
+            :y2="link.position.y"
+            class="trail-line region-link-trail"
+            stroke-dasharray="8 8"
+          />
+        </template>
       </g>
     </svg>
 
@@ -146,6 +184,13 @@ function selectNode(node) {
         :is-selected="selectedNodeId === node.id"
         :scale="scale"
         @select="selectNode"
+      />
+      <RegionLinkMarker
+        v-for="link in regionLinks"
+        :key="link.id"
+        :link="link"
+        :scale="scale"
+        @navigate="navigateRegion"
       />
     </div>
   </div>
@@ -182,6 +227,12 @@ function selectNode(node) {
 .trail-line.faded {
   stroke: rgba(255, 255, 255, 0.2);
   stroke-dasharray: 6 10;
+}
+
+.trail-line.region-link-trail {
+  stroke: rgba(59, 130, 246, 0.5);
+  stroke-width: 3;
+  stroke-linecap: round;
 }
 
 .markers-layer {
