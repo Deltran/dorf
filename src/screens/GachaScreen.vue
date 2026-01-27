@@ -151,7 +151,7 @@ function nextBanner() {
           <button class="banner-arrow banner-arrow-right" @click="nextBanner">›</button>
         </div>
         <div class="banner-content">
-          <span class="banner-label">{{ selectedBanner?.name || 'Standard Banner' }}</span>
+          <span class="banner-label">{{ selectedBanner?.permanent ? 'Standard Banner' : 'Featured Banner' }}</span>
           <h2>{{ selectedBanner?.name || 'Hero Summoning' }}</h2>
           <p>{{ selectedBanner?.description || 'Call forth powerful heroes to join your party!' }}</p>
         </div>
