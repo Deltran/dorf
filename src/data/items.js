@@ -174,6 +174,14 @@ export const items = {
     type: 'token',
     rarity: 3,
     region: 'Gate to Aquaria'
+  },
+  token_janxier_floodplain: {
+    id: 'token_janxier_floodplain',
+    name: 'Janxier Floodplain Token',
+    description: 'Instantly collect rewards from a completed Janxier Floodplain quest.',
+    type: 'token',
+    rarity: 3,
+    region: 'Janxier Floodplain'
   }
 }
 
