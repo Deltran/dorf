@@ -19,8 +19,8 @@ Each banner is a configuration object in `src/data/banners.js`:
   description: 'Defenders and protectors step forward.',
   headerImage: shieldsOfValorBanner,   // imported from src/assets/banners/
   permanent: false,
-  startDate: '2026-01-01',            // ISO date string
-  endDate: '2026-01-15',              // ISO date string
+  startMonth: 1, startDay: 1,         // Month-day only, repeats annually
+  endMonth: 1, endDay: 15,
   heroPool: {
     5: ['aurora_the_dawn'],
     4: ['sir_gallan', 'lady_moonwhisper'],
@@ -58,21 +58,35 @@ Each banner is a configuration object in `src/data/banners.js`:
 
 ## Banner Schedule
 
-Rotating banners use real date ranges (`startDate` / `endDate`). A helper function returns active banners:
+Rotating banners use month-day ranges that repeat every year (no year component — client-side only). A helper function checks the current date and returns active banners:
 
 ```js
 export function getActiveBanners() {
   const now = new Date()
+  const month = now.getMonth() + 1  // 1-12
+  const day = now.getDate()
+
   return banners.filter(b => {
     if (b.permanent) return true
-    const start = new Date(b.startDate)
-    const end = new Date(b.endDate)
-    return now >= start && now <= end
+    return isDateInRange(month, day, b.startMonth, b.startDay, b.endMonth, b.endDay)
   })
+}
+
+// Handles year-boundary wrapping (e.g., Dec 20 – Jan 5)
+function isDateInRange(month, day, startMonth, startDay, endMonth, endDay) {
+  const current = month * 100 + day
+  const start = startMonth * 100 + startDay
+  const end = endMonth * 100 + endDay
+
+  if (start <= end) {
+    return current >= start && current <= end
+  }
+  // Wraps around year boundary
+  return current >= start || current <= end
 }
 ```
 
-New banner runs are added to the data file as entries with specific dates. Banner entries can reuse the same `id` with different date ranges to create recurring appearances.
+Banners are defined once and automatically recur each year.
 
 ## Availability Display
 
@@ -81,6 +95,8 @@ Each banner shows its availability on the summon screen:
 - **Permanent banners:** "Always Available"
 - **Rotating banners:** Date range, e.g., "Jan 1 – Jan 15"
 - **Near expiry (3 days or less):** Countdown, e.g., "2 days remaining"
+
+Dates are month-day only (no year). The end date for countdown calculation uses the current year's occurrence (or next year if the banner wraps around Dec–Jan).
 
 ## Header Images
 
