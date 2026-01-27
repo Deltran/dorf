@@ -886,22 +886,25 @@ export const useBattleStore = defineStore('battle', () => {
   function applyDamage(unit, damage, source = 'attack', attacker = null) {
     if (damage <= 0) return 0
 
-    // Check for EVASION effect
-    const evasionEffect = (unit.statusEffects || []).find(e => e.type === EffectType.EVASION)
-    if (evasionEffect && source === 'attack') {
-      const evasionChance = evasionEffect.value / 100
+    // Check for EVASION effects (sum all additively, cap at 100%)
+    const evasionEffects = (unit.statusEffects || []).filter(e => e.type === EffectType.EVASION)
+    if (evasionEffects.length > 0 && source === 'attack') {
+      const totalEvasion = evasionEffects.reduce((sum, e) => sum + (e.value || 0), 0)
+      const evasionChance = Math.min(totalEvasion, 100) / 100
       if (Math.random() < evasionChance) {
         const unitName = unit.template?.name || 'Unknown'
         addLog(`${unitName} evades the attack!`)
         emitCombatEffect(unit.instanceId || unit.id, unit.instanceId ? 'hero' : 'enemy', 'miss', 0)
 
         // Handle onEvade effects (e.g., MP restore to caster)
-        if (evasionEffect.onEvade?.restoreMp && evasionEffect.sourceId) {
-          const caster = heroes.value.find(h => h.instanceId === evasionEffect.sourceId)
-          if (caster && caster.currentHp > 0) {
-            const mpToRestore = evasionEffect.onEvade.restoreMp
-            caster.currentMp = Math.min(caster.maxMp, caster.currentMp + mpToRestore)
-            addLog(`${caster.template.name} recovers ${mpToRestore} MP!`)
+        for (const evasionEffect of evasionEffects) {
+          if (evasionEffect.onEvade?.restoreMp && evasionEffect.sourceId) {
+            const caster = heroes.value.find(h => h.instanceId === evasionEffect.sourceId)
+            if (caster && caster.currentHp > 0) {
+              const mpToRestore = evasionEffect.onEvade.restoreMp
+              caster.currentMp = Math.min(caster.maxMp, caster.currentMp + mpToRestore)
+              addLog(`${caster.template.name} recovers ${mpToRestore} MP!`)
+            }
           }
         }
 

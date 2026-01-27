@@ -196,7 +196,7 @@ export const effectDefinitions = {
     color: '#a78bfa',
     isBuff: true,
     isEvasion: true,
-    stackable: false
+    stackable: true
   },
   [EffectType.GUARDING]: {
     name: 'Guarding',
