@@ -1106,7 +1106,7 @@ export const useBattleStore = defineStore('battle', () => {
           const retaliatePercent = rageAwakening.retaliatePercent || 200
           const retaliateDamage = Math.floor(unit.stats.atk * retaliatePercent / 100)
           const attackerDef = attacker.stats?.def || 0
-          const finalDamage = Math.max(1, retaliateDamage - Math.floor(attackerDef * 0.5))
+          const finalDamage = Math.max(1, Math.floor(retaliateDamage * (100 / (100 + attackerDef))))
 
           addLog(`${unitName} awakens in a rage and counterattacks for ${finalDamage} damage!`)
           const attackerActual = Math.min(attacker.currentHp, finalDamage)
