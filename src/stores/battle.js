@@ -865,7 +865,13 @@ export const useBattleStore = defineStore('battle', () => {
     const rawValue = effect.value
     if (typeof rawValue === 'number') {
       // Effect values are percentages (e.g., 20 = +20% stat), add shard bonus
-      return rawValue + shardBonus
+      let value = rawValue + shardBonus
+      // Desperation scaling: bonus based on party average missing HP
+      if (effect.desperationBonus) {
+        const missingHpPercent = calculatePartyMissingHpPercent(aliveHeroes.value)
+        value += Math.floor(effect.desperationBonus * missingHpPercent)
+      }
+      return value
     }
     if (typeof rawValue === 'object' && rawValue !== null) {
       const tier = getValorTier(hero)
@@ -3223,6 +3229,7 @@ export const useBattleStore = defineStore('battle', () => {
     applyDamage,
     reviveUnit,
     // Effect helpers (for UI)
+    resolveEffectValue,
     getEffectiveStat,
     hasEffect,
     checkDeathPrevention,
