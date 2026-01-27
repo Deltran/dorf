@@ -47,6 +47,7 @@ const genusLociBattleContext = ref(null)
 const selectedExplorationNodeId = ref(null)
 const currentCompletionPopup = ref(null)
 const placingHeroId = ref(null)
+const initialRegionName = ref(null)
 
 // Repair: sync genus loci victories with completedNodes
 // Older saves may have genus loci progress without the quest node marked complete
@@ -196,6 +197,8 @@ function navigate(screen, param = null) {
     selectedExplorationNodeId.value = param
   } else if (screen === 'party') {
     placingHeroId.value = param
+  } else if (screen === 'worldmap') {
+    initialRegionName.value = param
   }
 }
 
@@ -289,6 +292,7 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
       />
       <WorldMapScreen
         v-else-if="currentScreen === 'worldmap'"
+        :initial-region-name="initialRegionName"
         @navigate="navigate"
         @startBattle="startBattle"
         @startGenusLociBattle="startGenusLociBattle"

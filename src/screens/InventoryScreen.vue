@@ -74,6 +74,17 @@ const sellValue = computed(() => {
   const baseValue = reward.gold || reward.gems || 0
   return baseValue * sellCount.value
 })
+
+function getContextualAction(item) {
+  switch (item.type) {
+    case 'xp': return { label: 'Use on Hero', screen: 'heroes' }
+    case 'token': return { label: 'Use Token', screen: 'worldmap', param: item.region }
+    case 'key': return { label: 'Challenge Boss', screen: 'genus-loci-list' }
+    case 'merge_material': return { label: 'Merge Hero', screen: 'merge' }
+    case 'genusLoci': return { label: 'Enhance Exploration', screen: 'explorations' }
+    default: return null
+  }
+}
 </script>
 
 <template>
@@ -159,9 +170,13 @@ const sellValue = computed(() => {
         </div>
 
         <div class="detail-actions">
-          <div v-if="selectedItem.type === 'xp'" class="action-hint">
-            Use from Heroes screen
-          </div>
+          <button
+            v-if="getContextualAction(selectedItem)"
+            class="context-action-btn"
+            @click="emit('navigate', getContextualAction(selectedItem).screen, getContextualAction(selectedItem).param)"
+          >
+            {{ getContextualAction(selectedItem).label }}
+          </button>
 
           <div class="sell-section">
             <div class="sell-count-control">
@@ -521,13 +536,22 @@ const sellValue = computed(() => {
   gap: 12px;
 }
 
-.action-hint {
-  text-align: center;
-  color: #6b7280;
-  font-size: 0.85rem;
-  padding: 8px;
-  background: rgba(55, 65, 81, 0.3);
-  border-radius: 8px;
+.context-action-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.context-action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
 }
 
 .sell-section {

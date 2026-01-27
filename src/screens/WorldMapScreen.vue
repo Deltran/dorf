@@ -18,6 +18,9 @@ function getBossPortraitUrl(bossId) {
 }
 
 const emit = defineEmits(['navigate', 'startBattle', 'startGenusLociBattle'])
+const props = defineProps({
+  initialRegionName: { type: String, default: null }
+})
 
 const questsStore = useQuestsStore()
 const heroesStore = useHeroesStore()
@@ -68,6 +71,17 @@ onMounted(() => {
       skipNextRegionReset = true
       selectedSuperRegion.value = regionData.superRegion
       selectedRegion.value = savedRegion
+    }
+  }
+
+  // If navigated with a specific region (e.g. from inventory token)
+  if (props.initialRegionName) {
+    const targetRegion = regions.find(r => r.name === props.initialRegionName)
+    if (targetRegion) {
+      if (targetRegion.superRegion) {
+        selectedSuperRegion.value = targetRegion.superRegion
+      }
+      selectedRegion.value = targetRegion.id
     }
   }
 })
