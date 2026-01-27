@@ -1,7 +1,7 @@
 // src/data/explorationRanks.js
 
 // Percentage bonus per rank level (configurable)
-export const RANK_BONUS_PER_LEVEL = 5
+export const RANK_BONUS_PER_LEVEL = 100
 
 // Rank progression from lowest to highest
 export const EXPLORATION_RANKS = ['E', 'D', 'C', 'B', 'A', 'S']

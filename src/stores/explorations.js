@@ -19,6 +19,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
   const completedHistory = ref([])
   const pendingCompletions = ref([])
   const explorationRanks = ref({})
+  const lastParty = ref({}) // nodeId -> array of hero instanceIds
 
   // Get all exploration nodes from questNodes
   const allExplorationNodes = computed(() => {
@@ -220,6 +221,9 @@ export const useExplorationsStore = defineStore('explorations', () => {
       heroesStore.lockHeroToExploration(instanceId, nodeId)
     }
 
+    // Remember this party for next time
+    lastParty.value[nodeId] = [...heroInstanceIds]
+
     // Create active exploration
     activeExplorations.value[nodeId] = {
       nodeId,
@@ -356,7 +360,8 @@ export const useExplorationsStore = defineStore('explorations', () => {
     return {
       activeExplorations: activeExplorations.value,
       completedHistory: completedHistory.value,
-      explorationRanks: explorationRanks.value
+      explorationRanks: explorationRanks.value,
+      lastParty: lastParty.value
     }
   }
 
@@ -371,6 +376,9 @@ export const useExplorationsStore = defineStore('explorations', () => {
     if (savedState.explorationRanks) {
       explorationRanks.value = savedState.explorationRanks
     }
+    if (savedState.lastParty) {
+      lastParty.value = savedState.lastParty
+    }
   }
 
   return {
@@ -379,6 +387,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     completedHistory,
     pendingCompletions,
     explorationRanks,
+    lastParty,
     // Getters
     allExplorationNodes,
     unlockedExplorations,

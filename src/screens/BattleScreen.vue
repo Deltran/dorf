@@ -682,7 +682,7 @@ function getEnemyImageSize(enemy) {
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 
 const battleBackgroundUrl = computed(() => {
-  const nodeId = currentNode.value?.id
+  const nodeId = currentNode.value?.id || questsStore.lastVisitedNode
   if (nodeId) {
     const imagePath = `../assets/battle_backgrounds/${nodeId}.png`
     if (battleBackgrounds[imagePath]) {
@@ -919,17 +919,6 @@ function getStatChange(hero, stat) {
       </div>
     </aside>
 
-    <!-- Battle Header -->
-    <header class="battle-header">
-      <div class="node-info">
-        <span class="node-name">{{ currentNode?.name || 'Battle' }}</span>
-        <span class="battle-progress">Battle {{ currentBattleIndex + 1 }}/{{ totalBattles }}</span>
-      </div>
-      <div class="round-info">
-        Round {{ battleStore.roundNumber }}
-      </div>
-    </header>
-
     <!-- Enemy Area -->
     <section class="enemy-area">
       <div
@@ -937,6 +926,15 @@ function getStatChange(hero, stat) {
         class="enemy-area-background"
         :style="{ backgroundImage: `url(${battleBackgroundUrl})` }"
       ></div>
+      <div class="battle-header-overlay">
+        <div class="node-info">
+          <span class="node-name">{{ currentNode?.name || (questsStore.lastVisitedNode ? getQuestNode(questsStore.lastVisitedNode)?.name : 'Battle') }}</span>
+          <span class="battle-progress">Battle {{ currentBattleIndex + 1 }}/{{ totalBattles }}</span>
+        </div>
+        <div class="round-info">
+          Round {{ battleStore.roundNumber }}
+        </div>
+      </div>
       <div
         v-for="(enemy, enemyIndex) in battleStore.enemies"
         :key="enemy.id"
@@ -1496,13 +1494,19 @@ function getStatChange(hero, stat) {
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
-.battle-header {
+/* Battle Header Overlay (inside enemy area) */
+.battle-header-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px;
-  background: #1f2937;
-  border-radius: 8px;
+  padding: 6px 12px 10px 12px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 60%, transparent 100%);
+  border-radius: 12px 12px 0 0;
+  z-index: 0;
 }
 
 .node-info {
@@ -1513,29 +1517,32 @@ function getStatChange(hero, stat) {
 .node-name {
   font-weight: 600;
   color: #f3f4f6;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .battle-progress {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: #9ca3af;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .round-info {
-  background: #374151;
-  padding: 6px 12px;
+  padding: 4px 10px;
   border-radius: 6px;
-  color: #9ca3af;
-  font-size: 0.9rem;
+  color: #d1d5db;
+  font-size: 0.85rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .enemy-area {
   position: relative;
   display: flex;
   justify-content: center;
+  align-content: center;
   gap: 12px;
-  padding: 40px 20px 20px 20px;
+  padding: 40px 20px 100px 20px;
   flex-wrap: wrap;
-  min-height: 220px;
+  height: 450px;
   border-radius: 12px;
   overflow: visible;
 }
@@ -1549,6 +1556,7 @@ function getStatChange(hero, stat) {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  image-rendering: pixelated;
   z-index: 0;
   opacity: 0.7;
 }
@@ -1762,6 +1770,9 @@ function getStatChange(hero, stat) {
   gap: 8px;
   padding: 12px;
   flex-wrap: nowrap;
+  margin-top: -90px;
+  position: relative;
+  z-index: 2;
 }
 
 .hero-wrapper {

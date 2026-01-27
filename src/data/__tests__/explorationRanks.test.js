@@ -7,8 +7,8 @@ import {
 } from '../explorationRanks.js'
 
 describe('explorationRanks', () => {
-  it('exports RANK_BONUS_PER_LEVEL as 5', () => {
-    expect(RANK_BONUS_PER_LEVEL).toBe(5)
+  it('exports RANK_BONUS_PER_LEVEL as 100', () => {
+    expect(RANK_BONUS_PER_LEVEL).toBe(100)
   })
 
   it('exports EXPLORATION_RANKS in order E to S', () => {

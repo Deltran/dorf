@@ -29,19 +29,19 @@ describe('explorations store - ranks', () => {
       expect(store.getRankMultiplier('cave_exploration')).toBe(1.0)
     })
 
-    it('returns 1.05 for rank D', () => {
+    it('returns 2.0 for rank D', () => {
       store.explorationRanks['cave_exploration'] = 'D'
-      expect(store.getRankMultiplier('cave_exploration')).toBe(1.05)
+      expect(store.getRankMultiplier('cave_exploration')).toBe(2.0)
     })
 
-    it('returns 1.10 for rank C', () => {
+    it('returns 3.0 for rank C', () => {
       store.explorationRanks['cave_exploration'] = 'C'
-      expect(store.getRankMultiplier('cave_exploration')).toBe(1.10)
+      expect(store.getRankMultiplier('cave_exploration')).toBe(3.0)
     })
 
-    it('returns 1.25 for rank S', () => {
+    it('returns 6.0 for rank S', () => {
       store.explorationRanks['cave_exploration'] = 'S'
-      expect(store.getRankMultiplier('cave_exploration')).toBe(1.25)
+      expect(store.getRankMultiplier('cave_exploration')).toBe(6.0)
     })
   })
 

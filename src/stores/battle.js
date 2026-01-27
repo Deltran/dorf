@@ -1621,9 +1621,9 @@ export const useBattleStore = defineStore('battle', () => {
       }
       usedSkill = true
 
-      // Apply cooldown if skill has one
+      // Apply cooldown if skill has one (+1 to survive start-of-round decrement)
       if (skill.cooldown && hero.currentCooldowns) {
-        hero.currentCooldowns[skill.name] = skill.cooldown
+        hero.currentCooldowns[skill.name] = skill.cooldown + 1
       }
 
       // Knights gain Valor for using defensive skills
@@ -2633,7 +2633,7 @@ export const useBattleStore = defineStore('battle', () => {
         }
 
         // noDamage skills don't attack heroes, so skip thorns check and end turn early
-        enemy.currentCooldowns[skill.name] = skill.cooldown
+        enemy.currentCooldowns[skill.name] = skill.cooldown + 1
         processEndOfTurnEffects(enemy)
         setTimeout(() => {
           advanceTurnIndex()
@@ -2689,7 +2689,7 @@ export const useBattleStore = defineStore('battle', () => {
         }
       }
 
-      enemy.currentCooldowns[skill.name] = skill.cooldown
+      enemy.currentCooldowns[skill.name] = skill.cooldown + 1
     } else {
       const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
       const actualDamage = applyDamage(target, damage)

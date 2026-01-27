@@ -38,8 +38,8 @@ async function generate() {
   try {
     const dataUrl = await generateHeroImage({
       prompt: prompt.value,
-      width: 320,
-      height: 128
+      width: 400,
+      height: 225
     })
     generatedDataUrl.value = dataUrl
   } catch (e) {
@@ -206,7 +206,7 @@ function onBackdropClick(e) {
 
 .main-preview {
   width: 480px;
-  height: 192px;
+  height: 270px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -217,7 +217,7 @@ function onBackdropClick(e) {
 
 .main-image {
   width: 480px;
-  height: 192px;
+  height: 270px;
   image-rendering: pixelated;
   object-fit: fill;
 }
@@ -337,8 +337,8 @@ function onBackdropClick(e) {
 }
 
 .preview-image {
-  width: 320px;
-  height: 128px;
+  width: 400px;
+  height: 225px;
   image-rendering: pixelated;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.3);

@@ -100,6 +100,16 @@ onUnmounted(() => {
 
 const availableHeroes = computed(() => heroesStore.availableForExploration)
 
+// Pre-populate from last party if available
+watch(() => props.nodeId, (nodeId) => {
+  if (isActive.value) return // Don't pre-populate if exploration is active
+  const saved = explorationsStore.lastParty[nodeId]
+  if (!saved) return
+
+  const availableIds = new Set(availableHeroes.value.map(h => h.instanceId))
+  selectedHeroes.value = saved.filter(id => availableIds.has(id))
+}, { immediate: true })
+
 const canStart = computed(() => selectedHeroes.value.length === 5)
 
 const partyRequestMet = computed(() => {

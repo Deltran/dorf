@@ -557,8 +557,8 @@ describe('explorations store', () => {
       // Claim
       const result = store.claimCompletion('cave_exploration')
 
-      // Base gold is 500, rank C = 1.10, no party bonus = 550
-      expect(result.gold).toBe(550)
+      // Base gold is 500, rank C = 3.0x (100% per rank), no party bonus = 1500
+      expect(result.gold).toBe(1500)
     })
   })
 

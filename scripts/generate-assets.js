@@ -166,7 +166,7 @@ async function generateBackgrounds(options) {
     const { prompt, isOverride } = getBackgroundPromptWithOverride(bg)
     const override = isOverride ? ' (override)' : ''
 
-    console.log(`[${i + 1}/${backgrounds.length}] ${bg.id} (320x128)${override}`)
+    console.log(`[${i + 1}/${backgrounds.length}] ${bg.id} (400x225)${override}`)
     console.log(`  Prompt: ${prompt}`)
 
     if (options.dryRun) {
@@ -178,8 +178,8 @@ async function generateBackgrounds(options) {
       console.log('  Generating...')
       const { imageData } = await generateAndDownload({
         prompt,
-        width: 320,
-        height: 128
+        width: 400,
+        height: 225
       })
 
       const outputPath = path.join(BACKGROUNDS_DIR, `${bg.id}.png`)
