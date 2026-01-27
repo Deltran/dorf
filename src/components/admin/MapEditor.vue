@@ -159,7 +159,7 @@ function saveLayout() {
 
 // --- Image generation ---
 function buildDefaultPrompt() {
-  return `${props.region.name}. Dark fantasy pixel art.`
+  return `${props.region.name}. No people. No monsters. No animals. Dark Fantasy. Pixel Art.`
 }
 
 const prompt = ref('')

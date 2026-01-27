@@ -992,6 +992,9 @@ function closeTokenResults() {
 .page-turn-leave-active {
   transition: transform 0.35s ease-in, opacity 0.35s ease-in;
   transform-origin: left center;
+  position: absolute;
+  width: 100%;
+  z-index: 1;
 }
 
 .page-turn-leave-to {
@@ -1000,12 +1003,10 @@ function closeTokenResults() {
 }
 
 .page-turn-enter-active {
-  transition: transform 0.35s ease-out, opacity 0.35s ease-out;
-  transform-origin: left center;
+  transition: opacity 0.15s ease-out;
 }
 
 .page-turn-enter-from {
-  transform: rotateY(90deg);
   opacity: 0;
 }
 
