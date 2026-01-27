@@ -20,7 +20,7 @@ export const heroTemplates = {
     name: 'Aurora the Dawn',
     rarity: 5,
     classId: 'paladin',
-    baseStats: { hp: 150, atk: 35, def: 50, spd: 12, mp: 60 },
+    baseStats: { hp: 140, atk: 28, def: 30, spd: 12, mp: 60 },
     skills: [
       {
         name: 'Holy Strike',
