@@ -31,6 +31,7 @@ const selectedRegion = ref(regions[0].id)
 const selectedSuperRegion = ref(null)
 const showTokenResults = ref(false)
 const tokenResults = ref(null)
+const isSliding = ref(false)
 
 // Combine regular unlocked nodes with unlocked exploration nodes
 const allUnlockedNodes = computed(() => {
@@ -198,6 +199,28 @@ function clearSelection() {
   selectedNode.value = null
 }
 
+function handleRegionNavigate({ targetRegion }) {
+  if (isSliding.value) return
+
+  // Handle cross-super-region navigation
+  const targetSuperRegion = targetRegion.superRegion
+  if (targetSuperRegion !== selectedSuperRegion.value) {
+    skipNextRegionReset = true
+    selectedSuperRegion.value = targetSuperRegion
+  }
+
+  isSliding.value = true
+
+  // Brief delay for leave animation, then switch
+  setTimeout(() => {
+    selectedNode.value = null
+    selectedRegion.value = targetRegion.id
+    setTimeout(() => {
+      isSliding.value = false
+    }, 50)
+  }, 400)
+}
+
 function getNodeEnemies(node) {
   // Get unique enemies from all battles
   const enemyIds = new Set()
@@ -351,15 +374,19 @@ function closeTokenResults() {
 
       <!-- Map Canvas -->
       <section class="map-section">
-        <MapCanvas
-          v-if="currentRegion"
-          :region="currentRegion"
-          :nodes="currentRegionNodes"
-          :unlocked-nodes="allUnlockedNodes"
-          :completed-nodes="questsStore.completedNodes"
-          :selected-node-id="selectedNode?.id"
-          @select-node="selectNode"
-        />
+        <Transition :name="isSliding ? 'region-slide' : 'none'">
+          <MapCanvas
+            v-if="currentRegion"
+            :key="selectedRegion"
+            :region="currentRegion"
+            :nodes="currentRegionNodes"
+            :unlocked-nodes="allUnlockedNodes"
+            :completed-nodes="questsStore.completedNodes"
+            :selected-node-id="selectedNode?.id"
+            @select-node="selectNode"
+            @navigate-region="handleRegionNavigate"
+          />
+        </Transition>
       </section>
     </div>
 
@@ -922,6 +949,29 @@ function closeTokenResults() {
   flex: 1;
   display: flex;
   flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Region slide transitions */
+.region-slide-enter-active,
+.region-slide-leave-active {
+  transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+}
+
+.region-slide-leave-active {
+  position: absolute;
+  width: 100%;
+}
+
+.region-slide-enter-from {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.region-slide-leave-to {
+  transform: translateX(-100%);
+  opacity: 0;
 }
 
 /* Modal Backdrop */
