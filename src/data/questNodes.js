@@ -945,8 +945,8 @@ export const questNodes = {
     id: 'eruption_vent_01',
     name: 'Basalt Corridor',
     region: 'Eruption Vent',
-    x: 550,
-    y: 480,
+    x: 694,
+    y: 448,
     battles: [
       { enemies: ['magma_golem', 'fire_elemental'] },
       { enemies: ['volcanic_drake', 'flame_salamander', 'ash_crawler'] },
@@ -966,8 +966,8 @@ export const questNodes = {
     id: 'eruption_vent_02',
     name: 'Molten Chamber',
     region: 'Eruption Vent',
-    x: 430,
-    y: 300,
+    x: 505,
+    y: 373,
     battles: [
       { enemies: ['volcanic_drake', 'volcanic_drake'] },
       { enemies: ['magma_golem', 'fire_elemental', 'fire_elemental'] },
@@ -987,8 +987,8 @@ export const questNodes = {
     id: 'eruption_vent_gl',
     name: 'Eruption Vent',
     region: 'Eruption Vent',
-    x: 220,
-    y: 120,
+    x: 429,
+    y: 203,
     type: 'genusLoci',
     genusLociId: 'pyroclast',
     connections: []
@@ -1000,8 +1000,8 @@ export const questNodes = {
     id: 'flood_01',
     name: 'Muddy Banks',
     region: 'Janxier Floodplain',
-    x: 80,
-    y: 250,
+    x: 392,
+    y: 482,
     battles: [
       { enemies: ['giant_frog', 'giant_frog', 'giant_frog'] },
       { enemies: ['swamp_lurker', 'giant_frog'] },
@@ -1022,8 +1022,8 @@ export const questNodes = {
     id: 'flood_02',
     name: 'Submerged Path',
     region: 'Janxier Floodplain',
-    x: 200,
-    y: 180,
+    x: 549,
+    y: 382,
     battles: [
       { enemies: ['lake_serpent', 'lake_serpent', 'swamp_lurker'] },
       { enemies: ['mud_elemental', 'mud_elemental'] },
@@ -1044,8 +1044,8 @@ export const questNodes = {
     id: 'flood_03',
     name: 'Naga Territory',
     region: 'Janxier Floodplain',
-    x: 320,
-    y: 250,
+    x: 572,
+    y: 310,
     battles: [
       { enemies: ['water_naga', 'water_naga'] },
       { enemies: ['water_naga', 'swamp_lurker', 'swamp_lurker'] },
@@ -1066,8 +1066,8 @@ export const questNodes = {
     id: 'flood_04',
     name: 'Crocodile Den',
     region: 'Janxier Floodplain',
-    x: 470,
-    y: 120,
+    x: 491,
+    y: 272,
     battles: [
       { enemies: ['giant_crocodile', 'giant_crocodile'] },
       { enemies: ['giant_crocodile', 'swamp_lurker', 'swamp_lurker'] },
@@ -1089,8 +1089,8 @@ export const questNodes = {
     id: 'flood_05',
     name: 'Murky Depths',
     region: 'Janxier Floodplain',
-    x: 470,
-    y: 380,
+    x: 399,
+    y: 307,
     battles: [
       { enemies: ['mud_elemental', 'mud_elemental', 'mud_elemental'] },
       { enemies: ['lake_serpent', 'lake_serpent', 'lake_serpent', 'lake_serpent'] },
@@ -1112,8 +1112,8 @@ export const questNodes = {
     id: 'flood_06',
     name: 'Serpent\'s Crossing',
     region: 'Janxier Floodplain',
-    x: 600,
-    y: 250,
+    x: 322,
+    y: 259,
     battles: [
       { enemies: ['lake_serpent', 'lake_serpent', 'lake_serpent'] },
       { enemies: ['water_naga', 'water_naga', 'giant_crocodile'] },
@@ -1135,9 +1135,9 @@ export const questNodes = {
     id: 'flood_07',
     name: 'Hydra\'s Lair',
     region: 'Janxier Floodplain',
-    x: 720,
-    y: 250,
-    regionLinkPosition: { x: 775, y: 180 },
+    x: 419,
+    y: 212,
+    regionLinkPosition: { x: 614, y: 216 },
     battles: [
       { enemies: ['giant_crocodile', 'giant_crocodile', 'giant_crocodile'] },
       { enemies: ['water_naga', 'water_naga', 'mud_elemental', 'mud_elemental'] },
@@ -1156,14 +1156,43 @@ export const questNodes = {
     ]
   },
 
+  flood_exploration: {
+    id: 'flood_exploration',
+    name: 'Janxier Floodplain Exploration',
+    region: 'Janxier Floodplain',
+    x: 620,
+    y: 450,
+    type: 'exploration',
+    unlockedBy: 'flood_03',
+    backgroundId: 'flood_01',
+    connections: [],
+    explorationConfig: {
+      requiredFights: 65,
+      timeLimit: 300,
+      rewards: { gold: 600, gems: 25, xp: 350 },
+      requiredCrestId: 'pyroclast_crest',
+      itemDrops: [
+        { itemId: 'tome_large', chance: 0.4 },
+        { itemId: 'token_blistering_cliffs', chance: 0.15 },
+        { itemId: 'token_janxier_floodplain', chance: 0.15 }
+      ],
+      partyRequest: {
+        description: 'Diverse scouts (3+ different classes)',
+        conditions: [
+          { uniqueClasses: 3 }
+        ]
+      }
+    }
+  },
+
   // Old Fort Calindash (Ruined Fort) - No boss
   // Layout: fort_01 -> fort_02 -> (fort_03 OR fort_04) -> fort_05 -> fort_06
   fort_01: {
     id: 'fort_01',
     name: 'Outer Walls',
     region: 'Old Fort Calindash',
-    x: 100,
-    y: 250,
+    x: 402,
+    y: 692,
     battles: [
       { enemies: ['bandit_scout', 'bandit_scout', 'bandit_scout'] },
       { enemies: ['skeletal_soldier', 'skeletal_soldier'] },
@@ -1184,8 +1213,8 @@ export const questNodes = {
     id: 'fort_02',
     name: 'Courtyard',
     region: 'Old Fort Calindash',
-    x: 230,
-    y: 180,
+    x: 292,
+    y: 564,
     battles: [
       { enemies: ['bandit_brute', 'bandit_brute'] },
       { enemies: ['skeletal_soldier', 'skeletal_soldier', 'ghostly_knight'] },
@@ -1206,8 +1235,8 @@ export const questNodes = {
     id: 'fort_03',
     name: 'Barracks',
     region: 'Old Fort Calindash',
-    x: 400,
-    y: 100,
+    x: 230,
+    y: 325,
     battles: [
       { enemies: ['bandit_brute', 'bandit_brute', 'bandit_scout'] },
       { enemies: ['deserter_captain', 'bandit_brute'] },
@@ -1229,8 +1258,8 @@ export const questNodes = {
     id: 'fort_04',
     name: 'Haunted Chapel',
     region: 'Old Fort Calindash',
-    x: 400,
-    y: 400,
+    x: 428,
+    y: 470,
     battles: [
       { enemies: ['ghostly_knight', 'ghostly_knight', 'skeletal_soldier'] },
       { enemies: ['fort_specter', 'fort_specter'] },
@@ -1252,8 +1281,8 @@ export const questNodes = {
     id: 'fort_05',
     name: 'Commander\'s Hall',
     region: 'Old Fort Calindash',
-    x: 570,
-    y: 250,
+    x: 477,
+    y: 233,
     battles: [
       { enemies: ['deserter_captain', 'ghostly_knight'] },
       { enemies: ['bandit_brute', 'bandit_brute', 'skeletal_soldier', 'skeletal_soldier'] },
@@ -1275,9 +1304,9 @@ export const questNodes = {
     id: 'fort_06',
     name: 'Dungeon Entrance',
     region: 'Old Fort Calindash',
-    x: 700,
-    y: 250,
-    regionLinkPosition: { x: 770, y: 180 },
+    x: 598,
+    y: 324,
+    regionLinkPosition: { x: 741, y: 331 },
     battles: [
       { enemies: ['ghostly_knight', 'ghostly_knight', 'ghostly_knight'] },
       { enemies: ['deserter_captain', 'fort_specter', 'skeletal_soldier', 'skeletal_soldier'] },
@@ -1302,8 +1331,8 @@ export const questNodes = {
     id: 'cata_01',
     name: 'Tomb Entrance',
     region: 'Ancient Catacombs',
-    x: 80,
-    y: 250,
+    x: 74,
+    y: 177,
     battles: [
       { enemies: ['skeleton_warrior', 'skeleton_warrior', 'skeleton_warrior'] },
       { enemies: ['mummy', 'skeleton_warrior'] },
@@ -1324,8 +1353,8 @@ export const questNodes = {
     id: 'cata_02',
     name: 'Hall of Bones',
     region: 'Ancient Catacombs',
-    x: 180,
-    y: 180,
+    x: 240,
+    y: 105,
     battles: [
       { enemies: ['skeleton_warrior', 'skeleton_warrior', 'tomb_guardian'] },
       { enemies: ['mummy', 'mummy', 'skeleton_warrior'] },
@@ -1346,8 +1375,8 @@ export const questNodes = {
     id: 'cata_03',
     name: 'Cursed Gallery',
     region: 'Ancient Catacombs',
-    x: 300,
-    y: 250,
+    x: 219,
+    y: 392,
     battles: [
       { enemies: ['mummy', 'mummy', 'mummy'] },
       { enemies: ['tomb_guardian', 'tomb_guardian'] },
@@ -1368,8 +1397,8 @@ export const questNodes = {
     id: 'cata_04',
     name: 'Sarcophagus Chamber',
     region: 'Ancient Catacombs',
-    x: 450,
-    y: 120,
+    x: 436,
+    y: 287,
     battles: [
       { enemies: ['mummy', 'mummy', 'tomb_guardian'] },
       { enemies: ['tomb_guardian', 'tomb_guardian', 'skeleton_warrior'] },
@@ -1391,8 +1420,8 @@ export const questNodes = {
     id: 'cata_05',
     name: 'Wraith Sanctum',
     region: 'Ancient Catacombs',
-    x: 450,
-    y: 380,
+    x: 499,
+    y: 96,
     battles: [
       { enemies: ['tomb_wraith', 'tomb_wraith', 'tomb_wraith'] },
       { enemies: ['necromancer', 'tomb_wraith', 'skeleton_warrior', 'skeleton_warrior'] },
@@ -1414,8 +1443,8 @@ export const questNodes = {
     id: 'cata_06',
     name: 'Ritual Chamber',
     region: 'Ancient Catacombs',
-    x: 580,
-    y: 250,
+    x: 664,
+    y: 377,
     battles: [
       { enemies: ['necromancer', 'necromancer', 'tomb_guardian'] },
       { enemies: ['tomb_wraith', 'tomb_wraith', 'mummy', 'tomb_guardian'] },
@@ -1437,9 +1466,9 @@ export const questNodes = {
     id: 'cata_07',
     name: 'Lich King\'s Throne',
     region: 'Ancient Catacombs',
-    x: 720,
-    y: 250,
-    regionLinkPosition: { x: 775, y: 180 },
+    x: 660,
+    y: 242,
+    regionLinkPosition: { x: 753, y: 199 },
     battles: [
       { enemies: ['tomb_guardian', 'tomb_guardian', 'tomb_guardian'] },
       { enemies: ['necromancer', 'necromancer', 'tomb_wraith', 'tomb_wraith'] },
@@ -2033,7 +2062,7 @@ export const regions = [
     superRegion: 'western_veros',
     startNode: 'fort_01',
     width: 800,
-    height: 500,
+    height: 800,
     backgroundColor: '#2a2a2a' // Dark stone gray
   },
   {
