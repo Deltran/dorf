@@ -679,12 +679,14 @@ function selectDeadHeroTarget(hero) {
 }
 
 function returnToMap() {
+  defeatPhase.value = null
   explorationsStore.checkCompletions()
   battleStore.endBattle()
   emit('navigate', 'worldmap')
 }
 
 function returnHome() {
+  defeatPhase.value = null
   explorationsStore.checkCompletions()
   battleStore.endBattle()
   emit('navigate', 'home')
