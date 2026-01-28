@@ -1368,46 +1368,6 @@ function getStatChange(hero, stat) {
       </div>
     </div>
 
-    <!-- Defeat Scene -->
-    <div v-if="defeatPhase" class="defeat-scene">
-      <!-- Genus Loci: Boss portrait looming above -->
-      <div v-if="isGenusLociBattle && genusLociPortraitUrl" class="defeat-boss-portrait"
-           :class="{ visible: defeatPhase !== 'fading' }">
-        <img :src="genusLociPortraitUrl" :alt="currentGenusLociName" />
-      </div>
-
-      <!-- Fallen party -->
-      <div class="defeat-fallen-party" :class="{ visible: defeatPhase !== 'fading' }">
-        <div
-          v-for="(hero, index) in battleStore.heroes"
-          :key="hero.instanceId"
-          class="fallen-hero"
-          :style="{ '--tilt': (index % 2 === 0 ? -2 : 2) + 'deg' }"
-        >
-          <HeroCard :hero="hero" compact />
-        </div>
-      </div>
-
-      <!-- Defeat text -->
-      <div class="defeat-text" :class="{ visible: defeatPhase === 'reveal' || defeatPhase === 'complete' }">
-        <h2 class="defeat-heading">DEFEAT</h2>
-        <p class="defeat-flavor">
-          <template v-if="isGenusLociBattle">
-            {{ currentGenusLociName }} stands victorious.
-          </template>
-          <template v-else>
-            {{ defeatFlavorText }}
-          </template>
-        </p>
-      </div>
-
-      <!-- Actions -->
-      <div class="defeat-actions" :class="{ visible: defeatPhase === 'complete' }">
-        <button class="defeat-btn-primary" @click="returnToMap">Try Again</button>
-        <button class="defeat-btn-secondary" @click="returnHome">Home</button>
-      </div>
-    </div>
-
     <!-- Item Detail Dialog -->
     <div v-if="selectedItem" class="item-dialog-overlay" @click="closeItemDetail">
       <div class="item-dialog" @click.stop>
@@ -1536,6 +1496,55 @@ function getStatChange(hero, stat) {
           No active effects
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Defeat Scene (outside battle-screen to avoid grayscale filter) -->
+  <div v-if="defeatPhase" class="defeat-scene">
+    <!-- Genus Loci: Boss portrait looming above -->
+    <div v-if="isGenusLociBattle && genusLociPortraitUrl" class="defeat-boss-portrait"
+         :class="{ visible: defeatPhase !== 'fading' }">
+      <img :src="genusLociPortraitUrl" :alt="currentGenusLociName" />
+    </div>
+
+    <!-- Fallen party -->
+    <div class="defeat-fallen-party" :class="{ visible: defeatPhase !== 'fading' }">
+      <div
+        v-for="(hero, index) in battleStore.heroes"
+        :key="hero.instanceId"
+        class="fallen-hero"
+        :style="{ '--tilt': (index % 2 === 0 ? -2 : 2) + 'deg' }"
+      >
+        <img
+          v-if="getHeroImageUrl(hero)"
+          :src="getHeroImageUrl(hero)"
+          :alt="hero.template?.name"
+          class="fallen-hero-img"
+        />
+        <div v-else class="fallen-hero-placeholder">
+          {{ hero.template?.name?.[0] || '?' }}
+        </div>
+        <span class="fallen-hero-name">{{ hero.template?.name }}</span>
+      </div>
+    </div>
+
+    <!-- Defeat text -->
+    <div class="defeat-text" :class="{ visible: defeatPhase === 'reveal' || defeatPhase === 'complete' }">
+      <h2 class="defeat-heading">DEFEAT</h2>
+      <p class="defeat-flavor">
+        <template v-if="isGenusLociBattle">
+          {{ currentGenusLociName }} stands victorious.
+        </template>
+        <template v-else>
+          {{ defeatFlavorText }}
+        </template>
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div class="defeat-actions" :class="{ visible: defeatPhase === 'complete' }">
+      <button class="defeat-btn-primary" @click="returnToMap">Try Again</button>
+      <button class="defeat-btn-secondary" @click="returnHome">Home</button>
     </div>
   </div>
 </template>
@@ -2872,6 +2881,7 @@ function getStatChange(hero, stat) {
   justify-content: center;
   gap: 24px;
   padding: 20px;
+  user-select: none;
 }
 
 /* Genus Loci boss portrait */
@@ -2908,6 +2918,36 @@ function getStatChange(hero, stat) {
   filter: grayscale(1);
   opacity: 0.6;
   transform: rotate(var(--tilt, 0deg));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.fallen-hero-img {
+  width: 72px;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.8));
+}
+
+.fallen-hero-placeholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  background: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: #6b7280;
+}
+
+.fallen-hero-name {
+  font-size: 0.7rem;
+  color: #6b7280;
+  text-align: center;
+  user-select: none;
 }
 
 /* Defeat text */
