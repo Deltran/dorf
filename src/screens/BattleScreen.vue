@@ -1357,16 +1357,43 @@ function getStatChange(hero, stat) {
       </div>
     </div>
 
-    <!-- Defeat Modal -->
-    <div v-if="showDefeatModal" class="modal-overlay">
-      <div class="modal defeat-modal">
-        <h2>Defeat</h2>
-        <p>Your party has been wiped out...</p>
+    <!-- Defeat Scene -->
+    <div v-if="defeatPhase" class="defeat-scene">
+      <!-- Genus Loci: Boss portrait looming above -->
+      <div v-if="isGenusLociBattle && genusLociPortraitUrl" class="defeat-boss-portrait"
+           :class="{ visible: defeatPhase !== 'fading' }">
+        <img :src="genusLociPortraitUrl" :alt="currentGenusLociName" />
+      </div>
 
-        <div class="modal-actions">
-          <button class="btn-primary" @click="returnToMap">Try Again</button>
-          <button class="btn-secondary" @click="returnHome">Home</button>
+      <!-- Fallen party -->
+      <div class="defeat-fallen-party" :class="{ visible: defeatPhase !== 'fading' }">
+        <div
+          v-for="(hero, index) in battleStore.heroes"
+          :key="hero.instanceId"
+          class="fallen-hero"
+          :style="{ '--tilt': (index % 2 === 0 ? -2 : 2) + 'deg' }"
+        >
+          <HeroCard :hero="hero" compact />
         </div>
+      </div>
+
+      <!-- Defeat text -->
+      <div class="defeat-text" :class="{ visible: defeatPhase === 'reveal' || defeatPhase === 'complete' }">
+        <h2 class="defeat-heading">DEFEAT</h2>
+        <p class="defeat-flavor">
+          <template v-if="isGenusLociBattle">
+            {{ currentGenusLociName }} stands victorious.
+          </template>
+          <template v-else>
+            {{ defeatFlavorText }}
+          </template>
+        </p>
+      </div>
+
+      <!-- Actions -->
+      <div class="defeat-actions" :class="{ visible: defeatPhase === 'complete' }">
+        <button class="defeat-btn-primary" @click="returnToMap">Try Again</button>
+        <button class="defeat-btn-secondary" @click="returnHome">Home</button>
       </div>
     </div>
 
