@@ -1513,7 +1513,7 @@ function getStatChange(hero, stat) {
         v-for="(hero, index) in battleStore.heroes"
         :key="hero.instanceId"
         class="fallen-hero"
-        :style="{ '--tilt': (index % 2 === 0 ? -2 : 2) + 'deg' }"
+        :style="{ '--tilt': (index % 2 === 0 ? (-3 - index) : (3 + index)) + 'deg' }"
       >
         <img
           v-if="getHeroImageUrl(hero)"
@@ -1524,7 +1524,6 @@ function getStatChange(hero, stat) {
         <div v-else class="fallen-hero-placeholder">
           {{ hero.template?.name?.[0] || '?' }}
         </div>
-        <span class="fallen-hero-name">{{ hero.template?.name }}</span>
       </div>
     </div>
 
@@ -2882,6 +2881,7 @@ function getStatChange(hero, stat) {
   gap: 24px;
   padding: 20px;
   user-select: none;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.85) 100%);
 }
 
 /* Genus Loci boss portrait */
@@ -2918,10 +2918,6 @@ function getStatChange(hero, stat) {
   filter: grayscale(1);
   opacity: 0.6;
   transform: rotate(var(--tilt, 0deg));
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
 }
 
 .fallen-hero-img {
@@ -2941,13 +2937,6 @@ function getStatChange(hero, stat) {
   justify-content: center;
   font-size: 1.5rem;
   color: #6b7280;
-}
-
-.fallen-hero-name {
-  font-size: 0.7rem;
-  color: #6b7280;
-  text-align: center;
-  user-select: none;
 }
 
 /* Defeat text */
