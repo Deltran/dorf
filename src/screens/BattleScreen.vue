@@ -2176,10 +2176,6 @@ function getStatChange(hero, stat) {
   margin-bottom: 16px;
 }
 
-.defeat-modal h2 {
-  color: #ef4444;
-}
-
 .node-complete {
   color: #9ca3af;
   margin-bottom: 24px;
@@ -2351,11 +2347,6 @@ function getStatChange(hero, stat) {
 
 .btn-secondary:hover {
   background: #4b5563;
-}
-
-.defeat-modal p {
-  color: #9ca3af;
-  margin-bottom: 24px;
 }
 
 /* ===== Leader Skill Activation ===== */
@@ -2854,5 +2845,128 @@ function getStatChange(hero, stat) {
     opacity: 0;
     transform: translateX(-50%) translateY(-15px);
   }
+}
+
+/* ===== Defeat Scene ===== */
+.defeat-scene {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 20px;
+}
+
+/* Genus Loci boss portrait */
+.defeat-boss-portrait {
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+
+.defeat-boss-portrait.visible {
+  opacity: 1;
+}
+
+.defeat-boss-portrait img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  box-shadow: 0 0 40px rgba(153, 27, 27, 0.5);
+}
+
+/* Fallen heroes */
+.defeat-fallen-party {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+
+.defeat-fallen-party.visible {
+  opacity: 1;
+}
+
+.fallen-hero {
+  filter: grayscale(1);
+  opacity: 0.6;
+  transform: rotate(var(--tilt, 0deg));
+}
+
+/* Defeat text */
+.defeat-text {
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.5s ease-out 0.2s;
+}
+
+.defeat-text.visible {
+  opacity: 1;
+}
+
+.defeat-heading {
+  color: #b91c1c;
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin: 0 0 8px 0;
+}
+
+.defeat-flavor {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* Action buttons */
+.defeat-actions {
+  display: flex;
+  gap: 12px;
+  opacity: 0;
+  transition: opacity 0.5s ease-out 0.3s;
+}
+
+.defeat-actions.visible {
+  opacity: 1;
+}
+
+.defeat-btn-primary {
+  padding: 10px 24px;
+  border: 1px solid #6b7280;
+  border-radius: 8px;
+  background: transparent;
+  color: #9ca3af;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.defeat-btn-primary:hover {
+  background: #374151;
+  color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.defeat-btn-secondary {
+  padding: 10px 24px;
+  border: 1px solid #4b5563;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.defeat-btn-secondary:hover {
+  background: #1f2937;
+  color: #9ca3af;
 }
 </style>
