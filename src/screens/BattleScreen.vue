@@ -91,6 +91,7 @@ const tipsStore = useTipsStore()
 const showVictoryModal = ref(false)
 const defeatPhase = ref(null) // null | 'fading' | 'reveal' | 'complete'
 const defeatFlavorText = ref('')
+let defeatTimers = []
 
 const DEFEAT_LINES = [
   'The darkness claims another party.',
@@ -524,17 +525,21 @@ function handleDefeat() {
   defeatFlavorText.value = DEFEAT_LINES[Math.floor(Math.random() * DEFEAT_LINES.length)]
 
   // Phase 1: Start battlefield fade
+  defeatTimers.forEach(clearTimeout)
+  defeatTimers = []
   defeatPhase.value = 'fading'
 
   // Phase 2: After fade completes, reveal defeat content
-  setTimeout(() => {
+  const t1 = setTimeout(() => {
     defeatPhase.value = 'reveal'
 
     // Phase 3: Mark complete after staggered reveals finish
-    setTimeout(() => {
+    const t2 = setTimeout(() => {
       defeatPhase.value = 'complete'
     }, 800)
+    defeatTimers.push(t2)
   }, 1500)
+  defeatTimers.push(t1)
 }
 
 function handleGenusLociVictory() {
@@ -679,6 +684,8 @@ function selectDeadHeroTarget(hero) {
 }
 
 function returnToMap() {
+  defeatTimers.forEach(clearTimeout)
+  defeatTimers = []
   defeatPhase.value = null
   explorationsStore.checkCompletions()
   battleStore.endBattle()
@@ -686,6 +693,8 @@ function returnToMap() {
 }
 
 function returnHome() {
+  defeatTimers.forEach(clearTimeout)
+  defeatTimers = []
   defeatPhase.value = null
   explorationsStore.checkCompletions()
   battleStore.endBattle()
@@ -2932,11 +2941,13 @@ function getStatChange(hero, stat) {
   display: flex;
   gap: 12px;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.5s ease-out 0.3s;
 }
 
 .defeat-actions.visible {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .defeat-btn-primary {
