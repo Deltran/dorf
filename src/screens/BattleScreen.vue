@@ -685,7 +685,7 @@ function closeSkillPanel() {
 
 function handleSkillSelect(index) {
   selectAction(`skill_${index}`)
-  // Don't close panel - wait for target selection
+  closeSkillPanel()
 }
 
 function handleAttackFromPanel() {
