@@ -3,7 +3,6 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLociStore, useExplorationsStore, BattleState } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import EnemyCard from '../components/EnemyCard.vue'
-import ActionButton from '../components/ActionButton.vue'
 import DamageNumber from '../components/DamageNumber.vue'
 import ImpactIcon from '../components/ImpactIcon.vue'
 import StatBar from '../components/StatBar.vue'
@@ -12,6 +11,8 @@ import FocusIndicator from '../components/FocusIndicator.vue'
 import ValorBar from '../components/ValorBar.vue'
 import RageBar from '../components/RageBar.vue'
 import VerseIndicator from '../components/VerseIndicator.vue'
+import SkillPanel from '../components/SkillPanel.vue'
+import ActionBar from '../components/ActionBar.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode, getAllQuestNodes } from '../data/questNodes.js'
 import { getHeroTemplate } from '../data/heroTemplates.js'
@@ -105,7 +106,9 @@ const levelUps = ref([])
 const displayedGems = ref(0)
 const displayedExp = ref(0)
 const displayedGold = ref(0)
+const displayedExpPerHero = ref(0)
 const showXpFloaters = ref(false)
+const skillPanelOpen = ref(false)
 const revealedItemCount = ref(0)
 const selectedItem = ref(null) // For item detail popup
 const victoryStep = ref(1) // 1 = rewards, 2 = xp/level ups
@@ -306,6 +309,25 @@ function canUseSkill(skill) {
   return currentHero.value.currentMp >= skill.mpCost
 }
 
+// Prepare skills data for SkillPanel component
+const skillsForPanel = computed(() => {
+  return availableSkills.value.map((skill, index) => ({
+    name: skill.name,
+    cost: getSkillCost(skill),
+    costLabel: getSkillCostLabel(skill),
+    disabled: !canUseSkill(skill),
+    disabledReason: !canUseSkill(skill) ? getSkillDescription(skill) : null,
+    fullDescription: skill.description
+  }))
+})
+
+// Get selected skill index from battleStore.selectedAction
+const selectedSkillIndexForPanel = computed(() => {
+  const action = battleStore.selectedAction
+  if (!action || !action.startsWith('skill_')) return null
+  return parseInt(action.replace('skill_', ''), 10)
+})
+
 // Check if we're waiting for target selection
 const isSelectingTarget = computed(() => {
   return battleStore.isPlayerTurn &&
@@ -464,6 +486,7 @@ function handleVictory() {
     displayedGems.value = 0
     displayedExp.value = 0
     displayedGold.value = 0
+    displayedExpPerHero.value = 0
     showXpFloaters.value = false
     victoryStep.value = 1
     showVictoryModal.value = true
@@ -604,6 +627,7 @@ function handleGenusLociVictory() {
   displayedGems.value = 0
   displayedGold.value = 0
   displayedExp.value = 0
+  displayedExpPerHero.value = 0
   revealedItemCount.value = 0
   victoryStep.value = 1
   showVictoryModal.value = true
@@ -651,17 +675,42 @@ function selectAction(action) {
   battleStore.selectAction(action)
 }
 
+function openSkillPanel() {
+  skillPanelOpen.value = true
+}
+
+function closeSkillPanel() {
+  skillPanelOpen.value = false
+}
+
+function handleSkillSelect(index) {
+  selectAction(`skill_${index}`)
+  // Don't close panel - wait for target selection
+}
+
+function handleAttackFromPanel() {
+  selectAction('attack')
+  closeSkillPanel()
+}
+
 function selectEnemyTarget(enemy) {
   if (enemy.currentHp <= 0) return
 
-  // If no action selected yet, clicking enemy selects attack
+  // If no action selected yet, clicking enemy executes basic attack immediately
   if (battleStore.isPlayerTurn && !battleStore.selectedAction) {
     selectAction('attack')
+    // Target is this enemy, so also set target and execute
+    battleStore.selectTarget(enemy.id, 'enemy')
     return
   }
 
   if (enemiesTargetable.value) {
     battleStore.selectTarget(enemy.id, 'enemy')
+  }
+
+  // Close skill panel when target is selected
+  if (skillPanelOpen.value) {
+    skillPanelOpen.value = false
   }
 }
 
@@ -675,11 +724,21 @@ function selectHeroTarget(hero) {
   if (isHeroTargetable(hero)) {
     battleStore.selectTarget(hero.instanceId, 'ally')
   }
+
+  // Close skill panel when target is selected
+  if (skillPanelOpen.value) {
+    skillPanelOpen.value = false
+  }
 }
 
 function selectDeadHeroTarget(hero) {
   if (deadAlliesTargetable.value && hero.currentHp <= 0) {
     battleStore.selectTarget(hero.instanceId, 'dead_ally')
+  }
+
+  // Close skill panel when target is selected
+  if (skillPanelOpen.value) {
+    skillPanelOpen.value = false
   }
 }
 
@@ -728,9 +787,33 @@ function replayStage() {
 function nextVictoryStep() {
   victoryStep.value = 2
   showXpFloaters.value = false
+  displayedExpPerHero.value = 0
   setTimeout(() => {
     showXpFloaters.value = true
+    animateExpPerHero()
   }, 300)
+}
+
+function animateExpPerHero() {
+  const target = expPerHero.value
+  if (target === 0) return
+
+  const duration = 600
+  const interval = 16
+  const steps = Math.floor(duration / interval)
+  let step = 0
+
+  const timer = setInterval(() => {
+    step++
+    const progress = step / steps
+    const eased = 1 - Math.pow(1 - progress, 3)
+    displayedExpPerHero.value = Math.floor(target * eased)
+
+    if (step >= steps) {
+      clearInterval(timer)
+      displayedExpPerHero.value = target
+    }
+  }, interval)
 }
 
 function prevVictoryStep() {
@@ -825,6 +908,12 @@ const expPerHero = computed(() => {
   const partySize = partyHeroesForVictory.value.length
   return partySize > 0 ? Math.floor(rewards.value.exp / partySize) : 0
 })
+
+function getHeroExpPercent(hero) {
+  // XP required = 100 * level
+  const expRequired = 100 * hero.level
+  return Math.min(100, Math.floor((hero.exp / expRequired) * 100))
+}
 
 function getHeroImageUrl(hero) {
   const templateId = hero.template?.id
@@ -1192,32 +1281,24 @@ function getStatChange(hero, stat) {
 
     <!-- Action Area -->
     <section v-if="battleStore.isPlayerTurn && currentHero" class="action-area">
-      <div class="action-prompt">
-        <span>{{ currentHero.template.name }}'s turn</span>
-        <span>{{ targetPrompt }}</span>
-      </div>
-
-      <div class="action-buttons">
-        <ActionButton
-          label="Attack"
-          description="Basic attack"
-          :selected="battleStore.selectedAction === 'attack'"
-          @click="selectAction('attack')"
-        />
-        <ActionButton
-          v-for="(skill, index) in availableSkills"
-          :key="skill.name"
-          :label="skill.name"
-          :description="getSkillDescription(skill)"
-          :cost="getSkillCost(skill)"
-          :costLabel="getSkillCostLabel(skill)"
-          :disabled="!canUseSkill(skill)"
-          :selected="battleStore.selectedAction === `skill_${index}`"
-          variant="primary"
-          @click="selectAction(`skill_${index}`)"
-        />
-      </div>
+      <ActionBar
+        :heroName="currentHero.template.name"
+        :hasSkills="availableSkills.length > 0"
+        @open-skills="openSkillPanel"
+      />
     </section>
+
+    <!-- Skill Panel (outside action-area for proper z-index) -->
+    <SkillPanel
+      v-if="currentHero"
+      :hero="currentHero"
+      :skills="skillsForPanel"
+      :selectedSkillIndex="selectedSkillIndexForPanel"
+      :isOpen="skillPanelOpen"
+      @select-skill="handleSkillSelect"
+      @select-attack="handleAttackFromPanel"
+      @close="closeSkillPanel"
+    />
 
     <!-- Waiting indicator -->
     <section v-else-if="!battleStore.isBattleOver" class="waiting-area">
@@ -1251,14 +1332,16 @@ function getStatChange(hero, stat) {
           </p>
           <p class="power-level-badge">Power Level {{ genusLociRewards.powerLevel }}</p>
 
-          <div class="rewards">
-            <div v-if="genusLociRewards.gold > 0" class="reward-item gold-reward">
-              <span>🪙 Gold</span>
+          <div class="rewards-row rewards-row-centered">
+            <div v-if="genusLociRewards.gold > 0" class="reward-block reward-gold">
+              <span class="reward-icon">🪙</span>
               <span class="reward-value">+{{ displayedGold }}</span>
+              <span class="reward-label">Gold</span>
             </div>
-            <div v-if="genusLociRewards.gems > 0" class="reward-item">
-              <span>💎 Gems</span>
+            <div v-if="genusLociRewards.gems > 0" class="reward-block reward-gems">
+              <span class="reward-icon">💎</span>
               <span class="reward-value">+{{ displayedGems }}</span>
+              <span class="reward-label">Gems</span>
             </div>
           </div>
 
@@ -1291,18 +1374,21 @@ function getStatChange(hero, stat) {
           <div class="victory-steps-container">
             <!-- Step 1: Rewards -->
             <div :class="['victory-step', { active: victoryStep === 1 }]">
-              <div v-if="rewards" class="rewards">
-                <div class="reward-item">
-                  <span>💎 Gems</span>
+              <div v-if="rewards" class="rewards-row">
+                <div class="reward-block reward-gems">
+                  <span class="reward-icon">💎</span>
                   <span class="reward-value">+{{ displayedGems }}</span>
+                  <span class="reward-label">Gems</span>
                 </div>
-                <div class="reward-item gold-reward">
-                  <span>🪙 Gold</span>
+                <div class="reward-block reward-gold">
+                  <span class="reward-icon">🪙</span>
                   <span class="reward-value">+{{ displayedGold }}</span>
+                  <span class="reward-label">Gold</span>
                 </div>
-                <div class="reward-item">
-                  <span>⭐ EXP</span>
+                <div class="reward-block reward-exp">
+                  <span class="reward-icon">⭐</span>
                   <span class="reward-value">+{{ displayedExp }}</span>
+                  <span class="reward-label">EXP</span>
                 </div>
               </div>
 
@@ -1336,19 +1422,34 @@ function getStatChange(hero, stat) {
 
             <!-- Step 2: XP & Level Ups -->
             <div :class="['victory-step', { active: victoryStep === 2 }]">
-              <div class="step-header">Party Results</div>
+              <div class="step-header-fancy">
+                <span class="step-header-icon">⚔️</span>
+                <span>Your Heroes Grew!</span>
+              </div>
               <div class="victory-party">
                 <div
-                  v-for="hero in partyHeroesForVictory"
+                  v-for="(hero, index) in partyHeroesForVictory"
                   :key="hero.instanceId"
-                  :class="['victory-hero', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
+                  :class="['victory-hero-card', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
+                  :style="{ '--reveal-delay': `${index * 100}ms` }"
                 >
-                  <HeroCard :hero="hero" compact />
-                  <div v-if="showXpFloaters" class="xp-floater">
-                    +{{ expPerHero }} XP
+                  <div class="hero-portrait-wrap">
+                    <HeroCard :hero="hero" compact />
+                    <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-burst">✦</div>
                   </div>
-                  <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-badge">
-                    Level Up!
+                  <div class="hero-growth-info">
+                    <div class="hero-name-small">{{ hero.name }}</div>
+                    <div v-if="heroLeveledUp(hero.instanceId)" class="level-transition">
+                      <span class="old-level">Lv {{ heroLeveledUp(hero.instanceId).oldLevel }}</span>
+                      <span class="level-arrow">→</span>
+                      <span class="new-level">Lv {{ heroLeveledUp(hero.instanceId).newLevel }}</span>
+                    </div>
+                    <div v-else class="xp-progress-row">
+                      <div class="xp-progress-bar">
+                        <div class="xp-progress-fill" :style="{ width: getHeroExpPercent(hero) + '%' }"></div>
+                      </div>
+                      <span class="xp-progress-label">+{{ displayedExpPerHero }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1360,9 +1461,8 @@ function getStatChange(hero, stat) {
           </div>
 
           <div class="modal-actions">
-            <button class="btn-primary" @click="returnToMap">Continue</button>
-            <button v-if="rewards && !rewards.isFirstClear" class="btn-secondary" @click="replayStage">Replay</button>
-            <button class="btn-secondary" @click="returnHome">Home</button>
+            <button class="btn-primary btn-full" @click="returnToMap">Continue</button>
+            <button v-if="rewards && !rewards.isFirstClear" class="btn-text" @click="replayStage">Replay Battle</button>
           </div>
         </template>
       </div>
@@ -2074,17 +2174,6 @@ function getStatChange(hero, stat) {
   font-weight: 600;
 }
 
-.action-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.action-buttons > * {
-  flex: 1 1 calc(50% - 6px);
-  max-width: calc(50% - 6px);
-}
-
 .waiting-area {
   margin-top: auto;
   text-align: center;
@@ -2104,6 +2193,16 @@ function getStatChange(hero, stat) {
   justify-content: center;
   z-index: 100;
   padding: 20px;
+  animation: overlayFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes overlayFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal {
@@ -2113,6 +2212,18 @@ function getStatChange(hero, stat) {
   text-align: center;
   max-width: 400px;
   width: 100%;
+  animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .victory-steps-container {
@@ -2174,10 +2285,56 @@ function getStatChange(hero, stat) {
 
 .victory-modal h2 {
   color: #22c55e;
+  animation: victoryBurst 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes victoryBurst {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+    text-shadow: 0 0 0 transparent;
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+    text-shadow:
+      0 0 20px rgba(251, 191, 36, 0.8),
+      0 0 40px rgba(251, 191, 36, 0.4);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    text-shadow:
+      0 0 8px rgba(34, 197, 94, 0.4),
+      0 0 16px rgba(34, 197, 94, 0.2);
+  }
 }
 
 .victory-modal.genus-loci-victory h2 {
   color: #9333ea;
+  animation: victoryBurstPurple 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes victoryBurstPurple {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+    text-shadow: 0 0 0 transparent;
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+    text-shadow:
+      0 0 20px rgba(251, 191, 36, 0.8),
+      0 0 40px rgba(251, 191, 36, 0.4);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    text-shadow:
+      0 0 8px rgba(147, 51, 234, 0.5),
+      0 0 16px rgba(147, 51, 234, 0.25);
+  }
 }
 
 .genus-loci-complete {
@@ -2200,33 +2357,71 @@ function getStatChange(hero, stat) {
   margin-bottom: 24px;
 }
 
-.rewards {
-  background: #374151;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.reward-item {
+/* Rewards - Bold trophy display */
+.rewards-row {
   display: flex;
   justify-content: space-between;
-  padding: 8px 0;
-  color: #f3f4f6;
+  gap: 12px;
+  margin-bottom: 20px;
 }
 
-.reward-item + .reward-item {
-  border-top: 1px solid #4b5563;
+.rewards-row-centered {
+  justify-content: center;
 }
 
-.reward-item.gold-reward .reward-value {
-  color: #f59e0b;
+.reward-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.reward-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+  margin-bottom: 4px;
 }
 
 .reward-value {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #22c55e;
+  font-weight: 800;
+  font-size: 1.4rem;
   font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.reward-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  margin-top: 2px;
+}
+
+/* Gem rewards - blue */
+.reward-gems .reward-value {
+  color: #60a5fa;
+}
+.reward-gems {
+  background: rgba(96, 165, 250, 0.08);
+}
+
+/* Gold rewards - amber */
+.reward-gold .reward-value {
+  color: #fbbf24;
+}
+.reward-gold {
+  background: rgba(251, 191, 36, 0.08);
+}
+
+/* EXP rewards - green */
+.reward-exp .reward-value {
+  color: #4ade80;
+}
+.reward-exp {
+  background: rgba(74, 222, 128, 0.08);
 }
 
 .first-clear-badge {
@@ -2251,90 +2446,175 @@ function getStatChange(hero, stat) {
   }
 }
 
+/* Step header with personality */
+.step-header-fancy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e5e7eb;
+  margin-bottom: 16px;
+}
+
+.step-header-icon {
+  font-size: 1.2rem;
+}
+
+/* Victory party - hero cards with growth info */
 .victory-party {
   display: flex;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
-.victory-hero {
+.victory-hero-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  animation: heroReveal 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+@keyframes heroReveal {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Leveled up heroes get promoted */
+.victory-hero-card.leveled-up {
+  animation: heroRevealLevelUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+@keyframes heroRevealLevelUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1.08);
+  }
+}
+
+.hero-portrait-wrap {
   position: relative;
 }
 
-.victory-hero.leveled-up {
-  animation: levelUpGlow 1.5s ease-in-out infinite;
-}
-
-.xp-floater {
+/* Level up burst star */
+.level-up-burst {
   position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  font-weight: 700;
-  font-size: 1rem;
-  color: #ffffff;
-  pointer-events: none;
-  user-select: none;
-  z-index: 100;
-  text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
-  animation: xpFloatUp 1.5s ease-out forwards;
+  top: -8px;
+  right: -8px;
+  font-size: 1.4rem;
+  color: #fbbf24;
+  animation: burstSpin 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--reveal-delay, 0ms);
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.8));
 }
 
-@keyframes xpFloatUp {
-  0% {
+@keyframes burstSpin {
+  from {
     opacity: 0;
-    transform: translateX(-50%) translateY(5px) scale(0.8);
+    transform: scale(0) rotate(-180deg);
   }
-  15% {
+  to {
     opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1.1);
-  }
-  30% {
-    transform: translateX(-50%) translateY(-3px) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-25px) scale(1);
+    transform: scale(1) rotate(0deg);
   }
 }
 
-.level-up-badge {
-  position: absolute;
-  bottom: -8px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-  color: #1f2937;
+/* Hero growth info below card */
+.hero-growth-info {
+  text-align: center;
+  min-width: 70px;
+}
+
+.hero-name-small {
   font-size: 0.7rem;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 10px;
+  color: #9ca3af;
+  margin-bottom: 4px;
   white-space: nowrap;
-  animation: badgePulse 1s ease-in-out infinite;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
 }
 
-@keyframes levelUpGlow {
-  0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6));
-  }
-  50% {
-    filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.9));
-  }
+/* Level transition for leveled heroes */
+.level-transition {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 0.85rem;
 }
 
-@keyframes badgePulse {
-  0%, 100% {
-    transform: translateX(-50%) scale(1);
-  }
-  50% {
-    transform: translateX(-50%) scale(1.1);
-  }
+.old-level {
+  color: #6b7280;
+}
+
+.level-arrow {
+  color: #fbbf24;
+  animation: arrowPulse 0.4s ease-out;
+}
+
+@keyframes arrowPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.new-level {
+  color: #fbbf24;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+}
+
+/* XP progress for non-leveled heroes */
+.xp-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.xp-progress-bar {
+  width: 50px;
+  height: 4px;
+  background: #374151;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.xp-progress-fill {
+  height: 100%;
+  background: #4ade80;
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.xp-progress-label {
+  font-size: 0.65rem;
+  color: #4ade80;
+  font-weight: 600;
 }
 
 .modal-actions {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
   margin-top: 20px;
   padding-top: 16px;
   border-top: 1px solid #374151;
@@ -2366,6 +2646,25 @@ function getStatChange(hero, stat) {
 
 .btn-secondary:hover {
   background: #4b5563;
+}
+
+.btn-full {
+  flex: none;
+  width: 100%;
+}
+
+.btn-text {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  padding: 8px;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.btn-text:hover {
+  color: #d1d5db;
 }
 
 /* ===== Leader Skill Activation ===== */
@@ -3010,5 +3309,49 @@ function getStatChange(hero, stat) {
 .defeat-btn-secondary:hover {
   background: #1f2937;
   color: #9ca3af;
+}
+
+/* Reduced motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay {
+    animation: none;
+    opacity: 1;
+  }
+  .modal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .victory-modal h2,
+  .victory-modal.genus-loci-victory h2 {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    text-shadow:
+      0 0 8px rgba(34, 197, 94, 0.4),
+      0 0 16px rgba(34, 197, 94, 0.2);
+  }
+  .victory-modal.genus-loci-victory h2 {
+    text-shadow:
+      0 0 8px rgba(147, 51, 234, 0.5),
+      0 0 16px rgba(147, 51, 234, 0.25);
+  }
+  .victory-hero-card,
+  .victory-hero-card.leveled-up {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .victory-hero-card.leveled-up {
+    transform: scale(1.08);
+  }
+  .level-up-burst {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .level-arrow {
+    animation: none;
+  }
 }
 </style>
