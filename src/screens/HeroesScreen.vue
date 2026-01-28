@@ -19,6 +19,8 @@ const statTooltips = {
   spd: 'Speed. Determines turn order in combat. Higher speed acts first.'
 }
 
+const combatOnlyResources = new Set(['Rage', 'Focus', 'Valor'])
+
 const resourceTooltips = {
   'Mana': 'Mana fuels spellcasting. Spent when using skills. Regenerates partially each turn.',
   'Faith': 'Faith powers holy abilities. Spent when using skills. Regenerates partially each turn.',
@@ -52,6 +54,7 @@ const explorationsStore = useExplorationsStore()
 const selectedHero = ref(null)
 const heroImageError = ref(false)
 const heroPortraitEl = ref(null)
+const starAnimating = ref(false)
 const rarityColors = {
   1: '#9ca3af', 2: '#22c55e', 3: '#3b82f6', 4: '#a855f7', 5: '#f59e0b'
 }
@@ -452,8 +455,12 @@ function confirmMerge() {
     selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
     mergeInfo.value = heroesStore.canMergeHero(selectedHero.value.instanceId)
 
-    // Celebration animation on portrait
+    // Celebration animation on portrait + stars
+    starAnimating.value = false
     nextTick(() => {
+      starAnimating.value = true
+      setTimeout(() => { starAnimating.value = false }, 800)
+
       if (heroPortraitEl.value) {
         const rarity = selectedHero.value.template.rarity
         const color = rarityColors[rarity] || '#f59e0b'
@@ -840,7 +847,7 @@ function getEffectTypeName(type) {
           />
           <div class="header-info">
             <h3>{{ selectedHero.template.name }}</h3>
-            <StarRating :rating="getStarLevel(selectedHero)" />
+            <StarRating :rating="getStarLevel(selectedHero)" :animate="starAnimating" />
             <div v-if="selectedHero.starLevel > selectedHero.template.rarity" class="origin-badge">
               {{ selectedHero.template.rarity }}★ origin
             </div>
@@ -926,8 +933,13 @@ function getEffectTypeName(type) {
             @pointerleave="onPointerLeave()"
           >
             <span class="stat-icon">💧</span>
-            <span class="stat-value">{{ selectedHero.stats.mp }}</span>
-            <span class="stat-label">{{ selectedHero.class.resourceName }}</span>
+            <template v-if="combatOnlyResources.has(selectedHero.class.resourceName)">
+              <span class="stat-resource-name">{{ selectedHero.class.resourceName }}</span>
+            </template>
+            <template v-else>
+              <span class="stat-value">{{ selectedHero.stats.mp }}</span>
+              <span class="stat-label">{{ selectedHero.class.resourceName }}</span>
+            </template>
           </div>
         </div>
 
@@ -1709,6 +1721,14 @@ function getEffectTypeName(type) {
   font-size: 0.6rem;
   color: #6b7280;
   text-transform: uppercase;
+}
+
+.stat-resource-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #d1d5db;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 /* ===== Skills ===== */
