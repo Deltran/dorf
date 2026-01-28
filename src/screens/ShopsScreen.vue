@@ -7,6 +7,21 @@ import { getAllShops, getShop } from '../data/shops.js'
 import { getItem } from '../data/items.js'
 import StarRating from '../components/StarRating.vue'
 
+const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
+const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
+
+function getSectionPortrait(section) {
+  const path = `../assets/enemies/${section.id}_portrait.png`
+  return enemyPortraits[path] || null
+}
+
+function getSectionBackground(section) {
+  const nodeId = section.unlockCondition?.completedNode
+  if (!nodeId) return null
+  const path = `../assets/battle_backgrounds/${nodeId}.png`
+  return battleBackgrounds[path] || null
+}
+
 const emit = defineEmits(['navigate'])
 
 const shopsStore = useShopsStore()
@@ -72,9 +87,8 @@ const getCrestCount = (sectionId) => {
 
 const currentCurrency = computed(() => {
   if (!activeShop.value) return 0
-  if (activeShop.value.currency === 'gold') return gachaStore.gold
   if (activeShop.value.currency === 'gems') return gachaStore.gems
-  return 0
+  return gachaStore.gold
 })
 
 const currencyIcon = computed(() => {
@@ -135,6 +149,11 @@ const maxPurchaseQuantity = computed(() => {
 const totalCost = computed(() => {
   if (!confirmingItem.value) return 0
   return confirmingItem.value.price * purchaseQuantity.value
+})
+
+const confirmingItemData = computed(() => {
+  if (!confirmingItem.value) return null
+  return confirmingItem.value.item || getItem(confirmingItem.value.itemId)
 })
 
 function handleItemClick(shopItem) {
@@ -278,7 +297,17 @@ function typeIcon(type) {
       </div>
 
       <div v-for="section in unlockedSections" :key="section.id" class="shop-section">
-        <div class="section-header">
+        <div class="section-header"
+          :style="getSectionBackground(section) ? {
+            backgroundImage: `linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.6) 100%), url(${getSectionBackground(section)})`
+          } : {}"
+        >
+          <img
+            v-if="getSectionPortrait(section)"
+            :src="getSectionPortrait(section)"
+            :alt="section.name"
+            class="section-portrait"
+          />
           <span class="section-name">{{ section.name }}</span>
           <span class="section-currency">🏅 {{ getCrestCount(section.id) }}</span>
         </div>
@@ -351,7 +380,15 @@ function typeIcon(type) {
       <div class="confirm-modal" @click.stop>
         <h3>Purchase</h3>
         <div class="purchase-item-name">
-          {{ confirmingItem.name || confirmingItem.item?.name }}
+          {{ confirmingItem.name || confirmingItemData?.name }}
+        </div>
+
+        <p v-if="confirmingItemData?.description" class="purchase-item-desc">
+          {{ confirmingItemData.description }}
+        </p>
+
+        <div v-if="confirmingItemData?.xpValue" class="purchase-item-effect">
+          XP Value: <span class="effect-value">+{{ confirmingItemData.xpValue }}</span>
         </div>
 
         <div class="quantity-row">
@@ -761,7 +798,25 @@ function typeIcon(type) {
   font-size: 1rem;
   font-weight: 600;
   color: #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.purchase-item-desc {
+  color: #9ca3af;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+}
+
+.purchase-item-effect {
+  font-size: 0.85rem;
+  color: #9ca3af;
   margin-bottom: 16px;
+}
+
+.purchase-item-effect .effect-value {
+  color: #4ade80;
+  font-weight: 600;
 }
 
 .quantity-row {
@@ -854,24 +909,39 @@ function typeIcon(type) {
 
 .section-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 12px;
   padding: 12px 16px;
   background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  background-size: cover;
+  background-position: center;
   border-radius: 8px;
   margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.section-portrait {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(251, 191, 36, 0.6);
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .section-name {
   font-size: 1.1rem;
   font-weight: 600;
   color: #f3f4f6;
+  flex: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
 .section-currency {
   font-size: 1rem;
   color: #fbbf24;
   font-weight: 600;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
 }
 
 .no-sections {

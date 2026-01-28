@@ -372,6 +372,7 @@ export const enemyTemplates = {
   shadow_dragon: {
     id: 'shadow_dragon',
     name: 'Shadow Dragon',
+    imageSize: 160,
     stats: { hp: 500, atk: 55, def: 40, spd: 12 },
     skill: {
       name: 'Shadow Breath',

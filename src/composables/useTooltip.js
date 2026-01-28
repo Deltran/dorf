@@ -10,8 +10,8 @@ export const tooltipState = reactive({
 
 let hoverTimer = null
 
-function show(event, text) {
-  const rect = event.currentTarget.getBoundingClientRect()
+function show(el, text) {
+  const rect = el.getBoundingClientRect()
   tooltipState.text = text
   tooltipState.x = rect.left + rect.width / 2
   tooltipState.y = rect.top
@@ -25,11 +25,12 @@ function hide() {
 }
 
 export function useTooltip() {
-  function onPointerEnter(event, text) {
+  function onPointerEnter(event, text, delay = 1000) {
     clearTimeout(hoverTimer)
+    const el = event.currentTarget
     hoverTimer = setTimeout(() => {
-      show(event, text)
-    }, 1000)
+      show(el, text)
+    }, delay)
   }
 
   function onPointerLeave() {
@@ -40,7 +41,7 @@ export function useTooltip() {
     if (tooltipState.visible && tooltipState.text === text) {
       hide()
     } else {
-      show(event, text)
+      show(event.currentTarget, text)
     }
   }
 

@@ -7,14 +7,26 @@ import { getEnemyTemplate } from '../data/enemyTemplates.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import MapCanvas from '../components/MapCanvas.vue'
 import SuperRegionSelect from '../components/SuperRegionSelect.vue'
+import { useTooltip } from '../composables/useTooltip.js'
+
+const { onPointerEnter, onPointerLeave } = useTooltip()
 
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
+const enemyImages = import.meta.glob('../assets/enemies/*.png', { eager: true, import: 'default' })
 
 function getBossPortraitUrl(bossId) {
   if (!bossId) return null
   const portraitPath = `../assets/enemies/${bossId}_portrait.png`
   return enemyPortraits[portraitPath] || null
+}
+
+function getEnemyImageUrl(enemyId) {
+  if (!enemyId) return null
+  const portraitPath = `../assets/enemies/${enemyId}_portrait.png`
+  if (enemyPortraits[portraitPath]) return enemyPortraits[portraitPath]
+  const imagePath = `../assets/enemies/${enemyId}.png`
+  return enemyImages[imagePath] || null
 }
 
 const emit = defineEmits(['navigate', 'startBattle', 'startGenusLociBattle'])
@@ -427,7 +439,7 @@ function closeTokenResults() {
           <div class="preview-title-area">
             <h2>{{ selectedNode.name }}</h2>
             <span v-if="selectedNode.isCompleted" class="completed-badge">Cleared</span>
-            <span v-if="selectedNode.battles?.length" class="battle-count-badge">⚔️ {{ selectedNode.battles.length }}</span>
+            <span v-if="selectedNode.battles?.length && (selectedNode.isGenusLoci || selectedNode.isExploration)" class="battle-count-badge">⚔️ {{ selectedNode.battles.length }}</span>
           </div>
           <button class="close-preview" @click="clearSelection">×</button>
         </div>
@@ -612,22 +624,59 @@ function closeTokenResults() {
 
         <!-- Regular Quest Preview -->
         <div v-else class="preview-body preview-body-compact">
-          <div class="compact-enemies">
-            <span class="compact-enemies-label">Enemies:</span>
-            <span class="compact-enemies-list">
-              <span v-for="(enemy, i) in getNodeEnemies(selectedNode)" :key="enemy.id">
-                {{ enemy.name }} (❤️{{ enemy.stats.hp }})<span v-if="i < getNodeEnemies(selectedNode).length - 1"> · </span>
-              </span>
-            </span>
-          </div>
+          <div class="quest-detail-columns">
+            <div class="quest-info-left">
+              <div class="quest-fight-count">
+                <span class="fight-icon">⚔️</span>
+                <span class="fight-number">{{ selectedNode.battles.length }}</span>
+                <span class="fight-label">fights</span>
+              </div>
 
-          <div class="compact-rewards">
-            <span class="compact-reward">💎 {{ selectedNode.rewards.gems }}</span>
-            <span v-if="selectedNode.rewards.gold" class="compact-reward gold">🪙 {{ selectedNode.rewards.gold }}</span>
-            <span class="compact-reward">⭐ {{ selectedNode.rewards.exp }}</span>
-          </div>
-          <div v-if="!selectedNode.isCompleted && selectedNode.firstClearBonus" class="compact-first-clear">
-            +{{ selectedNode.firstClearBonus.gems }} 💎 first clear bonus
+              <div class="quest-enemies-box">
+                <span class="box-label">Enemies</span>
+                <div class="enemy-portraits-row">
+                  <div
+                    v-for="enemy in getNodeEnemies(selectedNode)"
+                    :key="enemy.id"
+                    class="enemy-portrait-wrap"
+                    @pointerenter="onPointerEnter($event, `${enemy.name}\n❤️ ${enemy.stats.hp} HP`, 200)"
+                    @pointerleave="onPointerLeave()"
+                  >
+                    <img
+                      v-if="getEnemyImageUrl(enemy.id)"
+                      :src="getEnemyImageUrl(enemy.id)"
+                      :alt="enemy.name"
+                      class="enemy-portrait-img"
+                    />
+                    <div v-else class="enemy-portrait-fallback">💀</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="quest-rewards-box">
+              <span class="box-label">Rewards</span>
+              <div class="reward-line-items">
+                <div v-if="selectedNode.rewards.gems" class="reward-line">
+                  <span class="reward-line-icon">💎</span>
+                  <span class="reward-line-label">Gems</span>
+                  <span class="reward-line-value">{{ selectedNode.rewards.gems }}</span>
+                </div>
+                <div v-if="selectedNode.rewards.gold" class="reward-line">
+                  <span class="reward-line-icon">🪙</span>
+                  <span class="reward-line-label">Gold</span>
+                  <span class="reward-line-value gold">{{ selectedNode.rewards.gold }}</span>
+                </div>
+                <div v-if="selectedNode.rewards.exp" class="reward-line">
+                  <span class="reward-line-icon">⭐</span>
+                  <span class="reward-line-label">XP</span>
+                  <span class="reward-line-value">{{ selectedNode.rewards.exp }}</span>
+                </div>
+              </div>
+              <div v-if="!selectedNode.isCompleted && selectedNode.firstClearBonus" class="first-clear-line">
+                +{{ selectedNode.firstClearBonus.gems }} 💎 first clear
+              </div>
+            </div>
           </div>
 
           <div :class="['quest-buttons', { 'has-token': selectedNodeToken }]">
@@ -1001,11 +1050,11 @@ function closeTokenResults() {
 /* Node Preview Panel */
 .node-preview {
   position: fixed;
-  bottom: 10vh;
+  bottom: 0;
   left: 0;
   right: 0;
   background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
-  border-radius: 24px;
+  border-radius: 24px 24px 0 0;
   padding: 12px 20px 24px;
   max-height: 60vh;
   overflow-y: auto;
@@ -1235,41 +1284,148 @@ function closeTokenResults() {
   gap: 12px;
 }
 
-.compact-enemies {
-  font-size: 0.85rem;
-  color: #d1d5db;
-  line-height: 1.5;
-}
-
-.compact-enemies-label {
-  color: #9ca3af;
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-.compact-rewards {
+.quest-detail-columns {
   display: flex;
-  gap: 16px;
-  font-size: 1rem;
-  font-weight: 600;
+  gap: 12px;
 }
 
-.compact-reward {
+.quest-info-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.quest-fight-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  color: #d1d5db;
+}
+
+.fight-icon {
+  font-size: 1rem;
+}
+
+.fight-number {
+  font-weight: 700;
   color: #f3f4f6;
 }
 
-.compact-reward.gold {
+.fight-label {
+  color: #9ca3af;
+}
+
+.quest-enemies-box,
+.quest-rewards-box {
+  position: relative;
+  border: 1px solid rgba(75, 85, 99, 0.5);
+  border-radius: 10px;
+  padding: 14px 10px 10px;
+  background: rgba(31, 41, 55, 0.4);
+}
+
+.box-label {
+  position: absolute;
+  top: -8px;
+  left: 10px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: #1a2332;
+  padding: 0 6px;
+}
+
+.enemy-portraits-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.enemy-portrait-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #ef4444;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.enemy-portrait-wrap:hover {
+  transform: scale(1.15);
+  border-color: #fbbf24;
+}
+
+.enemy-portrait-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.enemy-portrait-fallback {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  background: linear-gradient(135deg, #5f1e1e 0%, #dc2626 100%);
+}
+
+.quest-rewards-box {
+  flex: 1;
+  min-width: 0;
+}
+
+.reward-line-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reward-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.reward-line-icon {
+  font-size: 0.9rem;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.reward-line-label {
+  color: #9ca3af;
+  flex: 1;
+}
+
+.reward-line-value {
+  font-weight: 700;
+  color: #f3f4f6;
+}
+
+.reward-line-value.gold {
   color: #f59e0b;
 }
 
-.compact-first-clear {
-  font-size: 0.8rem;
+.first-clear-line {
+  font-size: 0.75rem;
   font-weight: 600;
   color: #fbbf24;
   background: rgba(251, 191, 36, 0.1);
-  padding: 4px 10px;
+  padding: 4px 8px;
   border-radius: 6px;
-  width: fit-content;
+  margin-top: 8px;
+  text-align: center;
 }
 
 /* Quest Buttons Container */

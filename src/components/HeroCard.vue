@@ -115,24 +115,6 @@ const starLevel = computed(() => {
   return props.hero.starLevel || template.value?.rarity || 1
 })
 
-// Base rarity from template (origin)
-const baseRarity = computed(() => {
-  return template.value?.rarity || 1
-})
-
-// Has been merged if star level exceeds base rarity
-const isMerged = computed(() => {
-  return starLevel.value > baseRarity.value
-})
-
-const rarityNames = {
-  1: 'Common',
-  2: 'Uncommon',
-  3: 'Rare',
-  4: 'Epic',
-  5: 'Legendary'
-}
-
 const isOnExploration = computed(() => {
   return props.showExplorationStatus && props.hero.explorationNodeId != null
 })
@@ -150,23 +132,22 @@ const isOnExploration = computed(() => {
   >
     <div class="card-header">
       <span class="role-icon">{{ roleIcon }}</span>
+      <span class="hero-level">{{ levelDisplay }}</span>
+      <span v-if="isOnExploration" class="exploration-badge" title="Currently Exploring">🧭</span>
+    </div>
+
+    <div v-if="!showBars && getHeroImageUrl(template?.id)" class="card-portrait">
       <img
-        v-if="!showBars && getHeroImageUrl(template?.id)"
         :src="getHeroImageUrl(template?.id)"
         :alt="template?.name"
         class="card-hero-image"
       />
-      <span class="hero-level">{{ levelDisplay }}</span>
-      <span v-if="isOnExploration" class="exploration-badge" title="Currently Exploring">🧭</span>
     </div>
 
     <div class="card-body">
       <div class="hero-name">{{ template?.name || 'Unknown' }}</div>
       <div class="hero-class">{{ heroClass?.title || 'Unknown' }}</div>
       <StarRating :rating="starLevel" size="sm" />
-      <div v-if="isMerged" class="origin-badge">
-        {{ rarityNames[baseRarity] }} origin
-      </div>
     </div>
 
     <div v-if="showBars && hero.currentHp !== undefined" class="card-bars">
@@ -240,7 +221,7 @@ const isOnExploration = computed(() => {
   border-radius: 8px;
   padding: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   border: 2px solid transparent;
   min-width: 120px;
   user-select: none;
@@ -256,8 +237,14 @@ const isOnExploration = computed(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
+.hero-card:focus-visible {
+  outline: 2px solid #e2e8f0;
+  outline-offset: 2px;
+}
+
 .hero-card.selected {
-  border-color: #3b82f6;
+  border-color: #e2e8f0;
+  box-shadow: 0 0 8px rgba(226, 232, 240, 0.25);
 }
 
 .hero-card.active {
@@ -266,13 +253,16 @@ const isOnExploration = computed(() => {
 }
 
 .hero-card.dead {
-  filter: grayscale(100%);
-  opacity: 0.6;
+  filter: grayscale(60%) brightness(0.7);
+  opacity: 0.75;
+  border-color: #991b1b;
+  box-shadow: inset 0 0 12px rgba(127, 29, 29, 0.4);
+  transform: scale(0.97);
 }
 
 .hero-card.dead:hover {
-  transform: none;
-  box-shadow: none;
+  transform: scale(0.97);
+  box-shadow: inset 0 0 12px rgba(127, 29, 29, 0.4);
 }
 
 /* Rarity borders and backgrounds */
@@ -287,24 +277,16 @@ const isOnExploration = computed(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .role-icon {
-  font-size: 1.2rem;
-}
-
-.card-hero-image {
-  width: 48px;
-  height: 48px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid #374151;
+  font-size: 1rem;
 }
 
 .hero-level {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: 0.7rem;
+  color: #6b7280;
   background: #374151;
   padding: 2px 6px;
   border-radius: 4px;
@@ -318,15 +300,33 @@ const isOnExploration = computed(() => {
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
+.card-portrait {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 6px;
+}
+
+.card-hero-image {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #374151;
+}
+
 .card-body {
   text-align: center;
+  min-width: 0;
 }
 
 .hero-name {
-  font-weight: 600;
+  font-weight: 700;
   color: #f3f4f6;
   margin-bottom: 4px;
-  font-size: 0.9rem;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .compact .hero-name {
@@ -334,17 +334,9 @@ const isOnExploration = computed(() => {
 }
 
 .hero-class {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: 0.7rem;
+  color: #6b7280;
   margin-bottom: 4px;
-}
-
-.origin-badge {
-  font-size: 0.65rem;
-  color: #9ca3af;
-  opacity: 0.7;
-  font-style: italic;
-  margin-top: 2px;
 }
 
 .card-bars {
