@@ -997,7 +997,7 @@ function getStatChange(hero, stat) {
 </script>
 
 <template>
-  <div class="battle-screen">
+  <div class="battle-screen" :class="{ 'battle-defeat-fading': defeatPhase }">
     <!-- Turn Order Portrait Strip -->
     <aside class="turn-order-strip">
       <div
@@ -1510,6 +1510,11 @@ function getStatChange(hero, stat) {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  transition: filter 1.5s ease-out;
+}
+
+.battle-defeat-fading {
+  filter: grayscale(1) brightness(0.3);
 }
 
 /* Turn Order Portrait Strip */
