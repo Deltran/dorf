@@ -89,7 +89,16 @@ const explorationsStore = useExplorationsStore()
 const tipsStore = useTipsStore()
 
 const showVictoryModal = ref(false)
-const showDefeatModal = ref(false)
+const defeatPhase = ref(null) // null | 'fading' | 'reveal' | 'complete'
+const defeatFlavorText = ref('')
+
+const DEFEAT_LINES = [
+  'The darkness claims another party.',
+  'Even legends fall.',
+  'Silence where battle cries once echoed.',
+  'The road ends here... for now.',
+  'They gave everything. It wasn\'t enough.',
+]
 const rewards = ref(null)
 const levelUps = ref([])
 const displayedGems = ref(0)
@@ -106,6 +115,19 @@ const genusLociRewards = ref(null) // For Genus Loci victory rewards
 
 // Computed to check if this is a Genus Loci battle
 const isGenusLociBattle = computed(() => battleStore.battleType === 'genusLoci')
+
+const currentGenusLociName = computed(() => {
+  if (!isGenusLociBattle.value || !battleStore.genusLociMeta) return ''
+  const enemy = battleStore.enemies?.[0]
+  return enemy?.name || battleStore.genusLociMeta.genusLociId
+})
+
+const genusLociPortraitUrl = computed(() => {
+  if (!isGenusLociBattle.value || !battleStore.genusLociMeta) return null
+  const bossId = battleStore.genusLociMeta.genusLociId
+  const portraitPath = `../assets/enemies/${bossId}_portrait.png`
+  return enemyPortraits[portraitPath] || null
+})
 
 // Combat visual effects
 const damageNumbers = ref([])
@@ -494,13 +516,25 @@ function animateRewards() {
 }
 
 function handleDefeat() {
-  // For Genus Loci, just show defeat - key was already consumed
-  if (isGenusLociBattle.value) {
-    showDefeatModal.value = true
-    return
+  if (!isGenusLociBattle.value) {
+    questsStore.failRun()
   }
-  questsStore.failRun()
-  showDefeatModal.value = true
+
+  // Pick random flavor text
+  defeatFlavorText.value = DEFEAT_LINES[Math.floor(Math.random() * DEFEAT_LINES.length)]
+
+  // Phase 1: Start battlefield fade
+  defeatPhase.value = 'fading'
+
+  // Phase 2: After fade completes, reveal defeat content
+  setTimeout(() => {
+    defeatPhase.value = 'reveal'
+
+    // Phase 3: Mark complete after staggered reveals finish
+    setTimeout(() => {
+      defeatPhase.value = 'complete'
+    }, 800)
+  }, 1500)
 }
 
 function handleGenusLociVictory() {
@@ -1243,73 +1277,75 @@ function getStatChange(hero, stat) {
             <span v-if="rewards?.isFirstClear" class="first-clear-badge">First Clear!</span>
           </p>
 
-          <!-- Step 1: Rewards -->
-          <div v-if="victoryStep === 1" class="victory-step">
-            <div v-if="rewards" class="rewards">
-              <div class="reward-item">
-                <span>💎 Gems</span>
-                <span class="reward-value">+{{ displayedGems }}</span>
+          <div class="victory-steps-container">
+            <!-- Step 1: Rewards -->
+            <div :class="['victory-step', { active: victoryStep === 1 }]">
+              <div v-if="rewards" class="rewards">
+                <div class="reward-item">
+                  <span>💎 Gems</span>
+                  <span class="reward-value">+{{ displayedGems }}</span>
+                </div>
+                <div class="reward-item gold-reward">
+                  <span>🪙 Gold</span>
+                  <span class="reward-value">+{{ displayedGold }}</span>
+                </div>
+                <div class="reward-item">
+                  <span>⭐ EXP</span>
+                  <span class="reward-value">+{{ displayedExp }}</span>
+                </div>
               </div>
-              <div class="reward-item gold-reward">
-                <span>🪙 Gold</span>
-                <span class="reward-value">+{{ displayedGold }}</span>
+
+              <div v-if="itemDropsWithData.length > 0" class="item-drops">
+                <div class="drops-header">Items Found</div>
+                <div class="drops-grid">
+                  <div
+                    v-for="(item, index) in itemDropsWithData"
+                    :key="item.id"
+                    :class="['drop-item', { revealed: index < revealedItemCount }]"
+                    @click="showItemDetail(item)"
+                  >
+                    <ItemCard :item="item" compact />
+                  </div>
+                </div>
               </div>
-              <div class="reward-item">
-                <span>⭐ EXP</span>
-                <span class="reward-value">+{{ displayedExp }}</span>
+
+              <!-- Shard Drop -->
+              <div v-if="shardDropDisplay" class="shard-drop-section">
+                <div class="shard-drop">
+                  <span class="shard-icon">💎</span>
+                  <span class="shard-hero">{{ shardDropDisplay.template.name }}</span>
+                  <span class="shard-count">x{{ shardDropDisplay.count }}</span>
+                </div>
               </div>
+
+              <button class="btn-next" @click="nextVictoryStep">
+                Party Results →
+              </button>
             </div>
 
-            <div v-if="itemDropsWithData.length > 0" class="item-drops">
-              <div class="drops-header">Items Found</div>
-              <div class="drops-grid">
+            <!-- Step 2: XP & Level Ups -->
+            <div :class="['victory-step', { active: victoryStep === 2 }]">
+              <div class="step-header">Party Results</div>
+              <div class="victory-party">
                 <div
-                  v-for="(item, index) in itemDropsWithData"
-                  :key="item.id"
-                  :class="['drop-item', { revealed: index < revealedItemCount }]"
-                  @click="showItemDetail(item)"
+                  v-for="hero in partyHeroesForVictory"
+                  :key="hero.instanceId"
+                  :class="['victory-hero', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
                 >
-                  <ItemCard :item="item" compact />
+                  <HeroCard :hero="hero" compact />
+                  <div v-if="showXpFloaters" class="xp-floater">
+                    +{{ expPerHero }} XP
+                  </div>
+                  <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-badge">
+                    Level Up!
+                  </div>
                 </div>
               </div>
+
+              <button class="btn-back" @click="prevVictoryStep">
+                ← Rewards
+              </button>
             </div>
-
-            <!-- Shard Drop -->
-            <div v-if="shardDropDisplay" class="shard-drop-section">
-              <div class="shard-drop">
-                <span class="shard-icon">💎</span>
-                <span class="shard-hero">{{ shardDropDisplay.template.name }}</span>
-                <span class="shard-count">x{{ shardDropDisplay.count }}</span>
-              </div>
-            </div>
-
-            <button class="btn-next" @click="nextVictoryStep">
-              Party Results →
-            </button>
-          </div>
-
-          <!-- Step 2: XP & Level Ups -->
-          <div v-if="victoryStep === 2" class="victory-step">
-            <div class="step-header">Party Results</div>
-            <div class="victory-party">
-              <div
-                v-for="hero in partyHeroesForVictory"
-                :key="hero.instanceId"
-                :class="['victory-hero', { 'leveled-up': heroLeveledUp(hero.instanceId) }]"
-              >
-                <HeroCard :hero="hero" compact />
-                <div v-if="showXpFloaters" class="xp-floater">
-                  +{{ expPerHero }} XP
-                </div>
-                <div v-if="heroLeveledUp(hero.instanceId)" class="level-up-badge">
-                  Level Up!
-                </div>
-              </div>
-            </div>
-
-            <button class="btn-back" @click="prevVictoryStep">
-              ← Rewards
-            </button>
           </div>
 
           <div class="modal-actions">
@@ -1754,6 +1790,7 @@ function getStatChange(hero, stat) {
   object-fit: contain;
   image-rendering: pixelated;
   animation: enemyIdle 6s ease-in-out infinite;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
 }
 
 .enemy-image-display.attacking .enemy-image,
@@ -1912,6 +1949,7 @@ function getStatChange(hero, stat) {
   overflow: hidden;
   border-radius: 8px 8px 0 0;
   transition: transform 0.2s ease, height 0.2s ease;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
 }
 
 .hero-image {
@@ -1927,7 +1965,7 @@ function getStatChange(hero, stat) {
 }
 
 .hero-wrapper.dead .hero-image-container {
-  filter: grayscale(100%);
+  filter: grayscale(100%) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
   opacity: 0.6;
 }
 
@@ -2026,11 +2064,24 @@ function getStatChange(hero, stat) {
   width: 100%;
 }
 
+.victory-steps-container {
+  display: grid;
+}
+
 .victory-step {
-  height: 320px;
+  grid-row: 1;
+  grid-column: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.victory-step.active {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .step-header {
@@ -2644,6 +2695,7 @@ function getStatChange(hero, stat) {
 .hero-inspect-effects {
   border-top: 1px solid #374151;
   padding-top: 12px;
+  user-select: none;
 }
 
 .effects-header {
