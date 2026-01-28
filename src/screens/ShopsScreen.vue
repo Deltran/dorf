@@ -19,6 +19,7 @@ const shops = getAllShops()
 const activeShopId = ref(shops[0]?.id || null)
 const purchaseMessage = ref(null)
 const confirmingItem = ref(null)
+const purchaseQuantity = ref(1)
 
 const activeShop = computed(() => getShop(activeShopId.value))
 
@@ -101,6 +102,41 @@ onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval)
 })
 
+const maxPurchaseQuantity = computed(() => {
+  const item = confirmingItem.value
+  if (!item) return 1
+  const shop = activeShop.value
+  if (!shop) return 1
+
+  // Available stock
+  let stock
+  if (shop.currency === 'crest') {
+    stock = getItemStock(item)
+  } else {
+    stock = item.remaining ?? Infinity
+  }
+
+  // Affordable quantity
+  let affordable
+  if (shop.currency === 'crest') {
+    const crests = getCrestCount(item.sectionId)
+    affordable = Math.floor(crests / item.price)
+  } else if (shop.currency === 'gold') {
+    affordable = Math.floor(gachaStore.gold / item.price)
+  } else if (shop.currency === 'gems') {
+    affordable = Math.floor(gachaStore.gems / item.price)
+  } else {
+    affordable = 1
+  }
+
+  return Math.max(1, Math.min(stock, affordable))
+})
+
+const totalCost = computed(() => {
+  if (!confirmingItem.value) return 0
+  return confirmingItem.value.price * purchaseQuantity.value
+})
+
 function handleItemClick(shopItem) {
   // Check stock for crest shop items
   if (activeShop.value?.currency === 'crest') {
@@ -110,11 +146,8 @@ function handleItemClick(shopItem) {
     if (shopItem.soldOut) return
   }
 
-  if (shopItem.price >= activeShop.value.confirmThreshold) {
-    confirmingItem.value = shopItem
-  } else {
-    executePurchase(shopItem)
-  }
+  confirmingItem.value = shopItem
+  purchaseQuantity.value = 1
 }
 
 // Crest shop helper methods
@@ -149,8 +182,11 @@ function getItemName(itemId) {
   return itemData?.name || itemId
 }
 
-function executePurchase(shopItem) {
-  const result = shopsStore.purchase(activeShopId.value, shopItem)
+function executePurchase() {
+  const shopItem = confirmingItem.value
+  if (!shopItem) return
+  const qty = purchaseQuantity.value
+  const result = shopsStore.purchase(activeShopId.value, shopItem, qty)
   purchaseMessage.value = result
 
   if (result.success) {
@@ -164,10 +200,23 @@ function executePurchase(shopItem) {
   }
 
   confirmingItem.value = null
+  purchaseQuantity.value = 1
 }
 
 function cancelConfirm() {
   confirmingItem.value = null
+  purchaseQuantity.value = 1
+}
+
+function adjustQuantity(delta) {
+  const newQty = purchaseQuantity.value + delta
+  if (newQty >= 1 && newQty <= maxPurchaseQuantity.value) {
+    purchaseQuantity.value = newQty
+  }
+}
+
+function setMaxQuantity() {
+  purchaseQuantity.value = maxPurchaseQuantity.value
 }
 
 function typeIcon(type) {
@@ -297,24 +346,36 @@ function typeIcon(type) {
       {{ purchaseMessage.message }}
     </div>
 
-    <!-- Confirmation Modal -->
+    <!-- Purchase Dialog -->
     <div v-if="confirmingItem" class="confirm-backdrop" @click="cancelConfirm">
       <div class="confirm-modal" @click.stop>
-        <h3>Confirm Purchase</h3>
-        <p>
-          Buy <strong>{{ confirmingItem.name || confirmingItem.item?.name }}</strong> for
-          <strong>
+        <h3>Purchase</h3>
+        <div class="purchase-item-name">
+          {{ confirmingItem.name || confirmingItem.item?.name }}
+        </div>
+
+        <div class="quantity-row">
+          <button class="qty-btn" :disabled="purchaseQuantity <= 1" @click="adjustQuantity(-1)">-</button>
+          <span class="qty-value">{{ purchaseQuantity }}</span>
+          <button class="qty-btn" :disabled="purchaseQuantity >= maxPurchaseQuantity" @click="adjustQuantity(1)">+</button>
+          <button v-if="maxPurchaseQuantity > 1" class="qty-max-btn" @click="setMaxQuantity">Max</button>
+        </div>
+
+        <div class="purchase-total">
+          <span class="total-label">Total:</span>
+          <span class="total-value">
             <template v-if="activeShop?.currency === 'crest'">
-              🏅 {{ confirmingItem.price }}
+              🏅 {{ totalCost }}
             </template>
             <template v-else>
-              {{ confirmingItem.price }} {{ currencyIcon }}
+              {{ currencyIcon }} {{ totalCost.toLocaleString() }}
             </template>
-          </strong>?
-        </p>
+          </span>
+        </div>
+
         <div class="confirm-actions">
           <button class="cancel-btn" @click="cancelConfirm">Cancel</button>
-          <button class="confirm-btn" @click="executePurchase(confirmingItem)">Buy</button>
+          <button class="confirm-btn" @click="executePurchase">Buy</button>
         </div>
       </div>
     </div>
@@ -693,6 +754,95 @@ function typeIcon(type) {
 
 .confirm-btn:hover {
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+/* Purchase Dialog */
+.purchase-item-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.quantity-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.qty-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #4b5563;
+  background: rgba(30, 41, 59, 0.8);
+  color: #f3f4f6;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:hover:not(:disabled) {
+  background: rgba(55, 65, 81, 0.8);
+  border-color: #6b7280;
+}
+
+.qty-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.qty-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #f3f4f6;
+  min-width: 40px;
+  text-align: center;
+}
+
+.qty-max-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #4b5563;
+  background: rgba(30, 41, 59, 0.8);
+  color: #9ca3af;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qty-max-btn:hover {
+  background: rgba(55, 65, 81, 0.8);
+  color: #f3f4f6;
+}
+
+.purchase-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+}
+
+.total-label {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+.total-value {
+  font-weight: 700;
+  color: #f59e0b;
+  font-size: 1.1rem;
 }
 
 /* Crest Shop Sections */

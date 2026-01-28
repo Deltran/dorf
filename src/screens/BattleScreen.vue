@@ -17,6 +17,58 @@ import { getQuestNode, getAllQuestNodes } from '../data/questNodes.js'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import { useTipsStore } from '../stores/tips.js'
+import { useTooltip } from '../composables/useTooltip.js'
+
+const { onClick: showEffectTooltip } = useTooltip()
+
+function getEffectTooltipText(effect) {
+  const lines = []
+  if (effect.sourceName) {
+    lines.push(`From: ${effect.sourceName}`)
+  }
+  const def = effect.definition
+  if (!def) return lines.join('\n') || 'Unknown effect'
+
+  // Describe the effect value
+  if (def.stat) {
+    const direction = def.isBuff ? 'increased' : 'decreased'
+    lines.push(`${def.stat.toUpperCase()} ${direction} by ${effect.value}%`)
+  } else if (effect.type === 'poison' || effect.type === 'burn') {
+    const label = effect.type === 'poison' ? 'Poison' : 'Burn'
+    lines.push(`${label} dealing ${effect.atkPercent || effect.value}% ATK per turn`)
+  } else if (effect.type === 'shield') {
+    lines.push(`Absorbs ${effect.shieldHp || effect.value} damage`)
+  } else if (effect.type === 'thorns') {
+    lines.push(`Reflects ${effect.value}% of damage back to attacker`)
+  } else if (effect.type === 'evasion') {
+    lines.push(`${effect.value}% chance to dodge attacks`)
+  } else if (effect.type === 'damage_reduction') {
+    lines.push(`Reduces incoming damage by ${effect.value}%`)
+  } else if (effect.type === 'marked') {
+    lines.push(`Takes ${effect.value}% increased damage`)
+  } else if (effect.type === 'regen') {
+    lines.push(`Heals ${effect.value}% max HP per turn`)
+  } else if (effect.type === 'stun') {
+    lines.push('Cannot act this turn')
+  } else if (effect.type === 'sleep') {
+    lines.push('Cannot act. Removed when attacked.')
+  } else if (effect.type === 'taunt') {
+    lines.push('Enemies must target this unit')
+  } else if (effect.type === 'guardian_link') {
+    lines.push(`${effect.redirectPercent || effect.value}% of damage redirected to guardian`)
+  } else if (effect.type === 'divine_sacrifice') {
+    lines.push(`Intercepts all ally damage. ${effect.damageReduction || 0}% DR.`)
+  } else if (effect.type === 'flame_shield') {
+    lines.push(`Burns attackers for ${effect.burnDamage || effect.value} damage`)
+  } else if (effect.type === 'damage_store') {
+    lines.push(`Storing damage: ${effect.storedDamage || 0}. Releases on expiry.`)
+  } else if (def.name) {
+    lines.push(def.name)
+  }
+
+  lines.push(`${effect.duration} turn${effect.duration !== 1 ? 's' : ''} remaining`)
+  return lines.join('\n')
+}
 
 const props = defineProps({
   genusLociContext: {
@@ -303,6 +355,14 @@ const rotatedTurnOrder = computed(() => {
 // Start battle when component mounts
 onMounted(() => {
   startCurrentBattle()
+
+  // Show first-time combat tips based on current node
+  const nodeId = questsStore.currentRun?.nodeId
+  if (nodeId === 'forest_01') {
+    tipsStore.showTip('combat_intro')
+  } else if (nodeId === 'forest_02') {
+    tipsStore.showTip('hero_inspect_intro')
+  }
 })
 
 function startCurrentBattle() {
@@ -1389,7 +1449,8 @@ function getStatChange(hero, stat) {
             <div
               v-for="(effect, index) in inspectedHero.statusEffects"
               :key="index"
-              :class="['effect-item', { buff: effect.definition?.isBuff, debuff: !effect.definition?.isBuff }]"
+              :class="['effect-item', 'effect-clickable', { buff: effect.definition?.isBuff, debuff: !effect.definition?.isBuff }]"
+              @click.stop="showEffectTooltip($event, getEffectTooltipText(effect))"
             >
               <span class="effect-icon">{{ effect.definition?.icon }}</span>
               <span class="effect-name">{{ effect.definition?.name }}</span>
@@ -1966,7 +2027,10 @@ function getStatChange(hero, stat) {
 }
 
 .victory-step {
-  min-height: 200px;
+  height: 320px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 .step-header {
@@ -1983,7 +2047,8 @@ function getStatChange(hero, stat) {
   display: block;
   width: 100%;
   padding: 12px;
-  margin-top: 16px;
+  margin-top: auto;
+  flex-shrink: 0;
   border: 1px solid #4b5563;
   border-radius: 8px;
   background: transparent;
@@ -2623,6 +2688,15 @@ function getStatChange(hero, stat) {
   flex: 1;
   color: #f3f4f6;
   font-weight: 500;
+}
+
+.effect-clickable {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.effect-clickable:active {
+  opacity: 0.7;
 }
 
 .effect-duration {

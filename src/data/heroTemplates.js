@@ -116,13 +116,12 @@ export const heroTemplates = {
         ]
       },
       {
-        name: 'Despair',
-        description: 'Gain a 10% ATK buff for 2 turns for each debuff on the target ally.',
-        rageCost: 10,
-        targetType: 'ally',
+        name: 'Consume Shadow',
+        description: 'Devour your own afflictions. Remove all debuffs. For each debuff removed, gain 15 rage and deal 40% ATK damage to a random enemy.',
+        rageCost: 0,
+        targetType: 'self',
         skillUnlockLevel: 3,
-        noDamage: true,
-        buffPerDebuff: { type: EffectType.ATK_UP, target: 'self', duration: 2, valuePerDebuff: 10 }
+        consumeDebuffs: { ragePerDebuff: 15, damagePercentPerDebuff: 40 }
       },
       {
         name: 'Stares Back',
@@ -174,11 +173,12 @@ export const heroTemplates = {
         description: 'Channel the life force of the world tree to restore all allies for 75% ATK',
         mpCost: 19,
         skillUnlockLevel: 1,
-        targetType: 'all_allies'
+        targetType: 'all_allies',
+        healPercent: 75
       },
       {
         name: 'Grasping Roots',
-        description: 'Poison one enemy (50% ATK per turn for 2 turns)',
+        description: 'Poison an enemy for 50% ATK for 2 turns.',
         mpCost: 15,
         skillUnlockLevel: 1,
         targetType: 'enemy',
@@ -349,7 +349,7 @@ export const heroTemplates = {
       },
       {
         name: 'Ignite',
-        description: 'Set an enemy ablaze for 3 turns (burns for ATK×0.5 per turn).',
+        description: 'Set an enemy ablaze for 3 turns, dealing 50% ATK per turn.',
         mpCost: 15,
         skillUnlockLevel: 3,
         targetType: 'enemy',

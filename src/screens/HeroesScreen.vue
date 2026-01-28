@@ -7,6 +7,29 @@ import MergePlannerModal from '../components/MergePlannerModal.vue'
 import { getHeroTemplate } from '../data/heroTemplates.js'
 import { getClass } from '../data/classes.js'
 import { getItem } from '../data/items.js'
+import { useTooltip } from '../composables/useTooltip.js'
+import { particleBurst, glowPulse } from '../composables/useParticleBurst.js'
+
+const { onPointerEnter, onPointerLeave } = useTooltip()
+
+const statTooltips = {
+  hp: 'Hit Points. Determines how much damage a hero can take before being knocked out.',
+  atk: 'Attack. Determines the damage dealt by skills and basic attacks.',
+  def: 'Defense. Reduces incoming damage from enemy attacks.',
+  spd: 'Speed. Determines turn order in combat. Higher speed acts first.'
+}
+
+const resourceTooltips = {
+  'Mana': 'Mana fuels spellcasting. Spent when using skills. Regenerates partially each turn.',
+  'Faith': 'Faith powers holy abilities. Spent when using skills. Regenerates partially each turn.',
+  'Devotion': 'Devotion channels healing magic. Spent when using skills. Regenerates partially each turn.',
+  'Nature': 'Nature energy sustains druidic skills. Spent when using skills. Regenerates partially each turn.',
+  'Essence': 'Essence powers alchemical abilities. Spent when using skills. Regenerates partially each turn.',
+  'Rage': 'Rage builds by dealing damage. Increases ATK but reduces DEF as it grows.',
+  'Focus': 'Focus refreshes after using a basic attack or receiving a buff. Spent to unleash powerful shots.',
+  'Valor': 'Valor builds when protecting allies. Enables powerful defensive skills.',
+  'Verse': 'Verses build with each skill used. At 3 Verses, a Finale triggers automatically on the next turn.'
+}
 
 const props = defineProps({
   initialHeroId: {
@@ -28,6 +51,10 @@ const explorationsStore = useExplorationsStore()
 
 const selectedHero = ref(null)
 const heroImageError = ref(false)
+const heroPortraitEl = ref(null)
+const rarityColors = {
+  1: '#9ca3af', 2: '#22c55e', 3: '#3b82f6', 4: '#a855f7', 5: '#f59e0b'
+}
 const showItemPicker = ref(false)
 const xpGainAnimation = ref(null) // { value: number }
 
@@ -424,6 +451,22 @@ function confirmMerge() {
     // Refresh selected hero and merge info
     selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
     mergeInfo.value = heroesStore.canMergeHero(selectedHero.value.instanceId)
+
+    // Celebration animation on portrait
+    nextTick(() => {
+      if (heroPortraitEl.value) {
+        const rarity = selectedHero.value.template.rarity
+        const color = rarityColors[rarity] || '#f59e0b'
+        const useStars = rarity >= 4
+        particleBurst(heroPortraitEl.value, {
+          color,
+          count: useStars ? 24 : 20,
+          duration: 800,
+          stars: useStars
+        })
+        glowPulse(heroPortraitEl.value, color, 600)
+      }
+    })
   } else {
     alert(result.error)
   }
@@ -788,6 +831,7 @@ function getEffectTypeName(type) {
       <div class="detail-header">
         <div class="header-left">
           <img
+            ref="heroPortraitEl"
             v-if="getHeroImageUrl(selectedHero.template.id) && !heroImageError"
             :src="getHeroImageUrl(selectedHero.template.id)"
             :alt="selectedHero.template.name"
@@ -845,27 +889,42 @@ function getEffectTypeName(type) {
           <div class="section-line"></div>
         </div>
         <div class="stats-grid">
-          <div class="stat">
+          <div class="stat"
+            @pointerenter="onPointerEnter($event, statTooltips.hp)"
+            @pointerleave="onPointerLeave()"
+          >
             <span class="stat-icon">❤️</span>
             <span class="stat-value">{{ selectedHero.stats.hp }}</span>
             <span class="stat-label">HP</span>
           </div>
-          <div class="stat">
+          <div class="stat"
+            @pointerenter="onPointerEnter($event, statTooltips.atk)"
+            @pointerleave="onPointerLeave()"
+          >
             <span class="stat-icon">⚔️</span>
             <span class="stat-value">{{ selectedHero.stats.atk }}</span>
             <span class="stat-label">ATK</span>
           </div>
-          <div class="stat">
+          <div class="stat"
+            @pointerenter="onPointerEnter($event, statTooltips.def)"
+            @pointerleave="onPointerLeave()"
+          >
             <span class="stat-icon">🛡️</span>
             <span class="stat-value">{{ selectedHero.stats.def }}</span>
             <span class="stat-label">DEF</span>
           </div>
-          <div class="stat">
+          <div class="stat"
+            @pointerenter="onPointerEnter($event, statTooltips.spd)"
+            @pointerleave="onPointerLeave()"
+          >
             <span class="stat-icon">💨</span>
             <span class="stat-value">{{ selectedHero.stats.spd }}</span>
             <span class="stat-label">SPD</span>
           </div>
-          <div class="stat">
+          <div class="stat"
+            @pointerenter="onPointerEnter($event, resourceTooltips[selectedHero.class.resourceName] || '')"
+            @pointerleave="onPointerLeave()"
+          >
             <span class="stat-icon">💧</span>
             <span class="stat-value">{{ selectedHero.stats.mp }}</span>
             <span class="stat-label">{{ selectedHero.class.resourceName }}</span>

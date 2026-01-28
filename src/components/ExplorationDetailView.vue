@@ -1,8 +1,9 @@
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
 import { useExplorationsStore, useHeroesStore, useGachaStore, useInventoryStore } from '../stores'
 import { RANK_BONUS_PER_LEVEL } from '../data/explorationRanks.js'
 import { getItem } from '../data/items.js'
+import { particleBurst, scaleBounce } from '../composables/useParticleBurst.js'
 import HeroCard from './HeroCard.vue'
 
 // Image imports
@@ -52,6 +53,14 @@ const rankBonusPercent = computed(() => {
   return rankIndex * RANK_BONUS_PER_LEVEL
 })
 
+// Template refs
+const rankBadgeEl = ref(null)
+
+const rankColors = {
+  E: '#9ca3af', D: '#22c55e', C: '#3b82f6',
+  B: '#a855f7', A: '#f97316', S: '#fbbf24'
+}
+
 // Hero selection (when not active)
 const selectedHeroes = ref([])
 const showCancelConfirm = ref(false)
@@ -78,6 +87,13 @@ function confirmEnhance() {
   const result = explorationsStore.upgradeExploration(props.nodeId)
   if (result.success) {
     closeEnhanceModal()
+    nextTick(() => {
+      if (rankBadgeEl.value) {
+        const color = rankColors[currentRank.value] || '#f59e0b'
+        particleBurst(rankBadgeEl.value, { color, count: 18, duration: 800 })
+        scaleBounce(rankBadgeEl.value, 400)
+      }
+    })
   }
 }
 
@@ -89,6 +105,7 @@ onMounted(() => {
   timer = setInterval(() => {
     tick.value++
   }, 60000)
+  document.addEventListener('click', handleFilterClickOutside)
 })
 
 onUnmounted(() => {
@@ -96,9 +113,134 @@ onUnmounted(() => {
     clearInterval(timer)
     timer = null
   }
+  document.removeEventListener('click', handleFilterClickOutside)
 })
 
 const availableHeroes = computed(() => heroesStore.availableForExploration)
+
+// Filter/Sort state
+const sortBy = ref('default')
+const selectedRoles = ref([])
+const selectedClasses = ref([])
+
+const showSortDropdown = ref(false)
+const showRoleDropdown = ref(false)
+const showClassDropdown = ref(false)
+
+const sortOptions = [
+  { value: 'default', label: 'Default' },
+  { value: 'rarity', label: 'Rarity' },
+  { value: 'level', label: 'Level' },
+  { value: 'atk', label: 'ATK' },
+  { value: 'def', label: 'DEF' },
+  { value: 'spd', label: 'SPD' }
+]
+
+const roleOptions = [
+  { value: 'tank', label: 'Tank', icon: '🛡️' },
+  { value: 'dps', label: 'DPS', icon: '⚔️' },
+  { value: 'healer', label: 'Healer', icon: '💚' },
+  { value: 'support', label: 'Support', icon: '✨' }
+]
+
+const classOptions = [
+  { value: 'berserker', label: 'Berserker' },
+  { value: 'ranger', label: 'Ranger' },
+  { value: 'knight', label: 'Knight' },
+  { value: 'paladin', label: 'Paladin' },
+  { value: 'mage', label: 'Mage' },
+  { value: 'cleric', label: 'Cleric' },
+  { value: 'druid', label: 'Druid' },
+  { value: 'bard', label: 'Bard' },
+  { value: 'alchemist', label: 'Alchemist' }
+]
+
+function toggleRole(role) {
+  const index = selectedRoles.value.indexOf(role)
+  if (index === -1) {
+    selectedRoles.value.push(role)
+  } else {
+    selectedRoles.value.splice(index, 1)
+  }
+}
+
+function toggleClass(classId) {
+  const index = selectedClasses.value.indexOf(classId)
+  if (index === -1) {
+    selectedClasses.value.push(classId)
+  } else {
+    selectedClasses.value.splice(index, 1)
+  }
+}
+
+function closeAllDropdowns() {
+  showSortDropdown.value = false
+  showRoleDropdown.value = false
+  showClassDropdown.value = false
+}
+
+function handleFilterClickOutside(event) {
+  const filterBar = event.target.closest('.filter-bar')
+  if (!filterBar) {
+    closeAllDropdowns()
+  }
+}
+
+const filteredAndSortedHeroes = computed(() => {
+  let heroes = availableHeroes.value.map(h => heroesStore.getHeroFull(h.instanceId)).filter(Boolean)
+
+  // Filter by role
+  if (selectedRoles.value.length > 0) {
+    heroes = heroes.filter(hero => selectedRoles.value.includes(hero.class.role))
+  }
+
+  // Filter by class
+  if (selectedClasses.value.length > 0) {
+    heroes = heroes.filter(hero => selectedClasses.value.includes(hero.template.classId))
+  }
+
+  // Sort
+  heroes.sort((a, b) => {
+    let primary = 0
+    let secondary = 0
+
+    switch (sortBy.value) {
+      case 'rarity':
+        primary = b.template.rarity - a.template.rarity
+        secondary = b.level - a.level
+        break
+      case 'level':
+        primary = b.level - a.level
+        secondary = b.template.rarity - a.template.rarity
+        break
+      case 'atk':
+        primary = b.stats.atk - a.stats.atk
+        secondary = b.template.rarity - a.template.rarity
+        break
+      case 'def':
+        primary = b.stats.def - a.stats.def
+        secondary = b.template.rarity - a.template.rarity
+        break
+      case 'spd':
+        primary = b.stats.spd - a.stats.spd
+        secondary = b.template.rarity - a.template.rarity
+        break
+      default:
+        primary = b.template.rarity - a.template.rarity
+        secondary = b.level - a.level
+    }
+
+    return primary !== 0 ? primary : secondary
+  })
+
+  return heroes
+})
+
+const hasActiveFilters = computed(() => {
+  return sortBy.value !== 'default' ||
+    selectedRoles.value.length > 0 ||
+    selectedClasses.value.length > 0
+})
 
 // Pre-populate from last party if available
 watch(() => props.nodeId, (nodeId) => {
@@ -200,7 +342,7 @@ function cancelExploration() {
     <header class="detail-header">
       <button class="close-button" @click="emit('close')">×</button>
       <h2>{{ node?.name }}</h2>
-      <span :class="['rank-badge', `rank-${currentRank}`]">{{ currentRank }}</span>
+      <span ref="rankBadgeEl" :class="['rank-badge', `rank-${currentRank}`]">{{ currentRank }}</span>
     </header>
 
     <div class="detail-content">
@@ -299,14 +441,102 @@ function cancelExploration() {
 
         <div class="hero-selection">
           <h3>Select 5 Heroes ({{ selectedHeroes.length }}/5)</h3>
-          <div v-if="availableHeroes.length === 0" class="no-heroes">
-            No available heroes. Heroes in party or on other explorations cannot be selected.
+
+          <!-- Filter Bar -->
+          <div class="filter-bar">
+            <div class="filter-controls">
+              <!-- Sort Dropdown -->
+              <div class="dropdown-container">
+                <button
+                  class="filter-btn"
+                  :class="{ active: sortBy !== 'default' }"
+                  @click.stop="showSortDropdown = !showSortDropdown; showRoleDropdown = false; showClassDropdown = false"
+                >
+                  <span>Sort: {{ sortOptions.find(o => o.value === sortBy)?.label || 'Default' }}</span>
+                  <span class="dropdown-arrow">▼</span>
+                </button>
+                <div v-if="showSortDropdown" class="dropdown-menu">
+                  <div
+                    v-for="option in sortOptions"
+                    :key="option.value"
+                    class="dropdown-item"
+                    :class="{ selected: sortBy === option.value }"
+                    @click="sortBy = option.value; showSortDropdown = false"
+                  >
+                    <span class="check-mark">{{ sortBy === option.value ? '✓' : '' }}</span>
+                    <span>{{ option.label }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Role Dropdown -->
+              <div class="dropdown-container">
+                <button
+                  class="filter-btn"
+                  :class="{ active: selectedRoles.length > 0 }"
+                  @click.stop="showRoleDropdown = !showRoleDropdown; showSortDropdown = false; showClassDropdown = false"
+                >
+                  <span>Role{{ selectedRoles.length > 0 ? ` (${selectedRoles.length})` : '' }}</span>
+                  <span class="dropdown-arrow">▼</span>
+                </button>
+                <div v-if="showRoleDropdown" class="dropdown-menu">
+                  <label
+                    v-for="role in roleOptions"
+                    :key="role.value"
+                    class="dropdown-checkbox"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="selectedRoles.includes(role.value)"
+                      @change="toggleRole(role.value)"
+                    />
+                    <span class="role-icon">{{ role.icon }}</span>
+                    <span>{{ role.label }}</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Class Dropdown -->
+              <div class="dropdown-container">
+                <button
+                  class="filter-btn"
+                  :class="{ active: selectedClasses.length > 0 }"
+                  @click.stop="showClassDropdown = !showClassDropdown; showSortDropdown = false; showRoleDropdown = false"
+                >
+                  <span>Class{{ selectedClasses.length > 0 ? ` (${selectedClasses.length})` : '' }}</span>
+                  <span class="dropdown-arrow">▼</span>
+                </button>
+                <div v-if="showClassDropdown" class="dropdown-menu class-dropdown">
+                  <label
+                    v-for="cls in classOptions"
+                    :key="cls.value"
+                    class="dropdown-checkbox"
+                  >
+                    <input
+                      type="checkbox"
+                      :checked="selectedClasses.includes(cls.value)"
+                      @change="toggleClass(cls.value)"
+                    />
+                    <span>{{ cls.label }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="filteredAndSortedHeroes.length === 0" class="no-heroes">
+            <template v-if="hasActiveFilters">
+              No heroes match current filters.
+            </template>
+            <template v-else>
+              No available heroes. Heroes in party or on other explorations cannot be selected.
+            </template>
           </div>
           <div v-else class="hero-grid">
             <HeroCard
-              v-for="hero in availableHeroes"
+              v-for="hero in filteredAndSortedHeroes"
               :key="hero.instanceId"
-              :hero="heroesStore.getHeroFull(hero.instanceId)"
+              :hero="hero"
               :selected="isHeroSelected(hero.instanceId)"
               compact
               @click="toggleHeroSelection(hero.instanceId)"
@@ -547,6 +777,125 @@ h3 {
 
 .hero-selection {
   margin-bottom: 20px;
+}
+
+/* Filter Bar */
+.filter-bar {
+  position: relative;
+  z-index: 10;
+  margin-bottom: 12px;
+}
+
+.filter-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.dropdown-container {
+  position: relative;
+}
+
+.filter-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+  border-color: #4b5563;
+  color: #f3f4f6;
+}
+
+.filter-btn.active {
+  border-color: #3b82f6;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.dropdown-arrow {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  min-width: 150px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #374151;
+  border-radius: 8px;
+  padding: 6px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.dropdown-menu.class-dropdown {
+  min-width: 140px;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: rgba(55, 65, 81, 0.5);
+  color: #f3f4f6;
+}
+
+.dropdown-item.selected {
+  color: #60a5fa;
+}
+
+.check-mark {
+  width: 16px;
+  color: #60a5fa;
+}
+
+.dropdown-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.dropdown-checkbox:hover {
+  background: rgba(55, 65, 81, 0.5);
+  color: #f3f4f6;
+}
+
+.dropdown-checkbox input[type="checkbox"] {
+  accent-color: #3b82f6;
+  width: 16px;
+  height: 16px;
+}
+
+.role-icon {
+  font-size: 1rem;
 }
 
 .hero-grid {

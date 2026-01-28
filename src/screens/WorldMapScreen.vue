@@ -427,6 +427,7 @@ function closeTokenResults() {
           <div class="preview-title-area">
             <h2>{{ selectedNode.name }}</h2>
             <span v-if="selectedNode.isCompleted" class="completed-badge">Cleared</span>
+            <span v-if="selectedNode.battles?.length" class="battle-count-badge">⚔️ {{ selectedNode.battles.length }}</span>
           </div>
           <button class="close-preview" @click="clearSelection">×</button>
         </div>
@@ -610,67 +611,23 @@ function closeTokenResults() {
         </div>
 
         <!-- Regular Quest Preview -->
-        <div v-else class="preview-body">
-          <div class="battle-count-card">
-            <span class="battle-count-icon">⚔️</span>
-            <span class="battle-count-text">{{ selectedNode.battles.length }} Battles</span>
+        <div v-else class="preview-body preview-body-compact">
+          <div class="compact-enemies">
+            <span class="compact-enemies-label">Enemies:</span>
+            <span class="compact-enemies-list">
+              <span v-for="(enemy, i) in getNodeEnemies(selectedNode)" :key="enemy.id">
+                {{ enemy.name }} (❤️{{ enemy.stats.hp }})<span v-if="i < getNodeEnemies(selectedNode).length - 1"> · </span>
+              </span>
+            </span>
           </div>
 
-          <div class="enemies-section">
-            <h4 class="section-label">
-              <span class="label-line"></span>
-              <span>Enemies</span>
-              <span class="label-line"></span>
-            </h4>
-            <div class="enemy-list">
-              <div
-                v-for="enemy in getNodeEnemies(selectedNode)"
-                :key="enemy.id"
-                class="enemy-preview"
-              >
-                <span class="enemy-name">{{ enemy.name }}</span>
-                <div class="enemy-stats">
-                  <span class="enemy-hp">❤️ {{ enemy.stats.hp }}</span>
-                </div>
-              </div>
-            </div>
+          <div class="compact-rewards">
+            <span class="compact-reward">💎 {{ selectedNode.rewards.gems }}</span>
+            <span v-if="selectedNode.rewards.gold" class="compact-reward gold">🪙 {{ selectedNode.rewards.gold }}</span>
+            <span class="compact-reward">⭐ {{ selectedNode.rewards.exp }}</span>
           </div>
-
-          <div class="rewards-section">
-            <h4 class="section-label">
-              <span class="label-line"></span>
-              <span>Rewards</span>
-              <span class="label-line"></span>
-            </h4>
-            <div class="rewards-grid">
-              <div class="reward-card">
-                <span class="reward-icon">💎</span>
-                <div class="reward-info">
-                  <span class="reward-label">Gems</span>
-                  <span class="reward-value">
-                    {{ selectedNode.rewards.gems }}
-                    <span
-                      v-if="!selectedNode.isCompleted && selectedNode.firstClearBonus"
-                      class="first-clear-bonus-badge"
-                    >+{{ selectedNode.firstClearBonus.gems }} first time bonus!</span>
-                  </span>
-                </div>
-              </div>
-              <div v-if="selectedNode.rewards.gold" class="reward-card">
-                <span class="reward-icon">🪙</span>
-                <div class="reward-info">
-                  <span class="reward-label">Gold</span>
-                  <span class="reward-value gold">{{ selectedNode.rewards.gold }}</span>
-                </div>
-              </div>
-              <div class="reward-card">
-                <span class="reward-icon">⭐</span>
-                <div class="reward-info">
-                  <span class="reward-label">EXP</span>
-                  <span class="reward-value">{{ selectedNode.rewards.exp }}</span>
-                </div>
-              </div>
-            </div>
+          <div v-if="!selectedNode.isCompleted && selectedNode.firstClearBonus" class="compact-first-clear">
+            +{{ selectedNode.firstClearBonus.gems }} 💎 first clear bonus
           </div>
 
           <div :class="['quest-buttons', { 'has-token': selectedNodeToken }]">
@@ -1044,13 +1001,13 @@ function closeTokenResults() {
 /* Node Preview Panel */
 .node-preview {
   position: fixed;
-  bottom: 0;
+  bottom: 10vh;
   left: 0;
   right: 0;
   background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
-  border-radius: 24px 24px 0 0;
+  border-radius: 24px;
   padding: 12px 20px 24px;
-  max-height: 75vh;
+  max-height: 60vh;
   overflow-y: auto;
   box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
   z-index: 20;
@@ -1092,6 +1049,14 @@ function closeTokenResults() {
   padding: 4px 10px;
   border-radius: 12px;
   width: fit-content;
+}
+
+.battle-count-badge {
+  font-size: 0.8rem;
+  color: #fef3c7;
+  background: rgba(251, 191, 36, 0.2);
+  padding: 3px 8px;
+  border-radius: 8px;
 }
 
 .close-preview {
@@ -1261,6 +1226,50 @@ function closeTokenResults() {
   50% {
     box-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
   }
+}
+
+/* Compact Quest Layout */
+.preview-body-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.compact-enemies {
+  font-size: 0.85rem;
+  color: #d1d5db;
+  line-height: 1.5;
+}
+
+.compact-enemies-label {
+  color: #9ca3af;
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.compact-rewards {
+  display: flex;
+  gap: 16px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.compact-reward {
+  color: #f3f4f6;
+}
+
+.compact-reward.gold {
+  color: #f59e0b;
+}
+
+.compact-first-clear {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #fbbf24;
+  background: rgba(251, 191, 36, 0.1);
+  padding: 4px 10px;
+  border-radius: 6px;
+  width: fit-content;
 }
 
 /* Quest Buttons Container */

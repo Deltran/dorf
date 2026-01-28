@@ -4,7 +4,7 @@ import { getQuestNode, getAllQuestNodes, regions, superRegions, getRegionsBySupe
 import { useInventoryStore } from './inventory.js'
 import { useShardsStore } from './shards.js'
 import { useTipsStore } from './tips.js'
-import { getTokenForRegion } from '../data/items.js'
+import { getTokenForRegion, getItem } from '../data/items.js'
 
 export const useQuestsStore = defineStore('quests', () => {
   // State
@@ -152,10 +152,12 @@ export const useQuestsStore = defineStore('quests', () => {
     return recovered
   }
 
-  function rollItemDrops(node) {
+  function rollItemDrops(node, isFirstClear = false) {
     const drops = []
     for (const drop of node.itemDrops || []) {
-      if (Math.random() > drop.chance) continue
+      const item = getItem(drop.itemId)
+      const effectiveChance = (isFirstClear && item?.type === 'key') ? 1.0 : drop.chance
+      if (Math.random() > effectiveChance) continue
       const count = Math.floor(Math.random() * (drop.max - drop.min + 1)) + drop.min
       drops.push({ itemId: drop.itemId, count })
     }
@@ -209,8 +211,8 @@ export const useQuestsStore = defineStore('quests', () => {
       }
     }
 
-    // Roll item drops
-    const itemDrops = rollItemDrops(node)
+    // Roll item drops (guarantee key drops on first clear)
+    const itemDrops = rollItemDrops(node, isFirstClear)
 
     // Grant items
     const inventoryStore = useInventoryStore()

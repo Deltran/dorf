@@ -269,7 +269,7 @@ export const useHeroesStore = defineStore('heroes', () => {
       atk: Math.floor((template.baseStats.atk + starBonus) * levelMultiplier),
       def: Math.floor((template.baseStats.def + starBonus) * levelMultiplier),
       spd: Math.floor((template.baseStats.spd + starBonus) * levelMultiplier),
-      mp: Math.floor((template.baseStats.mp + starBonus) * levelMultiplier)
+      mp: Math.floor(((template.baseStats.mp || 0) + starBonus) * levelMultiplier)
     }
   }
 

@@ -66,13 +66,15 @@ export const useShopsStore = defineStore('shops', () => {
     return maxStock - purchased
   }
 
-  function purchase(shopId, shopItem) {
+  function purchase(shopId, shopItem, quantity = 1) {
     checkMidnightReset()
 
     const shop = getShop(shopId)
     if (!shop) return { success: false, message: 'Shop not found' }
+    if (quantity < 1) return { success: false, message: 'Invalid quantity' }
 
     const inventoryStore = useInventoryStore()
+    const totalCost = shopItem.price * quantity
 
     // Check for crest currency - need to validate section first
     if (shop.currency === 'crest') {
@@ -92,34 +94,36 @@ export const useShopsStore = defineStore('shops', () => {
       // Check weekly stock for weekly items
       if (shopItem.stockType === 'weekly' && shopItem.maxStock) {
         const remainingWeekly = getRemainingWeeklyStock(shopId, shopItem.itemId, shopItem.maxStock)
-        if (remainingWeekly <= 0) {
+        if (remainingWeekly < quantity) {
           return { success: false, message: 'Out of stock (weekly limit reached)' }
         }
       }
 
       // Check crest balance
       const crestId = section.crestId
-      if (inventoryStore.getItemCount(crestId) < shopItem.price) {
+      if (inventoryStore.getItemCount(crestId) < totalCost) {
         return { success: false, message: 'Insufficient crests' }
       }
 
       // Deduct crests
-      inventoryStore.removeItem(crestId, shopItem.price)
+      inventoryStore.removeItem(crestId, totalCost)
 
       // Track weekly purchase if applicable
       if (shopItem.stockType === 'weekly') {
-        purchaseWeekly(shopId, shopItem.itemId)
+        for (let i = 0; i < quantity; i++) {
+          purchaseWeekly(shopId, shopItem.itemId)
+        }
       }
 
       // Grant hero shards or item
       if (shopItem.heroId && shopItem.shardCount) {
         const shardsStore = useShardsStore()
-        shardsStore.addShards(shopItem.heroId, shopItem.shardCount)
+        shardsStore.addShards(shopItem.heroId, shopItem.shardCount * quantity)
       } else {
-        inventoryStore.addItem(shopItem.itemId, 1)
+        inventoryStore.addItem(shopItem.itemId, quantity)
       }
 
-      return { success: true, message: 'Purchase successful' }
+      return { success: true, message: `Purchased x${quantity}` }
     }
 
     // Non-crest currency handling (gold/gems)
@@ -127,16 +131,16 @@ export const useShopsStore = defineStore('shops', () => {
     if (!item) return { success: false, message: 'Item not found' }
 
     const remaining = getRemainingStock(shopId, shopItem.itemId, shopItem.maxStock)
-    if (remaining <= 0) return { success: false, message: 'Sold out' }
+    if (remaining < quantity) return { success: false, message: 'Not enough stock' }
 
     const gachaStore = useGachaStore()
 
     // Spend currency
     let spent = false
     if (shop.currency === 'gold') {
-      spent = gachaStore.spendGold(shopItem.price)
+      spent = gachaStore.spendGold(totalCost)
     } else if (shop.currency === 'gems') {
-      spent = gachaStore.spendGems(shopItem.price)
+      spent = gachaStore.spendGems(totalCost)
     }
 
     if (!spent) return { success: false, message: 'Insufficient funds' }
@@ -146,12 +150,12 @@ export const useShopsStore = defineStore('shops', () => {
       purchases.value[shopId] = {}
     }
     purchases.value[shopId][shopItem.itemId] =
-      (purchases.value[shopId][shopItem.itemId] || 0) + 1
+      (purchases.value[shopId][shopItem.itemId] || 0) + quantity
 
     // Grant item
-    inventoryStore.addItem(shopItem.itemId, 1)
+    inventoryStore.addItem(shopItem.itemId, quantity)
 
-    return { success: true, message: 'Purchase successful' }
+    return { success: true, message: `Purchased x${quantity}` }
   }
 
   function getSecondsUntilReset() {

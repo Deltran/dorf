@@ -25,6 +25,7 @@ import ShopsScreen from './screens/ShopsScreen.vue'
 import ExplorationDetailView from './components/ExplorationDetailView.vue'
 import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
 import TipPopup from './components/TipPopup.vue'
+import TooltipOverlay from './components/TooltipOverlay.vue'
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
@@ -354,6 +355,7 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
 
       <!-- Tip Popup (global) -->
       <TipPopup />
+      <TooltipOverlay />
     </template>
 
     <div v-else class="loading">

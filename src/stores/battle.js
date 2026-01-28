@@ -32,6 +32,7 @@ export const useBattleStore = defineStore('battle', () => {
   const combatEffects = ref([]) // For visual feedback: { id, targetId, targetType, effectType, value }
   const leaderSkillActivation = ref(null) // { skillName, leaderId } - for visual announcement
   const finaleActivation = ref(null) // { bardId, finaleName } - for visual announcement
+  let currentEffectSource = '' // Context: name of skill/ability currently applying effects
   const enemySkillActivation = ref(null) // { enemyId, skillName } - for visual announcement
   const battleType = ref('normal') // 'normal' or 'genusLoci'
   const genusLociMeta = ref(null) // { genusLociId, powerLevel, triggeredTowersWrath }
@@ -320,6 +321,10 @@ export const useBattleStore = defineStore('battle', () => {
     const newEffect = createEffect(effectType, { duration, value, sourceId, ...extra })
     if (!newEffect) return
 
+    // Attach source name for tooltip display
+    if (currentEffectSource) {
+      newEffect.sourceName = currentEffectSource
+    }
     // Track whether this is a self-buff or ally-buff (for stat buff stacking)
     newEffect.fromAllySkill = fromAllySkill
 
@@ -1816,6 +1821,9 @@ export const useBattleStore = defineStore('battle', () => {
       const heroesStore = useHeroesStore()
       const shardBonus = heroesStore.getShardBonus(hero.instanceId)
 
+      // Set effect source context for tooltip tracking
+      currentEffectSource = `${hero.template.name}'s ${skill.name}`
+
       switch (targetType) {
         case 'enemy': {
           const target = enemies.value.find(e => e.id === selectedTarget.value?.id)
@@ -2464,6 +2472,34 @@ export const useBattleStore = defineStore('battle', () => {
               addLog(`${hero.template.name} recovers ${actualRestore} MP!`)
             }
           }
+          // Consume debuffs (Shadow King's Consume Shadow)
+          if (skill.consumeDebuffs) {
+            const debuffs = (hero.statusEffects || []).filter(e => e.definition && !e.definition.isBuff)
+            const debuffCount = debuffs.length
+            if (debuffCount > 0) {
+              // Remove all debuffs
+              hero.statusEffects = (hero.statusEffects || []).filter(e => !e.definition || e.definition.isBuff)
+              addLog(`${hero.template.name} consumes ${debuffCount} debuff${debuffCount > 1 ? 's' : ''}!`)
+
+              // Gain rage per debuff
+              const totalRage = debuffCount * skill.consumeDebuffs.ragePerDebuff
+              gainRage(hero, totalRage)
+              addLog(`${hero.template.name} gains ${totalRage} Rage!`)
+
+              // Deal damage per debuff to random enemies
+              const dmgPercent = skill.consumeDebuffs.damagePercentPerDebuff
+              const damagePerHit = Math.floor(effectiveAtk * dmgPercent / 100)
+              for (let i = 0; i < debuffCount; i++) {
+                const target = selectRandomTarget(aliveEnemies.value)
+                if (!target) break
+                applyDamage(target, damagePerHit, 'skill', hero)
+                addLog(`${hero.template.name} deals ${damagePerHit} shadow damage to ${target.template?.name || target.name}!`)
+                emitCombatEffect(target.id, 'enemy', 'damage', damagePerHit)
+              }
+            } else {
+              addLog(`${hero.template.name} has no debuffs to consume.`)
+            }
+          }
           break
         }
 
@@ -2784,6 +2820,8 @@ export const useBattleStore = defineStore('battle', () => {
     const effectiveDef = getEffectiveStat(target, 'def')
 
     if (skill) {
+      // Set effect source context for tooltip tracking
+      currentEffectSource = `${enemy.template?.name || enemy.name}'s ${skill.name}`
       // Announce skill name for UI floating text
       enemySkillActivation.value = { enemyId: enemy.id, skillName: skill.name }
 
