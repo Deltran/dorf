@@ -3,59 +3,68 @@ export const classes = {
     id: 'paladin',
     title: 'Paladin',
     role: 'tank',
-    resourceName: 'Faith'
+    resourceName: 'Faith',
+    color: '#fbbf24'
   },
   knight: {
     id: 'knight',
     title: 'Knight',
     role: 'tank',
     resourceName: 'Valor',
-    resourceType: 'valor'
+    resourceType: 'valor',
+    color: '#3b82f6'
   },
   mage: {
     id: 'mage',
     title: 'Mage',
     role: 'dps',
-    resourceName: 'Mana'
+    resourceName: 'Mana',
+    color: '#a855f7'
   },
   berserker: {
     id: 'berserker',
     title: 'Berserker',
     role: 'dps',
     resourceName: 'Rage',
-    resourceType: 'rage'
+    resourceType: 'rage',
+    color: '#ef4444'
   },
   ranger: {
     id: 'ranger',
     title: 'Ranger',
     role: 'dps',
     resourceName: 'Focus',
-    resourceType: 'focus'
+    resourceType: 'focus',
+    color: '#f59e0b'
   },
   cleric: {
     id: 'cleric',
     title: 'Cleric',
     role: 'healer',
-    resourceName: 'Devotion'
+    resourceName: 'Devotion',
+    color: '#22c55e'
   },
   druid: {
     id: 'druid',
     title: 'Druid',
     role: 'healer',
-    resourceName: 'Nature'
+    resourceName: 'Nature',
+    color: '#10b981'
   },
   bard: {
     id: 'bard',
     title: 'Bard',
     role: 'support',
     resourceName: 'Verse',
-    resourceType: 'verse'
+    resourceType: 'verse',
+    color: '#ec4899'
   },
   alchemist: {
     id: 'alchemist',
     title: 'Alchemist',
     role: 'support',
-    resourceName: 'Essence'
+    resourceName: 'Essence',
+    color: '#06b6d4'
   }
 }
 
