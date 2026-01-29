@@ -130,7 +130,7 @@ const isOnExploration = computed(() => {
     ]"
     @click="emit('click', hero)"
   >
-    <div class="card-header">
+    <div v-if="!showBars" class="card-header">
       <span class="role-icon">{{ roleIcon }}</span>
       <span class="hero-level">{{ levelDisplay }}</span>
       <span v-if="isOnExploration" class="exploration-badge" title="Currently Exploring">🧭</span>
@@ -144,7 +144,7 @@ const isOnExploration = computed(() => {
       />
     </div>
 
-    <div class="card-body">
+    <div v-if="!showBars" class="card-body">
       <div class="hero-name">{{ template?.name || 'Unknown' }}</div>
       <div class="hero-class">{{ heroClass?.title || 'Unknown' }}</div>
       <StarRating :rating="starLevel" size="sm" />
