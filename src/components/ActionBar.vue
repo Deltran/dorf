@@ -35,83 +35,94 @@ const roleIcon = computed(() => {
   }
   return icons[props.role] || '⚔️'
 })
-
-function handleClick() {
-  if (!props.isStunned && props.hasSkills) {
-    emit('open-skills')
-  }
-}
 </script>
 
 <template>
-  <div class="action-bar">
+  <div class="action-bar" :style="{ '--class-color': classColor }">
+    <div :class="['hero-card', { stunned: isStunned }]">
+      <div class="hero-info">
+        <span class="role-icon">{{ roleIcon }}</span>
+        <span class="hero-name">{{ heroName }}</span>
+      </div>
+      <span class="hint">tap enemy to attack</span>
+    </div>
     <button
-      :class="['hero-trigger', { stunned: isStunned, disabled: !hasSkills }]"
-      :style="{ '--class-color': classColor }"
-      :disabled="isStunned || !hasSkills"
-      @click="handleClick"
+      v-if="hasSkills"
+      :class="['skills-btn', { disabled: isStunned }]"
+      :disabled="isStunned"
+      @click="emit('open-skills')"
     >
-      <span class="role-icon">{{ roleIcon }}</span>
-      <span class="hero-name">{{ heroName }}</span>
+      Skills
     </button>
-    <span class="hint">tap to select skill</span>
   </div>
 </template>
 
 <style scoped>
 .action-bar {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-
-.hero-trigger {
-  display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
-  padding: 10px 16px;
+}
+
+.hero-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 14px;
   background: #111827;
-  border: none;
   border-left: 3px solid var(--class-color);
-  color: #f3f4f6;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.1s ease, border-color 0.1s ease;
-  text-align: left;
 }
 
-.hero-trigger:hover:not(:disabled) {
-  transform: translateX(4px);
-}
-
-.hero-trigger:active:not(:disabled) {
-  transform: translateX(2px);
-}
-
-.hero-trigger.stunned .hero-name {
+.hero-card.stunned .hero-name {
   text-decoration: line-through;
   color: #6b7280;
 }
 
-.hero-trigger.disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.hero-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .role-icon {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
 .hero-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #f3f4f6;
   letter-spacing: 0.02em;
 }
 
 .hint {
   font-size: 0.7rem;
   color: #6b7280;
-  padding-left: 19px;
-  text-transform: lowercase;
+}
+
+.skills-btn {
+  padding: 10px 20px;
+  background: #374151;
+  border: none;
+  border-left: 2px solid var(--class-color);
+  color: #f3f4f6;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.skills-btn:hover:not(:disabled) {
+  background: #4b5563;
+}
+
+.skills-btn:active:not(:disabled) {
+  background: #1f2937;
+}
+
+.skills-btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
