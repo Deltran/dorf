@@ -317,15 +317,27 @@ const skillsForPanel = computed(() => {
     costLabel: getSkillCostLabel(skill),
     disabled: !canUseSkill(skill),
     disabledReason: !canUseSkill(skill) ? getSkillDescription(skill) : null,
-    fullDescription: skill.description
+    fullDescription: skill.description,
+    targetType: skill.targetType || 'enemy'
   }))
 })
 
-// Get selected skill index from battleStore.selectedAction
-const selectedSkillIndexForPanel = computed(() => {
-  const action = battleStore.selectedAction
-  if (!action || !action.startsWith('skill_')) return null
-  return parseInt(action.replace('skill_', ''), 10)
+// Get class color for skill panel theming
+const heroClassColor = computed(() => {
+  if (!currentHero.value) return '#3b82f6'
+  return currentHero.value.class?.color || '#3b82f6'
+})
+
+// Get hero role for ActionBar
+const heroRole = computed(() => {
+  if (!currentHero.value) return 'dps'
+  return currentHero.value.class?.role || 'dps'
+})
+
+// Check if hero is stunned
+const heroIsStunned = computed(() => {
+  if (!currentHero.value) return false
+  return currentHero.value.effects?.some(e => e.type === 'stun') || false
 })
 
 // Check if we're waiting for target selection
@@ -685,11 +697,6 @@ function closeSkillPanel() {
 
 function handleSkillSelect(index) {
   selectAction(`skill_${index}`)
-  closeSkillPanel()
-}
-
-function handleAttackFromPanel() {
-  selectAction('attack')
   closeSkillPanel()
 }
 
@@ -1283,7 +1290,10 @@ function getStatChange(hero, stat) {
     <section v-if="battleStore.isPlayerTurn && currentHero" class="action-area">
       <ActionBar
         :heroName="currentHero.template.name"
+        :classColor="heroClassColor"
+        :role="heroRole"
         :hasSkills="availableSkills.length > 0"
+        :isStunned="heroIsStunned"
         @open-skills="openSkillPanel"
       />
     </section>
@@ -1293,10 +1303,9 @@ function getStatChange(hero, stat) {
       v-if="currentHero"
       :hero="currentHero"
       :skills="skillsForPanel"
-      :selectedSkillIndex="selectedSkillIndexForPanel"
       :isOpen="skillPanelOpen"
+      :classColor="heroClassColor"
       @select-skill="handleSkillSelect"
-      @select-attack="handleAttackFromPanel"
       @close="closeSkillPanel"
     />
 
