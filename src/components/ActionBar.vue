@@ -72,6 +72,8 @@ const roleIcon = computed(() => {
   padding: 10px 14px;
   background: #111827;
   border-left: 3px solid var(--class-color);
+  border-top: 1px solid #374151;
+  border-bottom: 1px solid #374151;
 }
 
 .hero-card.stunned .hero-name {

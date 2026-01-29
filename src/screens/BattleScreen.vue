@@ -2164,8 +2164,8 @@ function getStatChange(hero, stat) {
 }
 
 .action-area {
-  margin-top: auto;
-  padding: 16px;
+  margin-top: 8px;
+  padding: 8px 16px;
 }
 
 .action-prompt {
