@@ -1,10 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
-import StatBar from './StatBar.vue'
-import VerseIndicator from './VerseIndicator.vue'
-import ValorBar from './ValorBar.vue'
-import RageBar from './RageBar.vue'
-import FocusIndicator from './FocusIndicator.vue'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps({
   hero: {
@@ -15,192 +10,189 @@ const props = defineProps({
     type: Array,
     default: () => []
   },
-  selectedSkillIndex: {
-    type: Number,
-    default: null
-  },
   isOpen: {
     type: Boolean,
     default: false
+  },
+  classColor: {
+    type: String,
+    default: '#3b82f6'
   }
 })
 
-const emit = defineEmits(['select-skill', 'select-attack', 'close'])
+const emit = defineEmits(['select-skill', 'close'])
 
-// Resource type detection
+// Hovered skill for description panel
+const hoveredSkill = ref(null)
+const hoveredIndex = ref(null)
+
+// Touch handling - keep description visible until panel closes or another skill touched
+let isTouchDevice = false
+
+function handleSkillEnter(skill, index, event) {
+  if (event.type === 'touchstart') {
+    isTouchDevice = true
+  }
+  hoveredSkill.value = skill
+  hoveredIndex.value = index
+}
+
+function handleSkillLeave() {
+  // On touch devices, don't hide on leave - only on panel close or new touch
+  if (!isTouchDevice) {
+    hoveredSkill.value = null
+    hoveredIndex.value = null
+  }
+}
+
+function handleSkillSelect(index) {
+  emit('select-skill', index)
+}
+
+// Clear hover state when panel closes
+watch(() => props.isOpen, (open) => {
+  if (!open) {
+    hoveredSkill.value = null
+    hoveredIndex.value = null
+    isTouchDevice = false
+  }
+})
+
+// Resource display
 const resourceType = computed(() => props.hero?.class?.resourceType || 'mp')
-const resourceName = computed(() => props.hero?.class?.resourceName || 'MP')
 
-// Tooltip state and handlers
-const tooltipSkill = ref(null)
-const tooltipPosition = ref({ x: 0, y: 0 })
-let longPressTimer = null
+const resourceDisplay = computed(() => {
+  const h = props.hero
+  if (!h) return null
 
-function startLongPress(skill, event) {
-  longPressTimer = setTimeout(() => {
-    tooltipSkill.value = skill
-    // Position tooltip above the touch point
-    const rect = event.target.getBoundingClientRect()
-    tooltipPosition.value = {
-      x: rect.left + rect.width / 2,
-      y: rect.top - 10
-    }
-  }, 500) // 500ms long press
+  switch (resourceType.value) {
+    case 'rage':
+      return { icon: '🔥', value: h.currentRage || 0, max: 100 }
+    case 'focus':
+      return { icon: '🎯', value: h.hasFocus ? 'Ready' : '—', max: null }
+    case 'valor':
+      return { icon: '⚜️', value: h.currentValor || 0, max: 3 }
+    case 'verse':
+      return { icon: '🎵', value: `${h.currentVerses || 0}/3`, max: null }
+    default:
+      return { icon: '⚡', value: h.currentMp || 0, max: h.maxMp || 0 }
+  }
+})
+
+// Cost formatting
+function formatCost(skill) {
+  if (skill.cost === null || skill.cost === undefined) return 'Free'
+  if (skill.cost === 0) return 'Free'
+  return `${skill.cost} ${skill.costLabel || ''}`
 }
 
-function endLongPress() {
-  clearTimeout(longPressTimer)
-  longPressTimer = null
+// Target type formatting
+function formatTargetType(skill) {
+  const types = {
+    'enemy': 'Single Enemy',
+    'all_enemies': 'All Enemies',
+    'ally': 'Single Ally',
+    'all_allies': 'All Allies',
+    'self': 'Self'
+  }
+  return types[skill.targetType] || ''
 }
-
-function closeTooltip() {
-  tooltipSkill.value = null
-}
-
-// Resource-specific values
-const currentMp = computed(() => props.hero?.currentMp || 0)
-const maxMp = computed(() => props.hero?.maxMp || 0)
-const currentRage = computed(() => props.hero?.currentRage || 0)
-const currentValor = computed(() => props.hero?.currentValor || 0)
-const currentVerses = computed(() => props.hero?.currentVerses || 0)
-const hasFocus = computed(() => props.hero?.hasFocus || false)
-const lastSkillName = computed(() => props.hero?.lastSkillName || null)
 </script>
 
 <template>
-  <div class="skill-panel-container">
-    <!-- Backdrop -->
+  <Teleport to="body">
     <Transition name="backdrop">
       <div
         v-if="isOpen"
         class="skill-panel-backdrop"
         @click="emit('close')"
-      ></div>
+      />
     </Transition>
+  </Teleport>
 
-    <!-- Slide-up Panel -->
-    <Transition name="slide-up">
+  <div
+    :class="['skill-panel-container', { open: isOpen }]"
+    :style="{ '--class-color': classColor }"
+  >
+    <Transition name="panel">
       <div v-if="isOpen" class="skill-panel">
-        <div class="skill-panel-header">
-          <button class="close-btn" @click="emit('close')">✕</button>
-          <span class="panel-title">Skills</span>
-        </div>
-
-        <!-- Resource Display -->
-        <div class="resource-display">
-          <!-- MP-based classes -->
-          <template v-if="resourceType === 'mp'">
-            <span class="resource-label">{{ resourceName }}</span>
-            <StatBar :current="currentMp" :max="maxMp" color="blue" size="sm" :showValues="false" />
-            <span class="resource-numbers">{{ currentMp }}/{{ maxMp }}</span>
-          </template>
-
-          <!-- Ranger Focus -->
-          <template v-else-if="resourceType === 'focus'">
-            <span class="resource-label">Focus</span>
-            <FocusIndicator :hasFocus="hasFocus" size="sm" />
-          </template>
-
-          <!-- Knight Valor -->
-          <template v-else-if="resourceType === 'valor'">
-            <span class="resource-label">Valor</span>
-            <ValorBar :currentValor="currentValor" size="sm" />
-          </template>
-
-          <!-- Berserker Rage -->
-          <template v-else-if="resourceType === 'rage'">
-            <span class="resource-label">Rage</span>
-            <RageBar :currentRage="currentRage" size="sm" />
-          </template>
-
-          <!-- Bard Verses -->
-          <template v-else-if="resourceType === 'verse'">
-            <span class="resource-label">Verses</span>
-            <VerseIndicator :currentVerses="currentVerses" size="sm" />
-            <span v-if="lastSkillName" class="last-skill-note">Last: {{ lastSkillName }}</span>
-          </template>
-        </div>
-
-        <!-- Skills List -->
-        <div class="skills-list">
-          <button
-            v-for="(skill, index) in skills"
-            :key="skill.name"
-            :class="['skill-row', {
-              selected: selectedSkillIndex === index,
-              disabled: skill.disabled
-            }]"
-            :disabled="skill.disabled"
-            @click="emit('select-skill', index)"
-            @mousedown="startLongPress(skills[index], $event)"
-            @mouseup="endLongPress"
-            @mouseleave="endLongPress"
-            @touchstart.passive="startLongPress(skills[index], $event)"
-            @touchend="endLongPress"
-            @touchcancel="endLongPress"
-          >
-            <span class="skill-name">{{ skill.name }}</span>
-            <span v-if="skill.cost !== null" class="skill-cost">
-              {{ skill.cost }} {{ skill.costLabel }}
-            </span>
-            <span v-if="skill.disabled && skill.disabledReason" class="skill-disabled-reason">
-              {{ skill.disabledReason }}
-            </span>
-          </button>
-        </div>
-
-        <!-- Skill Tooltip -->
-        <Teleport to="body">
-          <Transition name="tooltip">
-            <div
-              v-if="tooltipSkill"
-              class="skill-tooltip"
-              :style="{
-                left: tooltipPosition.x + 'px',
-                top: tooltipPosition.y + 'px'
-              }"
-              @click="closeTooltip"
-            >
-              <div class="tooltip-content">
-                <strong>{{ tooltipSkill.name }}</strong>
-                <p>{{ tooltipSkill.fullDescription || 'No description available.' }}</p>
-              </div>
+        <!-- Description Panel (left) -->
+        <Transition name="description">
+          <div v-if="hoveredSkill" class="description-panel">
+            <div class="description-content">
+              <h3 class="skill-title" :style="{ color: classColor }">
+                {{ hoveredSkill.name }}
+              </h3>
+              <p class="skill-cost">{{ formatCost(hoveredSkill) }}</p>
+              <p class="skill-desc">
+                {{ hoveredSkill.fullDescription || 'No description available.' }}
+              </p>
+              <span v-if="formatTargetType(hoveredSkill)" class="target-tag">
+                {{ formatTargetType(hoveredSkill) }}
+              </span>
             </div>
-          </Transition>
-        </Teleport>
+          </div>
+        </Transition>
 
-        <!-- Basic Attack fallback -->
-        <button class="attack-fallback" @click="emit('select-attack')">
-          Basic Attack
-        </button>
+        <!-- Skills Column (right) -->
+        <div class="skills-column">
+          <!-- Resource indicator -->
+          <div v-if="resourceDisplay" class="resource-line">
+            <span class="resource-icon">{{ resourceDisplay.icon }}</span>
+            <span class="resource-value">
+              {{ resourceDisplay.value }}
+              <template v-if="resourceDisplay.max && typeof resourceDisplay.value === 'number'">
+                /{{ resourceDisplay.max }}
+              </template>
+            </span>
+          </div>
+
+          <!-- Skill rows -->
+          <div class="skills-list">
+            <button
+              v-for="(skill, index) in skills"
+              :key="skill.name"
+              :class="['skill-row', {
+                disabled: skill.disabled,
+                hovered: hoveredIndex === index
+              }]"
+              :disabled="skill.disabled"
+              @mouseenter="handleSkillEnter(skill, index, $event)"
+              @mouseleave="handleSkillLeave"
+              @touchstart.passive="handleSkillEnter(skill, index, $event)"
+              @click="handleSkillSelect(index)"
+            >
+              <span class="skill-name">{{ skill.name }}</span>
+            </button>
+          </div>
+        </div>
       </div>
     </Transition>
   </div>
 </template>
 
 <style scoped>
-.skill-panel-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
+/* Noise texture as data URI */
+.skill-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
   pointer-events: none;
+  border-radius: inherit;
 }
 
 .skill-panel-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  pointer-events: auto;
+  z-index: 40;
 }
 
 .backdrop-enter-active,
 .backdrop-leave-active {
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .backdrop-enter-from,
@@ -208,203 +200,213 @@ const lastSkillName = computed(() => props.hero?.lastSkillName || null)
   opacity: 0;
 }
 
+.skill-panel-container {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  z-index: 50;
+  pointer-events: none;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
 .skill-panel {
   position: relative;
-  background: #1f2937;
-  border-radius: 16px 16px 0 0;
-  padding: 16px;
+  display: flex;
+  justify-content: flex-end;
   pointer-events: auto;
-  max-height: 60vh;
-  overflow-y: auto;
 }
 
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+.panel-enter-active,
+.panel-leave-active {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.slide-up-enter-from,
-.slide-up-leave-to {
-  transform: translateY(100%);
+.panel-enter-from,
+.panel-leave-to {
+  transform: translateY(20px);
+  opacity: 0;
 }
 
-.skill-panel-header {
+/* Skills Column (right side) */
+.skills-column {
+  width: 50%;
+  background: #111827;
+  border-left: 3px solid var(--class-color);
+  border-top: 1px solid #374151;
+  border-bottom: 1px solid #374151;
+  border-right: 1px solid #374151;
+  clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%, 0 16px);
+  position: relative;
+  padding: 12px;
+}
+
+/* Chamfered corner effect */
+.skills-column::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, transparent 50%, #111827 50%);
+  border-top: 1px solid #374151;
+  transform: rotate(0deg);
+}
+
+.resource-line {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 6px;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #374151;
+  font-size: 0.85rem;
 }
 
-.close-btn {
-  background: none;
-  border: none;
+.resource-icon {
+  font-size: 0.9rem;
+}
+
+.resource-value {
   color: #9ca3af;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 4px;
-}
-
-.close-btn:hover {
-  color: #f3f4f6;
-}
-
-.panel-title {
-  font-weight: 600;
-  color: #f3f4f6;
-}
-
-.resource-display {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  margin-bottom: 12px;
-}
-
-.resource-label {
-  font-size: 0.8rem;
-  color: #9ca3af;
-  min-width: 50px;
+  font-variant-numeric: tabular-nums;
 }
 
 .skills-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
 }
 
 .skill-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background: #374151;
-  border: 2px solid transparent;
-  border-radius: 8px;
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  border-bottom: 1px solid #374151;
   color: #f3f4f6;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
   text-align: left;
+  cursor: pointer;
+  transition: transform 0.1s ease, border-color 0.1s ease;
 }
 
-.skill-row:hover:not(.disabled) {
-  background: #4b5563;
-  border-color: #6b7280;
+.skill-row:last-child {
+  border-bottom: none;
 }
 
-.skill-row.selected {
-  border-color: #3b82f6;
-  background: #1e3a5f;
+.skill-row:hover:not(.disabled),
+.skill-row.hovered:not(.disabled) {
+  transform: translateX(4px);
+  border-left-color: var(--class-color);
 }
 
 .skill-row.disabled {
-  opacity: 0.5;
   cursor: not-allowed;
 }
 
+.skill-row.disabled .skill-name {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
 .skill-name {
+  display: block;
+}
+
+/* Description Panel (left side) */
+.description-panel {
+  width: 50%;
+  padding-right: 8px;
+}
+
+.description-content {
+  background: #111827;
+  border: 1px solid #374151;
+  border-right: none;
+  padding: 12px;
+  height: 100%;
+  position: relative;
+}
+
+/* Left edge gradient */
+.description-content::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to right, rgba(55, 65, 81, 0.5), transparent);
+}
+
+.description-enter-active,
+.description-leave-active {
+  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.description-enter-from,
+.description-leave-to {
+  transform: translateX(-10px);
+  opacity: 0;
+}
+
+.skill-title {
+  font-size: 1.1rem;
   font-weight: 600;
-  font-size: 0.95rem;
+  margin: 0 0 4px 0;
 }
 
 .skill-cost {
   font-size: 0.8rem;
-  color: #60a5fa;
-  background: #1e3a5f;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.skill-disabled-reason {
-  font-size: 0.75rem;
-  color: #f87171;
-}
-
-.attack-fallback {
-  width: 100%;
-  padding: 12px;
-  background: #374151;
-  border: 1px solid #4b5563;
-  border-radius: 8px;
   color: #9ca3af;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  margin: 0 0 8px 0;
 }
 
-.attack-fallback:hover {
-  background: #4b5563;
-  color: #f3f4f6;
-}
-
-.resource-numbers {
-  font-size: 0.8rem;
-  color: #9ca3af;
-  font-variant-numeric: tabular-nums;
-}
-
-.last-skill-note {
-  font-size: 0.7rem;
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.skill-tooltip {
-  position: fixed;
-  transform: translate(-50%, -100%);
-  z-index: 1000;
-  pointer-events: auto;
-}
-
-.tooltip-content {
-  background: #111827;
-  border: 1px solid #374151;
-  border-radius: 8px;
-  padding: 12px;
-  max-width: 250px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-}
-
-.tooltip-content strong {
-  display: block;
-  color: #f3f4f6;
-  margin-bottom: 4px;
-}
-
-.tooltip-content p {
-  color: #9ca3af;
+.skill-desc {
   font-size: 0.85rem;
-  margin: 0;
-  line-height: 1.4;
+  color: #9ca3af;
+  line-height: 1.5;
+  margin: 0 0 8px 0;
 }
 
-.tooltip-enter-active,
-.tooltip-leave-active {
-  transition: opacity 0.15s ease;
+.target-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 6px;
+  border-radius: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.tooltip-enter-from,
-.tooltip-leave-to {
-  opacity: 0;
-}
-
-/* Reduced motion for accessibility */
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .backdrop-enter-active,
   .backdrop-leave-active,
-  .slide-up-enter-active,
-  .slide-up-leave-active,
-  .tooltip-enter-active,
-  .tooltip-leave-active {
+  .panel-enter-active,
+  .panel-leave-active,
+  .description-enter-active,
+  .description-leave-active {
     transition: none;
   }
 
-  .slide-up-enter-from,
-  .slide-up-leave-to {
+  .panel-enter-from,
+  .panel-leave-to,
+  .description-enter-from,
+  .description-leave-to {
     transform: none;
+  }
+
+  .skill-row {
+    transition: none;
   }
 }
 </style>
