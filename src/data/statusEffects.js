@@ -61,7 +61,10 @@ export const EffectType = {
   ECHOING: 'echoing', // Next single-hit skill hits all enemies
 
   // Turn order manipulation
-  SHATTERED_TEMPO: 'shattered_tempo' // Acts in top N of turn order
+  SHATTERED_TEMPO: 'shattered_tempo', // Acts in top N of turn order
+
+  // Accuracy reduction
+  BLIND: 'blind' // Miss chance on attacks
 }
 
 // Effect definitions with display info and default behavior
@@ -328,6 +331,14 @@ export const effectDefinitions = {
     color: '#eab308',
     isBuff: true,
     isShatteredTempo: true,
+    stackable: false
+  },
+  [EffectType.BLIND]: {
+    name: 'Blinded',
+    icon: '🌫️',
+    color: '#6b7280',
+    isBuff: false,  // Debuff - counts for Penny/Vicious synergy
+    isBlind: true,
     stackable: false
   }
 }

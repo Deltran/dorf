@@ -1015,6 +1015,15 @@ export const useBattleStore = defineStore('battle', () => {
     return { triggered: false, damage: 0 }
   }
 
+  // Check if a blinded attacker misses their attack
+  function checkBlindMiss(attacker) {
+    const blindEffect = attacker.statusEffects?.find(e => e.type === EffectType.BLIND)
+    if (!blindEffect) return false
+
+    const missChance = blindEffect.value / 100
+    return Math.random() < missChance
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null, result = null) {
@@ -3354,6 +3363,20 @@ export const useBattleStore = defineStore('battle', () => {
     const effectiveAtk = getEffectiveStat(enemy, 'atk')
     const effectiveDef = getEffectiveStat(target, 'def')
 
+    // Check if blinded enemy misses (only for damaging attacks)
+    const willMiss = checkBlindMiss(enemy)
+    if (willMiss && (!skill || !skill.noDamage)) {
+      const enemyName = enemy.template?.name || 'Enemy'
+      addLog(`${enemyName}'s attack misses due to Blind!`)
+      emitCombatEffect(enemy.id, 'enemy', 'miss', 0)
+      processEndOfTurnEffects(enemy)
+      setTimeout(() => {
+        advanceTurnIndex()
+        startNextTurn()
+      }, 600)
+      return
+    }
+
     if (skill) {
       // Set effect source context for tooltip tracking
       currentEffectSource = `${enemy.template?.name || enemy.name}'s ${skill.name}`
@@ -4017,6 +4040,8 @@ export const useBattleStore = defineStore('battle', () => {
     checkDivineSacrifice,
     // Riposte (counter-attack check with optional noDefCheck bypass)
     checkRiposte,
+    // Blind miss check (for blinded attackers)
+    checkBlindMiss,
     // Heal Self Percent (lifesteal for skills)
     calculateHealSelfPercent,
     // Desperation heal scaling (bonus based on missing HP)
