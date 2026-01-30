@@ -321,6 +321,14 @@ export const effectDefinitions = {
     isBuff: true,
     isEchoing: true,
     stackable: false
+  },
+  [EffectType.SHATTERED_TEMPO]: {
+    name: 'Shattered Tempo',
+    icon: '⚡',
+    color: '#eab308',
+    isBuff: true,
+    isShatteredTempo: true,
+    stackable: false
   }
 }
 
