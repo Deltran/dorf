@@ -80,9 +80,17 @@ function startBattle() {
 }
 
 function calculateGoldReward(level) {
-  if (!selectedBoss.value) return 0
+  if (!selectedBoss.value) return null
   const { base, perLevel } = selectedBoss.value.currencyRewards
-  return base.gold + perLevel.gold * (level - 1)
+  if (!base.gold) return null
+  return base.gold + (perLevel.gold || 0) * (level - 1)
+}
+
+function calculateGemsReward(level) {
+  if (!selectedBoss.value) return null
+  const { base, perLevel } = selectedBoss.value.currencyRewards
+  if (!base.gems) return null
+  return base.gems + (perLevel.gems || 0) * (level - 1)
 }
 
 function goBack() {
