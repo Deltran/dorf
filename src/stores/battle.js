@@ -3812,6 +3812,31 @@ export const useBattleStore = defineStore('battle', () => {
     return actualDamage
   }
 
+  // ========== ECHOING AOE CONVERSION FUNCTIONS ==========
+
+  function checkAndApplyEchoing(hero, skill) {
+    const echoingEffect = hero?.statusEffects?.find(e => e.type === EffectType.ECHOING)
+    if (!echoingEffect) return false
+
+    // Only works on single-hit damaging skills
+    if (skill.multiHit) return false
+    if (skill.noDamage) return false
+    if (!skill.damagePercent && !skill.damageMultiplier) return false
+
+    return true
+  }
+
+  function getEchoingSplashPercent(hero) {
+    const echoingEffect = hero?.statusEffects?.find(e => e.type === EffectType.ECHOING)
+    return echoingEffect?.splashPercent || 0
+  }
+
+  function consumeEchoingEffect(hero) {
+    if (hero?.statusEffects) {
+      hero.statusEffects = hero.statusEffects.filter(e => e.type !== EffectType.ECHOING)
+    }
+  }
+
   // ========== SUFFERING'S CRESCENDO FINALE FUNCTIONS ==========
 
   function calculateSufferingCrescendoBonus(baseBuff, hpPerPercent, maxBonus) {
@@ -3945,6 +3970,10 @@ export const useBattleStore = defineStore('battle', () => {
     // Suffering's Crescendo Finale (for Cacophon)
     calculateSufferingCrescendoBonus,
     processSufferingCrescendoFinale,
+    // ECHOING AoE conversion (for Cacophon)
+    checkAndApplyEchoing,
+    getEchoingSplashPercent,
+    consumeEchoingEffect,
     // Passive regen leader effects
     applyPassiveRegenLeaderEffects,
     // Equipment helpers
