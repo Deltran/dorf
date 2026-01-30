@@ -1,9 +1,10 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { useHeroesStore, useInventoryStore, useGachaStore, useExplorationsStore } from '../stores'
+import { useHeroesStore, useInventoryStore, useGachaStore, useExplorationsStore, useEquipmentStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import MergePlannerModal from '../components/MergePlannerModal.vue'
+import EquipmentSlot from '../components/EquipmentSlot.vue'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 import { getItem } from '../data/items.js'
@@ -50,6 +51,7 @@ const heroesStore = useHeroesStore()
 const inventoryStore = useInventoryStore()
 const gachaStore = useGachaStore()
 const explorationsStore = useExplorationsStore()
+const equipmentStore = useEquipmentStore()
 
 const selectedHero = ref(null)
 const heroImageError = ref(false)
@@ -141,6 +143,20 @@ const selectedFodder = ref([])
 // Build Copies modal state
 const showBuildCopiesModal = ref(false)
 const buildCopiesHeroId = ref(null)
+
+// Equipment selection state
+const selectedEquipmentSlot = ref(null) // 'weapon' | 'armor' | 'trinket' | 'special' | null
+
+// Get equipped gear for the selected hero
+const selectedHeroEquipment = computed(() => {
+  if (!selectedHero.value) return null
+  return equipmentStore.getEquippedGear(selectedHero.value.templateId)
+})
+
+function onEquipmentSlotClick(slotType) {
+  selectedEquipmentSlot.value = slotType
+  // Task 9 will use this to show the selection modal
+}
 
 // Auto-select hero if passed from another screen
 onMounted(async () => {
@@ -959,6 +975,38 @@ function getEffectTypeName(type) {
           </div>
         </div>
 
+        <div class="section-header equipment-header">
+          <div class="section-line"></div>
+          <h4>Equipment</h4>
+          <div class="section-line"></div>
+        </div>
+        <div class="equipment-grid">
+          <EquipmentSlot
+            slotType="weapon"
+            :equipmentId="selectedHeroEquipment?.weapon"
+            :heroClassId="selectedHero.template.classId"
+            @click="onEquipmentSlotClick"
+          />
+          <EquipmentSlot
+            slotType="armor"
+            :equipmentId="selectedHeroEquipment?.armor"
+            :heroClassId="selectedHero.template.classId"
+            @click="onEquipmentSlotClick"
+          />
+          <EquipmentSlot
+            slotType="trinket"
+            :equipmentId="selectedHeroEquipment?.trinket"
+            :heroClassId="selectedHero.template.classId"
+            @click="onEquipmentSlotClick"
+          />
+          <EquipmentSlot
+            slotType="special"
+            :equipmentId="selectedHeroEquipment?.special"
+            :heroClassId="selectedHero.template.classId"
+            @click="onEquipmentSlotClick"
+          />
+        </div>
+
         <div class="section-header skills-header">
           <div class="section-line"></div>
           <h4>{{ selectedHero.template.skills ? 'Skills' : 'Skill' }}</h4>
@@ -1764,6 +1812,14 @@ function getEffectTypeName(type) {
   color: #d1d5db;
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+/* ===== Equipment ===== */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 /* ===== Skills ===== */
