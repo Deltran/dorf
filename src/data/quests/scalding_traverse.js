@@ -1,34 +1,31 @@
-// Note: No background image defined in original questNodes.js for this region
-
 export const regionMeta = {
-  id: 'coral_depths',
-  name: 'Coral Depths',
+  id: 'scalding_traverse',
+  name: 'Scalding Traverse',
   superRegion: 'aquarias',
-  startNode: 'coral_01',
+  startNode: 'scalding_01',
   width: 800,
   height: 500,
-  backgroundColor: '#0a2a3a'
+  backgroundColor: '#2a1a15'
 }
 
 export const nodes = {
-  coral_01: {
-    id: 'coral_01',
-    name: 'Coral Tunnels',
-    region: 'Coral Depths',
+  scalding_01: {
+    id: 'scalding_01',
+    name: 'Boiling Gates',
+    region: 'Scalding Traverse',
     x: 100,
     y: 250,
     battles: [
-      { enemies: ['cave_crab', 'moray_eel', 'moray_eel'] },
-      { enemies: ['barnacle_cluster', 'cave_crab', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'barnacle_cluster', 'cave_crab'] }
+      { enemies: ['vent_crawler', 'magma_eel'] },
+      { enemies: ['volcanic_polyp', 'thermal_elemental'] },
+      { enemies: ['vent_crawler', 'vent_crawler', 'magma_eel'] }
     ],
-    connections: ['coral_02'],
-    rewards: { gems: 100, gold: 1600, exp: 1600 },
+    connections: ['scalding_02'],
+    rewards: { gems: 100, gold: 4050, exp: 4050 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
@@ -50,25 +47,24 @@ export const nodes = {
     ],
     shardDropChance: 0.25
   },
-  coral_02: {
-    id: 'coral_02',
-    name: 'Barnacle Narrows',
-    region: 'Coral Depths',
+  scalding_02: {
+    id: 'scalding_02',
+    name: 'Vent Field Crossing',
+    region: 'Scalding Traverse',
     x: 250,
     y: 180,
     battles: [
-      { enemies: ['barnacle_cluster', 'barnacle_cluster', 'cave_crab'] },
-      { enemies: ['moray_eel', 'moray_eel', 'reef_warden'] },
-      { enemies: ['cave_crab', 'cave_crab', 'barnacle_cluster'] },
-      { enemies: ['reef_warden', 'moray_eel', 'barnacle_cluster', 'cave_crab'] }
+      { enemies: ['magma_eel', 'magma_eel', 'vent_crawler'] },
+      { enemies: ['thermal_elemental', 'volcanic_polyp', 'magma_eel'] },
+      { enemies: ['vent_crawler', 'vent_crawler', 'thermal_elemental'] },
+      { enemies: ['volcanic_polyp', 'volcanic_polyp', 'magma_eel', 'magma_eel'] }
     ],
-    connections: ['coral_03'],
-    rewards: { gems: 100, gold: 1650, exp: 1650 },
+    connections: ['scalding_03'],
+    rewards: { gems: 100, gold: 4100, exp: 4100 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
@@ -90,25 +86,24 @@ export const nodes = {
     ],
     shardDropChance: 0.25
   },
-  coral_03: {
-    id: 'coral_03',
-    name: 'Eel Hollows',
-    region: 'Coral Depths',
+  scalding_03: {
+    id: 'scalding_03',
+    name: 'Obsidian Labyrinth',
+    region: 'Scalding Traverse',
     x: 400,
     y: 300,
     battles: [
-      { enemies: ['moray_eel', 'moray_eel', 'moray_eel'] },
-      { enemies: ['cave_crab', 'moray_eel', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'barnacle_cluster', 'barnacle_cluster'] },
-      { enemies: ['moray_eel', 'moray_eel', 'cave_crab', 'reef_warden'] }
+      { enemies: ['vent_crawler', 'vent_crawler', 'vent_crawler'] },
+      { enemies: ['thermal_elemental', 'thermal_elemental', 'volcanic_polyp'] },
+      { enemies: ['magma_eel', 'magma_eel', 'magma_eel', 'vent_crawler'] },
+      { enemies: ['volcanic_polyp', 'thermal_elemental', 'vent_crawler', 'magma_eel'] }
     ],
-    connections: ['coral_04', 'prison_01'],
-    rewards: { gems: 100, gold: 1700, exp: 1700 },
+    connections: ['scalding_04'],
+    rewards: { gems: 100, gold: 4150, exp: 4150 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
@@ -130,109 +125,65 @@ export const nodes = {
     ],
     shardDropChance: 0.25
   },
-  coral_04: {
-    id: 'coral_04',
-    name: 'Collapsed Grotto',
-    region: 'Coral Depths',
-    x: 500,
-    y: 170,
-    battles: [
-      { enemies: ['cave_crab', 'cave_crab', 'reef_warden'] },
-      { enemies: ['barnacle_cluster', 'moray_eel', 'moray_eel', 'cave_crab'] },
-      { enemies: ['reef_warden', 'reef_warden', 'cave_crab'] },
-      { enemies: ['moray_eel', 'barnacle_cluster', 'cave_crab', 'cave_crab'] },
-      { enemies: ['cave_crab', 'cave_crab', 'reef_warden', 'moray_eel', 'moray_eel'] }
-    ],
-    connections: ['coral_05'],
-    rewards: { gems: 100, gold: 1750, exp: 1750 },
-    firstClearBonus: { gems: 75 },
-    itemDrops: [
-      { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
-      // 1-star equipment (4% each)
-      { itemId: 'rusty_shiv', chance: 0.04 },
-      { itemId: 'scrap_leather', chance: 0.04 },
-      { itemId: 'cracked_ring', chance: 0.04 },
-      { itemId: 'tattered_shroud', chance: 0.04 },
-      { itemId: 'dented_buckler', chance: 0.04 },
-      { itemId: 'cracked_skull', chance: 0.04 },
-      { itemId: 'bent_shortbow', chance: 0.04 },
-      { itemId: 'gnarled_branch', chance: 0.04 },
-      { itemId: 'tarnished_pendant', chance: 0.04 },
-      { itemId: 'faded_prayer_beads', chance: 0.04 },
-      { itemId: 'chipped_antler', chance: 0.04 },
-      { itemId: 'cracked_whistle', chance: 0.04 },
-      // 1-star upgrade materials (2.5% each)
-      { itemId: 'common_weapon_stone', chance: 0.025 },
-      { itemId: 'common_armor_plate', chance: 0.025 },
-      { itemId: 'common_gem_shard', chance: 0.025 },
-      { itemId: 'common_class_token', chance: 0.025 }
-    ],
-    shardDropChance: 0.25
-  },
-  coral_05: {
-    id: 'coral_05',
-    name: 'Reef Labyrinth',
-    region: 'Coral Depths',
-    x: 620,
-    y: 310,
-    battles: [
-      { enemies: ['barnacle_cluster', 'barnacle_cluster', 'reef_warden', 'cave_crab'] },
-      { enemies: ['moray_eel', 'moray_eel', 'moray_eel', 'barnacle_cluster'] },
-      { enemies: ['reef_warden', 'cave_crab', 'cave_crab', 'moray_eel'] },
-      { enemies: ['barnacle_cluster', 'reef_warden', 'moray_eel', 'moray_eel'] },
-      { enemies: ['cave_crab', 'cave_crab', 'reef_warden', 'barnacle_cluster', 'moray_eel'] }
-    ],
-    connections: ['coral_06'],
-    rewards: { gems: 100, gold: 1800, exp: 1800 },
-    firstClearBonus: { gems: 75 },
-    itemDrops: [
-      { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
-      // 1-star equipment (4% each)
-      { itemId: 'rusty_shiv', chance: 0.04 },
-      { itemId: 'scrap_leather', chance: 0.04 },
-      { itemId: 'cracked_ring', chance: 0.04 },
-      { itemId: 'tattered_shroud', chance: 0.04 },
-      { itemId: 'dented_buckler', chance: 0.04 },
-      { itemId: 'cracked_skull', chance: 0.04 },
-      { itemId: 'bent_shortbow', chance: 0.04 },
-      { itemId: 'gnarled_branch', chance: 0.04 },
-      { itemId: 'tarnished_pendant', chance: 0.04 },
-      { itemId: 'faded_prayer_beads', chance: 0.04 },
-      { itemId: 'chipped_antler', chance: 0.04 },
-      { itemId: 'cracked_whistle', chance: 0.04 },
-      // 1-star upgrade materials (2.5% each)
-      { itemId: 'common_weapon_stone', chance: 0.025 },
-      { itemId: 'common_armor_plate', chance: 0.025 },
-      { itemId: 'common_gem_shard', chance: 0.025 },
-      { itemId: 'common_class_token', chance: 0.025 }
-    ],
-    shardDropChance: 0.25
-  },
-  coral_06: {
-    id: 'coral_06',
-    name: 'The Back Gate',
-    region: 'Coral Depths',
-    x: 720,
+  scalding_04: {
+    id: 'scalding_04',
+    name: 'The Scorched Beds',
+    region: 'Scalding Traverse',
+    x: 550,
     y: 200,
     battles: [
-      { enemies: ['cave_crab', 'cave_crab', 'barnacle_cluster', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'moray_eel', 'moray_eel'] },
-      { enemies: ['reef_warden', 'reef_warden', 'cave_crab', 'cave_crab'] },
-      { enemies: ['barnacle_cluster', 'barnacle_cluster', 'moray_eel', 'cave_crab', 'reef_warden'] },
-      { enemies: ['cave_crab', 'cave_crab', 'cave_crab', 'reef_warden', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'cave_crab', 'cave_crab', 'reef_warden', 'barnacle_cluster'] }
+      { enemies: ['thermal_elemental', 'thermal_elemental', 'magma_eel', 'magma_eel'] },
+      { enemies: ['vent_crawler', 'vent_crawler', 'volcanic_polyp', 'volcanic_polyp'] },
+      { enemies: ['magma_eel', 'magma_eel', 'magma_eel', 'thermal_elemental'] },
+      { enemies: ['volcanic_polyp', 'volcanic_polyp', 'vent_crawler', 'vent_crawler', 'magma_eel'] },
+      { enemies: ['thermal_elemental', 'thermal_elemental', 'thermal_elemental'] }
     ],
-    connections: ['tidewall_01'],
-    rewards: { gems: 100, gold: 1900, exp: 1900 },
+    connections: ['scalding_05', 'nursery_01'],
+    rewards: { gems: 100, gold: 4200, exp: 4200 },
+    firstClearBonus: { gems: 75 },
+    itemDrops: [
+      { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
+      // 1-star equipment (4% each)
+      { itemId: 'rusty_shiv', chance: 0.04 },
+      { itemId: 'scrap_leather', chance: 0.04 },
+      { itemId: 'cracked_ring', chance: 0.04 },
+      { itemId: 'tattered_shroud', chance: 0.04 },
+      { itemId: 'dented_buckler', chance: 0.04 },
+      { itemId: 'cracked_skull', chance: 0.04 },
+      { itemId: 'bent_shortbow', chance: 0.04 },
+      { itemId: 'gnarled_branch', chance: 0.04 },
+      { itemId: 'tarnished_pendant', chance: 0.04 },
+      { itemId: 'faded_prayer_beads', chance: 0.04 },
+      { itemId: 'chipped_antler', chance: 0.04 },
+      { itemId: 'cracked_whistle', chance: 0.04 },
+      // 1-star upgrade materials (2.5% each)
+      { itemId: 'common_weapon_stone', chance: 0.025 },
+      { itemId: 'common_armor_plate', chance: 0.025 },
+      { itemId: 'common_gem_shard', chance: 0.025 },
+      { itemId: 'common_class_token', chance: 0.025 }
+    ],
+    shardDropChance: 0.25
+  },
+  scalding_05: {
+    id: 'scalding_05',
+    name: 'Abyssal Threshold',
+    region: 'Scalding Traverse',
+    x: 700,
+    y: 280,
+    battles: [
+      { enemies: ['vent_crawler', 'vent_crawler', 'thermal_elemental', 'thermal_elemental'] },
+      { enemies: ['magma_eel', 'magma_eel', 'magma_eel', 'volcanic_polyp'] },
+      { enemies: ['volcanic_polyp', 'volcanic_polyp', 'thermal_elemental', 'vent_crawler'] },
+      { enemies: ['thermal_elemental', 'thermal_elemental', 'magma_eel', 'magma_eel', 'volcanic_polyp'] },
+      { enemies: ['vent_crawler', 'vent_crawler', 'vent_crawler', 'thermal_elemental', 'magma_eel'] }
+    ],
+    connections: ['abyss_01'],
+    rewards: { gems: 100, gold: 4250, exp: 4250 },
     firstClearBonus: { gems: 100 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },

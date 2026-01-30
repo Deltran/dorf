@@ -84,6 +84,34 @@ export const genusLociData = {
       { itemId: 'tome_small', min: 1, max: 3, chance: 1.0 },
       { itemId: 'tome_medium', min: 1, max: 2, chance: 0.7, perLevel: true }
     ]
+  },
+  thalassion: {
+    id: 'thalassion',
+    name: 'Thalassion, the Deep Mind',
+    description: 'An ancient horror lurking in the abyss. It has controlled Aquarian kings for centuries, feeding on the city\'s despair.',
+    region: 'the_abyssal_maw',
+    imageSize: 200,
+    nodeId: 'abyss_05',
+    keyItemId: 'abyss_key',
+    maxPowerLevel: 20,
+    baseStats: { hp: 4500, atk: 120, def: 70, spd: 18 },
+    statScaling: { hp: 1.18, atk: 1.12, def: 1.08 },
+    abilities: [
+      { id: 'psychic_crush', unlocksAt: 1 },
+      { id: 'mind_flay', unlocksAt: 1 },
+      { id: 'psychic_aura', unlocksAt: 1 },
+      { id: 'endless_dreaming', unlocksAt: 1 },
+      { id: 'dominate', unlocksAt: 5 },
+      { id: 'call_of_the_deep', unlocksAt: 10 },
+      { id: 'the_mind_unshackled', unlocksAt: 15 },
+      { id: 'abyssal_reckoning', unlocksAt: 20 }
+    ],
+    uniqueDrop: { itemId: 'thalassion_crest', guaranteed: true },
+    firstClearBonus: { gems: 50 },
+    currencyRewards: {
+      base: { gold: 200 },
+      perLevel: { gold: 50 }
+    }
   }
 }
 

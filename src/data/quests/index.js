@@ -12,11 +12,28 @@ import { nodes as ancientCatacombsNodes } from './ancient_catacombs.js'
 import { nodes as undergroundMorassNodes } from './underground_morass.js'
 import { nodes as gateToAquariaNodes } from './gate_to_aquaria.js'
 import { nodes as coralDepthsNodes } from './coral_depths.js'
+// Aquarias main regions
+import { nodes as tidewallRuinsNodes } from './tidewall_ruins.js'
+import { nodes as outerCurrentsNodes } from './outer_currents.js'
+import { nodes as theMurkNodes } from './the_murk.js'
+import { nodes as beggarsReefNodes } from './beggars_reef.js'
+import { nodes as pearlgatePlazaNodes } from './pearlgate_plaza.js'
+import { nodes as coralCastleHallsNodes } from './coral_castle_halls.js'
+import { nodes as throneApproachNodes } from './throne_approach.js'
+import { nodes as scaldingTraverseNodes } from './scalding_traverse.js'
+import { nodes as theAbyssalMawNodes } from './the_abyssal_maw.js'
+// Aquarias branch regions
+import { nodes as drownedPrisonNodes } from './drowned_prison.js'
+import { nodes as sunkenShipyardNodes } from './sunken_shipyard.js'
+import { nodes as blackfinDenNodes } from './blackfin_den.js'
+import { nodes as forbiddenArchivesNodes } from './forbidden_archives.js'
+import { nodes as primordialNurseryNodes } from './primordial_nursery.js'
 
 export { regions, superRegions } from './regions.js'
 import { regions, superRegions } from './regions.js'
 
 export const questNodes = {
+  // Western Veros
   ...whisperingWoodsNodes,
   ...echoingCavernsNodes,
   ...whisperLakeNodes,
@@ -30,7 +47,23 @@ export const questNodes = {
   ...ancientCatacombsNodes,
   ...undergroundMorassNodes,
   ...gateToAquariaNodes,
-  ...coralDepthsNodes
+  // Aquarias main regions
+  ...coralDepthsNodes,
+  ...tidewallRuinsNodes,
+  ...outerCurrentsNodes,
+  ...theMurkNodes,
+  ...beggarsReefNodes,
+  ...pearlgatePlazaNodes,
+  ...coralCastleHallsNodes,
+  ...throneApproachNodes,
+  ...scaldingTraverseNodes,
+  ...theAbyssalMawNodes,
+  // Aquarias branch regions
+  ...drownedPrisonNodes,
+  ...sunkenShipyardNodes,
+  ...blackfinDenNodes,
+  ...forbiddenArchivesNodes,
+  ...primordialNurseryNodes
 }
 
 export function getQuestNode(nodeId) {

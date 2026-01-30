@@ -1,34 +1,31 @@
-// Note: No background image defined in original questNodes.js for this region
-
 export const regionMeta = {
-  id: 'coral_depths',
-  name: 'Coral Depths',
+  id: 'tidewall_ruins',
+  name: 'Tidewall Ruins',
   superRegion: 'aquarias',
-  startNode: 'coral_01',
+  startNode: 'tidewall_01',
   width: 800,
   height: 500,
-  backgroundColor: '#0a2a3a'
+  backgroundColor: '#0d2a35'
 }
 
 export const nodes = {
-  coral_01: {
-    id: 'coral_01',
-    name: 'Coral Tunnels',
-    region: 'Coral Depths',
+  tidewall_01: {
+    id: 'tidewall_01',
+    name: 'The Breach',
+    region: 'Tidewall Ruins',
     x: 100,
     y: 250,
     battles: [
-      { enemies: ['cave_crab', 'moray_eel', 'moray_eel'] },
-      { enemies: ['barnacle_cluster', 'cave_crab', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'barnacle_cluster', 'cave_crab'] }
+      { enemies: ['ruin_scavenger', 'decay_jelly'] },
+      { enemies: ['corroded_sentinel', 'tide_lurker'] },
+      { enemies: ['ruin_scavenger', 'ruin_scavenger', 'decay_jelly'] }
     ],
-    connections: ['coral_02'],
-    rewards: { gems: 100, gold: 1600, exp: 1600 },
+    connections: ['tidewall_02'],
+    rewards: { gems: 100, gold: 1950, exp: 1950 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
@@ -50,25 +47,24 @@ export const nodes = {
     ],
     shardDropChance: 0.25
   },
-  coral_02: {
-    id: 'coral_02',
-    name: 'Barnacle Narrows',
-    region: 'Coral Depths',
+  tidewall_02: {
+    id: 'tidewall_02',
+    name: 'Abandoned Watchtower',
+    region: 'Tidewall Ruins',
     x: 250,
     y: 180,
     battles: [
-      { enemies: ['barnacle_cluster', 'barnacle_cluster', 'cave_crab'] },
-      { enemies: ['moray_eel', 'moray_eel', 'reef_warden'] },
-      { enemies: ['cave_crab', 'cave_crab', 'barnacle_cluster'] },
-      { enemies: ['reef_warden', 'moray_eel', 'barnacle_cluster', 'cave_crab'] }
+      { enemies: ['corroded_sentinel', 'decay_jelly', 'decay_jelly'] },
+      { enemies: ['tide_lurker', 'tide_lurker', 'ruin_scavenger'] },
+      { enemies: ['corroded_sentinel', 'ruin_scavenger', 'decay_jelly'] },
+      { enemies: ['tide_lurker', 'corroded_sentinel', 'decay_jelly', 'decay_jelly'] }
     ],
-    connections: ['coral_03'],
-    rewards: { gems: 100, gold: 1650, exp: 1650 },
+    connections: ['tidewall_03'],
+    rewards: { gems: 100, gold: 2000, exp: 2000 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
@@ -90,25 +86,24 @@ export const nodes = {
     ],
     shardDropChance: 0.25
   },
-  coral_03: {
-    id: 'coral_03',
-    name: 'Eel Hollows',
-    region: 'Coral Depths',
+  tidewall_03: {
+    id: 'tidewall_03',
+    name: 'Algae-Choked Avenue',
+    region: 'Tidewall Ruins',
     x: 400,
     y: 300,
     battles: [
-      { enemies: ['moray_eel', 'moray_eel', 'moray_eel'] },
-      { enemies: ['cave_crab', 'moray_eel', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'barnacle_cluster', 'barnacle_cluster'] },
-      { enemies: ['moray_eel', 'moray_eel', 'cave_crab', 'reef_warden'] }
+      { enemies: ['ruin_scavenger', 'ruin_scavenger', 'tide_lurker'] },
+      { enemies: ['decay_jelly', 'decay_jelly', 'corroded_sentinel'] },
+      { enemies: ['tide_lurker', 'ruin_scavenger', 'decay_jelly', 'decay_jelly'] },
+      { enemies: ['corroded_sentinel', 'corroded_sentinel', 'ruin_scavenger'] }
     ],
-    connections: ['coral_04', 'prison_01'],
-    rewards: { gems: 100, gold: 1700, exp: 1700 },
+    connections: ['tidewall_04'],
+    rewards: { gems: 100, gold: 2050, exp: 2050 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
@@ -130,109 +125,65 @@ export const nodes = {
     ],
     shardDropChance: 0.25
   },
-  coral_04: {
-    id: 'coral_04',
-    name: 'Collapsed Grotto',
-    region: 'Coral Depths',
-    x: 500,
-    y: 170,
-    battles: [
-      { enemies: ['cave_crab', 'cave_crab', 'reef_warden'] },
-      { enemies: ['barnacle_cluster', 'moray_eel', 'moray_eel', 'cave_crab'] },
-      { enemies: ['reef_warden', 'reef_warden', 'cave_crab'] },
-      { enemies: ['moray_eel', 'barnacle_cluster', 'cave_crab', 'cave_crab'] },
-      { enemies: ['cave_crab', 'cave_crab', 'reef_warden', 'moray_eel', 'moray_eel'] }
-    ],
-    connections: ['coral_05'],
-    rewards: { gems: 100, gold: 1750, exp: 1750 },
-    firstClearBonus: { gems: 75 },
-    itemDrops: [
-      { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
-      // 1-star equipment (4% each)
-      { itemId: 'rusty_shiv', chance: 0.04 },
-      { itemId: 'scrap_leather', chance: 0.04 },
-      { itemId: 'cracked_ring', chance: 0.04 },
-      { itemId: 'tattered_shroud', chance: 0.04 },
-      { itemId: 'dented_buckler', chance: 0.04 },
-      { itemId: 'cracked_skull', chance: 0.04 },
-      { itemId: 'bent_shortbow', chance: 0.04 },
-      { itemId: 'gnarled_branch', chance: 0.04 },
-      { itemId: 'tarnished_pendant', chance: 0.04 },
-      { itemId: 'faded_prayer_beads', chance: 0.04 },
-      { itemId: 'chipped_antler', chance: 0.04 },
-      { itemId: 'cracked_whistle', chance: 0.04 },
-      // 1-star upgrade materials (2.5% each)
-      { itemId: 'common_weapon_stone', chance: 0.025 },
-      { itemId: 'common_armor_plate', chance: 0.025 },
-      { itemId: 'common_gem_shard', chance: 0.025 },
-      { itemId: 'common_class_token', chance: 0.025 }
-    ],
-    shardDropChance: 0.25
-  },
-  coral_05: {
-    id: 'coral_05',
-    name: 'Reef Labyrinth',
-    region: 'Coral Depths',
-    x: 620,
-    y: 310,
-    battles: [
-      { enemies: ['barnacle_cluster', 'barnacle_cluster', 'reef_warden', 'cave_crab'] },
-      { enemies: ['moray_eel', 'moray_eel', 'moray_eel', 'barnacle_cluster'] },
-      { enemies: ['reef_warden', 'cave_crab', 'cave_crab', 'moray_eel'] },
-      { enemies: ['barnacle_cluster', 'reef_warden', 'moray_eel', 'moray_eel'] },
-      { enemies: ['cave_crab', 'cave_crab', 'reef_warden', 'barnacle_cluster', 'moray_eel'] }
-    ],
-    connections: ['coral_06'],
-    rewards: { gems: 100, gold: 1800, exp: 1800 },
-    firstClearBonus: { gems: 75 },
-    itemDrops: [
-      { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
-      // 1-star equipment (4% each)
-      { itemId: 'rusty_shiv', chance: 0.04 },
-      { itemId: 'scrap_leather', chance: 0.04 },
-      { itemId: 'cracked_ring', chance: 0.04 },
-      { itemId: 'tattered_shroud', chance: 0.04 },
-      { itemId: 'dented_buckler', chance: 0.04 },
-      { itemId: 'cracked_skull', chance: 0.04 },
-      { itemId: 'bent_shortbow', chance: 0.04 },
-      { itemId: 'gnarled_branch', chance: 0.04 },
-      { itemId: 'tarnished_pendant', chance: 0.04 },
-      { itemId: 'faded_prayer_beads', chance: 0.04 },
-      { itemId: 'chipped_antler', chance: 0.04 },
-      { itemId: 'cracked_whistle', chance: 0.04 },
-      // 1-star upgrade materials (2.5% each)
-      { itemId: 'common_weapon_stone', chance: 0.025 },
-      { itemId: 'common_armor_plate', chance: 0.025 },
-      { itemId: 'common_gem_shard', chance: 0.025 },
-      { itemId: 'common_class_token', chance: 0.025 }
-    ],
-    shardDropChance: 0.25
-  },
-  coral_06: {
-    id: 'coral_06',
-    name: 'The Back Gate',
-    region: 'Coral Depths',
-    x: 720,
+  tidewall_04: {
+    id: 'tidewall_04',
+    name: 'Silent Marketplace',
+    region: 'Tidewall Ruins',
+    x: 550,
     y: 200,
     battles: [
-      { enemies: ['cave_crab', 'cave_crab', 'barnacle_cluster', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'moray_eel', 'moray_eel'] },
-      { enemies: ['reef_warden', 'reef_warden', 'cave_crab', 'cave_crab'] },
-      { enemies: ['barnacle_cluster', 'barnacle_cluster', 'moray_eel', 'cave_crab', 'reef_warden'] },
-      { enemies: ['cave_crab', 'cave_crab', 'cave_crab', 'reef_warden', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'cave_crab', 'cave_crab', 'reef_warden', 'barnacle_cluster'] }
+      { enemies: ['tide_lurker', 'tide_lurker', 'tide_lurker'] },
+      { enemies: ['corroded_sentinel', 'decay_jelly', 'ruin_scavenger', 'ruin_scavenger'] },
+      { enemies: ['ruin_scavenger', 'ruin_scavenger', 'corroded_sentinel', 'decay_jelly'] },
+      { enemies: ['tide_lurker', 'tide_lurker', 'corroded_sentinel', 'decay_jelly'] },
+      { enemies: ['corroded_sentinel', 'corroded_sentinel', 'ruin_scavenger', 'ruin_scavenger'] }
     ],
-    connections: ['tidewall_01'],
-    rewards: { gems: 100, gold: 1900, exp: 1900 },
+    connections: ['tidewall_05'],
+    rewards: { gems: 100, gold: 2100, exp: 2100 },
+    firstClearBonus: { gems: 75 },
+    itemDrops: [
+      { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
+      // 1-star equipment (4% each)
+      { itemId: 'rusty_shiv', chance: 0.04 },
+      { itemId: 'scrap_leather', chance: 0.04 },
+      { itemId: 'cracked_ring', chance: 0.04 },
+      { itemId: 'tattered_shroud', chance: 0.04 },
+      { itemId: 'dented_buckler', chance: 0.04 },
+      { itemId: 'cracked_skull', chance: 0.04 },
+      { itemId: 'bent_shortbow', chance: 0.04 },
+      { itemId: 'gnarled_branch', chance: 0.04 },
+      { itemId: 'tarnished_pendant', chance: 0.04 },
+      { itemId: 'faded_prayer_beads', chance: 0.04 },
+      { itemId: 'chipped_antler', chance: 0.04 },
+      { itemId: 'cracked_whistle', chance: 0.04 },
+      // 1-star upgrade materials (2.5% each)
+      { itemId: 'common_weapon_stone', chance: 0.025 },
+      { itemId: 'common_armor_plate', chance: 0.025 },
+      { itemId: 'common_gem_shard', chance: 0.025 },
+      { itemId: 'common_class_token', chance: 0.025 }
+    ],
+    shardDropChance: 0.25
+  },
+  tidewall_05: {
+    id: 'tidewall_05',
+    name: 'The Sealed Gate',
+    region: 'Tidewall Ruins',
+    x: 700,
+    y: 280,
+    battles: [
+      { enemies: ['corroded_sentinel', 'corroded_sentinel', 'decay_jelly', 'decay_jelly'] },
+      { enemies: ['tide_lurker', 'tide_lurker', 'ruin_scavenger', 'ruin_scavenger'] },
+      { enemies: ['corroded_sentinel', 'tide_lurker', 'decay_jelly', 'ruin_scavenger'] },
+      { enemies: ['ruin_scavenger', 'ruin_scavenger', 'ruin_scavenger', 'corroded_sentinel'] },
+      { enemies: ['corroded_sentinel', 'corroded_sentinel', 'tide_lurker', 'tide_lurker', 'decay_jelly'] }
+    ],
+    connections: ['currents_01'],
+    rewards: { gems: 100, gold: 2150, exp: 2150 },
     firstClearBonus: { gems: 100 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
