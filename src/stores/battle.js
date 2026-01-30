@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useHeroesStore } from './heroes.js'
+import { useEquipmentStore } from './equipment.js'
 import { getEnemyTemplate } from '../data/enemies/index.js'
 import { EffectType, createEffect, getEffectDefinition } from '../data/statusEffects.js'
 import { getClass } from '../data/classes.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import { getGenusLociAbilitiesForLevel } from '../data/genusLociAbilities.js'
+import { getEquipment } from '../data/equipment.js'
 
 // Battle states
 export const BattleState = {
@@ -1380,6 +1382,39 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== EQUIPMENT HELPERS ==========
+
+  /**
+   * Get total stat bonuses from all equipped gear for a hero template
+   * @param {string} templateId - Hero template ID
+   * @returns {{ hp: number, atk: number, def: number, spd: number, mp: number }}
+   */
+  function getEquipmentBonuses(templateId) {
+    const equipmentStore = useEquipmentStore()
+    const gear = equipmentStore.getEquippedGear(templateId)
+
+    const bonuses = { hp: 0, atk: 0, def: 0, spd: 0, mp: 0 }
+
+    // Sum stats from all equipped items
+    const slots = ['weapon', 'armor', 'trinket', 'special']
+    for (const slot of slots) {
+      const equipmentId = gear[slot]
+      if (!equipmentId) continue
+
+      const equipment = getEquipment(equipmentId)
+      if (!equipment || !equipment.stats) continue
+
+      // Add each stat from the equipment
+      for (const stat in equipment.stats) {
+        if (stat in bonuses) {
+          bonuses[stat] += equipment.stats[stat]
+        }
+      }
+    }
+
+    return bonuses
+  }
+
   // ========== BATTLE FUNCTIONS ==========
 
   function initBattle(partyState, enemyTemplateIds, genusLociContext = null) {
@@ -1417,15 +1452,30 @@ export const useBattleStore = defineStore('battle', () => {
         }
       }
 
+      // Get equipment bonuses (only if hero is NOT on expedition)
+      const isOnExpedition = heroFull.explorationNodeId != null
+      const equipBonuses = isOnExpedition
+        ? { hp: 0, atk: 0, def: 0, spd: 0, mp: 0 }
+        : getEquipmentBonuses(heroFull.templateId)
+
+      // Build final stats with equipment bonuses
+      const finalStats = {
+        hp: heroFull.stats.hp + equipBonuses.hp,
+        atk: heroFull.stats.atk + equipBonuses.atk,
+        def: heroFull.stats.def + equipBonuses.def,
+        spd: heroFull.stats.spd + equipBonuses.spd,
+        mp: heroFull.stats.mp + equipBonuses.mp
+      }
+
       heroes.value.push({
         instanceId,
         templateId: heroFull.templateId,
         level: heroFull.level,
-        currentHp: savedState?.currentHp ?? heroFull.stats.hp,
-        maxHp: heroFull.stats.hp,
-        currentMp: savedState?.currentMp ?? Math.floor(heroFull.stats.mp * 0.3),
-        maxMp: heroFull.stats.mp,
-        stats: heroFull.stats,
+        currentHp: savedState?.currentHp ?? finalStats.hp,
+        maxHp: finalStats.hp,
+        currentMp: savedState?.currentMp ?? Math.floor(finalStats.mp * 0.3),
+        maxMp: finalStats.mp,
+        stats: finalStats,
         template: heroFull.template,
         class: heroFull.class,
         statusEffects: [],
@@ -3327,6 +3377,8 @@ export const useBattleStore = defineStore('battle', () => {
     calculatePartyMissingHpPercent,
     // Passive regen leader effects
     applyPassiveRegenLeaderEffects,
+    // Equipment helpers
+    getEquipmentBonuses,
     // Constants
     BattleState,
     EffectType
