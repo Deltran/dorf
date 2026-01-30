@@ -1,18 +1,120 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { useInventoryStore, useGachaStore } from '../stores'
+import { useInventoryStore, useGachaStore, useEquipmentStore } from '../stores'
 import ItemCard from '../components/ItemCard.vue'
 import StarRating from '../components/StarRating.vue'
+import { getEquipment, SLOT_ICONS } from '../data/equipment.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 
 const emit = defineEmits(['navigate'])
 
 const inventoryStore = useInventoryStore()
 const gachaStore = useGachaStore()
+const equipmentStore = useEquipmentStore()
 
 const selectedItem = ref(null)
 const sellCount = ref(1)
 
-const items = computed(() => inventoryStore.itemList)
+// Regular inventory items
+const regularItems = computed(() => inventoryStore.itemList)
+
+// Equipment items converted to item-like format for display
+const equipmentItems = computed(() => {
+  const items = []
+  for (const [equipmentId, count] of Object.entries(equipmentStore.ownedEquipment)) {
+    if (count <= 0) continue
+    const equip = getEquipment(equipmentId)
+    if (!equip) continue
+    items.push({
+      id: equipmentId,
+      name: equip.name,
+      description: formatEquipmentDescription(equip),
+      type: 'equipment',
+      rarity: equip.rarity,
+      count,
+      isEquipment: true,
+      equipment: equip // Store full equipment data
+    })
+  }
+  // Sort by rarity descending, then name
+  return items.sort((a, b) => b.rarity - a.rarity || a.name.localeCompare(b.name))
+})
+
+// Merged items list
+const items = computed(() => {
+  // Equipment first, then regular items
+  return [...equipmentItems.value, ...regularItems.value]
+})
+
+// Helper to format equipment description
+function formatEquipmentDescription(equip) {
+  const parts = []
+  if (equip.stats) {
+    const statStrings = []
+    if (equip.stats.atk) statStrings.push(`+${equip.stats.atk} ATK`)
+    if (equip.stats.def) statStrings.push(`+${equip.stats.def} DEF`)
+    if (equip.stats.hp) statStrings.push(`+${equip.stats.hp} HP`)
+    if (equip.stats.spd) statStrings.push(`+${equip.stats.spd} SPD`)
+    if (equip.stats.mp) statStrings.push(`+${equip.stats.mp} MP`)
+    if (statStrings.length) parts.push(statStrings.join(', '))
+  }
+  return parts.join('. ') || 'Equipment item'
+}
+
+// Get list of heroes who have this equipment equipped
+function getEquippedByList(equipmentId) {
+  const equippedBy = []
+  for (const [templateId, gear] of Object.entries(equipmentStore.equippedGear)) {
+    for (const slot in gear) {
+      if (gear[slot] === equipmentId) {
+        equippedBy.push(templateId)
+      }
+    }
+  }
+  return equippedBy
+}
+
+// Get hero names from template IDs
+function getHeroNames(templateIds) {
+  return templateIds.map(id => {
+    const template = getHeroTemplate(id)
+    return template ? template.name : id
+  })
+}
+
+// Get slot icon for equipment
+function getSlotIcon(equip) {
+  return SLOT_ICONS[equip.slot] || '📦'
+}
+
+// Format effect description
+function formatEffect(effect) {
+  if (!effect) return null
+  switch (effect.type) {
+    case 'mp_regen': return `+${effect.value} MP per turn`
+    case 'hp_regen_percent': return `Heal ${effect.value}% max HP per turn`
+    case 'crit_chance': return `+${effect.value}% crit chance`
+    case 'low_hp_atk_boost': return `+${effect.value}% ATK when below ${effect.threshold}% HP`
+    case 'starting_mp': return `Start battle with +${effect.value} MP`
+    case 'starting_resource': return `Start with +${effect.value}% class resource`
+    case 'mp_boost_and_cost_reduction': return `+${effect.mpBoost} max MP, -${effect.costReduction}% skill cost`
+    case 'valor_on_block': return `Gain ${effect.value} Valor when blocking`
+    case 'rage_on_kill': return `Gain ${effect.value} Rage on kill`
+    case 'focus_on_crit': return `Gain ${effect.value} Focus on crit`
+    case 'spell_amp': return `+${effect.value}% spell damage`
+    case 'heal_amp': return `+${effect.value}% healing done`
+    case 'ally_damage_reduction': return `Allies take ${effect.value}% less damage`
+    case 'nature_regen': return `Regenerate ${effect.value}% max HP per turn`
+    case 'finale_boost': return `+${effect.value}% Finale power`
+    default: return null
+  }
+}
+
+// Check if equipment can be upgraded
+function canUpgradeEquipment(equipmentId) {
+  const equip = getEquipment(equipmentId)
+  return equip && equip.upgradesTo !== null
+}
 
 function selectItem(item) {
   selectedItem.value = item
@@ -107,7 +209,7 @@ function getContextualAction(item) {
     </header>
 
     <div class="item-count-badge">
-      <span class="count-value">{{ inventoryStore.totalItemCount }}</span>
+      <span class="count-value">{{ items.length }}</span>
       <span class="count-label">items</span>
     </div>
 
@@ -150,48 +252,116 @@ function getContextualAction(item) {
       </div>
 
       <div class="detail-body">
-        <p class="item-description">{{ selectedItem.description }}</p>
-
-        <div class="item-stats">
-          <div class="stat-row">
-            <span class="stat-label">Owned</span>
-            <span class="stat-value">{{ selectedItem.count }}</span>
+        <!-- Equipment Detail View -->
+        <template v-if="selectedItem.isEquipment">
+          <div class="equipment-slot-badge">
+            <span class="slot-icon">{{ getSlotIcon(selectedItem.equipment) }}</span>
+            <span class="slot-name">{{ selectedItem.equipment.slot.replace('_', ' ') }}</span>
           </div>
-          <div v-if="selectedItem.type === 'xp'" class="stat-row">
-            <span class="stat-label">XP Value</span>
-            <span class="stat-value xp">+{{ selectedItem.xpValue }}</span>
-          </div>
-          <div v-if="sellRewardType" class="stat-row">
-            <span class="stat-label">Sell Value</span>
-            <span :class="['stat-value', sellRewardType === 'gold' ? 'sell-gold' : 'sell']">
-              {{ selectedItem.sellReward.gold || selectedItem.sellReward.gems }} {{ sellRewardType === 'gold' ? '🪙' : '💎' }}
-            </span>
-          </div>
-        </div>
 
-        <div class="detail-actions">
-          <button
-            v-if="getContextualAction(selectedItem)"
-            class="context-action-btn"
-            @click="emit('navigate', getContextualAction(selectedItem).screen, getContextualAction(selectedItem).param)"
-          >
-            {{ getContextualAction(selectedItem).label }}
-          </button>
-
-          <div class="sell-section">
-            <div class="sell-count-control">
-              <button class="count-btn" @click="decrementSellCount" :disabled="sellCount <= 1">−</button>
-              <span class="count-display">{{ sellCount }}</span>
-              <button class="count-btn" @click="incrementSellCount" :disabled="sellCount >= selectedItem.count">+</button>
+          <div class="item-stats">
+            <div class="stat-row">
+              <span class="stat-label">Owned</span>
+              <span class="stat-value">{{ selectedItem.count }}</span>
             </div>
-            <button class="sell-btn" :class="{ 'sell-for-gold': sellRewardType === 'gold' }" @click="sellSelected">
-              Sell for {{ sellValue }} {{ sellRewardType === 'gold' ? '🪙' : '💎' }}
-            </button>
-            <button v-if="selectedItem.count > 1" class="sell-all-btn" @click="sellAll">
-              Sell All ({{ selectedItem.count }})
-            </button>
+            <!-- Equipment stats -->
+            <div v-if="selectedItem.equipment.stats.atk" class="stat-row">
+              <span class="stat-label">ATK</span>
+              <span class="stat-value atk">+{{ selectedItem.equipment.stats.atk }}</span>
+            </div>
+            <div v-if="selectedItem.equipment.stats.def" class="stat-row">
+              <span class="stat-label">DEF</span>
+              <span class="stat-value def">+{{ selectedItem.equipment.stats.def }}</span>
+            </div>
+            <div v-if="selectedItem.equipment.stats.hp" class="stat-row">
+              <span class="stat-label">HP</span>
+              <span class="stat-value hp">+{{ selectedItem.equipment.stats.hp }}</span>
+            </div>
+            <div v-if="selectedItem.equipment.stats.spd" class="stat-row">
+              <span class="stat-label">SPD</span>
+              <span class="stat-value spd">+{{ selectedItem.equipment.stats.spd }}</span>
+            </div>
+            <div v-if="selectedItem.equipment.stats.mp" class="stat-row">
+              <span class="stat-label">MP</span>
+              <span class="stat-value mp">+{{ selectedItem.equipment.stats.mp }}</span>
+            </div>
           </div>
-        </div>
+
+          <!-- Equipment effect -->
+          <div v-if="selectedItem.equipment.effect" class="equipment-effect">
+            <span class="effect-label">Effect:</span>
+            <span class="effect-value">{{ formatEffect(selectedItem.equipment.effect) }}</span>
+          </div>
+
+          <!-- Who has it equipped -->
+          <div v-if="getEquippedByList(selectedItem.id).length > 0" class="equipped-by-section">
+            <span class="equipped-label">Equipped by:</span>
+            <div class="equipped-heroes">
+              <span v-for="name in getHeroNames(getEquippedByList(selectedItem.id))" :key="name" class="equipped-hero-tag">
+                {{ name }}
+              </span>
+            </div>
+          </div>
+
+          <div class="detail-actions">
+            <button
+              v-if="canUpgradeEquipment(selectedItem.id)"
+              class="upgrade-btn"
+              @click="emit('navigate', 'blacksmith', selectedItem.id)"
+            >
+              Upgrade
+            </button>
+            <div v-else class="max-tier-badge">
+              Max Tier
+            </div>
+          </div>
+        </template>
+
+        <!-- Regular Item Detail View -->
+        <template v-else>
+          <p class="item-description">{{ selectedItem.description }}</p>
+
+          <div class="item-stats">
+            <div class="stat-row">
+              <span class="stat-label">Owned</span>
+              <span class="stat-value">{{ selectedItem.count }}</span>
+            </div>
+            <div v-if="selectedItem.type === 'xp'" class="stat-row">
+              <span class="stat-label">XP Value</span>
+              <span class="stat-value xp">+{{ selectedItem.xpValue }}</span>
+            </div>
+            <div v-if="sellRewardType" class="stat-row">
+              <span class="stat-label">Sell Value</span>
+              <span :class="['stat-value', sellRewardType === 'gold' ? 'sell-gold' : 'sell']">
+                {{ selectedItem.sellReward.gold || selectedItem.sellReward.gems }} {{ sellRewardType === 'gold' ? '🪙' : '💎' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="detail-actions">
+            <button
+              v-if="getContextualAction(selectedItem)"
+              class="context-action-btn"
+              @click="emit('navigate', getContextualAction(selectedItem).screen, getContextualAction(selectedItem).param)"
+            >
+              {{ getContextualAction(selectedItem).label }}
+            </button>
+
+            <div v-if="sellRewardType" class="sell-section">
+              <div class="sell-count-control">
+                <button class="count-btn" @click="decrementSellCount" :disabled="sellCount <= 1">-</button>
+                <span class="count-display">{{ sellCount }}</span>
+                <button class="count-btn" @click="incrementSellCount" :disabled="sellCount >= selectedItem.count">+</button>
+              </div>
+              <button class="sell-btn" :class="{ 'sell-for-gold': sellRewardType === 'gold' }" @click="sellSelected">
+                Sell for {{ sellValue }} {{ sellRewardType === 'gold' ? '🪙' : '💎' }}
+              </button>
+              <button v-if="selectedItem.count > 1" class="sell-all-btn" @click="sellAll">
+                Sell All ({{ selectedItem.count }})
+              </button>
+            </div>
+          </div>
+        </template>
       </div>
     </aside>
   </div>
@@ -637,5 +807,124 @@ function getContextualAction(item) {
 .sell-all-btn:hover {
   background: rgba(55, 65, 81, 0.5);
   color: #f3f4f6;
+}
+
+/* Equipment-specific styles */
+.equipment-slot-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(55, 65, 81, 0.4);
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.slot-icon {
+  font-size: 1.2rem;
+}
+
+.slot-name {
+  font-size: 0.9rem;
+  color: #9ca3af;
+  text-transform: capitalize;
+}
+
+.stat-value.atk {
+  color: #ef4444;
+}
+
+.stat-value.def {
+  color: #3b82f6;
+}
+
+.stat-value.hp {
+  color: #22c55e;
+}
+
+.stat-value.spd {
+  color: #f59e0b;
+}
+
+.stat-value.mp {
+  color: #a78bfa;
+}
+
+.equipment-effect {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.effect-label {
+  font-size: 0.8rem;
+  color: #a855f7;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.effect-value {
+  font-size: 0.9rem;
+  color: #e9d5ff;
+}
+
+.equipped-by-section {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.equipped-label {
+  font-size: 0.8rem;
+  color: #60a5fa;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.equipped-heroes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.equipped-hero-tag {
+  background: rgba(59, 130, 246, 0.2);
+  color: #93c5fd;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.upgrade-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upgrade-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+.max-tier-badge {
+  text-align: center;
+  padding: 12px;
+  background: rgba(55, 65, 81, 0.4);
+  border-radius: 8px;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 </style>
