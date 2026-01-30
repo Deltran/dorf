@@ -49,7 +49,19 @@ export const EffectType = {
   MARKED: 'marked', // Increases damage taken from all sources
 
   // Protection from death
-  DEATH_PREVENTION: 'death_prevention'
+  DEATH_PREVENTION: 'death_prevention',
+
+  // Offensive buff
+  VICIOUS: 'vicious', // Bonus damage vs debuffed enemies
+
+  // Leader skill debuff (provides buff but counts as debuff)
+  DISCORDANT_RESONANCE: 'discordant_resonance', // +damage dealt, -healing received
+
+  // AoE conversion
+  ECHOING: 'echoing', // Next single-hit skill hits all enemies
+
+  // Turn order manipulation
+  SHATTERED_TEMPO: 'shattered_tempo' // Acts in top N of turn order
 }
 
 // Effect definitions with display info and default behavior
@@ -278,12 +290,44 @@ export const effectDefinitions = {
     isMarked: true,
     stackable: false
   },
+  [EffectType.VICIOUS]: {
+    name: 'Vicious',
+    icon: '🗡️',
+    color: '#dc2626',
+    isBuff: true,
+    isVicious: true,
+    stackable: false
+  },
   [EffectType.DEATH_PREVENTION]: {
     name: 'Protected',
     icon: '🌳',
     color: '#22c55e',
     isBuff: true,
     isDeathPrevention: true,
+    stackable: false
+  },
+  [EffectType.DISCORDANT_RESONANCE]: {
+    name: 'Discordant Resonance',
+    icon: '🎵',
+    color: '#ec4899',
+    isBuff: false, // Counts as debuff for cleanse purposes
+    isDiscordantResonance: true,
+    stackable: false
+  },
+  [EffectType.ECHOING]: {
+    name: 'Echoing',
+    icon: '🔊',
+    color: '#ec4899',
+    isBuff: true,
+    isEchoing: true,
+    stackable: false
+  },
+  [EffectType.SHATTERED_TEMPO]: {
+    name: 'Shattered Tempo',
+    icon: '⚡',
+    color: '#eab308',
+    isBuff: true,
+    isShatteredTempo: true,
     stackable: false
   }
 }

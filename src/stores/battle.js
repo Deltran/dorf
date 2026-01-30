@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useHeroesStore } from './heroes.js'
 import { useEquipmentStore } from './equipment.js'
 import { getEnemyTemplate } from '../data/enemies/index.js'
-import { EffectType, createEffect, getEffectDefinition } from '../data/statusEffects.js'
+import { EffectType, createEffect, getEffectDefinition, effectDefinitions } from '../data/statusEffects.js'
 import { getClass } from '../data/classes.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import { getGenusLociAbilitiesForLevel } from '../data/genusLociAbilities.js'
@@ -38,6 +38,9 @@ export const useBattleStore = defineStore('battle', () => {
   const enemySkillActivation = ref(null) // { enemyId, skillName } - for visual announcement
   const battleType = ref('normal') // 'normal' or 'genusLoci'
   const genusLociMeta = ref(null) // { genusLociId, powerLevel, triggeredTowersWrath }
+
+  // Track total ally HP lost for Cacophon's Finale
+  const totalAllyHpLost = ref(0)
 
   // Getters
   const currentUnit = computed(() => {
@@ -967,6 +970,31 @@ export const useBattleStore = defineStore('battle', () => {
     return totalMissing / heroList.length
   }
 
+  // Reset ally HP tracking (called at battle start)
+  function resetAllyHpTracking() {
+    totalAllyHpLost.value = 0
+  }
+
+  // Apply ally HP cost (for Cacophon's skills)
+  // Returns actual damage dealt
+  function applyAllyHpCost(hero, percent, isCacophonSkill = false) {
+    // Cacophon is immune to her own skill costs
+    if (isCacophonSkill && hero.templateId === 'cacophon') {
+      return 0
+    }
+
+    const maxHp = hero.maxHp || hero.currentHp
+    const damage = Math.floor(maxHp * (percent / 100))
+    const actualDamage = Math.min(damage, hero.currentHp - 1) // Don't reduce below 1 HP
+
+    if (actualDamage > 0) {
+      hero.currentHp -= actualDamage
+      totalAllyHpLost.value += actualDamage
+    }
+
+    return actualDamage
+  }
+
   // Check if riposte triggers on a target hit by an enemy
   // Returns { triggered, damage } - noDefCheck bypasses the DEF comparison
   function checkRiposte(target, enemy) {
@@ -1766,6 +1794,7 @@ export const useBattleStore = defineStore('battle', () => {
       powerLevel: genusLociContext.powerLevel,
       triggeredTowersWrath: false
     } : null
+    resetAllyHpTracking()
 
     // Initialize heroes from party
     const party = heroesStore.party.filter(Boolean)
@@ -1888,18 +1917,36 @@ export const useBattleStore = defineStore('battle', () => {
     for (const hero of heroes.value) {
       if (hero.currentHp > 0) {
         const effectiveSpd = getEffectiveStat(hero, 'spd')
-        units.push({ type: 'hero', id: hero.instanceId, spd: effectiveSpd })
+        const tempoEffect = hero.statusEffects?.find(e => e.type === EffectType.SHATTERED_TEMPO)
+        units.push({
+          type: 'hero',
+          id: hero.instanceId,
+          spd: effectiveSpd,
+          turnOrderPriority: tempoEffect?.turnOrderPriority || 999
+        })
       }
     }
 
     for (const enemy of enemies.value) {
       if (enemy.currentHp > 0) {
         const effectiveSpd = getEffectiveStat(enemy, 'spd')
-        units.push({ type: 'enemy', id: enemy.id, spd: effectiveSpd })
+        units.push({
+          type: 'enemy',
+          id: enemy.id,
+          spd: effectiveSpd,
+          turnOrderPriority: 999
+        })
       }
     }
 
-    units.sort((a, b) => b.spd - a.spd)
+    // Sort by priority first (lower = acts sooner), then by SPD
+    units.sort((a, b) => {
+      if (a.turnOrderPriority !== b.turnOrderPriority) {
+        return a.turnOrderPriority - b.turnOrderPriority
+      }
+      return b.spd - a.spd
+    })
+
     turnOrder.value = units.map(u => ({ type: u.type, id: u.id }))
   }
 
@@ -3589,6 +3636,21 @@ export const useBattleStore = defineStore('battle', () => {
     return 1
   }
 
+  function getViciousDamageMultiplier(attacker, target) {
+    const viciousEffect = attacker?.statusEffects?.find(e => e.type === EffectType.VICIOUS)
+    if (!viciousEffect) return 1.0
+
+    // Check if target has any debuffs
+    const hasDebuff = target?.statusEffects?.some(e => {
+      const def = e.definition || effectDefinitions[e.type]
+      return def && !def.isBuff
+    })
+
+    if (!hasDebuff) return 1.0
+
+    return 1 + (viciousEffect.bonusDamagePercent || 0) / 100
+  }
+
   function calculateDamageWithMarked(atk, multiplier, def, markedMultiplier = 1) {
     const raw = atk * multiplier * (100 / (100 + def))
     const baseDamage = Math.max(1, Math.floor(raw))
@@ -3617,6 +3679,12 @@ export const useBattleStore = defineStore('battle', () => {
       return Math.floor(atk * effectivePercent / 100)
     }
     return Math.floor(atk)
+  }
+
+  function calculateShieldFromPercentMaxHp(target, effect) {
+    if (!effect.shieldPercentMaxHp) return 0
+    const maxHp = target.maxHp || target.currentHp
+    return Math.floor(maxHp * (effect.shieldPercentMaxHp / 100))
   }
 
   function pickRandom(array, count) {
@@ -3726,6 +3794,144 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== CACOPHON ALLY HP COST FUNCTIONS ==========
+
+  function resetAllyHpTracking() {
+    totalAllyHpLost.value = 0
+  }
+
+  function applyAllyHpCost(hero, percent, isCacophonSkill = false) {
+    // Cacophon is immune to her own skill costs
+    if (isCacophonSkill && hero.templateId === 'cacophon') {
+      return 0
+    }
+
+    const maxHp = hero.maxHp || hero.currentHp
+    const damage = Math.floor(maxHp * (percent / 100))
+    const actualDamage = Math.min(damage, hero.currentHp - 1) // Don't reduce below 1 HP
+
+    if (actualDamage > 0) {
+      hero.currentHp -= actualDamage
+      totalAllyHpLost.value += actualDamage
+    }
+
+    return actualDamage
+  }
+
+  function processAllyHpCostForSkill(caster, skill, targets) {
+    if (!skill.allyHpCostPercent) return
+
+    const isCacophonSkill = caster.templateId === 'cacophon'
+
+    for (const target of targets) {
+      applyAllyHpCost(target, skill.allyHpCostPercent, isCacophonSkill)
+    }
+  }
+
+  // ========== ECHOING AOE CONVERSION FUNCTIONS ==========
+
+  function checkAndApplyEchoing(hero, skill) {
+    const echoingEffect = hero?.statusEffects?.find(e => e.type === EffectType.ECHOING)
+    if (!echoingEffect) return false
+
+    // Only works on single-hit damaging skills
+    if (skill.multiHit) return false
+    if (skill.noDamage) return false
+    if (!skill.damagePercent && !skill.damageMultiplier) return false
+
+    return true
+  }
+
+  function getEchoingSplashPercent(hero) {
+    const echoingEffect = hero?.statusEffects?.find(e => e.type === EffectType.ECHOING)
+    return echoingEffect?.splashPercent || 0
+  }
+
+  function consumeEchoingEffect(hero) {
+    if (hero?.statusEffects) {
+      hero.statusEffects = hero.statusEffects.filter(e => e.type !== EffectType.ECHOING)
+    }
+  }
+
+  // ========== DISCORDANT_RESONANCE LEADER SKILL FUNCTIONS ==========
+
+  function applyBattleStartDebuffLeaderEffect(heroList, effect) {
+    if (effect.type !== 'battle_start_debuff') return
+    if (effect.target !== 'all_allies') return
+
+    const { damageBonus, healingPenalty } = effect.apply
+
+    for (const hero of heroList) {
+      if (hero.currentHp > 0 || hero.currentHp === undefined) {
+        hero.statusEffects.push({
+          type: EffectType.DISCORDANT_RESONANCE,
+          duration: 999, // Lasts entire battle
+          damageBonus: damageBonus || 0,
+          healingPenalty: healingPenalty || 0,
+          sourceId: 'leader_skill',
+          definition: effectDefinitions[EffectType.DISCORDANT_RESONANCE]
+        })
+      }
+    }
+  }
+
+  function getDiscordantDamageBonus(hero) {
+    const effect = hero?.statusEffects?.find(e => e.type === EffectType.DISCORDANT_RESONANCE)
+    if (!effect) return 1.0
+    return 1 + (effect.damageBonus || 0) / 100
+  }
+
+  function getDiscordantHealingPenalty(hero) {
+    const effect = hero?.statusEffects?.find(e => e.type === EffectType.DISCORDANT_RESONANCE)
+    if (!effect) return 1.0
+    return 1 - (effect.healingPenalty || 0) / 100
+  }
+
+  // ========== SUFFERING'S CRESCENDO FINALE FUNCTIONS ==========
+
+  function calculateSufferingCrescendoBonus(baseBuff, hpPerPercent, maxBonus) {
+    const hpBonus = Math.floor(totalAllyHpLost.value / hpPerPercent)
+    const cappedBonus = Math.min(hpBonus, maxBonus)
+    return baseBuff + cappedBonus
+  }
+
+  function processSufferingCrescendoFinale(heroes, effect) {
+    const { baseBuff, hpPerPercent, maxBonus, duration } = effect
+    const totalBuff = calculateSufferingCrescendoBonus(baseBuff, hpPerPercent, maxBonus)
+
+    // Apply ATK_UP and DEF_UP to all living heroes
+    for (const hero of heroes) {
+      if (hero.currentHp > 0) {
+        // Add ATK_UP
+        hero.statusEffects.push({
+          type: EffectType.ATK_UP,
+          duration,
+          value: totalBuff,
+          sourceId: 'cacophon_finale'
+        })
+        // Add DEF_UP
+        hero.statusEffects.push({
+          type: EffectType.DEF_UP,
+          duration,
+          value: totalBuff,
+          sourceId: 'cacophon_finale'
+        })
+      }
+    }
+
+    // Reset tracking
+    resetAllyHpTracking()
+  }
+
+  function processFinaleEffects(heroList, effects) {
+    for (const effect of effects) {
+      if (effect.type === 'suffering_crescendo') {
+        processSufferingCrescendoFinale(heroList, effect)
+      }
+      // Add other finale effect types here as needed
+    }
+  }
+
   return {
     // State
     state,
@@ -3762,12 +3968,15 @@ export const useBattleStore = defineStore('battle', () => {
     clearCombatEffects,
     applyDamage,
     reviveUnit,
+    // Turn order (with SHATTERED_TEMPO priority support)
+    calculateTurnOrder,
     // Effect helpers (for UI)
     resolveEffectValue,
     getEffectiveStat,
     hasEffect,
     checkDeathPrevention,
     getMarkedDamageMultiplier,
+    getViciousDamageMultiplier,
     calculateDamageWithMarked,
     selectRandomTarget,
     pickRandom,
@@ -3813,6 +4022,25 @@ export const useBattleStore = defineStore('battle', () => {
     // Desperation heal scaling (bonus based on missing HP)
     calculateDesperationHeal,
     calculatePartyMissingHpPercent,
+    // Ally HP cost (for Cacophon's skills)
+    totalAllyHpLost,
+    resetAllyHpTracking,
+    applyAllyHpCost,
+    processAllyHpCostForSkill,
+    // Shield from percent max HP (for Cacophon's Warding Noise)
+    calculateShieldFromPercentMaxHp,
+    // Suffering's Crescendo Finale (for Cacophon)
+    calculateSufferingCrescendoBonus,
+    processSufferingCrescendoFinale,
+    processFinaleEffects,
+    // ECHOING AoE conversion (for Cacophon)
+    checkAndApplyEchoing,
+    getEchoingSplashPercent,
+    consumeEchoingEffect,
+    // DISCORDANT_RESONANCE leader skill (for Cacophon)
+    applyBattleStartDebuffLeaderEffect,
+    getDiscordantDamageBonus,
+    getDiscordantHealingPenalty,
     // Passive regen leader effects
     applyPassiveRegenLeaderEffects,
     // Equipment helpers
