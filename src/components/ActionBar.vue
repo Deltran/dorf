@@ -21,6 +21,10 @@ const props = defineProps({
   isStunned: {
     type: Boolean,
     default: false
+  },
+  backgroundImage: {
+    type: String,
+    default: null
   }
 })
 
@@ -35,11 +39,19 @@ const roleIcon = computed(() => {
   }
   return icons[props.role] || '⚔️'
 })
+
+const heroCardStyle = computed(() => {
+  const style = { '--class-color': props.classColor }
+  if (props.backgroundImage) {
+    style.backgroundImage = `url(${props.backgroundImage})`
+  }
+  return style
+})
 </script>
 
 <template>
   <div class="action-bar" :style="{ '--class-color': classColor }">
-    <div :class="['hero-card', { stunned: isStunned }]">
+    <div :class="['hero-card', { stunned: isStunned }]" :style="heroCardStyle">
       <div class="hero-info">
         <span class="role-icon">{{ roleIcon }}</span>
         <span class="hero-name">{{ heroName }}</span>
@@ -70,7 +82,10 @@ const roleIcon = computed(() => {
   flex-direction: column;
   gap: 2px;
   padding: 10px 14px;
-  background: #111827;
+  background-color: #111827;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   border-left: 3px solid var(--class-color);
   border-top: 1px solid #374151;
   border-bottom: 1px solid #374151;

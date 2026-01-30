@@ -919,6 +919,38 @@ const battleBackgroundUrl = computed(() => {
   return battleBackgrounds[defaultPath] || null
 })
 
+// Action bar backgrounds
+const actionBgClasses = import.meta.glob('../assets/action_backgrounds/classes/*.png', { eager: true, import: 'default' })
+const actionBgHeroes = import.meta.glob('../assets/action_backgrounds/heroes/*.png', { eager: true, import: 'default' })
+
+const actionBarBackground = computed(() => {
+  if (!currentHero.value) return null
+
+  const heroId = currentHero.value.template?.id
+  const classId = currentHero.value.template?.classId
+
+  // Check for hero-specific override first
+  if (heroId) {
+    // Check if hero template has actionBackground field
+    const template = currentHero.value.template
+    const overrideId = template?.actionBackground || heroId
+    const heroPath = `../assets/action_backgrounds/heroes/${overrideId}.png`
+    if (actionBgHeroes[heroPath]) {
+      return actionBgHeroes[heroPath]
+    }
+  }
+
+  // Fall back to class-based background
+  if (classId) {
+    const classPath = `../assets/action_backgrounds/classes/${classId}.png`
+    if (actionBgClasses[classPath]) {
+      return actionBgClasses[classPath]
+    }
+  }
+
+  return null
+})
+
 // Victory screen helpers
 const partyHeroesForVictory = computed(() => {
   return heroesStore.party
@@ -1333,6 +1365,7 @@ function getStatChange(hero, stat) {
         :role="heroRole"
         :hasSkills="availableSkills.length > 0"
         :isStunned="heroIsStunned"
+        :backgroundImage="actionBarBackground"
         @open-skills="openSkillPanel"
       />
     </section>

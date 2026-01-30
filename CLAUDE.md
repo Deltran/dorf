@@ -47,6 +47,29 @@ Portraits are used in:
 - World map node markers (for Genus Loci nodes)
 - Quest detail popups
 
+## Action Bar Backgrounds
+
+Located in `src/assets/action_backgrounds/`:
+- `classes/{class_id}.png` - Class-based backgrounds (berserker, knight, etc.)
+- `heroes/{hero_id}.png` - Hero-specific overrides
+
+**Image specs:** 480x60 (1x) or 960x120 (2x retina), displayed with `background-size: cover`
+
+**Loading priority:**
+1. Hero-specific override (`heroes/{hero_id}.png`)
+2. Hero template `actionBackground` field (if set, looks for `heroes/{actionBackground}.png`)
+3. Class-based background (`classes/{class_id}.png`)
+4. Fallback: solid color `#111827` with class-colored left border
+
+**Hero template override:**
+```js
+{
+  id: 'aurora_the_dawn',
+  actionBackground: 'custom_bg_name',  // Optional override
+  // ...
+}
+```
+
 ## Rarity System
 
 | Rarity | Color | Gradient End (for backgrounds) |
