@@ -17,12 +17,12 @@ describe('Yggra hero template', () => {
       expect(skill.targetType).toBe('all_allies')
     })
 
-    it('heals for 75% ATK', () => {
-      expect(skill.description).toContain('75%')
+    it('heals for 55% ATK', () => {
+      expect(skill.description).toContain('55%')
     })
 
-    it('costs 19 MP and unlocks at level 1', () => {
-      expect(skill.mpCost).toBe(19)
+    it('costs 22 MP and unlocks at level 1', () => {
+      expect(skill.mpCost).toBe(22)
       expect(skill.skillUnlockLevel).toBe(1)
     })
   })
@@ -79,12 +79,12 @@ describe('Yggra hero template', () => {
       expect(skill.targetType).toBe('enemy')
     })
 
-    it('deals 200% ATK damage', () => {
-      expect(skill.description).toContain('200%')
+    it('deals 150% ATK damage', () => {
+      expect(skill.description).toContain('150%')
     })
 
-    it('heals allies for 35% of damage dealt', () => {
-      expect(skill.healAlliesPercent).toBe(35)
+    it('heals allies for 25% of damage dealt', () => {
+      expect(skill.healAlliesPercent).toBe(25)
     })
 
     it('costs 28 MP and unlocks at level 6', () => {

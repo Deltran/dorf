@@ -27,7 +27,7 @@ describe('Yggra skills integration', () => {
   it("Nature's Reclamation has healAlliesPercent property", () => {
     const yggra = heroTemplates.yggra_world_root
     const skill = yggra.skills.find(s => s.name === "Nature's Reclamation")
-    expect(skill.healAlliesPercent).toBe(35)
+    expect(skill.healAlliesPercent).toBe(25)
   })
 })
 

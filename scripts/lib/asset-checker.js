@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { enemyTemplates } from '../../src/data/enemies/index.js'
-import { questNodes } from '../../src/data/questNodes.js'
+import { questNodes } from '../../src/data/quests/index.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(__dirname, '../..')
