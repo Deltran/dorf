@@ -159,7 +159,8 @@ function saveLayout() {
 
 // --- Image generation ---
 function buildDefaultPrompt() {
-  return `${props.region.name}. No people. No monsters. No animals. Dark Fantasy. Pixel Art.`
+  const nodeNames = props.nodes.map(n => n.name).join(', ')
+  return `A totally textless image of ${props.region.name}. Ariel view. Remove all text from the image. Distinct areas that have no label, like ${nodeNames}. NEVER ADD TEXT TO THE IMAGE. No people. No monsters. No animals. Dark Fantasy. Pixel Art.`
 }
 
 const prompt = ref('')
