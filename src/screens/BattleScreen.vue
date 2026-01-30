@@ -1105,34 +1105,6 @@ function getStatChange(hero, stat) {
 
 <template>
   <div class="battle-screen" :class="{ 'battle-defeat-fading': defeatPhase }">
-    <!-- Turn Order Portrait Strip -->
-    <aside class="turn-order-strip">
-      <div
-        v-for="unit in rotatedTurnOrder"
-        :key="unit.id"
-        :class="[
-          'turn-order-entry',
-          unit.type,
-          { current: unit.isCurrent, dead: unit.isDead }
-        ]"
-      >
-        <div class="portrait-wrapper">
-          <img
-            v-if="getTurnOrderPortrait(unit)"
-            :src="getTurnOrderPortrait(unit)"
-            :alt="unit.name"
-            class="portrait"
-          />
-          <div
-            v-else
-            :class="['portrait-fallback', unit.type]"
-          >
-            <span class="fallback-icon">{{ unit.type === 'hero' ? '⚔' : '💀' }}</span>
-          </div>
-        </div>
-      </div>
-    </aside>
-
     <!-- Enemy Area -->
     <section class="enemy-area">
       <div
@@ -1149,6 +1121,35 @@ function getStatChange(hero, stat) {
           Round {{ battleStore.roundNumber }}
         </div>
       </div>
+
+      <!-- Turn Order Portrait Strip -->
+      <aside class="turn-order-strip">
+        <div
+          v-for="unit in rotatedTurnOrder"
+          :key="unit.id"
+          :class="[
+            'turn-order-entry',
+            unit.type,
+            { current: unit.isCurrent, dead: unit.isDead }
+          ]"
+        >
+          <div class="portrait-wrapper">
+            <img
+              v-if="getTurnOrderPortrait(unit)"
+              :src="getTurnOrderPortrait(unit)"
+              :alt="unit.name"
+              class="portrait"
+            />
+            <div
+              v-else
+              :class="['portrait-fallback', unit.type]"
+            >
+              <span class="fallback-icon">{{ unit.type === 'hero' ? '⚔' : '💀' }}</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
       <div
         v-for="(enemy, enemyIndex) in battleStore.enemies"
         :key="enemy.id"
@@ -1661,7 +1662,6 @@ function getStatChange(hero, stat) {
 .battle-screen {
   min-height: 100vh;
   padding: 16px;
-  padding-left: 70px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1674,14 +1674,14 @@ function getStatChange(hero, stat) {
 
 /* Turn Order Portrait Strip */
 .turn-order-strip {
-  position: fixed;
-  left: 12px;
-  top: 16px;
-  width: 50px;
+  position: absolute;
+  left: 8px;
+  top: 44px; /* Below the battle header */
+  width: 36px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  z-index: 50;
+  gap: 4px;
+  z-index: 0; /* Below enemies (z-index: 1) */
 }
 
 .turn-order-entry {
@@ -1691,13 +1691,13 @@ function getStatChange(hero, stat) {
 }
 
 .turn-order-entry.current {
-  transform: translateX(8px);
+  transform: translateX(4px);
 }
 
 .portrait-wrapper {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid transparent;
@@ -1723,13 +1723,13 @@ function getStatChange(hero, stat) {
 .turn-order-entry.current::before {
   content: '';
   position: absolute;
-  left: -4px;
+  left: -2px;
   top: 50%;
   transform: translateY(-50%);
-  width: 44px;
-  height: 40px;
-  background: rgba(251, 191, 36, 0.15);
-  border-radius: 20px;
+  width: 36px;
+  height: 32px;
+  background: rgba(251, 191, 36, 0.2);
+  border-radius: 16px;
   z-index: -1;
 }
 
@@ -1754,7 +1754,7 @@ function getStatChange(hero, stat) {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .portrait-fallback.hero {
@@ -2166,6 +2166,7 @@ function getStatChange(hero, stat) {
 .action-area {
   margin-top: 8px;
   padding: 8px 16px;
+  overflow: hidden;
 }
 
 .action-prompt {

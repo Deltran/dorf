@@ -54,6 +54,7 @@ const emit = defineEmits(['click'])
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   padding: 12px 16px;
   border: 2px solid #4b5563;
   border-radius: 8px;
@@ -62,6 +63,7 @@ const emit = defineEmits(['click'])
   cursor: pointer;
   transition: all 0.2s ease;
   width: 100%;
+  min-width: 0;
   text-align: left;
   user-select: none;
 }
@@ -102,6 +104,8 @@ const emit = defineEmits(['click'])
 .button-content {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .button-label {
@@ -113,13 +117,17 @@ const emit = defineEmits(['click'])
   font-size: 0.75rem;
   color: #9ca3af;
   margin-top: 2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .button-cost {
+  flex-shrink: 0;
   font-size: 0.8rem;
   color: #60a5fa;
   background: #1e3a5f;
   padding: 4px 8px;
   border-radius: 4px;
+  white-space: nowrap;
 }
 </style>

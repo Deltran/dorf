@@ -59,7 +59,9 @@ const rarityColors = {
   1: '#9ca3af', 2: '#22c55e', 3: '#3b82f6', 4: '#a855f7', 5: '#f59e0b'
 }
 const showItemPicker = ref(false)
-const xpGainAnimation = ref(null) // { value: number }
+const xpGainAnimation = ref(null) // { value: number, leveledUp: boolean }
+const consumingItemId = ref(null) // For item consume animation
+const mergeError = ref(null)
 
 // Filter/Sort state
 const sortBy = ref('default')
@@ -305,23 +307,36 @@ function closeItemPicker() {
 }
 
 function useItemOnHero(item) {
-  if (!selectedHero.value) return
-  const result = heroesStore.useXpItem(selectedHero.value.instanceId, item.id)
-  if (result.success) {
-    // Show XP gain animation
-    xpGainAnimation.value = { value: result.xpGained }
-    setTimeout(() => {
-      xpGainAnimation.value = null
-    }, 1500)
+  if (!selectedHero.value || consumingItemId.value) return
 
-    // Refresh selected hero data
-    selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
+  const oldLevel = selectedHero.value.level
 
-    // Close picker if no more XP items
-    if (xpItems.value.length === 0) {
-      closeItemPicker()
+  // Start consume animation
+  consumingItemId.value = item.id
+
+  // Delay actual consumption for visual effect
+  setTimeout(() => {
+    const result = heroesStore.useXpItem(selectedHero.value.instanceId, item.id)
+    if (result.success) {
+      // Refresh selected hero data first to check level up
+      const updatedHero = heroesStore.getHeroFull(selectedHero.value.instanceId)
+      const leveledUp = updatedHero.level > oldLevel
+
+      // Show XP gain animation with level up flag
+      xpGainAnimation.value = { value: result.xpGained, leveledUp }
+      setTimeout(() => {
+        xpGainAnimation.value = null
+      }, leveledUp ? 2000 : 1500)
+
+      selectedHero.value = updatedHero
+
+      // Close picker if no more XP items
+      if (xpItems.value.length === 0) {
+        setTimeout(() => closeItemPicker(), 300)
+      }
     }
-  }
+    consumingItemId.value = null
+  }, 400)
 }
 
 // Merge functions
@@ -475,7 +490,8 @@ function confirmMerge() {
       }
     })
   } else {
-    alert(result.error)
+    mergeError.value = result.error
+    setTimeout(() => { mergeError.value = null }, 2500)
   }
 }
 
@@ -1122,30 +1138,43 @@ function getEffectTypeName(type) {
         </div>
 
         <!-- XP Gain Animation -->
-        <div v-if="xpGainAnimation" class="xp-gain-floater">
-          +{{ xpGainAnimation.value }} XP
+        <div v-if="xpGainAnimation" class="xp-gain-floater" :class="{ 'level-up': xpGainAnimation.leveledUp }">
+          <span class="xp-value">+{{ xpGainAnimation.value }} XP</span>
+          <span v-if="xpGainAnimation.leveledUp" class="level-up-text">LEVEL UP!</span>
         </div>
 
         <!-- Item Picker Modal -->
         <div v-if="showItemPicker" class="item-picker-backdrop" @click="closeItemPicker"></div>
         <div v-if="showItemPicker" class="item-picker-modal">
           <div class="picker-header">
-            <h4>Use XP Item</h4>
+            <h4>📖 Use XP Item</h4>
             <button class="close-picker" @click="closeItemPicker">×</button>
+          </div>
+          <div class="picker-hero-preview">
+            <span class="preview-name">{{ selectedHero?.template.name }}</span>
+            <span class="preview-level">Lv.{{ selectedHero?.level }}</span>
           </div>
           <div class="picker-items">
             <div
               v-for="item in xpItems"
               :key="item.id"
               class="picker-item"
+              :class="{ consuming: consumingItemId === item.id }"
               @click="useItemOnHero(item)"
             >
-              <span class="picker-item-icon">📖</span>
+              <span class="picker-item-icon" :class="{ wiggle: consumingItemId === item.id }">📖</span>
               <div class="picker-item-info">
                 <span class="picker-item-name">{{ item.name }}</span>
-                <span class="picker-item-xp">+{{ item.xpValue }} XP</span>
+                <span class="picker-item-xp">+{{ item.xpValue.toLocaleString() }} XP</span>
               </div>
-              <span class="picker-item-count">×{{ item.count }}</span>
+              <span class="picker-item-count" :class="{ pulse: consumingItemId === item.id }">×{{ item.count }}</span>
+              <div v-if="consumingItemId === item.id" class="consume-particles">
+                <span class="particle"></span>
+                <span class="particle"></span>
+                <span class="particle"></span>
+                <span class="particle"></span>
+                <span class="particle"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -1243,6 +1272,11 @@ function getEffectTypeName(type) {
       @close="closeBuildCopies"
       @complete="onBuildCopiesComplete"
     />
+
+    <!-- Merge Error Toast -->
+    <div v-if="mergeError" class="merge-error-toast">
+      {{ mergeError }}
+    </div>
   </div>
 </template>
 
@@ -1975,30 +2009,100 @@ function getEffectTypeName(type) {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #a78bfa;
-  text-shadow: 0 2px 8px rgba(167, 139, 250, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   pointer-events: none;
   user-select: none;
-  animation: xpFloat 1.5s ease-out forwards;
+  animation: xpFloat 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   z-index: 200;
+}
+
+.xp-gain-floater .xp-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #a78bfa;
+  text-shadow:
+    0 0 20px rgba(167, 139, 250, 0.8),
+    0 2px 8px rgba(167, 139, 250, 0.5);
+}
+
+.xp-gain-floater.level-up {
+  animation: xpFloatLevelUp 2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.xp-gain-floater.level-up .xp-value {
+  color: #fbbf24;
+  text-shadow:
+    0 0 30px rgba(251, 191, 36, 0.9),
+    0 2px 8px rgba(251, 191, 36, 0.6);
+}
+
+.level-up-text {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #fbbf24;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow:
+    0 0 20px rgba(251, 191, 36, 0.8),
+    0 0 40px rgba(251, 191, 36, 0.4);
+  animation: levelUpPulse 0.6s ease-out 0.3s both;
 }
 
 @keyframes xpFloat {
   0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  15% {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(0.5);
+    transform: translate(-50%, -50%) scale(1.3);
   }
-  20% {
-    transform: translate(-50%, -50%) scale(1.2);
+  30% {
+    transform: translate(-50%, -55%) scale(1);
   }
-  40% {
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -90%) scale(0.9);
+  }
+}
+
+@keyframes xpFloatLevelUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.3);
+  }
+  10% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+  25% {
+    transform: translate(-50%, -55%) scale(1);
+  }
+  70% {
+    opacity: 1;
     transform: translate(-50%, -60%) scale(1);
   }
   100% {
     opacity: 0;
-    transform: translate(-50%, -100%) scale(1);
+    transform: translate(-50%, -80%) scale(0.9);
+  }
+}
+
+@keyframes levelUpPulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -2009,8 +2113,14 @@ function getEffectTypeName(type) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.75);
   z-index: 150;
+  animation: backdropFade 0.2s ease;
+}
+
+@keyframes backdropFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .item-picker-modal {
@@ -2021,18 +2131,22 @@ function getEffectTypeName(type) {
   width: 90%;
   max-width: 360px;
   max-height: 70vh;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #374151;
+  background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(167, 139, 250, 0.2);
   border-radius: 16px;
   overflow: hidden;
   z-index: 151;
-  animation: modalPop 0.2s ease;
+  animation: pickerSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow:
+    0 0 0 1px rgba(167, 139, 250, 0.1),
+    0 20px 50px -10px rgba(0, 0, 0, 0.5),
+    0 0 80px -20px rgba(167, 139, 250, 0.15);
 }
 
-@keyframes modalPop {
+@keyframes pickerSlideIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.9);
+    transform: translate(-50%, -45%) scale(0.95);
   }
   to {
     opacity: 1;
@@ -2045,15 +2159,15 @@ function getEffectTypeName(type) {
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #374151;
-  background: rgba(55, 65, 81, 0.3);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.15);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.1) 0%, transparent 100%);
 }
 
 .picker-header h4 {
   margin: 0;
   font-size: 1rem;
   font-weight: 600;
-  color: #f3f4f6;
+  color: #e9d5ff;
 }
 
 .close-picker {
@@ -2064,49 +2178,120 @@ function getEffectTypeName(type) {
   cursor: pointer;
   padding: 4px 8px;
   line-height: 1;
-  transition: color 0.2s ease;
+  transition: all 0.2s ease;
+  border-radius: 6px;
 }
 
 .close-picker:hover {
   color: #f3f4f6;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.picker-hero-preview {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(167, 139, 250, 0.08);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.1);
+}
+
+.preview-name {
+  font-weight: 600;
+  color: #f3f4f6;
+  font-size: 0.95rem;
+}
+
+.preview-level {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.15);
+  padding: 4px 10px;
+  border-radius: 6px;
 }
 
 .picker-items {
   padding: 12px;
   overflow-y: auto;
-  max-height: calc(70vh - 60px);
+  max-height: calc(70vh - 110px);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
 .picker-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px;
-  background: rgba(55, 65, 81, 0.4);
-  border: 1px solid #4b5563;
+  padding: 14px 16px;
+  background: rgba(55, 65, 81, 0.3);
+  border: 1px solid rgba(75, 85, 99, 0.5);
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+  overflow: hidden;
+}
+
+.picker-item::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(167, 139, 250, 0.1) 50%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .picker-item:hover {
-  background: rgba(124, 58, 237, 0.2);
-  border-color: #7c3aed;
+  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.5);
   transform: translateX(4px);
+}
+
+.picker-item:hover::before {
+  opacity: 1;
+}
+
+.picker-item:active {
+  transform: translateX(2px) scale(0.98);
+}
+
+.picker-item.consuming {
+  background: rgba(167, 139, 250, 0.25);
+  border-color: #a78bfa;
+  animation: consumePulse 0.4s ease;
+}
+
+@keyframes consumePulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.97); }
+  100% { transform: scale(1); }
 }
 
 .picker-item-icon {
   font-size: 1.8rem;
+  transition: transform 0.3s ease;
+}
+
+.picker-item-icon.wiggle {
+  animation: bookWiggle 0.4s ease;
+}
+
+@keyframes bookWiggle {
+  0% { transform: rotate(0deg) scale(1); }
+  20% { transform: rotate(-15deg) scale(1.1); }
+  40% { transform: rotate(10deg) scale(1.15); }
+  60% { transform: rotate(-5deg) scale(1.1); }
+  80% { transform: rotate(3deg) scale(1.05); }
+  100% { transform: rotate(0deg) scale(1); }
 }
 
 .picker-item-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .picker-item-name {
@@ -2117,16 +2302,87 @@ function getEffectTypeName(type) {
 
 .picker-item-xp {
   font-size: 0.8rem;
-  color: #a78bfa;
+  font-weight: 500;
+  color: #c4b5fd;
 }
 
 .picker-item-count {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #9ca3af;
-  background: rgba(55, 65, 81, 0.5);
+  color: #d1d5db;
+  background: rgba(55, 65, 81, 0.6);
   padding: 4px 10px;
   border-radius: 8px;
+  transition: all 0.2s ease;
+  min-width: 40px;
+  text-align: center;
+}
+
+.picker-item-count.pulse {
+  animation: countPulse 0.3s ease;
+  background: rgba(167, 139, 250, 0.3);
+  color: #e9d5ff;
+}
+
+@keyframes countPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+/* Consume particles */
+.consume-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.consume-particles .particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #a78bfa;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #a78bfa;
+  animation: particleFly 0.5s ease-out forwards;
+}
+
+.consume-particles .particle:nth-child(1) {
+  left: 20%;
+  top: 50%;
+  animation-delay: 0s;
+}
+.consume-particles .particle:nth-child(2) {
+  left: 35%;
+  top: 30%;
+  animation-delay: 0.05s;
+}
+.consume-particles .particle:nth-child(3) {
+  left: 50%;
+  top: 60%;
+  animation-delay: 0.1s;
+}
+.consume-particles .particle:nth-child(4) {
+  left: 65%;
+  top: 40%;
+  animation-delay: 0.15s;
+}
+.consume-particles .particle:nth-child(5) {
+  left: 80%;
+  top: 55%;
+  animation-delay: 0.2s;
+}
+
+@keyframes particleFly {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(100vw - 200%), -100px) scale(0.3);
+  }
 }
 
 /* ===== Origin Badge ===== */
@@ -2769,5 +3025,31 @@ function getEffectTypeName(type) {
 
 .build-copies-btn-inline .btn-icon {
   font-size: 0.9rem;
+}
+
+/* ===== Merge Error Toast ===== */
+.merge-error-toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  z-index: 300;
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+  color: #fecaca;
+  animation: mergeToastSlideUp 0.3s ease;
+}
+
+@keyframes mergeToastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 </style>
