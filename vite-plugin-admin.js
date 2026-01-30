@@ -107,6 +107,15 @@ export default function adminPlugin() {
   return {
     name: 'vite-plugin-admin',
     configureServer(server) {
+      // Helper: invalidate module cache so changes are picked up on refresh
+      function invalidateQuestModules() {
+        const moduleGraph = server.moduleGraph
+        for (const [id, mod] of moduleGraph.idToModuleMap) {
+          if (id.includes('/src/data/quests/')) {
+            moduleGraph.invalidateModule(mod)
+          }
+        }
+      }
       // GET /api/admin/:contentType - fetch all entries
       server.middlewares.use((req, res, next) => {
         const match = req.url?.match(/^\/api\/admin\/(\w+)$/)
@@ -421,8 +430,11 @@ export default function adminPlugin() {
               fs.writeFileSync(filePath, content, 'utf-8')
             }
 
+            // Invalidate module cache so refresh picks up changes
+            invalidateQuestModules()
+
             res.setHeader('Content-Type', 'application/json')
-            res.end(JSON.stringify({ success: true }))
+            res.end(JSON.stringify({ success: true, updatedFiles: Object.keys(fileUpdates).length }))
           } catch (e) {
             res.statusCode = 500
             res.setHeader('Content-Type', 'application/json')
@@ -492,6 +504,9 @@ export default function adminPlugin() {
               fs.writeFileSync(filePath, content, 'utf-8')
             }
 
+            // Invalidate module cache so refresh picks up changes
+            invalidateQuestModules()
+
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ success: true }))
           } catch (e) {
@@ -547,6 +562,9 @@ export default function adminPlugin() {
             }
 
             fs.writeFileSync(filePath, content, 'utf-8')
+
+            // Invalidate module cache so refresh picks up changes
+            invalidateQuestModules()
 
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ success: true }))

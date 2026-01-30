@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { questNodes, regions, superRegions } from '../../data/quests/index.js'
 import assetPromptsData from '../../data/assetPrompts.json'
 import MapAssetCard from '../../components/admin/MapAssetCard.vue'
@@ -48,8 +48,32 @@ const superRegionGroups = computed(() => {
 // --- Asset prompts state ---
 const assetPrompts = ref({ ...assetPromptsData })
 
-// --- Editor state ---
+// --- Editor state with persistence ---
 const editingRegion = ref(null)
+
+// Restore editing state on mount
+onMounted(() => {
+  if (import.meta.env.DEV) {
+    const savedRegionId = sessionStorage.getItem('dorf_dev_admin_map_editing')
+    if (savedRegionId) {
+      const region = regions.find(r => r.id === savedRegionId)
+      if (region) {
+        editingRegion.value = region
+      }
+    }
+  }
+})
+
+// Persist editing state on change
+watch(editingRegion, (region) => {
+  if (import.meta.env.DEV) {
+    if (region) {
+      sessionStorage.setItem('dorf_dev_admin_map_editing', region.id)
+    } else {
+      sessionStorage.removeItem('dorf_dev_admin_map_editing')
+    }
+  }
+})
 
 function openEditor(region) {
   editingRegion.value = region
@@ -84,11 +108,15 @@ async function saveImage({ regionId, dataUrl, prompt }) {
 
 async function savePositions(positions) {
   try {
-    await fetch('/__admin/save-node-positions', {
+    const response = await fetch('/__admin/save-node-positions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ positions })
     })
+    const result = await response.json()
+    if (!response.ok || result.error) {
+      alert('Failed to save positions: ' + (result.error || response.statusText))
+    }
   } catch (err) {
     alert('Failed to save positions: ' + (err.message || err))
   }

@@ -6,7 +6,7 @@ export const regionMeta = {
   superRegion: 'aquarias',
   startNode: 'coral_01',
   width: 800,
-  height: 500,
+  height: 800,
   backgroundColor: '#0a2a3a'
 }
 
@@ -15,8 +15,8 @@ export const nodes = {
     id: 'coral_01',
     name: 'Coral Tunnels',
     region: 'Coral Depths',
-    x: 100,
-    y: 250,
+    x: 152,
+    y: 709,
     battles: [
       { enemies: ['cave_crab', 'moray_eel', 'moray_eel'] },
       { enemies: ['barnacle_cluster', 'cave_crab', 'reef_warden'] },
@@ -54,8 +54,8 @@ export const nodes = {
     id: 'coral_02',
     name: 'Barnacle Narrows',
     region: 'Coral Depths',
-    x: 250,
-    y: 180,
+    x: 361,
+    y: 427,
     battles: [
       { enemies: ['barnacle_cluster', 'barnacle_cluster', 'cave_crab'] },
       { enemies: ['moray_eel', 'moray_eel', 'reef_warden'] },
@@ -94,8 +94,9 @@ export const nodes = {
     id: 'coral_03',
     name: 'Eel Hollows',
     region: 'Coral Depths',
-    x: 400,
-    y: 300,
+    x: 196,
+    y: 262,
+    regionLinkPosition: { x: 187, y: 100 },
     battles: [
       { enemies: ['moray_eel', 'moray_eel', 'moray_eel'] },
       { enemies: ['cave_crab', 'moray_eel', 'reef_warden'] },
@@ -134,8 +135,8 @@ export const nodes = {
     id: 'coral_04',
     name: 'Collapsed Grotto',
     region: 'Coral Depths',
-    x: 500,
-    y: 170,
+    x: 467,
+    y: 188,
     battles: [
       { enemies: ['cave_crab', 'cave_crab', 'reef_warden'] },
       { enemies: ['barnacle_cluster', 'moray_eel', 'moray_eel', 'cave_crab'] },
@@ -175,8 +176,8 @@ export const nodes = {
     id: 'coral_05',
     name: 'Reef Labyrinth',
     region: 'Coral Depths',
-    x: 620,
-    y: 310,
+    x: 561,
+    y: 336,
     battles: [
       { enemies: ['barnacle_cluster', 'barnacle_cluster', 'reef_warden', 'cave_crab'] },
       { enemies: ['moray_eel', 'moray_eel', 'moray_eel', 'barnacle_cluster'] },
@@ -216,8 +217,9 @@ export const nodes = {
     id: 'coral_06',
     name: 'The Back Gate',
     region: 'Coral Depths',
-    x: 720,
-    y: 200,
+    x: 622,
+    y: 144,
+    regionLinkPosition: { x: 706, y: 127 },
     battles: [
       { enemies: ['cave_crab', 'cave_crab', 'barnacle_cluster', 'reef_warden'] },
       { enemies: ['moray_eel', 'moray_eel', 'moray_eel', 'moray_eel'] },

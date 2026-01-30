@@ -6,7 +6,7 @@ export const regionMeta = {
   superRegion: 'western_veros',
   startNode: 'aqua_01',
   width: 800,
-  height: 500,
+  height: 800,
   backgroundColor: '#1a2a3f'
 }
 
