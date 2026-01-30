@@ -4007,6 +4007,8 @@ export const useBattleStore = defineStore('battle', () => {
     totalAllyHpLost,
     resetAllyHpTracking,
     applyAllyHpCost,
+    // Shield from percent max HP (for Cacophon's Warding Noise)
+    calculateShieldFromPercentMaxHp,
     // Suffering's Crescendo Finale (for Cacophon)
     calculateSufferingCrescendoBonus,
     processSufferingCrescendoFinale,
