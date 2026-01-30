@@ -346,7 +346,23 @@ export default function adminPlugin() {
         next()
       })
 
-      // POST /__admin/save-node-positions - update x/y in questNodes.js
+      // Helper: find which quest file contains a node by ID
+      function findQuestFileForNode(nodeId) {
+        const questsDir = path.resolve(process.cwd(), 'src/data/quests')
+        const files = fs.readdirSync(questsDir).filter(f => f.endsWith('.js') && f !== 'index.js' && f !== 'regions.js')
+
+        for (const file of files) {
+          const filePath = path.join(questsDir, file)
+          const content = fs.readFileSync(filePath, 'utf-8')
+          const idPattern = new RegExp(`id:\\s*'${nodeId}'`)
+          if (idPattern.test(content)) {
+            return filePath
+          }
+        }
+        return null
+      }
+
+      // POST /__admin/save-node-positions - update x/y in quest region files
       server.middlewares.use(async (req, res, next) => {
         if (req.method === 'POST' && req.url === '/__admin/save-node-positions') {
           let body = ''
@@ -364,44 +380,46 @@ export default function adminPlugin() {
               return
             }
 
-            const filePath = path.resolve(process.cwd(), 'src/data/questNodes.js')
-            let content = fs.readFileSync(filePath, 'utf-8')
-
+            // Group positions by file
+            const fileUpdates = {}
             for (const [nodeId, pos] of Object.entries(positions)) {
-              const x = Math.round(pos.x)
-              const y = Math.round(pos.y)
+              const filePath = findQuestFileForNode(nodeId)
+              if (!filePath) continue
+              if (!fileUpdates[filePath]) fileUpdates[filePath] = []
+              fileUpdates[filePath].push({ nodeId, x: Math.round(pos.x), y: Math.round(pos.y) })
+            }
 
-              // Find the node block by its id property
-              const idPattern = new RegExp(`id:\\s*'${nodeId}'`)
-              const idMatch = content.match(idPattern)
-              if (!idMatch) continue
+            // Update each file
+            for (const [filePath, updates] of Object.entries(fileUpdates)) {
+              let content = fs.readFileSync(filePath, 'utf-8')
 
-              // Replace x: and y: values within a reasonable range after the id match
-              const idIndex = idMatch.index
-              const blockSlice = content.slice(idIndex, idIndex + 200)
+              for (const { nodeId, x, y } of updates) {
+                const idPattern = new RegExp(`id:\\s*'${nodeId}'`)
+                const idMatch = content.match(idPattern)
+                if (!idMatch) continue
 
-              const xMatch = blockSlice.match(/x:\s*\d+/)
-              const yMatch = blockSlice.match(/y:\s*\d+/)
+                const idIndex = idMatch.index
+                const blockSlice = content.slice(idIndex, idIndex + 200)
 
-              if (xMatch) {
-                const absoluteIndex = idIndex + xMatch.index
-                content = content.slice(0, absoluteIndex) + `x: ${x}` + content.slice(absoluteIndex + xMatch[0].length)
-              }
+                const xMatch = blockSlice.match(/x:\s*\d+/)
+                if (xMatch) {
+                  const absoluteIndex = idIndex + xMatch.index
+                  content = content.slice(0, absoluteIndex) + `x: ${x}` + content.slice(absoluteIndex + xMatch[0].length)
+                }
 
-              if (yMatch) {
                 // Re-find after x replacement may have shifted indices
                 const updatedIdMatch = content.match(idPattern)
                 const updatedIdIndex = updatedIdMatch.index
                 const updatedSlice = content.slice(updatedIdIndex, updatedIdIndex + 200)
-                const updatedYMatch = updatedSlice.match(/y:\s*\d+/)
-                if (updatedYMatch) {
-                  const absoluteIndex = updatedIdIndex + updatedYMatch.index
-                  content = content.slice(0, absoluteIndex) + `y: ${y}` + content.slice(absoluteIndex + updatedYMatch[0].length)
+                const yMatch = updatedSlice.match(/y:\s*\d+/)
+                if (yMatch) {
+                  const absoluteIndex = updatedIdIndex + yMatch.index
+                  content = content.slice(0, absoluteIndex) + `y: ${y}` + content.slice(absoluteIndex + yMatch[0].length)
                 }
               }
-            }
 
-            fs.writeFileSync(filePath, content, 'utf-8')
+              fs.writeFileSync(filePath, content, 'utf-8')
+            }
 
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ success: true }))
@@ -415,7 +433,7 @@ export default function adminPlugin() {
         next()
       })
 
-      // POST /__admin/save-link-positions - update regionLinkPosition in questNodes.js
+      // POST /__admin/save-link-positions - update regionLinkPosition in quest region files
       server.middlewares.use(async (req, res, next) => {
         if (req.method === 'POST' && req.url === '/__admin/save-link-positions') {
           let body = ''
@@ -430,40 +448,50 @@ export default function adminPlugin() {
               return
             }
 
-            const filePath = path.resolve(process.cwd(), 'src/data/questNodes.js')
-            let content = fs.readFileSync(filePath, 'utf-8')
-
+            // Group positions by file
+            const fileUpdates = {}
             for (const [nodeId, pos] of Object.entries(positions)) {
-              const x = Math.round(pos.x)
-              const y = Math.round(pos.y)
-              const idPattern = new RegExp(`id:\\s*'${nodeId}'`)
-              const idMatch = content.match(idPattern)
-              if (!idMatch) continue
-
-              const idIndex = idMatch.index
-              const blockSlice = content.slice(idIndex, idIndex + 400)
-
-              // Check if regionLinkPosition already exists
-              const existingMatch = blockSlice.match(/regionLinkPosition:\s*\{[^}]*\}/)
-              if (existingMatch) {
-                const absIndex = idIndex + existingMatch.index
-                content = content.slice(0, absIndex) +
-                  `regionLinkPosition: { x: ${x}, y: ${y} }` +
-                  content.slice(absIndex + existingMatch[0].length)
-              } else {
-                // Insert after the y: line
-                const yLineMatch = blockSlice.match(/y:\s*\d+,?\s*\n/)
-                if (yLineMatch) {
-                  const insertIndex = idIndex + yLineMatch.index + yLineMatch[0].length
-                  const indent = '    '
-                  content = content.slice(0, insertIndex) +
-                    `${indent}regionLinkPosition: { x: ${x}, y: ${y} },\n` +
-                    content.slice(insertIndex)
-                }
-              }
+              const filePath = findQuestFileForNode(nodeId)
+              if (!filePath) continue
+              if (!fileUpdates[filePath]) fileUpdates[filePath] = []
+              fileUpdates[filePath].push({ nodeId, x: Math.round(pos.x), y: Math.round(pos.y) })
             }
 
-            fs.writeFileSync(filePath, content, 'utf-8')
+            // Update each file
+            for (const [filePath, updates] of Object.entries(fileUpdates)) {
+              let content = fs.readFileSync(filePath, 'utf-8')
+
+              for (const { nodeId, x, y } of updates) {
+                const idPattern = new RegExp(`id:\\s*'${nodeId}'`)
+                const idMatch = content.match(idPattern)
+                if (!idMatch) continue
+
+                const idIndex = idMatch.index
+                const blockSlice = content.slice(idIndex, idIndex + 400)
+
+                // Check if regionLinkPosition already exists
+                const existingMatch = blockSlice.match(/regionLinkPosition:\s*\{[^}]*\}/)
+                if (existingMatch) {
+                  const absIndex = idIndex + existingMatch.index
+                  content = content.slice(0, absIndex) +
+                    `regionLinkPosition: { x: ${x}, y: ${y} }` +
+                    content.slice(absIndex + existingMatch[0].length)
+                } else {
+                  // Insert after the y: line
+                  const yLineMatch = blockSlice.match(/y:\s*\d+,?\s*\n/)
+                  if (yLineMatch) {
+                    const insertIndex = idIndex + yLineMatch.index + yLineMatch[0].length
+                    const indent = '    '
+                    content = content.slice(0, insertIndex) +
+                      `${indent}regionLinkPosition: { x: ${x}, y: ${y} },\n` +
+                      content.slice(insertIndex)
+                  }
+                }
+              }
+
+              fs.writeFileSync(filePath, content, 'utf-8')
+            }
+
             res.setHeader('Content-Type', 'application/json')
             res.end(JSON.stringify({ success: true }))
           } catch (e) {
@@ -476,7 +504,7 @@ export default function adminPlugin() {
         next()
       })
 
-      // POST /__admin/save-region-size - update width/height for a region in questNodes.js
+      // POST /__admin/save-region-size - update width/height for a region in its quest file
       server.middlewares.use(async (req, res, next) => {
         if (req.method === 'POST' && req.url === '/__admin/save-region-size') {
           let body = ''
@@ -494,34 +522,28 @@ export default function adminPlugin() {
               return
             }
 
-            const filePath = path.resolve(process.cwd(), 'src/data/questNodes.js')
-            let content = fs.readFileSync(filePath, 'utf-8')
+            // Region ID maps directly to filename (e.g., 'coral_depths' -> 'coral_depths.js')
+            const filePath = path.resolve(process.cwd(), `src/data/quests/${regionId}.js`)
 
-            const idPattern = new RegExp(`id:\\s*'${regionId}'`)
-            const idMatch = content.match(idPattern)
-            if (!idMatch) {
+            if (!fs.existsSync(filePath)) {
               res.statusCode = 404
               res.setHeader('Content-Type', 'application/json')
-              res.end(JSON.stringify({ error: `Region ${regionId} not found` }))
+              res.end(JSON.stringify({ error: `Region file for ${regionId} not found` }))
               return
             }
 
-            const idIndex = idMatch.index
-            const blockSlice = content.slice(idIndex, idIndex + 200)
+            let content = fs.readFileSync(filePath, 'utf-8')
 
-            const wMatch = blockSlice.match(/width:\s*\d+/)
+            // Update width in regionMeta
+            const wMatch = content.match(/width:\s*\d+/)
             if (wMatch) {
-              const absIdx = idIndex + wMatch.index
-              content = content.slice(0, absIdx) + `width: ${Math.round(width)}` + content.slice(absIdx + wMatch[0].length)
+              content = content.slice(0, wMatch.index) + `width: ${Math.round(width)}` + content.slice(wMatch.index + wMatch[0].length)
             }
 
-            // Re-find after width replacement
-            const updatedMatch = content.match(idPattern)
-            const updatedSlice = content.slice(updatedMatch.index, updatedMatch.index + 200)
-            const hMatch = updatedSlice.match(/height:\s*\d+/)
+            // Update height in regionMeta
+            const hMatch = content.match(/height:\s*\d+/)
             if (hMatch) {
-              const absIdx = updatedMatch.index + hMatch.index
-              content = content.slice(0, absIdx) + `height: ${Math.round(height)}` + content.slice(absIdx + hMatch[0].length)
+              content = content.slice(0, hMatch.index) + `height: ${Math.round(height)}` + content.slice(hMatch.index + hMatch[0].length)
             }
 
             fs.writeFileSync(filePath, content, 'utf-8')
