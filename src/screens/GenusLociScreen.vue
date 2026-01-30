@@ -94,7 +94,7 @@ function calculateGemsReward(level) {
   return base.gems + (perLevel.gems || 0) * (level - 1)
 }
 
-function getItemDropsDisplay() {
+const itemDropsDisplay = computed(() => {
   if (!selectedBoss.value?.itemDrops) return []
   return selectedBoss.value.itemDrops.map(drop => {
     const item = items[drop.itemId]
@@ -107,7 +107,7 @@ function getItemDropsDisplay() {
       isPerLevel: drop.perLevel || false
     }
   }).filter(Boolean)
-}
+})
 
 function goBack() {
   emit('navigate', 'map-room')
@@ -161,7 +161,7 @@ function goBack() {
             <div class="level-rewards">
               <span v-if="calculateGoldReward(level)" class="level-reward gold">🪙 {{ calculateGoldReward(level) }}</span>
               <span v-if="calculateGemsReward(level)" class="level-reward gems">💎 {{ calculateGemsReward(level) }}</span>
-              <span v-for="(drop, i) in getItemDropsDisplay()" :key="i" class="level-reward item">
+              <span v-for="(drop, i) in itemDropsDisplay" :key="i" class="level-reward item">
                 {{ drop.icon }} {{ drop.qty }}<span v-if="drop.isPerLevel" class="per-level">/lvl</span>
               </span>
             </div>
