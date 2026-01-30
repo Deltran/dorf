@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { useHeroesStore, useInventoryStore, useGachaStore, useExplorationsStore, useEquipmentStore } from '../stores'
+import { useHeroesStore, useInventoryStore, useGachaStore, useExplorationsStore, useEquipmentStore, useQuestsStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import MergePlannerModal from '../components/MergePlannerModal.vue'
@@ -9,6 +9,7 @@ import EquipmentSelectModal from '../components/EquipmentSelectModal.vue'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 import { getItem } from '../data/items.js'
+import { getRegionsBySuperRegion, getQuestNode } from '../data/quests/index.js'
 import { useTooltip } from '../composables/useTooltip.js'
 import { particleBurst, glowPulse } from '../composables/useParticleBurst.js'
 
@@ -53,6 +54,7 @@ const inventoryStore = useInventoryStore()
 const gachaStore = useGachaStore()
 const explorationsStore = useExplorationsStore()
 const equipmentStore = useEquipmentStore()
+const questsStore = useQuestsStore()
 
 const selectedHero = ref(null)
 const heroImageError = ref(false)
@@ -152,6 +154,17 @@ const selectedEquipmentSlot = ref(null) // 'weapon' | 'armor' | 'trinket' | 'spe
 const selectedHeroEquipment = computed(() => {
   if (!selectedHero.value) return null
   return equipmentStore.getEquippedGear(selectedHero.value.templateId)
+})
+
+// Check if player has completed any Aquaria region node (unlocks equipment)
+const hasEnteredAquaria = computed(() => {
+  const aquariaRegions = getRegionsBySuperRegion('aquarias')
+  const aquariaRegionNames = new Set(aquariaRegions.map(r => r.name))
+
+  return questsStore.completedNodes.some(nodeId => {
+    const node = getQuestNode(nodeId)
+    return node && aquariaRegionNames.has(node.region)
+  })
 })
 
 function onEquipmentSlotClick(slotType) {
@@ -1008,37 +1021,39 @@ function getEffectTypeName(type) {
           </div>
         </div>
 
-        <div class="section-header equipment-header">
-          <div class="section-line"></div>
-          <h4>Equipment</h4>
-          <div class="section-line"></div>
-        </div>
-        <div class="equipment-grid">
-          <EquipmentSlot
-            slotType="weapon"
-            :equipmentId="selectedHeroEquipment?.weapon"
-            :heroClassId="selectedHero.template.classId"
-            @click="onEquipmentSlotClick"
-          />
-          <EquipmentSlot
-            slotType="armor"
-            :equipmentId="selectedHeroEquipment?.armor"
-            :heroClassId="selectedHero.template.classId"
-            @click="onEquipmentSlotClick"
-          />
-          <EquipmentSlot
-            slotType="trinket"
-            :equipmentId="selectedHeroEquipment?.trinket"
-            :heroClassId="selectedHero.template.classId"
-            @click="onEquipmentSlotClick"
-          />
-          <EquipmentSlot
-            slotType="special"
-            :equipmentId="selectedHeroEquipment?.special"
-            :heroClassId="selectedHero.template.classId"
-            @click="onEquipmentSlotClick"
-          />
-        </div>
+        <template v-if="hasEnteredAquaria">
+          <div class="section-header equipment-header">
+            <div class="section-line"></div>
+            <h4>Equipment</h4>
+            <div class="section-line"></div>
+          </div>
+          <div class="equipment-grid">
+            <EquipmentSlot
+              slotType="weapon"
+              :equipmentId="selectedHeroEquipment?.weapon"
+              :heroClassId="selectedHero.template.classId"
+              @click="onEquipmentSlotClick"
+            />
+            <EquipmentSlot
+              slotType="armor"
+              :equipmentId="selectedHeroEquipment?.armor"
+              :heroClassId="selectedHero.template.classId"
+              @click="onEquipmentSlotClick"
+            />
+            <EquipmentSlot
+              slotType="trinket"
+              :equipmentId="selectedHeroEquipment?.trinket"
+              :heroClassId="selectedHero.template.classId"
+              @click="onEquipmentSlotClick"
+            />
+            <EquipmentSlot
+              slotType="special"
+              :equipmentId="selectedHeroEquipment?.special"
+              :heroClassId="selectedHero.template.classId"
+              @click="onEquipmentSlotClick"
+            />
+          </div>
+        </template>
 
         <div class="section-header skills-header">
           <div class="section-line"></div>
