@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { heroTemplates } from '../heroTemplates'
+import { heroTemplates } from '../heroes/index.js'
 
 describe('Vagrant Bil skills', () => {
   const bil = heroTemplates.beggar_monk

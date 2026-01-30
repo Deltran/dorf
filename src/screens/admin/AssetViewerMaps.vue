@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { questNodes, regions, superRegions } from '../../data/questNodes.js'
+import { questNodes, regions, superRegions } from '../../data/quests/index.js'
 import assetPromptsData from '../../data/assetPrompts.json'
 import MapAssetCard from '../../components/admin/MapAssetCard.vue'
 import MapEditor from '../../components/admin/MapEditor.vue'

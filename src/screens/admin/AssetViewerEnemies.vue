@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { enemyTemplates } from '../../data/enemyTemplates.js'
+import { enemyTemplates } from '../../data/enemies/index.js'
 import { genusLociData } from '../../data/genusLoci.js'
 import assetPromptsData from '../../data/assetPrompts.json'
 import EnemyAssetCard from '../../components/admin/EnemyAssetCard.vue'

@@ -71,7 +71,7 @@ const resourceDisplay = computed(() => {
     case 'focus':
       return { icon: '🎯', value: h.hasFocus ? 'Ready' : '—', max: null }
     case 'valor':
-      return { icon: '⚜️', value: h.currentValor || 0, max: 3 }
+      return { icon: '⚜️', value: h.currentValor || 0, max: 100 }
     case 'verse':
       return { icon: '🎵', value: `${h.currentVerses || 0}/3`, max: null }
     default:
@@ -79,11 +79,19 @@ const resourceDisplay = computed(() => {
   }
 })
 
-// Cost formatting
+// Cost formatting for description panel
 function formatCost(skill) {
   if (skill.cost === null || skill.cost === undefined) return 'Free'
   if (skill.cost === 0) return 'Free'
   return `${skill.cost} ${skill.costLabel || ''}`
+}
+
+// Simple cost number for skill row (only for MP, Rage, Valor)
+function getSkillCostNumber(skill) {
+  if (skill.cost === null || skill.cost === undefined || skill.cost === 0) return null
+  // Only show for resource-costing skills
+  if (!skill.costLabel) return null
+  return skill.cost
 }
 
 // Target type formatting
@@ -163,6 +171,7 @@ function formatTargetType(skill) {
               @click="handleSkillSelect(index)"
             >
               <span class="skill-name">{{ skill.name }}</span>
+              <span v-if="getSkillCostNumber(skill)" class="skill-cost">{{ getSkillCostNumber(skill) }}</span>
             </button>
           </div>
         </div>
@@ -201,15 +210,12 @@ function formatTargetType(skill) {
 }
 
 .skill-panel-container {
-  position: fixed;
-  bottom: 126px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 600px;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
   z-index: 50;
   pointer-events: none;
-  padding: 0 16px;
   box-sizing: border-box;
 }
 
@@ -227,7 +233,7 @@ function formatTargetType(skill) {
 
 .panel-enter-from,
 .panel-leave-to {
-  transform: translateY(20px);
+  transform: translateY(100%);
   opacity: 0;
 }
 
@@ -282,7 +288,10 @@ function formatTargetType(skill) {
 }
 
 .skill-row {
-  display: block;
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   width: 100%;
   padding: 10px 12px;
   background: transparent;
@@ -317,7 +326,20 @@ function formatTargetType(skill) {
 }
 
 .skill-name {
-  display: block;
+  flex: 1;
+}
+
+.skill-cost {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9ca3af;
+  background: rgba(17, 24, 39, 0.9);
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 /* Description Panel (left side) */

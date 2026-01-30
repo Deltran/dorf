@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getHeroTemplatesByRarity, getHeroTemplate } from '../data/heroTemplates.js'
+import { getHeroTemplatesByRarity, getHeroTemplate } from '../data/heroes/index.js'
 import { getActiveBanners, getBannerById } from '../data/banners.js'
 import { useHeroesStore } from './heroes.js'
 

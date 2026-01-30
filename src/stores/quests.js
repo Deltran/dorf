@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { getQuestNode, getAllQuestNodes, regions, superRegions, getRegionsBySuperRegion, getNodesByRegion } from '../data/questNodes.js'
+import { getQuestNode, getAllQuestNodes, regions, superRegions, getRegionsBySuperRegion, getNodesByRegion } from '../data/quests/index.js'
 import { useInventoryStore } from './inventory.js'
 import { useShardsStore } from './shards.js'
 import { useTipsStore } from './tips.js'

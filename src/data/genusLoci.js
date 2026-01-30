@@ -77,9 +77,13 @@ export const genusLociData = {
     uniqueDrop: { itemId: 'pyroclast_crest', guaranteed: true },
     firstClearBonus: { gems: 20 },
     currencyRewards: {
-      base: { gold: 120 },
-      perLevel: { gold: 30 }
-    }
+      base: { gold: 24 },
+      perLevel: { gold: 6 }
+    },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 3, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 2, chance: 0.7, perLevel: true }
+    ]
   }
 }
 

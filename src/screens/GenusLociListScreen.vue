@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useGenusLociStore } from '../stores'
-import { getAllQuestNodes } from '../data/questNodes.js'
+import { getAllQuestNodes } from '../data/quests/index.js'
 
 const emit = defineEmits(['navigate'])
 

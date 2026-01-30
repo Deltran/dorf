@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { questNodes } from '../data/questNodes.js'
+import { questNodes } from '../data/quests/index.js'
 import {
   RANK_BONUS_PER_LEVEL,
   EXPLORATION_RANKS,
@@ -10,7 +10,7 @@ import { useQuestsStore } from './quests.js'
 import { useHeroesStore } from './heroes.js'
 import { useGachaStore } from './gacha.js'
 import { useInventoryStore } from './inventory.js'
-import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 
 export const useExplorationsStore = defineStore('explorations', () => {

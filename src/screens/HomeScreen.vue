@@ -471,6 +471,7 @@ const hasParty = computed(() => {
   height: 100%;
   object-fit: cover;
   display: block;
+  image-rendering: pixelated;
 }
 
 .empty-slot {

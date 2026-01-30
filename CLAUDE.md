@@ -90,13 +90,13 @@ const roleIcons = {
 - `calculateHealSelfPercent(damage, percent)` - Calculate lifesteal healing
 
 ### Data
-- `src/data/heroTemplates.js` - Hero definitions with skills and leader skills
-- `src/data/enemyTemplates.js` - Enemy definitions
+- `src/data/heroes/` - Hero definitions (split by rarity: 5star/, 4star/, etc.)
+- `src/data/enemies/` - Enemy definitions (split by area: forest.js, cave.js, etc.)
+- `src/data/quests/` - Quest nodes and regions (split by region: whispering_woods.js, etc.)
 - `src/data/genusLoci.js` - Genus Loci boss definitions
 - `src/data/genusLociAbilities.js` - Genus Loci abilities and passives
 - `src/data/classes.js` - Class definitions (role, resource name)
 - `src/data/statusEffects.js` - Buff/debuff definitions
-- `src/data/questNodes.js` - Quest node definitions, region data
 - `src/data/items.js` - Item definitions (XP tomes, junk items, keys, region tokens)
 
 ### Components

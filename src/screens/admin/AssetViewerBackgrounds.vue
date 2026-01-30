@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { questNodes, regions } from '../../data/questNodes.js'
+import { questNodes, regions } from '../../data/quests/index.js'
 import assetPromptsData from '../../data/assetPrompts.json'
 import BackgroundAssetCard from '../../components/admin/BackgroundAssetCard.vue'
 import BackgroundAssetModal from '../../components/admin/BackgroundAssetModal.vue'

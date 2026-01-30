@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
-import { heroTemplates } from '../../data/heroTemplates.js'
+import { heroTemplates } from '../../data/heroes/index.js'
 import assetPromptsData from '../../data/assetPrompts.json'
 import HeroAssetCard from '../../components/admin/HeroAssetCard.vue'
 import HeroAssetModal from '../../components/admin/HeroAssetModal.vue'

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useHeroesStore, useGachaStore } from '../stores'
-import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 import MergePlannerModal from '../components/MergePlannerModal.vue'
 
 const emit = defineEmits(['navigate'])

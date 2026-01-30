@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useShardsStore, useHeroesStore } from '../stores'
-import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 
 const emit = defineEmits(['navigate'])
 

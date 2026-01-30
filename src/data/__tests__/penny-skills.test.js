@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { heroTemplates } from '../heroTemplates'
+import { heroTemplates } from '../heroes/index.js'
 
 describe('Penny Whistler skills', () => {
   const penny = heroTemplates.street_busker

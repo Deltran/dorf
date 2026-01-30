@@ -1,0 +1,73 @@
+import whisperLakeMap from '../../assets/maps/whisper_lake.png'
+
+export const regionMeta = {
+  id: 'whisper_lake',
+  name: 'Whisper Lake',
+  superRegion: 'western_veros',
+  startNode: 'lake_01',
+  width: 500,
+  height: 450,
+  backgroundColor: '#1a2a2f',
+  backgroundImage: whisperLakeMap
+}
+
+export const nodes = {
+  lake_01: {
+    id: 'lake_01',
+    name: 'Misty Shore',
+    region: 'Whisper Lake',
+    x: 450,
+    y: 80,
+    battles: [
+      { enemies: ['forest_wolf', 'forest_wolf', 'giant_frog'] },
+      { enemies: ['lake_serpent', 'lake_serpent'] },
+      { enemies: ['dire_wolf', 'giant_frog', 'giant_frog'] }
+    ],
+    connections: ['lake_02'],
+    rewards: { gems: 90, gold: 220, exp: 170 },
+    firstClearBonus: { gems: 55 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.35 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.3 },
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.2 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'token_whispering_woods', min: 1, max: 1, chance: 0.1 }
+    ]
+  },
+  lake_02: {
+    id: 'lake_02',
+    name: 'Drowned Hollow',
+    region: 'Whisper Lake',
+    x: 470,
+    y: 280,
+    battles: [
+      { enemies: ['lake_serpent', 'giant_frog', 'giant_frog'] },
+      { enemies: ['dire_wolf', 'dire_wolf', 'lake_serpent'] },
+      { enemies: ['forest_wolf', 'forest_wolf', 'dire_wolf', 'giant_frog'] },
+      { enemies: ['lake_serpent', 'marsh_hag', 'lake_serpent', 'giant_frog'] }
+    ],
+    connections: ['lake_genus_loci'],
+    rewards: { gems: 110, gold: 280, exp: 220 },
+    firstClearBonus: { gems: 70 },
+    itemDrops: [
+      { itemId: 'tome_small', min: 1, max: 2, chance: 1.0 },
+      { itemId: 'tome_medium', min: 1, max: 1, chance: 0.45 },
+      { itemId: 'goblin_trinket', min: 1, max: 1, chance: 0.35 },
+      { itemId: 'shiny_pebble', min: 1, max: 1, chance: 0.2 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 2, chance: 0.05 },
+      { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.25 },
+      { itemId: 'token_whispering_woods', min: 1, max: 1, chance: 0.1 }
+    ]
+  },
+  lake_genus_loci: {
+    id: 'lake_genus_loci',
+    name: 'Lake Tower',
+    region: 'Whisper Lake',
+    x: 250,
+    y: 400,
+    type: 'genusLoci',
+    genusLociId: 'valinar',
+    connections: ['lake_02']
+  }
+}

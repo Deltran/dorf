@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { generateMapImage } from '../../lib/gemini.js'
-import { getQuestNode } from '../../data/questNodes.js'
+import { getQuestNode } from '../../data/quests/index.js'
 
 const props = defineProps({
   region: { type: Object, required: true },

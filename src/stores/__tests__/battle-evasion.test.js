@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useBattleStore } from '../battle'
 import { EffectType, effectDefinitions } from '../../data/statusEffects'
-import { heroTemplates } from '../../data/heroTemplates'
+import { heroTemplates } from '../../data/heroes/index.js'
 
 describe('battle store - evasion effect', () => {
   let store

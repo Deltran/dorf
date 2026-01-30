@@ -6,7 +6,7 @@ import FocusIndicator from './FocusIndicator.vue'
 import ValorBar from './ValorBar.vue'
 import RageBar from './RageBar.vue'
 import VerseIndicator from './VerseIndicator.vue'
-import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 
 // Import all hero images
@@ -312,6 +312,7 @@ const isOnExploration = computed(() => {
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid #374151;
+  image-rendering: pixelated;
 }
 
 .card-body {

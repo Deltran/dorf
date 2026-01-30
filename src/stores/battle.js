@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useHeroesStore } from './heroes.js'
-import { getEnemyTemplate } from '../data/enemyTemplates.js'
+import { getEnemyTemplate } from '../data/enemies/index.js'
 import { EffectType, createEffect, getEffectDefinition } from '../data/statusEffects.js'
 import { getClass } from '../data/classes.js'
 import { getGenusLoci } from '../data/genusLoci.js'

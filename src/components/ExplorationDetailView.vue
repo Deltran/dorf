@@ -696,6 +696,7 @@ h3 {
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.6));
+  image-rendering: pixelated;
 }
 
 .banner-hero.empty {

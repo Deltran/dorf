@@ -14,8 +14,8 @@ import VerseIndicator from '../components/VerseIndicator.vue'
 import SkillPanel from '../components/SkillPanel.vue'
 import ActionBar from '../components/ActionBar.vue'
 import { getItem } from '../data/items.js'
-import { getQuestNode, getAllQuestNodes } from '../data/questNodes.js'
-import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getQuestNode, getAllQuestNodes } from '../data/quests/index.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import { useTipsStore } from '../stores/tips.js'
 import { useTooltip } from '../composables/useTooltip.js'
@@ -277,6 +277,12 @@ function canUseSkill(skill) {
 
   // Check cooldown (applies to all classes)
   if (currentHero.value.currentCooldowns?.[skill.name] > 0) return false
+
+  // Check use conditions
+  if (skill.useCondition === 'has_debuffs') {
+    const debuffs = currentHero.value.activeEffects?.filter(e => e.isDebuff) || []
+    if (debuffs.length === 0) return false
+  }
 
   // Knights check Valor requirement
   if (isCurrentHeroKnight.value) {
@@ -623,6 +629,29 @@ function handleGenusLociVictory() {
       item: getItem(bossData.uniqueDrop.itemId),
       count: 1
     })
+  }
+
+  // Process itemDrops
+  if (bossData.itemDrops) {
+    for (const drop of bossData.itemDrops) {
+      const rollCount = drop.perLevel ? (meta.powerLevel - 1) : 1
+      let totalDropped = 0
+
+      for (let i = 0; i < rollCount; i++) {
+        if (Math.random() < drop.chance) {
+          const amount = Math.floor(Math.random() * (drop.max - drop.min + 1)) + drop.min
+          totalDropped += amount
+        }
+      }
+
+      if (totalDropped > 0) {
+        inventoryStore.addItem(drop.itemId, totalDropped)
+        itemsDrop.push({
+          item: getItem(drop.itemId),
+          count: totalDropped
+        })
+      }
+    }
   }
 
   // Set up rewards for display
@@ -1289,6 +1318,15 @@ function getStatChange(hero, stat) {
 
     <!-- Action Area -->
     <section v-if="battleStore.isPlayerTurn && currentHero" class="action-area">
+      <!-- Skill Panel (positioned above action bar) -->
+      <SkillPanel
+        :hero="currentHero"
+        :skills="skillsForPanel"
+        :isOpen="skillPanelOpen"
+        :classColor="heroClassColor"
+        @select-skill="handleSkillSelect"
+        @close="closeSkillPanel"
+      />
       <ActionBar
         :heroName="currentHero.template.name"
         :classColor="heroClassColor"
@@ -1299,25 +1337,12 @@ function getStatChange(hero, stat) {
       />
     </section>
 
-    <!-- Skill Panel (outside action-area for proper z-index) -->
-    <SkillPanel
-      v-if="currentHero"
-      :hero="currentHero"
-      :skills="skillsForPanel"
-      :isOpen="skillPanelOpen"
-      :classColor="heroClassColor"
-      @select-skill="handleSkillSelect"
-      @close="closeSkillPanel"
-    />
-
     <!-- Waiting indicator -->
-    <section v-else-if="!battleStore.isBattleOver" class="waiting-area">
-      <p v-if="battleStore.state === BattleState.ENEMY_TURN">
-        Enemy turn...
-      </p>
-      <p v-else-if="battleStore.state === BattleState.ANIMATING">
-        ...
-      </p>
+    <section v-else-if="!battleStore.isBattleOver" class="action-area">
+      <div class="waiting-bar">
+        <span v-if="battleStore.state === BattleState.ENEMY_TURN">Enemy turn...</span>
+        <span v-else-if="battleStore.state === BattleState.ANIMATING">...</span>
+      </div>
     </section>
 
     <!-- Battle Log -->
@@ -1745,6 +1770,7 @@ function getStatChange(hero, stat) {
   height: 100%;
   object-fit: cover;
   object-position: center top;
+  image-rendering: pixelated;
 }
 
 /* Fallback when no image */
@@ -2116,6 +2142,7 @@ function getStatChange(hero, stat) {
   width: 100%;
   height: auto;
   display: block;
+  image-rendering: pixelated;
 }
 
 .hero-image-placeholder {
@@ -2164,9 +2191,8 @@ function getStatChange(hero, stat) {
 }
 
 .action-area {
-  margin-top: 8px;
-  padding: 8px 16px;
-  overflow: hidden;
+  position: relative;
+  padding: 0 16px;
 }
 
 .action-prompt {
@@ -2182,11 +2208,17 @@ function getStatChange(hero, stat) {
   font-weight: 600;
 }
 
-.waiting-area {
-  margin-top: auto;
-  text-align: center;
-  padding: 24px;
+.waiting-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  background: #111827;
+  border-left: 3px solid #374151;
+  border-top: 1px solid #374151;
+  border-bottom: 1px solid #374151;
   color: #6b7280;
+  font-size: 0.9rem;
 }
 
 .modal-overlay {

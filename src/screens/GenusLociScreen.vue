@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useGenusLociStore, useInventoryStore } from '../stores'
 import { getGenusLoci, getAllGenusLoci } from '../data/genusLoci.js'
-import { getAllQuestNodes } from '../data/questNodes.js'
+import { getAllQuestNodes } from '../data/quests/index.js'
 
 // Enemy portraits for genus loci
 const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })

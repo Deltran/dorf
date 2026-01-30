@@ -1,7 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { enemyTemplates } from '../../src/data/enemyTemplates.js'
+import { enemyTemplates } from '../../src/data/enemies/index.js'
 import { questNodes } from '../../src/data/questNodes.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))

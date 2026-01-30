@@ -5,7 +5,7 @@ import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import { getBannerAvailabilityText, getBannerImageUrl } from '../data/banners.js'
-import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 
 const emit = defineEmits(['navigate'])
 

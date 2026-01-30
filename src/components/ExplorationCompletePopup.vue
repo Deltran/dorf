@@ -183,6 +183,7 @@ h2 {
   object-fit: cover;
   margin: 0 auto 4px;
   border: 2px solid #374151;
+  image-rendering: pixelated;
 }
 
 .portrait-placeholder {

@@ -4,7 +4,7 @@ import { useHeroesStore, useInventoryStore, useGachaStore, useExplorationsStore 
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import MergePlannerModal from '../components/MergePlannerModal.vue'
-import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 import { getItem } from '../data/items.js'
 import { useTooltip } from '../composables/useTooltip.js'
@@ -1589,6 +1589,7 @@ function getEffectTypeName(type) {
   border-radius: 12px;
   border: 2px solid #374151;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  image-rendering: pixelated;
 }
 
 .header-info {

@@ -1,9 +1,9 @@
 <script setup>
 import { ref, computed, watch, watchEffect, onMounted } from 'vue'
 import { useQuestsStore, useHeroesStore, useInventoryStore, useGenusLociStore, useExplorationsStore, useGachaStore } from '../stores'
-import { regions, superRegions, getQuestNode, getNodesByRegion, getRegion, getRegionsBySuperRegion } from '../data/questNodes.js'
+import { regions, superRegions, getQuestNode, getNodesByRegion, getRegion, getRegionsBySuperRegion } from '../data/quests/index.js'
 import { getItem, getTokenForRegion } from '../data/items.js'
-import { getEnemyTemplate } from '../data/enemyTemplates.js'
+import { getEnemyTemplate } from '../data/enemies/index.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import MapCanvas from '../components/MapCanvas.vue'
 import SuperRegionSelect from '../components/SuperRegionSelect.vue'

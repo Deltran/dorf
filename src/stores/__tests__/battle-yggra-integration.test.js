@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useBattleStore } from '../battle'
 import { useHeroesStore } from '../heroes'
-import { heroTemplates } from '../../data/heroTemplates'
+import { heroTemplates } from '../../data/heroes/index.js'
 
 describe('Yggra skills integration', () => {
   let store

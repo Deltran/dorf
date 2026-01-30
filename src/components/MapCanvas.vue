@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { getQuestNode, regions } from '../data/questNodes.js'
+import { getQuestNode, regions } from '../data/quests/index.js'
 import NodeMarker from './NodeMarker.vue'
 import RegionLinkMarker from './RegionLinkMarker.vue'
 

@@ -3,7 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
-import { getAllQuestNodes } from './data/questNodes.js'
+import { getAllQuestNodes } from './data/quests/index.js'
 
 import HomeScreen from './screens/HomeScreen.vue'
 import GachaScreen from './screens/GachaScreen.vue'

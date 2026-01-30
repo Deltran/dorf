@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useHeroesStore, useGachaStore, useInventoryStore } from '../stores'
-import { getHeroTemplate } from '../data/heroTemplates.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 import { getItem } from '../data/items.js'
 import StarRating from './StarRating.vue'
 
