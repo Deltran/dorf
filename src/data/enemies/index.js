@@ -11,6 +11,22 @@ import { enemies as catacombs } from './catacombs.js'
 import { enemies as morass } from './morass.js'
 import { enemies as aquariaGate } from './aquaria_gate.js'
 import { enemies as coral } from './coral.js'
+// Aquarias main regions
+import { enemies as tidewall } from './tidewall.js'
+import { enemies as currents } from './currents.js'
+import { enemies as murk } from './murk.js'
+import { enemies as beggar } from './beggar.js'
+import { enemies as pearlgate } from './pearlgate.js'
+import { enemies as castle } from './castle.js'
+import { enemies as throne } from './throne.js'
+import { enemies as scalding } from './scalding.js'
+import { enemies as abyss } from './abyss.js'
+// Aquarias branch regions
+import { enemies as prison } from './prison.js'
+import { enemies as shipyard } from './shipyard.js'
+import { enemies as blackfin } from './blackfin.js'
+import { enemies as archives } from './archives.js'
+import { enemies as nursery } from './nursery.js'
 
 export const enemyTemplates = {
   ...forest,
@@ -25,7 +41,23 @@ export const enemyTemplates = {
   ...catacombs,
   ...morass,
   ...aquariaGate,
-  ...coral
+  ...coral,
+  // Aquarias main regions
+  ...tidewall,
+  ...currents,
+  ...murk,
+  ...beggar,
+  ...pearlgate,
+  ...castle,
+  ...throne,
+  ...scalding,
+  ...abyss,
+  // Aquarias branch regions
+  ...prison,
+  ...shipyard,
+  ...blackfin,
+  ...archives,
+  ...nursery
 }
 
 export function getEnemyTemplate(templateId) {

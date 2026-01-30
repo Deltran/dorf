@@ -1,34 +1,31 @@
-// Note: No background image defined in original questNodes.js for this region
-
 export const regionMeta = {
-  id: 'coral_depths',
-  name: 'Coral Depths',
+  id: 'forbidden_archives',
+  name: 'Forbidden Archives',
   superRegion: 'aquarias',
-  startNode: 'coral_01',
+  startNode: 'archives_01',
   width: 800,
   height: 500,
-  backgroundColor: '#0a2a3a'
+  backgroundColor: '#1a1a2a'
 }
 
 export const nodes = {
-  coral_01: {
-    id: 'coral_01',
-    name: 'Coral Tunnels',
-    region: 'Coral Depths',
+  archives_01: {
+    id: 'archives_01',
+    name: 'The Sealed Stacks',
+    region: 'Forbidden Archives',
     x: 100,
     y: 250,
     battles: [
-      { enemies: ['cave_crab', 'moray_eel', 'moray_eel'] },
-      { enemies: ['barnacle_cluster', 'cave_crab', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'barnacle_cluster', 'cave_crab'] }
+      { enemies: ['archive_construct', 'ink_specter'] },
+      { enemies: ['tome_mimic', 'knowledge_warden'] },
+      { enemies: ['archive_construct', 'archive_construct', 'ink_specter'] }
     ],
-    connections: ['coral_02'],
-    rewards: { gems: 100, gold: 1600, exp: 1600 },
+    connections: ['archives_02'],
+    rewards: { gems: 100, gold: 3600, exp: 3600 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
@@ -50,25 +47,24 @@ export const nodes = {
     ],
     shardDropChance: 0.25
   },
-  coral_02: {
-    id: 'coral_02',
-    name: 'Barnacle Narrows',
-    region: 'Coral Depths',
+  archives_02: {
+    id: 'archives_02',
+    name: 'Hall of Heresy',
+    region: 'Forbidden Archives',
     x: 250,
     y: 180,
     battles: [
-      { enemies: ['barnacle_cluster', 'barnacle_cluster', 'cave_crab'] },
-      { enemies: ['moray_eel', 'moray_eel', 'reef_warden'] },
-      { enemies: ['cave_crab', 'cave_crab', 'barnacle_cluster'] },
-      { enemies: ['reef_warden', 'moray_eel', 'barnacle_cluster', 'cave_crab'] }
+      { enemies: ['ink_specter', 'ink_specter', 'archive_construct'] },
+      { enemies: ['knowledge_warden', 'tome_mimic'] },
+      { enemies: ['archive_construct', 'ink_specter', 'tome_mimic'] },
+      { enemies: ['knowledge_warden', 'archive_construct', 'ink_specter'] }
     ],
-    connections: ['coral_03'],
-    rewards: { gems: 100, gold: 1650, exp: 1650 },
+    connections: ['archives_03'],
+    rewards: { gems: 100, gold: 3650, exp: 3650 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
@@ -90,25 +86,24 @@ export const nodes = {
     ],
     shardDropChance: 0.25
   },
-  coral_03: {
-    id: 'coral_03',
-    name: 'Eel Hollows',
-    region: 'Coral Depths',
+  archives_03: {
+    id: 'archives_03',
+    name: 'Drowned Scriptorium',
+    region: 'Forbidden Archives',
     x: 400,
     y: 300,
     battles: [
-      { enemies: ['moray_eel', 'moray_eel', 'moray_eel'] },
-      { enemies: ['cave_crab', 'moray_eel', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'barnacle_cluster', 'barnacle_cluster'] },
-      { enemies: ['moray_eel', 'moray_eel', 'cave_crab', 'reef_warden'] }
+      { enemies: ['tome_mimic', 'tome_mimic', 'ink_specter'] },
+      { enemies: ['archive_construct', 'archive_construct', 'knowledge_warden'] },
+      { enemies: ['ink_specter', 'ink_specter', 'tome_mimic', 'archive_construct'] },
+      { enemies: ['knowledge_warden', 'knowledge_warden', 'ink_specter'] }
     ],
-    connections: ['coral_04', 'prison_01'],
-    rewards: { gems: 100, gold: 1700, exp: 1700 },
+    connections: ['archives_04'],
+    rewards: { gems: 100, gold: 3700, exp: 3700 },
     firstClearBonus: { gems: 50 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
@@ -130,109 +125,65 @@ export const nodes = {
     ],
     shardDropChance: 0.25
   },
-  coral_04: {
-    id: 'coral_04',
-    name: 'Collapsed Grotto',
-    region: 'Coral Depths',
-    x: 500,
-    y: 170,
-    battles: [
-      { enemies: ['cave_crab', 'cave_crab', 'reef_warden'] },
-      { enemies: ['barnacle_cluster', 'moray_eel', 'moray_eel', 'cave_crab'] },
-      { enemies: ['reef_warden', 'reef_warden', 'cave_crab'] },
-      { enemies: ['moray_eel', 'barnacle_cluster', 'cave_crab', 'cave_crab'] },
-      { enemies: ['cave_crab', 'cave_crab', 'reef_warden', 'moray_eel', 'moray_eel'] }
-    ],
-    connections: ['coral_05'],
-    rewards: { gems: 100, gold: 1750, exp: 1750 },
-    firstClearBonus: { gems: 75 },
-    itemDrops: [
-      { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
-      // 1-star equipment (4% each)
-      { itemId: 'rusty_shiv', chance: 0.04 },
-      { itemId: 'scrap_leather', chance: 0.04 },
-      { itemId: 'cracked_ring', chance: 0.04 },
-      { itemId: 'tattered_shroud', chance: 0.04 },
-      { itemId: 'dented_buckler', chance: 0.04 },
-      { itemId: 'cracked_skull', chance: 0.04 },
-      { itemId: 'bent_shortbow', chance: 0.04 },
-      { itemId: 'gnarled_branch', chance: 0.04 },
-      { itemId: 'tarnished_pendant', chance: 0.04 },
-      { itemId: 'faded_prayer_beads', chance: 0.04 },
-      { itemId: 'chipped_antler', chance: 0.04 },
-      { itemId: 'cracked_whistle', chance: 0.04 },
-      // 1-star upgrade materials (2.5% each)
-      { itemId: 'common_weapon_stone', chance: 0.025 },
-      { itemId: 'common_armor_plate', chance: 0.025 },
-      { itemId: 'common_gem_shard', chance: 0.025 },
-      { itemId: 'common_class_token', chance: 0.025 }
-    ],
-    shardDropChance: 0.25
-  },
-  coral_05: {
-    id: 'coral_05',
-    name: 'Reef Labyrinth',
-    region: 'Coral Depths',
-    x: 620,
-    y: 310,
-    battles: [
-      { enemies: ['barnacle_cluster', 'barnacle_cluster', 'reef_warden', 'cave_crab'] },
-      { enemies: ['moray_eel', 'moray_eel', 'moray_eel', 'barnacle_cluster'] },
-      { enemies: ['reef_warden', 'cave_crab', 'cave_crab', 'moray_eel'] },
-      { enemies: ['barnacle_cluster', 'reef_warden', 'moray_eel', 'moray_eel'] },
-      { enemies: ['cave_crab', 'cave_crab', 'reef_warden', 'barnacle_cluster', 'moray_eel'] }
-    ],
-    connections: ['coral_06'],
-    rewards: { gems: 100, gold: 1800, exp: 1800 },
-    firstClearBonus: { gems: 75 },
-    itemDrops: [
-      { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
-      { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
-      // 1-star equipment (4% each)
-      { itemId: 'rusty_shiv', chance: 0.04 },
-      { itemId: 'scrap_leather', chance: 0.04 },
-      { itemId: 'cracked_ring', chance: 0.04 },
-      { itemId: 'tattered_shroud', chance: 0.04 },
-      { itemId: 'dented_buckler', chance: 0.04 },
-      { itemId: 'cracked_skull', chance: 0.04 },
-      { itemId: 'bent_shortbow', chance: 0.04 },
-      { itemId: 'gnarled_branch', chance: 0.04 },
-      { itemId: 'tarnished_pendant', chance: 0.04 },
-      { itemId: 'faded_prayer_beads', chance: 0.04 },
-      { itemId: 'chipped_antler', chance: 0.04 },
-      { itemId: 'cracked_whistle', chance: 0.04 },
-      // 1-star upgrade materials (2.5% each)
-      { itemId: 'common_weapon_stone', chance: 0.025 },
-      { itemId: 'common_armor_plate', chance: 0.025 },
-      { itemId: 'common_gem_shard', chance: 0.025 },
-      { itemId: 'common_class_token', chance: 0.025 }
-    ],
-    shardDropChance: 0.25
-  },
-  coral_06: {
-    id: 'coral_06',
-    name: 'The Back Gate',
-    region: 'Coral Depths',
-    x: 720,
+  archives_04: {
+    id: 'archives_04',
+    name: 'Vault of Minds',
+    region: 'Forbidden Archives',
+    x: 550,
     y: 200,
     battles: [
-      { enemies: ['cave_crab', 'cave_crab', 'barnacle_cluster', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'moray_eel', 'moray_eel'] },
-      { enemies: ['reef_warden', 'reef_warden', 'cave_crab', 'cave_crab'] },
-      { enemies: ['barnacle_cluster', 'barnacle_cluster', 'moray_eel', 'cave_crab', 'reef_warden'] },
-      { enemies: ['cave_crab', 'cave_crab', 'cave_crab', 'reef_warden', 'reef_warden'] },
-      { enemies: ['moray_eel', 'moray_eel', 'cave_crab', 'cave_crab', 'reef_warden', 'barnacle_cluster'] }
+      { enemies: ['knowledge_warden', 'knowledge_warden', 'tome_mimic'] },
+      { enemies: ['archive_construct', 'archive_construct', 'ink_specter', 'ink_specter'] },
+      { enemies: ['tome_mimic', 'tome_mimic', 'tome_mimic'] },
+      { enemies: ['ink_specter', 'ink_specter', 'knowledge_warden', 'archive_construct'] },
+      { enemies: ['archive_construct', 'tome_mimic', 'ink_specter', 'knowledge_warden'] }
     ],
-    connections: ['tidewall_01'],
-    rewards: { gems: 100, gold: 1900, exp: 1900 },
+    connections: ['archives_05'],
+    rewards: { gems: 100, gold: 3750, exp: 3750 },
+    firstClearBonus: { gems: 75 },
+    itemDrops: [
+      { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
+      { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
+      // 1-star equipment (4% each)
+      { itemId: 'rusty_shiv', chance: 0.04 },
+      { itemId: 'scrap_leather', chance: 0.04 },
+      { itemId: 'cracked_ring', chance: 0.04 },
+      { itemId: 'tattered_shroud', chance: 0.04 },
+      { itemId: 'dented_buckler', chance: 0.04 },
+      { itemId: 'cracked_skull', chance: 0.04 },
+      { itemId: 'bent_shortbow', chance: 0.04 },
+      { itemId: 'gnarled_branch', chance: 0.04 },
+      { itemId: 'tarnished_pendant', chance: 0.04 },
+      { itemId: 'faded_prayer_beads', chance: 0.04 },
+      { itemId: 'chipped_antler', chance: 0.04 },
+      { itemId: 'cracked_whistle', chance: 0.04 },
+      // 1-star upgrade materials (2.5% each)
+      { itemId: 'common_weapon_stone', chance: 0.025 },
+      { itemId: 'common_armor_plate', chance: 0.025 },
+      { itemId: 'common_gem_shard', chance: 0.025 },
+      { itemId: 'common_class_token', chance: 0.025 }
+    ],
+    shardDropChance: 0.25
+  },
+  archives_05: {
+    id: 'archives_05',
+    name: 'The Index',
+    region: 'Forbidden Archives',
+    x: 700,
+    y: 280,
+    battles: [
+      { enemies: ['archive_construct', 'archive_construct', 'knowledge_warden', 'knowledge_warden'] },
+      { enemies: ['tome_mimic', 'tome_mimic', 'ink_specter', 'ink_specter'] },
+      { enemies: ['knowledge_warden', 'knowledge_warden', 'knowledge_warden'] },
+      { enemies: ['ink_specter', 'ink_specter', 'tome_mimic', 'tome_mimic', 'archive_construct'] },
+      { enemies: ['archive_construct', 'archive_construct', 'archive_construct', 'knowledge_warden', 'ink_specter'] }
+    ],
+    connections: [],
+    rewards: { gems: 100, gold: 3800, exp: 3800 },
     firstClearBonus: { gems: 100 },
     itemDrops: [
       { itemId: 'tome_large', min: 1, max: 2, chance: 0.8 },
       { itemId: 'shard_dragon_heart', min: 1, max: 1, chance: 0.05 },
-      { itemId: 'token_gate_to_aquaria', min: 1, max: 1, chance: 0.1 },
       // 1-star equipment (4% each)
       { itemId: 'rusty_shiv', chance: 0.04 },
       { itemId: 'scrap_leather', chance: 0.04 },
