@@ -106,6 +106,7 @@ const heroCardStyle = computed(() => {
 
 .role-icon {
   font-size: 1rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
 }
 
 .hero-name {
@@ -113,11 +114,13 @@ const heroCardStyle = computed(() => {
   font-weight: 600;
   color: #f3f4f6;
   letter-spacing: 0.02em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
 }
 
 .hint {
   font-size: 0.7rem;
-  color: #6b7280;
+  color: #9ca3af;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
 }
 
 .skills-btn {
