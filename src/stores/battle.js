@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useHeroesStore } from './heroes.js'
 import { useEquipmentStore } from './equipment.js'
 import { getEnemyTemplate } from '../data/enemies/index.js'
-import { EffectType, createEffect, getEffectDefinition } from '../data/statusEffects.js'
+import { EffectType, createEffect, getEffectDefinition, effectDefinitions } from '../data/statusEffects.js'
 import { getClass } from '../data/classes.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import { getGenusLociAbilitiesForLevel } from '../data/genusLociAbilities.js'
@@ -1917,18 +1917,36 @@ export const useBattleStore = defineStore('battle', () => {
     for (const hero of heroes.value) {
       if (hero.currentHp > 0) {
         const effectiveSpd = getEffectiveStat(hero, 'spd')
-        units.push({ type: 'hero', id: hero.instanceId, spd: effectiveSpd })
+        const tempoEffect = hero.statusEffects?.find(e => e.type === EffectType.SHATTERED_TEMPO)
+        units.push({
+          type: 'hero',
+          id: hero.instanceId,
+          spd: effectiveSpd,
+          turnOrderPriority: tempoEffect?.turnOrderPriority || 999
+        })
       }
     }
 
     for (const enemy of enemies.value) {
       if (enemy.currentHp > 0) {
         const effectiveSpd = getEffectiveStat(enemy, 'spd')
-        units.push({ type: 'enemy', id: enemy.id, spd: effectiveSpd })
+        units.push({
+          type: 'enemy',
+          id: enemy.id,
+          spd: effectiveSpd,
+          turnOrderPriority: 999
+        })
       }
     }
 
-    units.sort((a, b) => b.spd - a.spd)
+    // Sort by priority first (lower = acts sooner), then by SPD
+    units.sort((a, b) => {
+      if (a.turnOrderPriority !== b.turnOrderPriority) {
+        return a.turnOrderPriority - b.turnOrderPriority
+      }
+      return b.spd - a.spd
+    })
+
     turnOrder.value = units.map(u => ({ type: u.type, id: u.id }))
   }
 
@@ -3618,6 +3636,21 @@ export const useBattleStore = defineStore('battle', () => {
     return 1
   }
 
+  function getViciousDamageMultiplier(attacker, target) {
+    const viciousEffect = attacker?.statusEffects?.find(e => e.type === EffectType.VICIOUS)
+    if (!viciousEffect) return 1.0
+
+    // Check if target has any debuffs
+    const hasDebuff = target?.statusEffects?.some(e => {
+      const def = e.definition || effectDefinitions[e.type]
+      return def && !def.isBuff
+    })
+
+    if (!hasDebuff) return 1.0
+
+    return 1 + (viciousEffect.bonusDamagePercent || 0) / 100
+  }
+
   function calculateDamageWithMarked(atk, multiplier, def, markedMultiplier = 1) {
     const raw = atk * multiplier * (100 / (100 + def))
     const baseDamage = Math.max(1, Math.floor(raw))
@@ -3851,12 +3884,15 @@ export const useBattleStore = defineStore('battle', () => {
     clearCombatEffects,
     applyDamage,
     reviveUnit,
+    // Turn order (with SHATTERED_TEMPO priority support)
+    calculateTurnOrder,
     // Effect helpers (for UI)
     resolveEffectValue,
     getEffectiveStat,
     hasEffect,
     checkDeathPrevention,
     getMarkedDamageMultiplier,
+    getViciousDamageMultiplier,
     calculateDamageWithMarked,
     selectRandomTarget,
     pickRandom,
