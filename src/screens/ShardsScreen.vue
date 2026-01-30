@@ -66,9 +66,18 @@ function navigateToHero(hero) {
 
 <template>
   <div class="shards-screen">
+    <!-- Animated background layers -->
+    <div class="bg-layer bg-gradient"></div>
+    <div class="bg-layer bg-shards"></div>
+    <div class="bg-vignette"></div>
+
     <header class="screen-header">
-      <button class="back-btn" @click="emit('navigate', 'fellowship-hall')">Back</button>
+      <button class="back-btn" @click="emit('navigate', 'fellowship-hall')">
+        <span class="back-arrow">‹</span>
+        <span>Back</span>
+      </button>
       <h1>Shards</h1>
+      <div class="header-spacer"></div>
     </header>
 
     <!-- Locked state -->
@@ -85,7 +94,11 @@ function navigateToHero(hero) {
     <template v-else>
       <!-- Hunting Loadout Section -->
       <section class="hunting-section">
-        <h2>Shard Hunting</h2>
+        <div class="section-header">
+          <div class="section-line"></div>
+          <h2>Shard Hunting</h2>
+          <div class="section-line"></div>
+        </div>
         <p class="section-desc">Select up to 5 heroes to hunt shards for. Empty slots roll random heroes.</p>
 
         <div class="hunting-slots">
@@ -113,7 +126,11 @@ function navigateToHero(hero) {
 
       <!-- Shard Progress Section -->
       <section class="progress-section">
-        <h2>Shard Progress</h2>
+        <div class="section-header">
+          <div class="section-line"></div>
+          <h2>Shard Progress</h2>
+          <div class="section-line"></div>
+        </div>
 
         <div class="hero-shard-list">
           <div
@@ -166,100 +183,240 @@ function navigateToHero(hero) {
 </template>
 
 <style scoped>
+/* ===== Base Layout ===== */
 .shards-screen {
   min-height: 100vh;
-  background: #111827;
-  padding: 1rem;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
 }
 
+/* ===== Animated Background ===== */
+.bg-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.bg-gradient {
+  background: linear-gradient(
+    135deg,
+    #1e1b4b 0%,
+    #312e81 25%,
+    #3b2f6b 50%,
+    #1e1b4b 75%,
+    #2e1065 100%
+  );
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.bg-shards {
+  opacity: 0.04;
+  background-image:
+    linear-gradient(45deg, transparent 40%, rgba(168, 85, 247, 0.3) 45%, transparent 50%),
+    linear-gradient(-45deg, transparent 40%, rgba(168, 85, 247, 0.2) 45%, transparent 50%),
+    linear-gradient(135deg, transparent 40%, rgba(192, 132, 252, 0.2) 45%, transparent 50%);
+  background-size: 60px 60px, 80px 80px, 100px 100px;
+  animation: shardsDrift 15s linear infinite;
+}
+
+@keyframes shardsDrift {
+  0% { background-position: 0 0, 0 0, 0 0; }
+  100% { background-position: 60px 60px, -80px 80px, 100px -100px; }
+}
+
+.bg-vignette {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ===== Header ===== */
 .screen-header {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .screen-header h1 {
   margin: 0;
   font-size: 1.5rem;
+  font-weight: 700;
+  color: #f3f4f6;
+  text-shadow: 0 2px 10px rgba(168, 85, 247, 0.5);
+  flex: 1;
+  text-align: center;
+}
+
+.header-spacer {
+  width: 72px;
 }
 
 .back-btn {
-  background: #374151;
-  border: none;
-  color: #f3f4f6;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  color: #9ca3af;
+  font-size: 0.9rem;
   cursor: pointer;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
 }
 
-/* Locked state */
+.back-btn:hover {
+  color: #f3f4f6;
+  border-color: #4b5563;
+  background: rgba(55, 65, 81, 0.8);
+}
+
+.back-arrow {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+/* ===== Section Headers ===== */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  font-size: 0.8rem;
+  color: #c4b5fd;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin: 0;
+  white-space: nowrap;
+}
+
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(168, 85, 247, 0.4) 50%, transparent 100%);
+}
+
+/* ===== Locked State ===== */
 .locked-overlay {
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 60vh;
+  position: relative;
+  z-index: 1;
 }
 
 .locked-content {
   text-align: center;
   padding: 2rem;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
+  border-radius: 16px;
+  border: 1px solid #334155;
+  max-width: 320px;
 }
 
 .lock-icon {
   font-size: 4rem;
   margin-bottom: 1rem;
+  opacity: 0.8;
 }
 
 .locked-content h2 {
-  color: #9ca3af;
-  margin-bottom: 0.5rem;
+  color: #c4b5fd;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
 }
 
 .locked-content p {
+  color: #9ca3af;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.locked-content .hint {
+  font-size: 0.8rem;
+  margin-top: 1rem;
   color: #6b7280;
 }
 
-.hint {
-  font-size: 0.875rem;
-  margin-top: 1rem;
-}
-
-/* Hunting section */
+/* ===== Hunting Section ===== */
 .hunting-section {
-  margin-bottom: 2rem;
-}
-
-.hunting-section h2 {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 .section-desc {
-  color: #6b7280;
-  font-size: 0.875rem;
+  color: #9ca3af;
+  font-size: 0.85rem;
   margin-bottom: 1rem;
+  text-align: center;
 }
 
 .hunting-slots {
   display: flex;
-  gap: 0.5rem;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
 .hunting-slot {
   flex: 1;
-  min-width: 100px;
-  background: #1f2937;
-  border: 2px dashed #374151;
-  border-radius: 8px;
-  padding: 1rem;
+  min-width: 90px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border: 1px solid #374151;
+  border-radius: 10px;
+  padding: 14px 10px;
   cursor: pointer;
   text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hunting-slot::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.5), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .hunting-slot:hover {
   border-color: #4b5563;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.hunting-slot:hover::before {
+  opacity: 1;
 }
 
 .slot-hero {
@@ -269,21 +426,36 @@ function navigateToHero(hero) {
 .slot-hero .hero-name {
   font-size: 0.75rem;
   color: #f3f4f6;
+  font-weight: 500;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .clear-btn {
   position: absolute;
-  top: -0.5rem;
-  right: -0.5rem;
-  background: #ef4444;
+  top: -8px;
+  right: -8px;
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
   border: none;
   color: white;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 0.75rem;
+  font-size: 12px;
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.clear-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 3px 8px rgba(239, 68, 68, 0.4);
 }
 
 .slot-empty {
@@ -291,47 +463,81 @@ function navigateToHero(hero) {
 }
 
 .random-icon {
-  font-size: 1.5rem;
+  font-size: 1.4rem;
   display: block;
+  color: #a855f7;
+  opacity: 0.6;
+  margin-bottom: 4px;
 }
 
 .random-text {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* Progress section */
-.progress-section h2 {
-  font-size: 1.25rem;
-  margin-bottom: 1rem;
+/* ===== Progress Section ===== */
+.progress-section {
+  position: relative;
+  z-index: 1;
+  flex: 1;
 }
 
 .hero-shard-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 8px;
 }
 
 .hero-shard-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: #1f2937;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+  gap: 12px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
+  padding: 12px 14px;
+  border-radius: 10px;
   cursor: pointer;
+  border: 1px solid #334155;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-shard-row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #a855f7 0%, #7c3aed 100%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .hero-shard-row:hover {
-  background: #374151;
+  border-color: #4b5563;
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.hero-shard-row:hover::before {
+  opacity: 1;
 }
 
 .hero-info {
   flex: 1;
+  min-width: 0;
 }
 
 .hero-info .hero-name {
   display: block;
-  font-weight: 500;
+  font-weight: 600;
+  color: #f3f4f6;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hero-info .hero-level {
@@ -344,90 +550,123 @@ function navigateToHero(hero) {
 }
 
 .shard-count {
-  font-size: 0.875rem;
-  color: #a855f7;
+  font-size: 0.85rem;
+  color: #c4b5fd;
+  font-weight: 500;
 }
 
 .tier-pips {
   display: flex;
-  gap: 4px;
+  gap: 5px;
   justify-content: flex-end;
-  margin-top: 4px;
+  margin-top: 5px;
 }
 
 .pip {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #374151;
+  border: 1px solid #4b5563;
+  transition: all 0.3s ease;
 }
 
 .pip.filled {
-  background: #a855f7;
+  background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%);
+  border-color: #c084fc;
+  box-shadow: 0 0 6px rgba(168, 85, 247, 0.5);
 }
 
 .upgrade-hint {
   font-size: 0.75rem;
   color: #6b7280;
-  min-width: 60px;
+  min-width: 55px;
   text-align: right;
+  font-weight: 500;
 }
 
 .upgrade-hint.max {
   color: #22c55e;
-  font-weight: 500;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
 }
 
-/* Modal */
+/* ===== Modal ===== */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.85);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
+  padding: 20px;
 }
 
 .modal {
-  background: #1f2937;
-  border-radius: 12px;
-  padding: 1.5rem;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  padding: 0;
   min-width: 280px;
   max-width: 90%;
   max-height: 80vh;
-  overflow-y: auto;
+  overflow: hidden;
+  border: 1px solid #334155;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
 }
 
 .modal h3 {
-  margin: 0 0 1rem 0;
+  margin: 0;
+  padding: 16px 20px;
+  font-size: 1.1rem;
+  color: #f3f4f6;
+  border-bottom: 1px solid #334155;
+  text-align: center;
 }
 
 .hero-picker-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 6px;
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
 }
 
 .picker-item {
-  padding: 0.75rem;
-  background: #374151;
-  border-radius: 6px;
+  padding: 12px 14px;
+  background: rgba(55, 65, 81, 0.5);
+  border-radius: 8px;
   cursor: pointer;
+  color: #f3f4f6;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
 .picker-item:hover {
-  background: #4b5563;
+  background: rgba(75, 85, 99, 0.6);
+  border-color: #4b5563;
+  transform: translateX(4px);
 }
 
 .cancel-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background: #374151;
-  border: none;
-  color: #f3f4f6;
-  border-radius: 6px;
+  width: calc(100% - 40px);
+  margin: 0 20px 16px;
+  padding: 12px;
+  background: rgba(55, 65, 81, 0.6);
+  border: 1px solid #4b5563;
+  color: #9ca3af;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background: rgba(75, 85, 99, 0.8);
+  color: #f3f4f6;
 }
 </style>
