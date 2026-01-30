@@ -5,6 +5,7 @@ import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
 import MergePlannerModal from '../components/MergePlannerModal.vue'
 import EquipmentSlot from '../components/EquipmentSlot.vue'
+import EquipmentSelectModal from '../components/EquipmentSelectModal.vue'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 import { getItem } from '../data/items.js'
@@ -155,7 +156,39 @@ const selectedHeroEquipment = computed(() => {
 
 function onEquipmentSlotClick(slotType) {
   selectedEquipmentSlot.value = slotType
-  // Task 9 will use this to show the selection modal
+}
+
+function closeEquipmentModal() {
+  selectedEquipmentSlot.value = null
+}
+
+function handleEquipItem(equipmentId) {
+  if (!selectedHero.value || !selectedEquipmentSlot.value) return
+
+  const result = equipmentStore.equip(
+    selectedHero.value.templateId,
+    equipmentId,
+    selectedEquipmentSlot.value
+  )
+
+  if (result.success) {
+    // Refresh the hero data to show updated stats
+    selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
+    closeEquipmentModal()
+  }
+}
+
+function handleUnequipItem() {
+  if (!selectedHero.value || !selectedEquipmentSlot.value) return
+
+  equipmentStore.unequip(
+    selectedHero.value.templateId,
+    selectedEquipmentSlot.value
+  )
+
+  // Refresh the hero data to show updated stats
+  selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
+  closeEquipmentModal()
 }
 
 // Auto-select hero if passed from another screen
@@ -1319,6 +1352,19 @@ function getEffectTypeName(type) {
       :heroInstanceId="buildCopiesHeroId"
       @close="closeBuildCopies"
       @complete="onBuildCopiesComplete"
+    />
+
+    <!-- Equipment Selection Modal -->
+    <EquipmentSelectModal
+      v-if="selectedHero"
+      :visible="selectedEquipmentSlot !== null"
+      :slotType="selectedEquipmentSlot || 'weapon'"
+      :heroTemplateId="selectedHero.templateId"
+      :heroClassId="selectedHero.template.classId"
+      :currentEquipmentId="selectedHeroEquipment?.[selectedEquipmentSlot]"
+      @close="closeEquipmentModal"
+      @equip="handleEquipItem"
+      @unequip="handleUnequipItem"
     />
 
     <!-- Merge Error Toast -->
