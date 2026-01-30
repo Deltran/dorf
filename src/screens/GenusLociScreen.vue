@@ -370,10 +370,35 @@ function goBack() {
   color: #f3f4f6;
 }
 
-.level-reward {
-  font-size: 0.7rem;
-  color: #f59e0b;
+.level-rewards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  justify-content: center;
   margin-top: 4px;
+}
+
+.level-reward {
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+.level-reward.gold {
+  color: #fbbf24;
+}
+
+.level-reward.gems {
+  color: #a78bfa;
+}
+
+.level-reward.item {
+  color: #60a5fa;
+}
+
+.per-level {
+  font-size: 0.55rem;
+  color: #6b7280;
+  margin-left: 1px;
 }
 
 .locked-hint {
