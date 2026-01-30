@@ -3681,6 +3681,12 @@ export const useBattleStore = defineStore('battle', () => {
     return Math.floor(atk)
   }
 
+  function calculateShieldFromPercentMaxHp(target, effect) {
+    if (!effect.shieldPercentMaxHp) return 0
+    const maxHp = target.maxHp || target.currentHp
+    return Math.floor(maxHp * (effect.shieldPercentMaxHp / 100))
+  }
+
   function pickRandom(array, count) {
     const shuffled = [...array].sort(() => Math.random() - 0.5)
     return shuffled.slice(0, count)
@@ -3837,6 +3843,40 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== DISCORDANT_RESONANCE LEADER SKILL FUNCTIONS ==========
+
+  function applyBattleStartDebuffLeaderEffect(heroList, effect) {
+    if (effect.type !== 'battle_start_debuff') return
+    if (effect.target !== 'all_allies') return
+
+    const { damageBonus, healingPenalty } = effect.apply
+
+    for (const hero of heroList) {
+      if (hero.currentHp > 0 || hero.currentHp === undefined) {
+        hero.statusEffects.push({
+          type: EffectType.DISCORDANT_RESONANCE,
+          duration: 999, // Lasts entire battle
+          damageBonus: damageBonus || 0,
+          healingPenalty: healingPenalty || 0,
+          sourceId: 'leader_skill',
+          definition: effectDefinitions[EffectType.DISCORDANT_RESONANCE]
+        })
+      }
+    }
+  }
+
+  function getDiscordantDamageBonus(hero) {
+    const effect = hero?.statusEffects?.find(e => e.type === EffectType.DISCORDANT_RESONANCE)
+    if (!effect) return 1.0
+    return 1 + (effect.damageBonus || 0) / 100
+  }
+
+  function getDiscordantHealingPenalty(hero) {
+    const effect = hero?.statusEffects?.find(e => e.type === EffectType.DISCORDANT_RESONANCE)
+    if (!effect) return 1.0
+    return 1 - (effect.healingPenalty || 0) / 100
+  }
+
   // ========== SUFFERING'S CRESCENDO FINALE FUNCTIONS ==========
 
   function calculateSufferingCrescendoBonus(baseBuff, hpPerPercent, maxBonus) {
@@ -3974,6 +4014,10 @@ export const useBattleStore = defineStore('battle', () => {
     checkAndApplyEchoing,
     getEchoingSplashPercent,
     consumeEchoingEffect,
+    // DISCORDANT_RESONANCE leader skill (for Cacophon)
+    applyBattleStartDebuffLeaderEffect,
+    getDiscordantDamageBonus,
+    getDiscordantHealingPenalty,
     // Passive regen leader effects
     applyPassiveRegenLeaderEffects,
     // Equipment helpers
