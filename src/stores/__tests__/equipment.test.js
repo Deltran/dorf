@@ -411,8 +411,8 @@ describe('equipment store', () => {
     })
 
     it('returns requirements when player has enough resources', () => {
-      // Setup: 3 rusty_shiv (1-star weapon), enough gold, enough materials
-      store.addEquipment('rusty_shiv', 3)
+      // Setup: 2 rusty_shiv (1-star weapon) - merge 2 into 1 upgraded
+      store.addEquipment('rusty_shiv', 2)
       gachaStore.gold = 1000
       inventoryStore.addItem('common_weapon_stone', 5)
 
@@ -420,7 +420,7 @@ describe('equipment store', () => {
 
       expect(result.canUpgrade).toBe(true)
       expect(result.copiesNeeded).toBe(2)
-      expect(result.copiesHave).toBe(3)
+      expect(result.copiesHave).toBe(2)
       expect(result.goldCost).toBe(500) // tier 2 cost
       expect(result.goldHave).toBe(1000)
       expect(result.materialId).toBe('common_weapon_stone')
@@ -430,7 +430,7 @@ describe('equipment store', () => {
     })
 
     it('returns false when not enough copies', () => {
-      store.addEquipment('rusty_shiv', 1) // Only 1, need 3 total (1 base + 2 fodder)
+      store.addEquipment('rusty_shiv', 1) // Only 1, need 2 to merge
       gachaStore.gold = 10000
       inventoryStore.addItem('common_weapon_stone', 10)
 
@@ -453,7 +453,7 @@ describe('equipment store', () => {
     })
 
     it('returns correct material for armor slot', () => {
-      store.addEquipment('scrap_leather', 3) // 1-star armor
+      store.addEquipment('scrap_leather', 2) // 1-star armor
       gachaStore.gold = 1000
       inventoryStore.addItem('common_armor_plate', 5)
 
@@ -463,7 +463,7 @@ describe('equipment store', () => {
     })
 
     it('returns correct material for trinket slot (ring)', () => {
-      store.addEquipment('cracked_ring', 3) // 1-star ring
+      store.addEquipment('cracked_ring', 2) // 1-star ring
       gachaStore.gold = 1000
       inventoryStore.addItem('common_gem_shard', 5)
 
@@ -473,7 +473,7 @@ describe('equipment store', () => {
     })
 
     it('returns correct material for trinket slot (cloak)', () => {
-      store.addEquipment('tattered_shroud', 3) // 1-star cloak
+      store.addEquipment('tattered_shroud', 2) // 1-star cloak
       gachaStore.gold = 1000
       inventoryStore.addItem('common_gem_shard', 5)
 
@@ -483,7 +483,7 @@ describe('equipment store', () => {
     })
 
     it('returns correct material for class-specific slot (shield)', () => {
-      store.addEquipment('dented_buckler', 3) // 1-star shield (knight)
+      store.addEquipment('dented_buckler', 2) // 1-star shield (knight)
       gachaStore.gold = 1000
       inventoryStore.addItem('common_class_token', 5)
 
@@ -503,8 +503,8 @@ describe('equipment store', () => {
     })
 
     it('succeeds when all requirements met', () => {
-      // Setup: 3 rusty_shiv (need 1 + 2 fodder), gold, materials
-      store.addEquipment('rusty_shiv', 3)
+      // Setup: 2 rusty_shiv (merge 2 into 1), gold, materials
+      store.addEquipment('rusty_shiv', 2)
       gachaStore.gold = 1000
       inventoryStore.addItem('common_weapon_stone', 5)
 
@@ -516,14 +516,14 @@ describe('equipment store', () => {
       expect(result.materialsSpent).toBe(2)
 
       // Verify state changes
-      expect(store.getOwnedCount('rusty_shiv')).toBe(0) // 3 - 3 = 0
+      expect(store.getOwnedCount('rusty_shiv')).toBe(0) // 2 - 2 = 0
       expect(store.getOwnedCount('worn_blade')).toBe(1) // gained 1
       expect(gachaStore.gold).toBe(500) // 1000 - 500
       expect(inventoryStore.getItemCount('common_weapon_stone')).toBe(3) // 5 - 2
     })
 
     it('fails when not enough gold', () => {
-      store.addEquipment('rusty_shiv', 3)
+      store.addEquipment('rusty_shiv', 2)
       gachaStore.gold = 100 // Not enough (need 500)
       inventoryStore.addItem('common_weapon_stone', 5)
 
@@ -533,12 +533,12 @@ describe('equipment store', () => {
       expect(result.message).toContain('gold')
 
       // Verify no changes
-      expect(store.getOwnedCount('rusty_shiv')).toBe(3)
+      expect(store.getOwnedCount('rusty_shiv')).toBe(2)
       expect(gachaStore.gold).toBe(100)
     })
 
     it('fails when not enough materials', () => {
-      store.addEquipment('rusty_shiv', 3)
+      store.addEquipment('rusty_shiv', 2)
       gachaStore.gold = 1000
       inventoryStore.addItem('common_weapon_stone', 1) // Not enough (need 2)
 
@@ -548,12 +548,12 @@ describe('equipment store', () => {
       expect(result.message).toContain('material')
 
       // Verify no changes
-      expect(store.getOwnedCount('rusty_shiv')).toBe(3)
+      expect(store.getOwnedCount('rusty_shiv')).toBe(2)
       expect(inventoryStore.getItemCount('common_weapon_stone')).toBe(1)
     })
 
     it('fails when not enough copies', () => {
-      store.addEquipment('rusty_shiv', 2) // Need 3 (1 base + 2 fodder)
+      store.addEquipment('rusty_shiv', 1) // Need 2 to merge
       gachaStore.gold = 1000
       inventoryStore.addItem('common_weapon_stone', 5)
 
@@ -563,12 +563,12 @@ describe('equipment store', () => {
       expect(result.message).toContain('copies')
 
       // Verify no changes
-      expect(store.getOwnedCount('rusty_shiv')).toBe(2)
+      expect(store.getOwnedCount('rusty_shiv')).toBe(1)
     })
 
     it('consumes correct resources for higher tier upgrades', () => {
-      // 3-star to 4-star upgrade
-      store.addEquipment('steel_falchion', 3) // 3-star weapon
+      // 3-star to 4-star upgrade (merge 2 into 1)
+      store.addEquipment('steel_falchion', 2) // 3-star weapon
       gachaStore.gold = 10000
       inventoryStore.addItem('rare_weapon_stone', 10)
 
@@ -579,14 +579,14 @@ describe('equipment store', () => {
       expect(result.goldSpent).toBe(4000) // tier 4 cost
       expect(result.materialsSpent).toBe(8) // tier 4 materials
 
-      expect(store.getOwnedCount('steel_falchion')).toBe(0)
+      expect(store.getOwnedCount('steel_falchion')).toBe(0) // 2 - 2 = 0
       expect(store.getOwnedCount('blackiron_cleaver')).toBe(1)
       expect(gachaStore.gold).toBe(6000) // 10000 - 4000
       expect(inventoryStore.getItemCount('rare_weapon_stone')).toBe(2) // 10 - 8
     })
 
     it('fails for max tier equipment', () => {
-      store.addEquipment('kingslayer', 5)
+      store.addEquipment('kingslayer', 2)
       gachaStore.gold = 100000
       inventoryStore.addItem('epic_weapon_stone', 100)
 
@@ -596,7 +596,7 @@ describe('equipment store', () => {
       expect(result.message).toBe('max tier')
 
       // Verify no changes
-      expect(store.getOwnedCount('kingslayer')).toBe(5)
+      expect(store.getOwnedCount('kingslayer')).toBe(2)
     })
   })
 })

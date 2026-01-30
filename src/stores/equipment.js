@@ -239,7 +239,7 @@ export const useEquipmentStore = defineStore('equipment', () => {
     const targetTier = equipment.rarity + 1
 
     // Calculate requirements
-    const copiesNeeded = 2 // Always need 2 copies as fodder
+    const copiesNeeded = 2 // Need 2 copies to merge into 1 upgraded item
     const copiesHave = getOwnedCount(equipmentId)
     const goldCost = UPGRADE_GOLD_COST[targetTier]
     const goldHave = gachaStore.gold
@@ -250,9 +250,9 @@ export const useEquipmentStore = defineStore('equipment', () => {
     const materialCount = UPGRADE_MATERIAL_COUNT[targetTier]
     const materialsHave = inventoryStore.getItemCount(materialId)
 
-    // Check if can afford (need 3 total copies: 1 to upgrade + 2 fodder)
+    // Check if can afford (2 copies merge into 1 upgraded item)
     const canAfford =
-      copiesHave >= copiesNeeded + 1 &&
+      copiesHave >= copiesNeeded &&
       goldHave >= goldCost &&
       materialsHave >= materialCount
 
@@ -288,7 +288,7 @@ export const useEquipmentStore = defineStore('equipment', () => {
     }
 
     // Check specific requirements
-    if (requirements.copiesHave < requirements.copiesNeeded + 1) {
+    if (requirements.copiesHave < requirements.copiesNeeded) {
       return { success: false, message: 'not enough copies' }
     }
 
@@ -304,8 +304,8 @@ export const useEquipmentStore = defineStore('equipment', () => {
     const gachaStore = useGachaStore()
     const inventoryStore = useInventoryStore()
 
-    // Remove 3 copies (1 base + 2 fodder)
-    removeEquipment(equipmentId, 3)
+    // Remove 2 copies (merge into 1 upgraded item)
+    removeEquipment(equipmentId, 2)
 
     // Spend gold
     gachaStore.spendGold(requirements.goldCost)
