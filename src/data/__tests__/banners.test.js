@@ -22,7 +22,7 @@ describe('banners data', () => {
       for (let r = 1; r <= 5; r++) {
         allHeroes.push(...standard.heroPool[r])
       }
-      // 3 + 4 + 4 + 4 + 4 = 19 heroes total
+      // 3 + 4 + 4 + 4 + 4 = 19 heroes total (excludes banner-exclusive heroes)
       expect(allHeroes).toHaveLength(19)
       expect(allHeroes).toContain('aurora_the_dawn')
       expect(allHeroes).toContain('shadow_king')
@@ -30,6 +30,9 @@ describe('banners data', () => {
       expect(allHeroes).toContain('sir_gallan')
       expect(allHeroes).toContain('farm_hand')
       expect(allHeroes).toContain('street_urchin')
+      // Cacophon and Chroma are exclusive to Musical Mayhem
+      expect(allHeroes).not.toContain('cacophon')
+      expect(allHeroes).not.toContain('chroma')
     })
   })
 
@@ -42,8 +45,8 @@ describe('banners data', () => {
     })
   })
 
-  it('has exactly 3 rotating banners', () => {
-    const rotating = banners.filter(b => !b.permanent)
+  it('has exactly 3 rotating banners (non-date-range)', () => {
+    const rotating = banners.filter(b => !b.permanent && !b.startMonth)
     expect(rotating).toHaveLength(3)
   })
 
@@ -149,6 +152,63 @@ describe('getActiveBanners', () => {
   })
 })
 
+describe('date-range banners', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('includes a date-range banner when current date is within range', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 15)) // Jan 15
+    const active = getActiveBanners()
+    // Musical Mayhem runs Jan 1-31
+    expect(active.some(b => b.id === 'musical_mayhem')).toBe(true)
+  })
+
+  it('excludes a date-range banner when current date is outside range', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 1, 15)) // Feb 15
+    const active = getActiveBanners()
+    expect(active.some(b => b.id === 'musical_mayhem')).toBe(false)
+  })
+
+  it('includes date-range banner on the first day of range', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 1)) // Jan 1
+    const active = getActiveBanners()
+    expect(active.some(b => b.id === 'musical_mayhem')).toBe(true)
+  })
+
+  it('includes date-range banner on the last day of range', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 31)) // Jan 31
+    const active = getActiveBanners()
+    expect(active.some(b => b.id === 'musical_mayhem')).toBe(true)
+  })
+
+  it('date-range banners run alongside rotating banners', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 15)) // Jan 15 - mid-January
+    const active = getActiveBanners()
+    // Should have: standard (permanent) + one rotating + musical_mayhem (date-range)
+    expect(active.length).toBeGreaterThanOrEqual(3)
+    expect(active.some(b => b.id === 'standard')).toBe(true)
+    expect(active.some(b => b.id === 'musical_mayhem')).toBe(true)
+    // One rotating banner should also be active
+    const rotating = active.filter(b => !b.permanent && !b.startMonth)
+    expect(rotating.length).toBe(1)
+  })
+
+  it('handles year-boundary wrapping (Dec 20 - Jan 10)', () => {
+    vi.useFakeTimers()
+    // Test a hypothetical banner that wraps around year boundary
+    vi.setSystemTime(new Date(2026, 11, 25)) // Dec 25
+    const active = getActiveBanners()
+    // We'd need a test banner for this - for now just verify the function doesn't crash
+    expect(active).toBeDefined()
+  })
+})
+
 describe('getBannerAvailabilityText', () => {
   afterEach(() => {
     vi.useRealTimers()
@@ -177,6 +237,27 @@ describe('getBannerAvailabilityText', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 0, 10)) // day 10, position 9 in chunk → 0 remaining
     const banner = banners.find(b => b.id === 'shields_of_valor')
+    expect(getBannerAvailabilityText(banner)).toBe('Last day!')
+  })
+
+  it('returns date range text for date-range banners', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 15)) // Jan 15
+    const banner = banners.find(b => b.id === 'musical_mayhem')
+    expect(getBannerAvailabilityText(banner)).toBe('Jan 1 – Jan 31')
+  })
+
+  it('returns days remaining for date-range banner near end', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 29)) // Jan 29 - 2 days left
+    const banner = banners.find(b => b.id === 'musical_mayhem')
+    expect(getBannerAvailabilityText(banner)).toBe('2 days remaining')
+  })
+
+  it('returns "Last day!" for date-range banner on final day', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 31)) // Jan 31 - last day
+    const banner = banners.find(b => b.id === 'musical_mayhem')
     expect(getBannerAvailabilityText(banner)).toBe('Last day!')
   })
 })

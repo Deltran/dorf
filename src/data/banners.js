@@ -1,12 +1,16 @@
 /**
  * Banner definitions for the gacha system.
  *
- * Each banner has a hero pool keyed by rarity (1-5) and is either
- * permanent (always available) or rotating (cycles on a 10-day schedule).
+ * Banner types:
+ * - Permanent: Always available (permanent: true)
+ * - Rotating: Cycle on a 10-day schedule (permanent: false, no date fields)
+ * - Date-range: Active during specific dates (startMonth/startDay/endMonth/endDay)
  *
  * Rotating banners take turns in array order. With 3 rotating banners
  * and 10-day chunks, the cycle is 30 days. The active banner is
  * determined by: dayOfYear % (ROTATION_CHUNK_DAYS * rotatingCount).
+ *
+ * Date-range banners run alongside the rotation cycle during their window.
  */
 
 const bannerImages = import.meta.glob('../assets/banners/*.png', { eager: true, import: 'default' })
@@ -75,6 +79,23 @@ export const banners = [
       2: ['herb_gatherer', 'fennick'],
       1: ['beggar_monk', 'street_urchin']
     }
+  },
+  {
+    id: 'musical_mayhem',
+    name: 'Musical Mayhem',
+    description: 'A cacophony of bardic talent! Featuring Cacophon and musical heroes.',
+    permanent: false,
+    startMonth: 1,
+    startDay: 1,
+    endMonth: 1,
+    endDay: 31,
+    heroPool: {
+      5: ['cacophon'],
+      4: ['chroma', 'lady_moonwhisper'],
+      3: ['wandering_bard', 'hedge_wizard', 'village_healer'],
+      2: ['militia_soldier', 'apprentice_mage', 'herb_gatherer', 'fennick'],
+      1: ['street_busker', 'farm_hand', 'street_urchin', 'beggar_monk']
+    }
   }
 ]
 
@@ -89,21 +110,66 @@ export function getDayOfYear(date = new Date()) {
 }
 
 /**
+ * Check if a date is within a month-day range.
+ * Handles year-boundary wrapping (e.g., Dec 20 – Jan 10).
+ *
+ * @param {number} month - Current month (1-12)
+ * @param {number} day - Current day
+ * @param {number} startMonth - Range start month (1-12)
+ * @param {number} startDay - Range start day
+ * @param {number} endMonth - Range end month (1-12)
+ * @param {number} endDay - Range end day
+ * @returns {boolean}
+ */
+export function isDateInRange(month, day, startMonth, startDay, endMonth, endDay) {
+  const current = month * 100 + day
+  const start = startMonth * 100 + startDay
+  const end = endMonth * 100 + endDay
+
+  if (start <= end) {
+    return current >= start && current <= end
+  }
+  // Wraps around year boundary (e.g., Dec 20 – Jan 10)
+  return current >= start || current <= end
+}
+
+/**
+ * Check if a banner has date-range fields.
+ * @param {object} banner
+ * @returns {boolean}
+ */
+function isDateRangeBanner(banner) {
+  return banner.startMonth !== undefined && banner.endMonth !== undefined
+}
+
+/**
  * Return all banners that are currently active.
- * The standard banner is always active. Exactly one rotating banner
- * is active at any time, determined by a 10-day rotation cycle.
+ * - Permanent banners are always active
+ * - Exactly one rotating banner is active at a time (10-day cycle)
+ * - Date-range banners are active during their specified window
  *
  * @returns {Array} Active banner objects
  */
 export function getActiveBanners() {
-  const rotatingBanners = banners.filter(b => !b.permanent)
+  const now = new Date()
+  const month = now.getMonth() + 1 // 1-12
+  const day = now.getDate()
+
+  // Rotating banners (non-permanent, non-date-range)
+  const rotatingBanners = banners.filter(b => !b.permanent && !isDateRangeBanner(b))
   const cycleLength = ROTATION_CHUNK_DAYS * rotatingBanners.length
   const dayOfYear = getDayOfYear()
   const cyclePosition = (dayOfYear - 1) % cycleLength
   const activeIndex = Math.floor(cyclePosition / ROTATION_CHUNK_DAYS)
   const activeRotating = rotatingBanners[activeIndex]
 
-  return banners.filter(b => b.permanent || b.id === activeRotating.id)
+  return banners.filter(b => {
+    if (b.permanent) return true
+    if (isDateRangeBanner(b)) {
+      return isDateInRange(month, day, b.startMonth, b.startDay, b.endMonth, b.endDay)
+    }
+    return b.id === activeRotating.id
+  })
 }
 
 /**
@@ -116,11 +182,40 @@ export function getBannerById(bannerId) {
   return banners.find(b => b.id === bannerId)
 }
 
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+/**
+ * Calculate days remaining until a date-range banner ends.
+ * @param {object} banner - Banner with startMonth/endMonth/startDay/endDay
+ * @returns {number} Days remaining (0 = last day, negative = expired)
+ */
+function getDaysRemainingForDateRange(banner) {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const month = now.getMonth() + 1
+  const day = now.getDate()
+
+  // Determine which year the end date falls in
+  let endYear = currentYear
+  if (banner.endMonth < banner.startMonth) {
+    // Wraps around year (e.g., Dec-Jan)
+    if (month >= banner.startMonth) {
+      endYear = currentYear + 1
+    }
+  }
+
+  const endDate = new Date(endYear, banner.endMonth - 1, banner.endDay)
+  const todayStart = new Date(currentYear, month - 1, day)
+  const diffMs = endDate - todayStart
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24))
+}
+
 /**
  * Return human-readable availability text for a banner.
  *
- * Permanent banners say "Always Available". The active rotating banner
- * shows how many days remain in its 10-day window.
+ * - Permanent banners: "Always Available"
+ * - Date-range banners: Date range or countdown if near end
+ * - Rotating banners: Days remaining in rotation window
  *
  * @param {object} banner
  * @returns {string}
@@ -128,7 +223,22 @@ export function getBannerById(bannerId) {
 export function getBannerAvailabilityText(banner) {
   if (banner.permanent) return 'Always Available'
 
-  const rotatingBanners = banners.filter(b => !b.permanent)
+  // Date-range banner
+  if (isDateRangeBanner(banner)) {
+    const daysRemaining = getDaysRemainingForDateRange(banner)
+    if (daysRemaining <= 0) return 'Last day!'
+    if (daysRemaining <= 3) {
+      if (daysRemaining === 1) return '1 day remaining'
+      return `${daysRemaining} days remaining`
+    }
+    // Show date range
+    const startMonth = MONTH_NAMES[banner.startMonth - 1]
+    const endMonth = MONTH_NAMES[banner.endMonth - 1]
+    return `${startMonth} ${banner.startDay} – ${endMonth} ${banner.endDay}`
+  }
+
+  // Rotating banner
+  const rotatingBanners = banners.filter(b => !b.permanent && !isDateRangeBanner(b))
   const cycleLength = ROTATION_CHUNK_DAYS * rotatingBanners.length
   const dayOfYear = getDayOfYear()
   const cyclePosition = (dayOfYear - 1) % cycleLength
