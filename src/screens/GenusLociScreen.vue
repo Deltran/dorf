@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useGenusLociStore, useInventoryStore } from '../stores'
 import { getGenusLoci, getAllGenusLoci } from '../data/genusLoci.js'
 import { getAllQuestNodes } from '../data/quests/index.js'
+import { items } from '../data/items.js'
 
 // Enemy portraits for genus loci
 const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
@@ -91,6 +92,21 @@ function calculateGemsReward(level) {
   const { base, perLevel } = selectedBoss.value.currencyRewards
   if (!base.gems) return null
   return base.gems + (perLevel.gems || 0) * (level - 1)
+}
+
+function getItemDropsDisplay() {
+  if (!selectedBoss.value?.itemDrops) return []
+  return selectedBoss.value.itemDrops.map(drop => {
+    const item = items[drop.itemId]
+    if (!item) return null
+    const qty = drop.min === drop.max ? `${drop.min}` : `${drop.min}-${drop.max}`
+    return {
+      icon: '📜',
+      name: item.name,
+      qty,
+      isPerLevel: drop.perLevel || false
+    }
+  }).filter(Boolean)
 }
 
 function goBack() {
