@@ -3818,6 +3818,16 @@ export const useBattleStore = defineStore('battle', () => {
     return actualDamage
   }
 
+  function processAllyHpCostForSkill(caster, skill, targets) {
+    if (!skill.allyHpCostPercent) return
+
+    const isCacophonSkill = caster.templateId === 'cacophon'
+
+    for (const target of targets) {
+      applyAllyHpCost(target, skill.allyHpCostPercent, isCacophonSkill)
+    }
+  }
+
   // ========== ECHOING AOE CONVERSION FUNCTIONS ==========
 
   function checkAndApplyEchoing(hero, skill) {
@@ -3911,6 +3921,15 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Reset tracking
     resetAllyHpTracking()
+  }
+
+  function processFinaleEffects(heroList, effects) {
+    for (const effect of effects) {
+      if (effect.type === 'suffering_crescendo') {
+        processSufferingCrescendoFinale(heroList, effect)
+      }
+      // Add other finale effect types here as needed
+    }
   }
 
   return {
@@ -4012,6 +4031,7 @@ export const useBattleStore = defineStore('battle', () => {
     // Suffering's Crescendo Finale (for Cacophon)
     calculateSufferingCrescendoBonus,
     processSufferingCrescendoFinale,
+    processFinaleEffects,
     // ECHOING AoE conversion (for Cacophon)
     checkAndApplyEchoing,
     getEchoingSplashPercent,
