@@ -2,6 +2,25 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { getEquipment, CLASS_SLOTS } from '../data/equipment.js'
+import { useGachaStore } from './gacha'
+import { useInventoryStore } from './inventory'
+import { UPGRADE_MATERIALS } from '../data/items.js'
+
+// Upgrade costs by target tier
+const UPGRADE_GOLD_COST = { 2: 500, 3: 1500, 4: 4000, 5: 10000 }
+const UPGRADE_MATERIAL_COUNT = { 2: 2, 3: 4, 4: 8, 5: 15 }
+
+/**
+ * Get the material slot type for an equipment slot
+ * @param {string} equipmentSlot - The equipment slot type
+ * @returns {string} The material slot type ('weapon', 'armor', 'trinket', or 'class')
+ */
+function getMaterialSlotType(equipmentSlot) {
+  if (equipmentSlot === 'weapon') return 'weapon'
+  if (equipmentSlot === 'armor') return 'armor'
+  if (equipmentSlot === 'ring' || equipmentSlot === 'cloak') return 'trinket'
+  return 'class' // All class-specific slots use class materials
+}
 
 export const useEquipmentStore = defineStore('equipment', () => {
   // State
@@ -197,6 +216,114 @@ export const useEquipmentStore = defineStore('equipment', () => {
     return result
   }
 
+  /**
+   * Check if an equipment can be upgraded and what resources are needed
+   * @param {string} equipmentId - The equipment ID to check
+   * @returns {object} Upgrade requirements and availability
+   */
+  function canUpgrade(equipmentId) {
+    const equipment = getEquipment(equipmentId)
+    if (!equipment) {
+      return { canUpgrade: false, message: 'equipment not found' }
+    }
+
+    // Check if max tier
+    if (equipment.upgradesTo === null) {
+      return { canUpgrade: false, message: 'max tier' }
+    }
+
+    const gachaStore = useGachaStore()
+    const inventoryStore = useInventoryStore()
+
+    // Get target tier (current rarity + 1)
+    const targetTier = equipment.rarity + 1
+
+    // Calculate requirements
+    const copiesNeeded = 2 // Always need 2 copies as fodder
+    const copiesHave = getOwnedCount(equipmentId)
+    const goldCost = UPGRADE_GOLD_COST[targetTier]
+    const goldHave = gachaStore.gold
+
+    // Determine material type based on slot
+    const materialSlotType = getMaterialSlotType(equipment.slot)
+    const materialId = UPGRADE_MATERIALS[materialSlotType][equipment.rarity]
+    const materialCount = UPGRADE_MATERIAL_COUNT[targetTier]
+    const materialsHave = inventoryStore.getItemCount(materialId)
+
+    // Check if can afford (need 3 total copies: 1 to upgrade + 2 fodder)
+    const canAfford =
+      copiesHave >= copiesNeeded + 1 &&
+      goldHave >= goldCost &&
+      materialsHave >= materialCount
+
+    return {
+      canUpgrade: canAfford,
+      copiesNeeded,
+      copiesHave,
+      goldCost,
+      goldHave,
+      materialId,
+      materialCount,
+      materialsHave,
+      resultId: equipment.upgradesTo
+    }
+  }
+
+  /**
+   * Upgrade equipment to the next tier
+   * @param {string} equipmentId - The equipment ID to upgrade
+   * @returns {object} Result with success status and details
+   */
+  function upgrade(equipmentId) {
+    const requirements = canUpgrade(equipmentId)
+
+    // Check for max tier
+    if (requirements.message === 'max tier') {
+      return { success: false, message: 'max tier' }
+    }
+
+    // Check for equipment not found
+    if (requirements.message === 'equipment not found') {
+      return { success: false, message: 'equipment not found' }
+    }
+
+    // Check specific requirements
+    if (requirements.copiesHave < requirements.copiesNeeded + 1) {
+      return { success: false, message: 'not enough copies' }
+    }
+
+    if (requirements.goldHave < requirements.goldCost) {
+      return { success: false, message: 'not enough gold' }
+    }
+
+    if (requirements.materialsHave < requirements.materialCount) {
+      return { success: false, message: 'not enough materials' }
+    }
+
+    // Consume resources
+    const gachaStore = useGachaStore()
+    const inventoryStore = useInventoryStore()
+
+    // Remove 3 copies (1 base + 2 fodder)
+    removeEquipment(equipmentId, 3)
+
+    // Spend gold
+    gachaStore.spendGold(requirements.goldCost)
+
+    // Spend materials
+    inventoryStore.removeItem(requirements.materialId, requirements.materialCount)
+
+    // Add upgraded equipment
+    addEquipment(requirements.resultId, 1)
+
+    return {
+      success: true,
+      resultId: requirements.resultId,
+      goldSpent: requirements.goldCost,
+      materialsSpent: requirements.materialCount
+    }
+  }
+
   // Persistence
 
   /**
@@ -241,6 +368,8 @@ export const useEquipmentStore = defineStore('equipment', () => {
     unequip,
     getEquippedGear,
     getAvailableForSlot,
+    canUpgrade,
+    upgrade,
     // Persistence
     saveState,
     loadState
