@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue'
+import overlayImage from '../assets/action_backgrounds/action_bar_overlay_1.png'
 
 const props = defineProps({
   heroName: {
@@ -43,7 +44,8 @@ const roleIcon = computed(() => {
 const heroCardStyle = computed(() => {
   const style = { '--class-color': props.classColor }
   if (props.backgroundImage) {
-    style.backgroundImage = `url(${props.backgroundImage})`
+    // Layer overlay on top of class background
+    style.backgroundImage = `url(${overlayImage}), url(${props.backgroundImage})`
   }
   return style
 })
@@ -83,9 +85,9 @@ const heroCardStyle = computed(() => {
   gap: 2px;
   padding: 10px 14px;
   background-color: #111827;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background-size: cover, cover;
+  background-position: center, center;
+  background-repeat: no-repeat, no-repeat;
   border-left: 3px solid var(--class-color);
   border-top: 1px solid #374151;
   border-bottom: 1px solid #374151;
