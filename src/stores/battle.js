@@ -39,6 +39,9 @@ export const useBattleStore = defineStore('battle', () => {
   const battleType = ref('normal') // 'normal' or 'genusLoci'
   const genusLociMeta = ref(null) // { genusLociId, powerLevel, triggeredTowersWrath }
 
+  // Track total ally HP lost for Cacophon's Finale
+  const totalAllyHpLost = ref(0)
+
   // Getters
   const currentUnit = computed(() => {
     if (turnOrder.value.length === 0) return null
@@ -967,6 +970,31 @@ export const useBattleStore = defineStore('battle', () => {
     return totalMissing / heroList.length
   }
 
+  // Reset ally HP tracking (called at battle start)
+  function resetAllyHpTracking() {
+    totalAllyHpLost.value = 0
+  }
+
+  // Apply ally HP cost (for Cacophon's skills)
+  // Returns actual damage dealt
+  function applyAllyHpCost(hero, percent, isCacophonSkill = false) {
+    // Cacophon is immune to her own skill costs
+    if (isCacophonSkill && hero.templateId === 'cacophon') {
+      return 0
+    }
+
+    const maxHp = hero.maxHp || hero.currentHp
+    const damage = Math.floor(maxHp * (percent / 100))
+    const actualDamage = Math.min(damage, hero.currentHp - 1) // Don't reduce below 1 HP
+
+    if (actualDamage > 0) {
+      hero.currentHp -= actualDamage
+      totalAllyHpLost.value += actualDamage
+    }
+
+    return actualDamage
+  }
+
   // Check if riposte triggers on a target hit by an enemy
   // Returns { triggered, damage } - noDefCheck bypasses the DEF comparison
   function checkRiposte(target, enemy) {
@@ -1766,6 +1794,7 @@ export const useBattleStore = defineStore('battle', () => {
       powerLevel: genusLociContext.powerLevel,
       triggeredTowersWrath: false
     } : null
+    resetAllyHpTracking()
 
     // Initialize heroes from party
     const party = heroesStore.party.filter(Boolean)
@@ -3813,6 +3842,10 @@ export const useBattleStore = defineStore('battle', () => {
     // Desperation heal scaling (bonus based on missing HP)
     calculateDesperationHeal,
     calculatePartyMissingHpPercent,
+    // Ally HP cost (for Cacophon's skills)
+    totalAllyHpLost,
+    resetAllyHpTracking,
+    applyAllyHpCost,
     // Passive regen leader effects
     applyPassiveRegenLeaderEffects,
     // Equipment helpers
