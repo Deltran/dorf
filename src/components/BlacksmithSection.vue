@@ -131,10 +131,10 @@ function performUpgrade(equipmentId) {
 <template>
   <div class="blacksmith-section">
     <div class="section-header">
-      <span class="section-icon">anvil</span>
+      <span class="section-icon">⚒️</span>
       <h2 class="section-title">Blacksmith</h2>
       <div class="gold-display">
-        <span class="gold-icon">coins</span>
+        <span class="gold-icon">🪙</span>
         <span class="gold-count">{{ gachaStore.gold.toLocaleString() }}</span>
       </div>
     </div>
@@ -145,7 +145,7 @@ function performUpgrade(equipmentId) {
 
     <!-- Empty state -->
     <div v-if="ownedEquipmentList.length === 0" class="empty-state">
-      <span class="empty-icon">backpack</span>
+      <span class="empty-icon">🎒</span>
       <p>No equipment owned yet.</p>
       <p class="empty-hint">Find equipment from quests and exploration.</p>
     </div>
@@ -240,7 +240,7 @@ function performUpgrade(equipmentId) {
 
                 <!-- Result preview -->
                 <div v-if="getUpgradeInfo(selectedEquipment.id).resultId" class="result-preview">
-                  <span class="result-arrow">arrow_down</span>
+                  <span class="result-arrow">⬇️</span>
                   <span class="result-name" :style="{ color: getRarityColor(selectedEquipment.rarity + 1) }">
                     {{ getEquipment(getUpgradeInfo(selectedEquipment.id).resultId)?.name }}
                   </span>
