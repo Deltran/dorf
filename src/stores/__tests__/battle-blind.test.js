@@ -82,4 +82,41 @@ describe('Blind Miss Mechanic', () => {
       vi.restoreAllMocks()
     })
   })
+
+  describe('Blind integration with hasEffect', () => {
+    it('should detect blind effect on a unit', () => {
+      const unit = {
+        statusEffects: [{ type: EffectType.BLIND, value: 40, duration: 2 }]
+      }
+
+      expect(battleStore.hasEffect(unit, EffectType.BLIND)).toBe(true)
+    })
+
+    it('should return false when unit has no blind effect', () => {
+      const unit = {
+        statusEffects: [{ type: EffectType.STUN, duration: 1 }]
+      }
+
+      expect(battleStore.hasEffect(unit, EffectType.BLIND)).toBe(false)
+    })
+  })
+
+  describe('Blind counts as debuff for Vicious synergy', () => {
+    it('should be classified as a debuff', () => {
+      expect(effectDefinitions[EffectType.BLIND].isBuff).toBe(false)
+    })
+
+    it('should count for hasDebuff check', () => {
+      const unit = {
+        statusEffects: [{ type: EffectType.BLIND, value: 40, duration: 2 }]
+      }
+
+      // Check that the unit has a non-buff effect (debuff)
+      const hasNonBuff = unit.statusEffects.some(e => {
+        const def = effectDefinitions[e.type]
+        return def && !def.isBuff
+      })
+      expect(hasNonBuff).toBe(true)
+    })
+  })
 })

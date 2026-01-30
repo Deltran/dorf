@@ -3363,6 +3363,20 @@ export const useBattleStore = defineStore('battle', () => {
     const effectiveAtk = getEffectiveStat(enemy, 'atk')
     const effectiveDef = getEffectiveStat(target, 'def')
 
+    // Check if blinded enemy misses (only for damaging attacks)
+    const willMiss = checkBlindMiss(enemy)
+    if (willMiss && (!skill || !skill.noDamage)) {
+      const enemyName = enemy.template?.name || 'Enemy'
+      addLog(`${enemyName}'s attack misses due to Blind!`)
+      emitCombatEffect(enemy.id, 'enemy', 'miss', 0)
+      processEndOfTurnEffects(enemy)
+      setTimeout(() => {
+        advanceTurnIndex()
+        startNextTurn()
+      }, 600)
+      return
+    }
+
     if (skill) {
       // Set effect source context for tooltip tracking
       currentEffectSource = `${enemy.template?.name || enemy.name}'s ${skill.name}`
