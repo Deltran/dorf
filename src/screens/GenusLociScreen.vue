@@ -158,7 +158,13 @@ function goBack() {
             @click="selectLevel(level)"
           >
             <span class="level-number">{{ level }}</span>
-            <span class="level-reward">🪙 {{ calculateGoldReward(level) }}</span>
+            <div class="level-rewards">
+              <span v-if="calculateGoldReward(level)" class="level-reward gold">🪙 {{ calculateGoldReward(level) }}</span>
+              <span v-if="calculateGemsReward(level)" class="level-reward gems">💎 {{ calculateGemsReward(level) }}</span>
+              <span v-for="(drop, i) in getItemDropsDisplay()" :key="i" class="level-reward item">
+                {{ drop.icon }} {{ drop.qty }}<span v-if="drop.isPerLevel" class="per-level">/lvl</span>
+              </span>
+            </div>
           </button>
         </div>
         <div v-if="availableLevels.length < selectedBoss.maxPowerLevel" class="locked-hint">
