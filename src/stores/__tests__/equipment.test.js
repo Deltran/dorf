@@ -225,4 +225,177 @@ describe('equipment store', () => {
       expect(store.blacksmithUnlocked).toBe(true)
     })
   })
+
+  describe('equip', () => {
+    it('adds equipment to slot', () => {
+      store.addEquipment('rusty_shiv', 1)
+
+      const result = store.equip('aurora_the_dawn', 'rusty_shiv', 'weapon')
+
+      expect(result).toEqual({ success: true })
+      expect(store.equippedGear['aurora_the_dawn']).toEqual({
+        weapon: 'rusty_shiv',
+        armor: null,
+        trinket: null,
+        special: null
+      })
+    })
+
+    it('fails if not owned', () => {
+      const result = store.equip('aurora_the_dawn', 'rusty_shiv', 'weapon')
+
+      expect(result).toEqual({ success: false, message: 'not owned' })
+      expect(store.equippedGear['aurora_the_dawn']).toBeUndefined()
+    })
+
+    it('fails if all copies equipped to other templates', () => {
+      store.addEquipment('rusty_shiv', 1)
+      store.equip('aurora_the_dawn', 'rusty_shiv', 'weapon')
+
+      const result = store.equip('shadow_king', 'rusty_shiv', 'weapon')
+
+      expect(result).toEqual({ success: false, message: 'already equipped' })
+      // Original should still be equipped
+      expect(store.equippedGear['aurora_the_dawn'].weapon).toBe('rusty_shiv')
+      // Shadow king should not have gear entry
+      expect(store.equippedGear['shadow_king']).toBeUndefined()
+    })
+
+    it('allows if you own 2+ copies and only 1 equipped', () => {
+      store.addEquipment('rusty_shiv', 2)
+      store.equip('aurora_the_dawn', 'rusty_shiv', 'weapon')
+
+      const result = store.equip('shadow_king', 'rusty_shiv', 'weapon')
+
+      expect(result).toEqual({ success: true })
+      expect(store.equippedGear['aurora_the_dawn'].weapon).toBe('rusty_shiv')
+      expect(store.equippedGear['shadow_king'].weapon).toBe('rusty_shiv')
+    })
+
+    it('replaces existing equipment in slot', () => {
+      store.addEquipment('rusty_shiv', 1)
+      store.addEquipment('worn_blade', 1)
+      store.equip('aurora_the_dawn', 'rusty_shiv', 'weapon')
+
+      const result = store.equip('aurora_the_dawn', 'worn_blade', 'weapon')
+
+      expect(result).toEqual({ success: true })
+      expect(store.equippedGear['aurora_the_dawn'].weapon).toBe('worn_blade')
+    })
+  })
+
+  describe('unequip', () => {
+    it('removes from slot', () => {
+      store.addEquipment('rusty_shiv', 1)
+      store.equip('aurora_the_dawn', 'rusty_shiv', 'weapon')
+
+      const result = store.unequip('aurora_the_dawn', 'weapon')
+
+      expect(result).toBe(true)
+      expect(store.equippedGear['aurora_the_dawn'].weapon).toBeNull()
+    })
+
+    it('returns false if nothing equipped', () => {
+      const result = store.unequip('aurora_the_dawn', 'weapon')
+
+      expect(result).toBe(false)
+    })
+
+    it('returns false if template has no gear entry', () => {
+      const result = store.unequip('nonexistent_hero', 'weapon')
+
+      expect(result).toBe(false)
+    })
+  })
+
+  describe('getEquippedGear', () => {
+    it('returns all slots for template with gear', () => {
+      store.addEquipment('rusty_shiv', 1)
+      store.addEquipment('scrap_leather', 1)
+      store.equip('aurora_the_dawn', 'rusty_shiv', 'weapon')
+      store.equip('aurora_the_dawn', 'scrap_leather', 'armor')
+
+      const gear = store.getEquippedGear('aurora_the_dawn')
+
+      expect(gear).toEqual({
+        weapon: 'rusty_shiv',
+        armor: 'scrap_leather',
+        trinket: null,
+        special: null
+      })
+    })
+
+    it('returns all null if template has no equipped gear', () => {
+      const gear = store.getEquippedGear('aurora_the_dawn')
+
+      expect(gear).toEqual({
+        weapon: null,
+        armor: null,
+        trinket: null,
+        special: null
+      })
+    })
+  })
+
+  describe('getAvailableForSlot', () => {
+    it('returns unequipped weapon items for weapon slot', () => {
+      store.addEquipment('rusty_shiv', 3)
+      store.addEquipment('worn_blade', 1)
+      store.equip('aurora_the_dawn', 'rusty_shiv', 'weapon')
+
+      const available = store.getAvailableForSlot('weapon')
+
+      expect(available).toContainEqual({ id: 'rusty_shiv', count: 2 })
+      expect(available).toContainEqual({ id: 'worn_blade', count: 1 })
+    })
+
+    it('returns unequipped armor items for armor slot', () => {
+      store.addEquipment('scrap_leather', 2)
+
+      const available = store.getAvailableForSlot('armor')
+
+      expect(available).toContainEqual({ id: 'scrap_leather', count: 2 })
+    })
+
+    it('returns ring and cloak items for trinket slot', () => {
+      store.addEquipment('cracked_ring', 2)
+      store.addEquipment('tattered_shroud', 1)
+
+      const available = store.getAvailableForSlot('trinket')
+
+      expect(available).toContainEqual({ id: 'cracked_ring', count: 2 })
+      expect(available).toContainEqual({ id: 'tattered_shroud', count: 1 })
+    })
+
+    it('returns class-specific items for special slot', () => {
+      store.addEquipment('dented_buckler', 1) // shield (Knight)
+      store.addEquipment('cracked_skull', 1) // war_trophy (Berserker)
+      store.addEquipment('bent_shortbow', 1) // bow (Ranger)
+
+      const available = store.getAvailableForSlot('special')
+
+      expect(available).toContainEqual({ id: 'dented_buckler', count: 1 })
+      expect(available).toContainEqual({ id: 'cracked_skull', count: 1 })
+      expect(available).toContainEqual({ id: 'bent_shortbow', count: 1 })
+    })
+
+    it('excludes items with no available copies', () => {
+      store.addEquipment('rusty_shiv', 1)
+      store.equip('aurora_the_dawn', 'rusty_shiv', 'weapon')
+
+      const available = store.getAvailableForSlot('weapon')
+
+      expect(available.find(i => i.id === 'rusty_shiv')).toBeUndefined()
+    })
+
+    it('does not include weapon items in trinket slot', () => {
+      store.addEquipment('rusty_shiv', 1)
+      store.addEquipment('cracked_ring', 1)
+
+      const available = store.getAvailableForSlot('trinket')
+
+      expect(available.find(i => i.id === 'rusty_shiv')).toBeUndefined()
+      expect(available).toContainEqual({ id: 'cracked_ring', count: 1 })
+    })
+  })
 })
