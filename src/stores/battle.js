@@ -3755,6 +3755,66 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== CACOPHON ALLY HP COST FUNCTIONS ==========
+
+  function resetAllyHpTracking() {
+    totalAllyHpLost.value = 0
+  }
+
+  function applyAllyHpCost(hero, percent, isCacophonSkill = false) {
+    // Cacophon is immune to her own skill costs
+    if (isCacophonSkill && hero.templateId === 'cacophon') {
+      return 0
+    }
+
+    const maxHp = hero.maxHp || hero.currentHp
+    const damage = Math.floor(maxHp * (percent / 100))
+    const actualDamage = Math.min(damage, hero.currentHp - 1) // Don't reduce below 1 HP
+
+    if (actualDamage > 0) {
+      hero.currentHp -= actualDamage
+      totalAllyHpLost.value += actualDamage
+    }
+
+    return actualDamage
+  }
+
+  // ========== SUFFERING'S CRESCENDO FINALE FUNCTIONS ==========
+
+  function calculateSufferingCrescendoBonus(baseBuff, hpPerPercent, maxBonus) {
+    const hpBonus = Math.floor(totalAllyHpLost.value / hpPerPercent)
+    const cappedBonus = Math.min(hpBonus, maxBonus)
+    return baseBuff + cappedBonus
+  }
+
+  function processSufferingCrescendoFinale(heroes, effect) {
+    const { baseBuff, hpPerPercent, maxBonus, duration } = effect
+    const totalBuff = calculateSufferingCrescendoBonus(baseBuff, hpPerPercent, maxBonus)
+
+    // Apply ATK_UP and DEF_UP to all living heroes
+    for (const hero of heroes) {
+      if (hero.currentHp > 0) {
+        // Add ATK_UP
+        hero.statusEffects.push({
+          type: EffectType.ATK_UP,
+          duration,
+          value: totalBuff,
+          sourceId: 'cacophon_finale'
+        })
+        // Add DEF_UP
+        hero.statusEffects.push({
+          type: EffectType.DEF_UP,
+          duration,
+          value: totalBuff,
+          sourceId: 'cacophon_finale'
+        })
+      }
+    }
+
+    // Reset tracking
+    resetAllyHpTracking()
+  }
+
   return {
     // State
     state,
@@ -3846,6 +3906,9 @@ export const useBattleStore = defineStore('battle', () => {
     totalAllyHpLost,
     resetAllyHpTracking,
     applyAllyHpCost,
+    // Suffering's Crescendo Finale (for Cacophon)
+    calculateSufferingCrescendoBonus,
+    processSufferingCrescendoFinale,
     // Passive regen leader effects
     applyPassiveRegenLeaderEffects,
     // Equipment helpers
