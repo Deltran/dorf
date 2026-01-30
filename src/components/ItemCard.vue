@@ -26,10 +26,33 @@ const emit = defineEmits(['click'])
 const rarityClass = computed(() => `rarity-${props.item.rarity || 1}`)
 
 const typeIcon = computed(() => {
+  // Equipment uses slot icons
+  if (props.item.isEquipment && props.item.equipment) {
+    const slotIcons = {
+      weapon: '🗡️',
+      armor: '🛡️',
+      ring: '💍',
+      cloak: '🧥',
+      shield: '🛡️',
+      war_trophy: '💀',
+      bow: '🏹',
+      staff: '🪄',
+      holy_symbol: '✝️',
+      holy_relic: '⭐',
+      totem: '🦴',
+      instrument: '🎵'
+    }
+    return slotIcons[props.item.equipment.slot] || '🗡️'
+  }
   switch (props.item.type) {
     case 'xp': return '📖'
     case 'junk': return '🪨'
     case 'material': return '💎'
+    case 'equipment_material': return '🔧'
+    case 'token': return '🎟️'
+    case 'key': return '🗝️'
+    case 'merge_material': return '💠'
+    case 'genusLoci': return '🏆'
     default: return '📦'
   }
 })
@@ -53,6 +76,12 @@ const typeIcon = computed(() => {
     <div v-if="!compact" class="card-footer">
       <div v-if="item.type === 'xp'" class="item-value xp">
         +{{ item.xpValue }} XP
+      </div>
+      <div v-else-if="item.isEquipment && item.equipment" class="item-value equip">
+        {{ item.equipment.slot.replace('_', ' ') }}
+      </div>
+      <div v-else-if="item.sellReward?.gold" class="item-value sell-gold">
+        {{ item.sellReward.gold }} 🪙
       </div>
       <div v-else-if="item.sellReward?.gems" class="item-value sell">
         {{ item.sellReward.gems }} 💎
@@ -152,5 +181,15 @@ const typeIcon = computed(() => {
 
 .item-value.sell {
   color: #9ca3af;
+}
+
+.item-value.sell-gold {
+  color: #f59e0b;
+}
+
+.item-value.equip {
+  color: #60a5fa;
+  text-transform: capitalize;
+  font-size: 0.7rem;
 }
 </style>

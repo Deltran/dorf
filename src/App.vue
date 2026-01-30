@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
 import { getAllQuestNodes } from './data/quests/index.js'
@@ -36,6 +36,7 @@ const genusLociStore = useGenusLociStore()
 const explorationsStore = useExplorationsStore()
 const tipsStore = useTipsStore()
 const shopsStore = useShopsStore()
+const equipmentStore = useEquipmentStore()
 
 const currentScreen = ref(
   import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_screen') || 'home') : 'home'
@@ -67,7 +68,7 @@ onMounted(() => {
   tipsStore.loadTips()
 
   if (hasData) {
-    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore })
+    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore })
     repairGenusLociCompletions()
   } else {
     // New player: give them a starter hero
@@ -111,11 +112,14 @@ watch(
     genusLociStore.progress,
     explorationsStore.activeExplorations,
     explorationsStore.completedHistory,
-    shopsStore.purchases
+    shopsStore.purchases,
+    equipmentStore.ownedEquipment,
+    equipmentStore.equippedGear,
+    equipmentStore.blacksmithUnlocked
   ],
   () => {
     if (isLoaded.value) {
-      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore })
+      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore })
     }
   },
   { deep: true }

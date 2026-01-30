@@ -3,9 +3,11 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useShopsStore, useGachaStore, useInventoryStore } from '../stores'
 import { useQuestsStore } from '../stores/quests'
 import { useShardsStore } from '../stores/shards'
+import { useEquipmentStore } from '../stores/equipment'
 import { getAllShops, getShop } from '../data/shops.js'
 import { getItem } from '../data/items.js'
 import StarRating from '../components/StarRating.vue'
+import BlacksmithSection from '../components/BlacksmithSection.vue'
 
 const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
@@ -29,6 +31,10 @@ const gachaStore = useGachaStore()
 const inventoryStore = useInventoryStore()
 const questsStore = useQuestsStore()
 const shardsStore = useShardsStore()
+const equipmentStore = useEquipmentStore()
+
+// Track if blacksmith tab is active
+const showBlacksmith = ref(false)
 
 const shops = getAllShops()
 const activeShopId = ref(shops[0]?.id || null)
@@ -273,15 +279,25 @@ function typeIcon(type) {
       <button
         v-for="shop in shops"
         :key="shop.id"
-        :class="['shop-tab', { active: activeShopId === shop.id }]"
-        @click="activeShopId = shop.id"
+        :class="['shop-tab', { active: activeShopId === shop.id && !showBlacksmith }]"
+        @click="activeShopId = shop.id; showBlacksmith = false"
       >
         {{ shop.name }}
       </button>
+      <button
+        v-if="equipmentStore.blacksmithUnlocked"
+        :class="['shop-tab', 'blacksmith-tab', { active: showBlacksmith }]"
+        @click="showBlacksmith = true"
+      >
+        Blacksmith
+      </button>
     </div>
 
+    <!-- Blacksmith Section -->
+    <BlacksmithSection v-if="showBlacksmith" />
+
     <!-- Shop Info -->
-    <div v-if="activeShop" class="shop-info">
+    <div v-if="activeShop && !showBlacksmith" class="shop-info">
       <div class="shop-name">{{ activeShop.name }}</div>
       <div class="shop-description">{{ activeShop.description }}</div>
       <div class="reset-timer">
@@ -291,7 +307,7 @@ function typeIcon(type) {
     </div>
 
     <!-- Crest Shop Sectioned Layout -->
-    <template v-if="activeShop?.currency === 'crest'">
+    <template v-if="activeShop?.currency === 'crest' && !showBlacksmith">
       <div v-if="unlockedSections.length === 0" class="no-sections">
         <p>Defeat a Genus Loci to unlock their offerings.</p>
       </div>
@@ -344,7 +360,7 @@ function typeIcon(type) {
     </template>
 
     <!-- Gold/Gems Item Grid -->
-    <div v-else class="item-grid">
+    <div v-else-if="!showBlacksmith" class="item-grid">
       <div
         v-for="shopItem in shopInventory"
         :key="shopItem.itemId"
@@ -567,6 +583,15 @@ function typeIcon(type) {
   background: linear-gradient(135deg, #854d0e 0%, #92400e 100%);
   border-color: #f59e0b;
   color: #f3f4f6;
+}
+
+.shop-tab.blacksmith-tab {
+  border-color: #dc2626;
+}
+
+.shop-tab.blacksmith-tab.active {
+  background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);
+  border-color: #ef4444;
 }
 
 /* Shop Info */

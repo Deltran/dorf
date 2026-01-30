@@ -1,11 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useHeroesStore } from './heroes.js'
+import { useEquipmentStore } from './equipment.js'
 import { getEnemyTemplate } from '../data/enemies/index.js'
 import { EffectType, createEffect, getEffectDefinition } from '../data/statusEffects.js'
 import { getClass } from '../data/classes.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import { getGenusLociAbilitiesForLevel } from '../data/genusLociAbilities.js'
+import { getEquipment } from '../data/equipment.js'
 
 // Battle states
 export const BattleState = {
@@ -502,11 +504,16 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   function applyFinaleEffect(bard, target, effect) {
+    // Get Finale boost from equipment
+    const finaleBoost = getFinaleBoost(bard.templateId)
+    const boostMultiplier = 1 + finaleBoost / 100
+
     // Resource grants
     if (effect.type === 'resource_grant') {
       if (effect.rageAmount && isBerserker(target)) {
-        gainRage(target, effect.rageAmount)
-        addLog(`${target.template.name} gains ${effect.rageAmount} Rage!`)
+        const boostedAmount = Math.floor(effect.rageAmount * boostMultiplier)
+        gainRage(target, boostedAmount)
+        addLog(`${target.template.name} gains ${boostedAmount} Rage!`)
         emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
       }
       if (effect.focusGrant && isRanger(target)) {
@@ -514,13 +521,15 @@ export const useBattleStore = defineStore('battle', () => {
         emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
       }
       if (effect.valorAmount && isKnight(target)) {
-        gainValor(target, effect.valorAmount)
-        addLog(`${target.template.name} gains ${effect.valorAmount} Valor!`)
+        const boostedAmount = Math.floor(effect.valorAmount * boostMultiplier)
+        gainValor(target, boostedAmount)
+        addLog(`${target.template.name} gains ${boostedAmount} Valor!`)
         emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
       }
       if (effect.mpAmount && !isBerserker(target) && !isRanger(target) && !isKnight(target) && !isBard(target)) {
+        const boostedAmount = Math.floor(effect.mpAmount * boostMultiplier)
         const oldMp = target.currentMp || 0
-        target.currentMp = Math.min(target.maxMp || 100, oldMp + effect.mpAmount)
+        target.currentMp = Math.min(target.maxMp || 100, oldMp + boostedAmount)
         const actual = target.currentMp - oldMp
         if (actual > 0) {
           addLog(`${target.template.name} gains ${actual} MP!`)
@@ -537,7 +546,8 @@ export const useBattleStore = defineStore('battle', () => {
     // Heal (percentage of Bard's ATK)
     if (effect.type === 'heal' && effect.value) {
       const bardAtk = getEffectiveStat(bard, 'atk')
-      const healAmount = Math.floor(bardAtk * (effect.value / 100))
+      const boostedValue = effect.value * boostMultiplier
+      const healAmount = Math.floor(bardAtk * (boostedValue / 100))
       const oldHp = target.currentHp
       target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
       const actual = target.currentHp - oldHp
@@ -548,10 +558,15 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   function applyFinaleEffectToEnemy(bard, enemy, effect) {
+    // Get Finale boost from equipment
+    const finaleBoost = getFinaleBoost(bard.templateId)
+    const boostMultiplier = 1 + finaleBoost / 100
+
     // Damage (percentage of Bard's ATK)
     if (effect.type === 'damage' && effect.damagePercent) {
       const bardAtk = getEffectiveStat(bard, 'atk')
-      const damage = Math.floor(bardAtk * (effect.damagePercent / 100))
+      const boostedPercent = effect.damagePercent * boostMultiplier
+      const damage = Math.floor(bardAtk * (boostedPercent / 100))
       applyDamage(enemy, damage, 'skill', bard)
       emitCombatEffect(enemy.id, 'enemy', 'damage', damage)
     }
@@ -1120,10 +1135,12 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     // Check for DAMAGE_REDUCTION effect
+    let damageBlockedByReduction = 0
     const damageReductionEffect = (unit.statusEffects || []).find(e => e.type === EffectType.DAMAGE_REDUCTION)
     if (damageReductionEffect) {
       const reductionPercent = damageReductionEffect.value
       const reducedAmount = Math.floor(damage * reductionPercent / 100)
+      damageBlockedByReduction = reducedAmount
       damage = damage - reducedAmount
       if (reducedAmount > 0) {
         const unitName = unit.template?.name || 'Unknown'
@@ -1137,6 +1154,25 @@ export const useBattleStore = defineStore('battle', () => {
       const reductionPercent = thickHidePassive.damageReduction
       const reducedAmount = Math.floor(damage * reductionPercent / 100)
       damage = damage - reducedAmount
+    }
+
+    // Apply equipment ally_damage_reduction for heroes (from party members)
+    const isHeroUnit = !!unit.instanceId
+    if (isHeroUnit) {
+      const allyReduction = getAllyDamageReduction()
+      if (allyReduction > 0) {
+        const reducedAmount = Math.floor(damage * allyReduction / 100)
+        damage = damage - reducedAmount
+        if (reducedAmount > 0) {
+          const unitName = unit.template?.name || 'Unknown'
+          addLog(`${unitName}'s allies reduce damage by ${reducedAmount}!`)
+        }
+      }
+    }
+
+    // Process valor_on_block effect for knights blocking damage
+    if (isHeroUnit && isKnight(unit) && damageBlockedByReduction > 0) {
+      processValorOnBlock(unit, damageBlockedByReduction)
     }
 
     // Check death prevention before applying lethal damage
@@ -1380,6 +1416,336 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== EQUIPMENT HELPERS ==========
+
+  /**
+   * Get total stat bonuses from all equipped gear for a hero template
+   * @param {string} templateId - Hero template ID
+   * @returns {{ hp: number, atk: number, def: number, spd: number, mp: number }}
+   */
+  function getEquipmentBonuses(templateId) {
+    const equipmentStore = useEquipmentStore()
+    const gear = equipmentStore.getEquippedGear(templateId)
+
+    const bonuses = { hp: 0, atk: 0, def: 0, spd: 0, mp: 0 }
+
+    // Sum stats from all equipped items
+    const slots = ['weapon', 'armor', 'trinket', 'special']
+    for (const slot of slots) {
+      const equipmentId = gear[slot]
+      if (!equipmentId) continue
+
+      const equipment = getEquipment(equipmentId)
+      if (!equipment || !equipment.stats) continue
+
+      // Add each stat from the equipment
+      for (const stat in equipment.stats) {
+        if (stat in bonuses) {
+          bonuses[stat] += equipment.stats[stat]
+        }
+      }
+    }
+
+    return bonuses
+  }
+
+  /**
+   * Get all equipment effects for a hero template
+   * @param {string} templateId - Hero template ID
+   * @returns {Array<{type: string, value?: number, ...}>} Array of effect objects
+   */
+  function getEquipmentEffects(templateId) {
+    const equipmentStore = useEquipmentStore()
+    const gear = equipmentStore.getEquippedGear(templateId)
+
+    const effects = []
+
+    // Collect effects from all equipped items
+    const slots = ['weapon', 'armor', 'trinket', 'special']
+    for (const slot of slots) {
+      const equipmentId = gear[slot]
+      if (!equipmentId) continue
+
+      const equipment = getEquipment(equipmentId)
+      if (!equipment || !equipment.effect) continue
+
+      effects.push({ ...equipment.effect })
+    }
+
+    return effects
+  }
+
+  /**
+   * Get MP boost from equipment effects (for mp_boost_and_cost_reduction)
+   * @param {string} templateId - Hero template ID
+   * @returns {number} Additional max MP
+   */
+  function getEquipmentMpBoost(templateId) {
+    const effects = getEquipmentEffects(templateId)
+    let boost = 0
+    for (const effect of effects) {
+      if (effect.type === 'mp_boost_and_cost_reduction' && effect.mpBoost) {
+        boost += effect.mpBoost
+      }
+    }
+    return boost
+  }
+
+  /**
+   * Process equipment start-of-turn effects (mp_regen, hp_regen_percent, nature_regen)
+   * @param {object} hero - Battle hero object
+   */
+  function processEquipmentStartOfTurn(hero) {
+    if (hero.currentHp <= 0) return
+
+    const effects = getEquipmentEffects(hero.templateId)
+
+    for (const effect of effects) {
+      if (effect.type === 'mp_regen') {
+        const oldMp = hero.currentMp
+        hero.currentMp = Math.min(hero.maxMp, hero.currentMp + effect.value)
+        const gained = hero.currentMp - oldMp
+        if (gained > 0) {
+          addLog(`${hero.template.name} regenerates ${gained} MP from equipment!`)
+        }
+      }
+
+      if (effect.type === 'hp_regen_percent' || effect.type === 'nature_regen') {
+        const healAmount = Math.floor(hero.maxHp * effect.value / 100)
+        const oldHp = hero.currentHp
+        hero.currentHp = Math.min(hero.maxHp, hero.currentHp + healAmount)
+        const healed = hero.currentHp - oldHp
+        if (healed > 0) {
+          addLog(`${hero.template.name} regenerates ${healed} HP from equipment!`)
+          emitCombatEffect(hero.instanceId, 'hero', 'heal', healed)
+        }
+      }
+    }
+  }
+
+  /**
+   * Roll for critical hit based on equipment crit_chance
+   * @param {string} templateId - Hero template ID
+   * @returns {{isCrit: boolean, multiplier: number}}
+   */
+  function rollCrit(templateId) {
+    const effects = getEquipmentEffects(templateId)
+    let totalCritChance = 0
+
+    for (const effect of effects) {
+      if (effect.type === 'crit_chance') {
+        totalCritChance += effect.value
+      }
+    }
+
+    if (totalCritChance <= 0) {
+      return { isCrit: false, multiplier: 1 }
+    }
+
+    const roll = Math.random() * 100
+    if (roll < totalCritChance) {
+      return { isCrit: true, multiplier: 1.5 }
+    }
+
+    return { isCrit: false, multiplier: 1 }
+  }
+
+  /**
+   * Get ATK boost from low_hp_atk_boost effect
+   * @param {object} hero - Battle hero object
+   * @returns {number} ATK boost percentage (e.g., 25 for +25%)
+   */
+  function getEquipmentAtkBoost(hero) {
+    const effects = getEquipmentEffects(hero.templateId)
+    let boost = 0
+
+    for (const effect of effects) {
+      if (effect.type === 'low_hp_atk_boost') {
+        const hpPercent = (hero.currentHp / hero.maxHp) * 100
+        if (hpPercent < effect.threshold) {
+          boost += effect.value
+        }
+      }
+    }
+
+    return boost
+  }
+
+  /**
+   * Get skill cost reduction percentage from equipment
+   * @param {string} templateId - Hero template ID
+   * @returns {number} Cost reduction percentage (e.g., 10 for 10% reduction)
+   */
+  function getSkillCostReduction(templateId) {
+    const effects = getEquipmentEffects(templateId)
+    let reduction = 0
+
+    for (const effect of effects) {
+      if (effect.type === 'mp_boost_and_cost_reduction' && effect.costReduction) {
+        reduction += effect.costReduction
+      }
+    }
+
+    return reduction
+  }
+
+  /**
+   * Process valor_on_block effect when a knight blocks damage
+   * @param {object} hero - Battle hero object
+   * @param {number} damageBlocked - Amount of damage blocked
+   */
+  function processValorOnBlock(hero, damageBlocked) {
+    if (!isKnight(hero) || hero.currentValor === undefined) return
+    if (damageBlocked <= 0) return
+
+    const effects = getEquipmentEffects(hero.templateId)
+
+    for (const effect of effects) {
+      if (effect.type === 'valor_on_block') {
+        gainValor(hero, effect.value)
+        addLog(`${hero.template.name} gains ${effect.value} Valor from blocking!`)
+      }
+    }
+  }
+
+  /**
+   * Process rage_on_kill effect when a berserker kills an enemy
+   * @param {object} hero - Battle hero object
+   */
+  function processRageOnKill(hero) {
+    if (!isBerserker(hero) || hero.currentRage === undefined) return
+
+    const effects = getEquipmentEffects(hero.templateId)
+
+    for (const effect of effects) {
+      if (effect.type === 'rage_on_kill') {
+        gainRage(hero, effect.value)
+        addLog(`${hero.template.name} gains ${effect.value} Rage from kill!`)
+      }
+    }
+  }
+
+  /**
+   * Process focus_on_crit effect when a ranger crits
+   * @param {object} hero - Battle hero object
+   * @param {boolean} didCrit - Whether the attack was a critical hit
+   */
+  function processFocusOnCrit(hero, didCrit) {
+    if (!isRanger(hero)) return
+    if (!didCrit) return
+
+    const effects = getEquipmentEffects(hero.templateId)
+
+    for (const effect of effects) {
+      if (effect.type === 'focus_on_crit') {
+        grantFocus(hero)
+        addLog(`${hero.template.name} regains Focus from critical hit!`)
+      }
+    }
+  }
+
+  /**
+   * Get spell damage amplification percentage from equipment
+   * @param {string} templateId - Hero template ID
+   * @returns {number} Spell amp percentage (e.g., 15 for +15%)
+   */
+  function getSpellAmp(templateId) {
+    const effects = getEquipmentEffects(templateId)
+    let amp = 0
+
+    for (const effect of effects) {
+      if (effect.type === 'spell_amp') {
+        amp += effect.value
+      }
+    }
+
+    return amp
+  }
+
+  /**
+   * Get healing amplification percentage from equipment
+   * @param {string} templateId - Hero template ID
+   * @returns {number} Heal amp percentage (e.g., 20 for +20%)
+   */
+  function getHealAmp(templateId) {
+    const effects = getEquipmentEffects(templateId)
+    let amp = 0
+
+    for (const effect of effects) {
+      if (effect.type === 'heal_amp') {
+        amp += effect.value
+      }
+    }
+
+    return amp
+  }
+
+  /**
+   * Get total ally damage reduction from all equipped ally_damage_reduction effects
+   * @returns {number} Damage reduction percentage
+   */
+  function getAllyDamageReduction() {
+    let totalReduction = 0
+
+    for (const hero of heroes.value) {
+      if (hero.currentHp <= 0) continue
+      const effects = getEquipmentEffects(hero.templateId)
+
+      for (const effect of effects) {
+        if (effect.type === 'ally_damage_reduction') {
+          totalReduction += effect.value
+        }
+      }
+    }
+
+    return totalReduction
+  }
+
+  /**
+   * Get Finale effect boost percentage from equipment
+   * @param {string} templateId - Hero template ID
+   * @returns {number} Finale boost percentage (e.g., 25 for +25%)
+   */
+  function getFinaleBoost(templateId) {
+    const effects = getEquipmentEffects(templateId)
+    let boost = 0
+
+    for (const effect of effects) {
+      if (effect.type === 'finale_boost') {
+        boost += effect.value
+      }
+    }
+
+    return boost
+  }
+
+  /**
+   * Apply starting equipment effects to a hero (starting_mp, starting_resource)
+   * @param {object} hero - Battle hero object
+   * @param {string} templateId - Hero template ID
+   */
+  function applyStartingEquipmentEffects(hero, templateId) {
+    const effects = getEquipmentEffects(templateId)
+
+    for (const effect of effects) {
+      // Starting MP bonus
+      if (effect.type === 'starting_mp') {
+        hero.currentMp = Math.min(hero.maxMp, hero.currentMp + effect.value)
+      }
+
+      // Starting resource bonus (Rage/Valor for Berserkers/Knights)
+      if (effect.type === 'starting_resource') {
+        if (isBerserker(hero) && hero.currentRage !== undefined) {
+          hero.currentRage = Math.min(100, hero.currentRage + effect.value)
+        }
+        if (isKnight(hero) && hero.currentValor !== undefined) {
+          hero.currentValor = Math.min(100, hero.currentValor + effect.value)
+        }
+        // Rangers already start with focus, no additional benefit
+      }
+    }
+  }
+
   // ========== BATTLE FUNCTIONS ==========
 
   function initBattle(partyState, enemyTemplateIds, genusLociContext = null) {
@@ -1417,15 +1783,33 @@ export const useBattleStore = defineStore('battle', () => {
         }
       }
 
-      heroes.value.push({
+      // Get equipment bonuses (only if hero is NOT on expedition)
+      const isOnExpedition = heroFull.explorationNodeId != null
+      const equipBonuses = isOnExpedition
+        ? { hp: 0, atk: 0, def: 0, spd: 0, mp: 0 }
+        : getEquipmentBonuses(heroFull.templateId)
+
+      // Get MP boost from equipment effects (mp_boost_and_cost_reduction)
+      const mpBoostFromEffects = isOnExpedition ? 0 : getEquipmentMpBoost(heroFull.templateId)
+
+      // Build final stats with equipment bonuses
+      const finalStats = {
+        hp: heroFull.stats.hp + equipBonuses.hp,
+        atk: heroFull.stats.atk + equipBonuses.atk,
+        def: heroFull.stats.def + equipBonuses.def,
+        spd: heroFull.stats.spd + equipBonuses.spd,
+        mp: heroFull.stats.mp + equipBonuses.mp + mpBoostFromEffects
+      }
+
+      const battleHero = {
         instanceId,
         templateId: heroFull.templateId,
         level: heroFull.level,
-        currentHp: savedState?.currentHp ?? heroFull.stats.hp,
-        maxHp: heroFull.stats.hp,
-        currentMp: savedState?.currentMp ?? Math.floor(heroFull.stats.mp * 0.3),
-        maxMp: heroFull.stats.mp,
-        stats: heroFull.stats,
+        currentHp: savedState?.currentHp ?? finalStats.hp,
+        maxHp: finalStats.hp,
+        currentMp: savedState?.currentMp ?? Math.floor(finalStats.mp * 0.3),
+        maxMp: finalStats.mp,
+        stats: finalStats,
         template: heroFull.template,
         class: heroFull.class,
         statusEffects: [],
@@ -1436,7 +1820,14 @@ export const useBattleStore = defineStore('battle', () => {
         currentVerses: heroFull.class?.resourceType === 'verse' ? 0 : undefined,
         lastSkillName: heroFull.class?.resourceType === 'verse' ? null : undefined,
         wasAttacked: false
-      })
+      }
+
+      // Apply starting equipment effects (starting_mp, starting_resource)
+      if (!isOnExpedition) {
+        applyStartingEquipmentEffects(battleHero, heroFull.templateId)
+      }
+
+      heroes.value.push(battleHero)
     }
 
     // Initialize enemies
@@ -1542,6 +1933,9 @@ export const useBattleStore = defineStore('battle', () => {
             setTimeout(() => startNextTurn(), 600)
             return
           }
+
+          // Process equipment start-of-turn effects (mp_regen, hp_regen_percent, nature_regen)
+          processEquipmentStartOfTurn(hero)
 
           // Check for Bard Finale (auto-trigger at 3 verses)
           if (isBard(hero) && hero.currentVerses >= 3 && hero.template.finale) {
@@ -1776,12 +2170,18 @@ export const useBattleStore = defineStore('battle', () => {
         // Bards have no resource cost — skills are free
         // Repeat restriction is handled by BattleScreen canUseSkill
       } else {
-        if (hero.currentMp < skill.mpCost) {
+        // Apply skill cost reduction from equipment
+        const costReduction = getSkillCostReduction(hero.templateId)
+        let actualMpCost = skill.mpCost || 0
+        if (costReduction > 0 && actualMpCost > 0) {
+          actualMpCost = Math.max(1, Math.floor(actualMpCost * (1 - costReduction / 100)))
+        }
+        if (hero.currentMp < actualMpCost) {
           addLog(`Not enough ${hero.class.resourceName}!`)
           state.value = BattleState.PLAYER_TURN
           return
         }
-        hero.currentMp -= skill.mpCost
+        hero.currentMp -= actualMpCost
       }
       usedSkill = true
 
@@ -1812,7 +2212,15 @@ export const useBattleStore = defineStore('battle', () => {
       }
 
       const targetType = skill.targetType || 'enemy'
-      const effectiveAtk = getEffectiveStat(hero, 'atk')
+      let effectiveAtk = getEffectiveStat(hero, 'atk')
+
+      // Apply equipment low_hp_atk_boost
+      const equipAtkBoost = getEquipmentAtkBoost(hero)
+      if (equipAtkBoost > 0) {
+        effectiveAtk = Math.floor(effectiveAtk * (1 + equipAtkBoost / 100))
+        addLog(`${hero.template.name}'s desperation boosts ATK by ${equipAtkBoost}%!`)
+      }
+
       // Support useStat property for skills that use a different stat for damage (e.g., DEF)
       const damageStat = skill.useStat || 'atk'
       const effectiveDamageStat = skill.useStat ? getEffectiveStat(hero, skill.useStat) : effectiveAtk
@@ -1820,6 +2228,15 @@ export const useBattleStore = defineStore('battle', () => {
       // Get shard bonus for this hero (0, 5, 10, or 15)
       const heroesStore = useHeroesStore()
       const shardBonus = heroesStore.getShardBonus(hero.instanceId)
+
+      // Roll for crit from equipment (once per skill use)
+      const critResult = rollCrit(hero.templateId)
+      if (critResult.isCrit) {
+        addLog(`${hero.template.name} scores a CRITICAL HIT!`)
+      }
+
+      // Get spell amp from equipment
+      const spellAmp = getSpellAmp(hero.templateId)
 
       // Set effect source context for tooltip tracking
       currentEffectSource = `${hero.template.name}'s ${skill.name}`
@@ -1861,7 +2278,7 @@ export const useBattleStore = defineStore('battle', () => {
           }
 
           // Recalculate damage stat after pre-buff (in case pre-buff affects the stat used for damage)
-          const finalDamageStat = skill.useStat ? getEffectiveStat(hero, skill.useStat) : effectiveAtk
+          let finalDamageStat = skill.useStat ? getEffectiveStat(hero, skill.useStat) : effectiveAtk
 
           let targetEvaded = false
 
@@ -1883,16 +2300,24 @@ export const useBattleStore = defineStore('battle', () => {
 
             const markedMultiplier = getMarkedDamageMultiplier(target)
             for (let i = 0; i < skill.multiHit && target.currentHp > 0; i++) {
-              const hitDamage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+              let hitDamage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+              // Apply crit and spell amp
+              hitDamage = Math.floor(hitDamage * critResult.multiplier * (1 + spellAmp / 100))
               applyDamage(target, hitDamage, 'attack', hero)
               totalDamage += hitDamage
               emitCombatEffect(target.id, 'enemy', 'damage', hitDamage)
+            }
+
+            // Process focus_on_crit for rangers
+            if (critResult.isCrit) {
+              processFocusOnCrit(hero, true)
             }
 
             addLog(`${hero.template.name} deals ${totalDamage} total damage in ${skill.multiHit} hits!`)
 
             if (target.currentHp <= 0) {
               addLog(`${target.template.name} defeated!`)
+              processRageOnKill(hero)
             }
           }
           // Handle single-hit valor-consuming skills (e.g., Judgment of Steel)
@@ -1906,7 +2331,14 @@ export const useBattleStore = defineStore('battle', () => {
             // Apply shard bonus to the calculated damage percentage
             const multiplier = (damagePercent + shardBonus) / 100
             const markedMultiplier = getMarkedDamageMultiplier(target)
-            const damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+            let damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+            // Apply crit and spell amp
+            damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
+
+            // Process focus_on_crit for rangers
+            if (critResult.isCrit) {
+              processFocusOnCrit(hero, true)
+            }
 
             applyDamage(target, damage, 'attack', hero)
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage! (${valorConsumed} Valor consumed)`)
@@ -1929,6 +2361,7 @@ export const useBattleStore = defineStore('battle', () => {
 
             if (target.currentHp <= 0) {
               addLog(`${target.template.name} defeated!`)
+              processRageOnKill(hero)
             }
           }
           // Handle regular multi-hit skills (e.g., Toad Strangler)
@@ -1943,16 +2376,24 @@ export const useBattleStore = defineStore('battle', () => {
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
 
             for (let i = 0; i < skill.multiHit && target.currentHp > 0; i++) {
-              const hitDamage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+              let hitDamage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+              // Apply crit and spell amp
+              hitDamage = Math.floor(hitDamage * critResult.multiplier * (1 + spellAmp / 100))
               applyDamage(target, hitDamage, 'attack', hero)
               totalDamage += hitDamage
               emitCombatEffect(target.id, 'enemy', 'damage', hitDamage)
+            }
+
+            // Process focus_on_crit for rangers
+            if (critResult.isCrit) {
+              processFocusOnCrit(hero, true)
             }
 
             addLog(`${hero.template.name} deals ${totalDamage} total damage in ${skill.multiHit} hits!`)
 
             if (target.currentHp <= 0) {
               addLog(`${target.template.name} defeated!`)
+              processRageOnKill(hero)
             }
           }
           // Deal damage unless skill is effect-only
@@ -1988,6 +2429,14 @@ export const useBattleStore = defineStore('battle', () => {
             } else {
               const multiplier = parseSkillMultiplier(skill.description, shardBonus)
               damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+            }
+
+            // Apply crit and spell amp
+            damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
+
+            // Process focus_on_crit for rangers
+            if (critResult.isCrit) {
+              processFocusOnCrit(hero, true)
             }
 
             const dmgResult = {}
@@ -2093,6 +2542,7 @@ export const useBattleStore = defineStore('battle', () => {
 
           if (target.currentHp <= 0) {
             addLog(`${target.template.name} defeated!`)
+            processRageOnKill(hero)
           }
 
           // Handle chain bounce damage (e.g., Chain Lightning)
@@ -2161,6 +2611,11 @@ export const useBattleStore = defineStore('battle', () => {
               healAmount = calculateDesperationHeal(effectiveAtk, skill.healPercent || 0, skill.desperationHealBonus, missingHpPercent, shardBonus)
             } else {
               healAmount = calculateHeal(effectiveAtk, skill.description, shardBonus)
+            }
+            // Apply heal amp from equipment
+            const healAmp = getHealAmp(hero.templateId)
+            if (healAmp > 0) {
+              healAmount = Math.floor(healAmount * (1 + healAmp / 100))
             }
             const oldHp = target.currentHp
             target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
@@ -2507,6 +2962,7 @@ export const useBattleStore = defineStore('battle', () => {
           const multiplier = parseSkillMultiplier(skill.description, shardBonus)
           const numHits = skill.multiHit || 1
           let totalDamage = 0
+          let killedAny = false
 
           addLog(`${hero.template.name} uses ${skill.name}!`)
 
@@ -2518,7 +2974,9 @@ export const useBattleStore = defineStore('battle', () => {
             const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
             const reducedDef = effectiveDef * (1 - defReduction)
             const markedMultiplier = getMarkedDamageMultiplier(target)
-            const damage = calculateDamageWithMarked(effectiveAtk, multiplier, reducedDef, markedMultiplier)
+            let damage = calculateDamageWithMarked(effectiveAtk, multiplier, reducedDef, markedMultiplier)
+            // Apply crit and spell amp
+            damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
 
             applyDamage(target, damage, 'attack', hero)
             totalDamage += damage
@@ -2526,7 +2984,18 @@ export const useBattleStore = defineStore('battle', () => {
 
             if (target.currentHp <= 0) {
               addLog(`${target.template.name} defeated!`)
+              killedAny = true
             }
+          }
+
+          // Process focus_on_crit for rangers
+          if (critResult.isCrit) {
+            processFocusOnCrit(hero, true)
+          }
+
+          // Process rage_on_kill if any enemy was killed
+          if (killedAny) {
+            processRageOnKill(hero)
           }
 
           addLog(`${hero.template.name} deals ${totalDamage} total damage!`)
@@ -2579,10 +3048,13 @@ export const useBattleStore = defineStore('battle', () => {
           const multiplier = scaledDamage !== null ? (scaledDamage + shardBonus) / 100 : parseSkillMultiplier(skill.description, shardBonus)
           let totalDamage = 0
           let totalThornsDamage = 0
+          let killedAny = false
           for (const target of targets) {
             const effectiveDef = getEffectiveStat(target, 'def')
             const markedMultiplier = getMarkedDamageMultiplier(target)
-            const damage = calculateDamageWithMarked(effectiveAtk, multiplier, effectiveDef, markedMultiplier)
+            let damage = calculateDamageWithMarked(effectiveAtk, multiplier, effectiveDef, markedMultiplier)
+            // Apply crit and spell amp
+            damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
             const aoeResult = {}
             applyDamage(target, damage, 'attack', hero, aoeResult)
             totalDamage += damage
@@ -2601,6 +3073,7 @@ export const useBattleStore = defineStore('battle', () => {
 
             if (target.currentHp <= 0) {
               addLog(`${target.template.name} defeated!`)
+              killedAny = true
             }
 
             // Check for thorns effect on the enemy
@@ -2610,6 +3083,16 @@ export const useBattleStore = defineStore('battle', () => {
               const thornsDamage = Math.max(1, Math.floor(enemyAtk * (thornsEffect.value || 40) / 100))
               totalThornsDamage += thornsDamage
             }
+          }
+
+          // Process focus_on_crit for rangers
+          if (critResult.isCrit) {
+            processFocusOnCrit(hero, true)
+          }
+
+          // Process rage_on_kill if any enemy was killed
+          if (killedAny) {
+            processRageOnKill(hero)
           }
           // Apply accumulated thorns damage
           if (totalThornsDamage > 0) {
@@ -2633,6 +3116,11 @@ export const useBattleStore = defineStore('battle', () => {
               healAmount = calculateDesperationHeal(effectiveAtk, skill.healPercent || 0, skill.desperationHealBonus, missingHpPercent, shardBonus)
             } else {
               healAmount = calculateHeal(effectiveAtk, skill.description, shardBonus)
+            }
+            // Apply heal amp from equipment
+            const healAmp = getHealAmp(hero.templateId)
+            if (healAmp > 0) {
+              healAmount = Math.floor(healAmount * (1 + healAmp / 100))
             }
             for (const target of aliveHeroes.value) {
               const oldHp = target.currentHp
@@ -3327,6 +3815,20 @@ export const useBattleStore = defineStore('battle', () => {
     calculatePartyMissingHpPercent,
     // Passive regen leader effects
     applyPassiveRegenLeaderEffects,
+    // Equipment helpers
+    getEquipmentBonuses,
+    getEquipmentEffects,
+    processEquipmentStartOfTurn,
+    rollCrit,
+    getEquipmentAtkBoost,
+    getSkillCostReduction,
+    processValorOnBlock,
+    processRageOnKill,
+    processFocusOnCrit,
+    getSpellAmp,
+    getHealAmp,
+    getAllyDamageReduction,
+    getFinaleBoost,
     // Constants
     BattleState,
     EffectType

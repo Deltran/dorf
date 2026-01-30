@@ -182,6 +182,158 @@ export const items = {
     type: 'token',
     rarity: 3,
     region: 'Janxier Floodplain'
+  },
+
+  // Equipment upgrade materials - Weapon stones
+  common_weapon_stone: {
+    id: 'common_weapon_stone',
+    name: 'Common Weapon Stone',
+    description: 'A rough whetstone used to sharpen basic weapons.',
+    type: 'equipment_material',
+    rarity: 1,
+    materialSlot: 'weapon',
+    materialTier: 1
+  },
+  uncommon_weapon_stone: {
+    id: 'uncommon_weapon_stone',
+    name: 'Uncommon Weapon Stone',
+    description: 'A quality sharpening stone that brings out a weapon\'s edge.',
+    type: 'equipment_material',
+    rarity: 2,
+    materialSlot: 'weapon',
+    materialTier: 2
+  },
+  rare_weapon_stone: {
+    id: 'rare_weapon_stone',
+    name: 'Rare Weapon Stone',
+    description: 'A fine-grained stone infused with strengthening minerals.',
+    type: 'equipment_material',
+    rarity: 3,
+    materialSlot: 'weapon',
+    materialTier: 3
+  },
+  epic_weapon_stone: {
+    id: 'epic_weapon_stone',
+    name: 'Epic Weapon Stone',
+    description: 'A legendary whetstone that can transform ordinary steel into masterwork.',
+    type: 'equipment_material',
+    rarity: 4,
+    materialSlot: 'weapon',
+    materialTier: 4
+  },
+
+  // Equipment upgrade materials - Armor plates
+  common_armor_plate: {
+    id: 'common_armor_plate',
+    name: 'Common Armor Plate',
+    description: 'A basic metal plate for reinforcing armor.',
+    type: 'equipment_material',
+    rarity: 1,
+    materialSlot: 'armor',
+    materialTier: 1
+  },
+  uncommon_armor_plate: {
+    id: 'uncommon_armor_plate',
+    name: 'Uncommon Armor Plate',
+    description: 'A sturdy plate of tempered steel for armor enhancement.',
+    type: 'equipment_material',
+    rarity: 2,
+    materialSlot: 'armor',
+    materialTier: 2
+  },
+  rare_armor_plate: {
+    id: 'rare_armor_plate',
+    name: 'Rare Armor Plate',
+    description: 'A reinforced plate forged with protective enchantments.',
+    type: 'equipment_material',
+    rarity: 3,
+    materialSlot: 'armor',
+    materialTier: 3
+  },
+  epic_armor_plate: {
+    id: 'epic_armor_plate',
+    name: 'Epic Armor Plate',
+    description: 'A legendary plate that can make armor nearly impenetrable.',
+    type: 'equipment_material',
+    rarity: 4,
+    materialSlot: 'armor',
+    materialTier: 4
+  },
+
+  // Equipment upgrade materials - Gem shards (trinkets)
+  common_gem_shard: {
+    id: 'common_gem_shard',
+    name: 'Common Gem Shard',
+    description: 'A fragment of a magical gem with faint power.',
+    type: 'equipment_material',
+    rarity: 1,
+    materialSlot: 'trinket',
+    materialTier: 1
+  },
+  uncommon_gem_shard: {
+    id: 'uncommon_gem_shard',
+    name: 'Uncommon Gem Shard',
+    description: 'A glowing gem fragment that pulses with energy.',
+    type: 'equipment_material',
+    rarity: 2,
+    materialSlot: 'trinket',
+    materialTier: 2
+  },
+  rare_gem_shard: {
+    id: 'rare_gem_shard',
+    name: 'Rare Gem Shard',
+    description: 'A brilliant shard radiating concentrated magical essence.',
+    type: 'equipment_material',
+    rarity: 3,
+    materialSlot: 'trinket',
+    materialTier: 3
+  },
+  epic_gem_shard: {
+    id: 'epic_gem_shard',
+    name: 'Epic Gem Shard',
+    description: 'A legendary gem fragment with reality-bending properties.',
+    type: 'equipment_material',
+    rarity: 4,
+    materialSlot: 'trinket',
+    materialTier: 4
+  },
+
+  // Equipment upgrade materials - Class tokens
+  common_class_token: {
+    id: 'common_class_token',
+    name: 'Common Class Token',
+    description: 'A basic emblem used to enhance class-specific gear.',
+    type: 'equipment_material',
+    rarity: 1,
+    materialSlot: 'class',
+    materialTier: 1
+  },
+  uncommon_class_token: {
+    id: 'uncommon_class_token',
+    name: 'Uncommon Class Token',
+    description: 'A polished token inscribed with profession secrets.',
+    type: 'equipment_material',
+    rarity: 2,
+    materialSlot: 'class',
+    materialTier: 2
+  },
+  rare_class_token: {
+    id: 'rare_class_token',
+    name: 'Rare Class Token',
+    description: 'A masterwork token blessed by guild artisans.',
+    type: 'equipment_material',
+    rarity: 3,
+    materialSlot: 'class',
+    materialTier: 3
+  },
+  epic_class_token: {
+    id: 'epic_class_token',
+    name: 'Epic Class Token',
+    description: 'A legendary token that channels the essence of mastery.',
+    type: 'equipment_material',
+    rarity: 4,
+    materialSlot: 'class',
+    materialTier: 4
   }
 }
 
@@ -201,4 +353,32 @@ export function getAllItems() {
 
 export function getItemsByType(type) {
   return Object.values(items).filter(item => item.type === type)
+}
+
+// Lookup table for upgrade materials by slot category and tier
+export const UPGRADE_MATERIALS = {
+  weapon: {
+    1: 'common_weapon_stone',
+    2: 'uncommon_weapon_stone',
+    3: 'rare_weapon_stone',
+    4: 'epic_weapon_stone'
+  },
+  armor: {
+    1: 'common_armor_plate',
+    2: 'uncommon_armor_plate',
+    3: 'rare_armor_plate',
+    4: 'epic_armor_plate'
+  },
+  trinket: {
+    1: 'common_gem_shard',
+    2: 'uncommon_gem_shard',
+    3: 'rare_gem_shard',
+    4: 'epic_gem_shard'
+  },
+  class: {
+    1: 'common_class_token',
+    2: 'uncommon_class_token',
+    3: 'rare_class_token',
+    4: 'epic_class_token'
+  }
 }
