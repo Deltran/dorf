@@ -4137,6 +4137,86 @@ export const useBattleStore = defineStore('battle', () => {
     return 1
   }
 
+  // ========== FORTUNE SWAP SYSTEM (for Fortuna Inversus Finale) ==========
+
+  // Execute Fortuna's Wheel of Reversal finale
+  // Swaps buff/debuff pairs between allies and enemies, dispels certain effects
+  function executeFortuneSwap(allies, enemies, swapPairs, dispelList, sourceId) {
+    let swapped = 0
+    let dispelled = 0
+
+    const allyEffectsToProcess = []
+    const enemyEffectsToProcess = []
+
+    // Collect effects from allies
+    for (const ally of allies) {
+      for (const effect of [...ally.statusEffects]) {
+        if (swapPairs[effect.type]) {
+          allyEffectsToProcess.push({ unit: ally, effect, isAlly: true })
+        } else if (dispelList.includes(effect.type)) {
+          allyEffectsToProcess.push({ unit: ally, effect, isAlly: true, dispel: true })
+        }
+      }
+    }
+
+    // Collect effects from enemies
+    for (const enemy of enemies) {
+      for (const effect of [...enemy.statusEffects]) {
+        if (swapPairs[effect.type]) {
+          enemyEffectsToProcess.push({ unit: enemy, effect, isAlly: false })
+        } else if (dispelList.includes(effect.type)) {
+          enemyEffectsToProcess.push({ unit: enemy, effect, isAlly: false, dispel: true })
+        }
+      }
+    }
+
+    const isEmpty = allyEffectsToProcess.length === 0 && enemyEffectsToProcess.length === 0
+
+    // Process ally effects: swap to random enemy or dispel
+    for (const { unit, effect, dispel } of allyEffectsToProcess) {
+      const idx = unit.statusEffects.indexOf(effect)
+      if (idx !== -1) {
+        unit.statusEffects.splice(idx, 1)
+        if (dispel) {
+          dispelled++
+        } else {
+          // Swap to random enemy
+          const target = enemies[Math.floor(Math.random() * enemies.length)]
+          target.statusEffects.push({
+            type: swapPairs[effect.type],
+            duration: effect.duration,
+            value: effect.value,
+            sourceId
+          })
+          swapped++
+        }
+      }
+    }
+
+    // Process enemy effects: swap to random ally or dispel
+    for (const { unit, effect, dispel } of enemyEffectsToProcess) {
+      const idx = unit.statusEffects.indexOf(effect)
+      if (idx !== -1) {
+        unit.statusEffects.splice(idx, 1)
+        if (dispel) {
+          dispelled++
+        } else {
+          // Swap to random ally
+          const target = allies[Math.floor(Math.random() * allies.length)]
+          target.statusEffects.push({
+            type: swapPairs[effect.type],
+            duration: effect.duration,
+            value: effect.value,
+            sourceId
+          })
+          swapped++
+        }
+      }
+    }
+
+    return { swapped, dispelled, isEmpty }
+  }
+
   return {
     // State
     state,
@@ -4286,6 +4366,8 @@ export const useBattleStore = defineStore('battle', () => {
     flipCoin,
     applyCoinFlipResult,
     consumeCoinFlipBonus,
+    // Fortune swap system (for Fortuna Inversus)
+    executeFortuneSwap,
     // Constants
     BattleState,
     EffectType
