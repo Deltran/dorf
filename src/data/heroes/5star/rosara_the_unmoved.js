@@ -26,7 +26,7 @@ export const rosara_the_unmoved = {
     },
     {
       name: 'Seat of Power',
-      description: 'Enter Seated stance: Taunt + DEF buff. Cannot use skills while Seated. Scales with Valor.',
+      description: 'Enter Bulwark stance: Taunt + DEF buff. Cannot use skills while in Bulwark. Scales with Valor.',
       skillUnlockLevel: 1,
       valorRequired: 0,
       targetType: 'self',

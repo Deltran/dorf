@@ -9,7 +9,7 @@ describe('SEATED status effect', () => {
   it('has correct effect definition', () => {
     const def = effectDefinitions[EffectType.SEATED]
     expect(def).toBeDefined()
-    expect(def.name).toBe('Seated')
+    expect(def.name).toBe('Bulwark')
     expect(def.isBuff).toBe(true)
     expect(def.isSeated).toBe(true)
     expect(def.stackable).toBe(false)

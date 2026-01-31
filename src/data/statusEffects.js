@@ -345,8 +345,8 @@ export const effectDefinitions = {
     stackable: false
   },
   [EffectType.SEATED]: {
-    name: 'Seated',
-    icon: '🪑',
+    name: 'Bulwark',
+    icon: '🏰',
     color: '#3b82f6',
     isBuff: true,
     isSeated: true,
