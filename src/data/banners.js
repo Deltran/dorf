@@ -249,3 +249,75 @@ export function getBannerAvailabilityText(banner) {
   if (daysRemaining === 1) return '1 day remaining'
   return `${daysRemaining} days remaining`
 }
+
+/**
+ * Get monthly banner for a specific year/month.
+ * Handles year wraparound.
+ * @param {number} year
+ * @param {number} month - 1-indexed (1 = January)
+ * @returns {object|undefined}
+ */
+export function getMonthlyBanner(year, month) {
+  // Handle wraparound
+  if (month < 1) { year--; month = 12 }
+  if (month > 12) { year++; month = 1 }
+
+  return banners.find(b =>
+    b.monthlySchedule?.year === year &&
+    b.monthlySchedule?.month === month
+  )
+}
+
+/**
+ * Get a random vault banner (seeded by day for daily rotation).
+ * Excludes current month, last month, and next month.
+ * @param {number} currentYear
+ * @param {number} currentMonth
+ * @returns {object|undefined}
+ */
+function getRandomVaultBanner(currentYear, currentMonth) {
+  const excluded = new Set()
+
+  // Exclude current, last, and next month
+  for (let offset = -1; offset <= 1; offset++) {
+    let y = currentYear
+    let m = currentMonth + offset
+    if (m < 1) { y--; m = 12 }
+    if (m > 12) { y++; m = 1 }
+    excluded.add(`${y}-${m}`)
+  }
+
+  const candidates = banners.filter(b => {
+    if (!b.monthlySchedule) return false
+    const key = `${b.monthlySchedule.year}-${b.monthlySchedule.month}`
+    return !excluded.has(key)
+  })
+
+  if (candidates.length === 0) return undefined
+
+  // Seed random by day of year for daily rotation
+  const dayOfYear = getDayOfYear()
+  const index = dayOfYear % candidates.length
+  return candidates[index]
+}
+
+/**
+ * Get banners available in the Black Market.
+ * Returns 0-3 banners: last month, next month, random vault.
+ * @returns {Array}
+ */
+export function getBlackMarketBanners() {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+  const currentMonth = now.getMonth() + 1
+
+  const lastMonth = getMonthlyBanner(currentYear, currentMonth - 1)
+  const nextMonth = getMonthlyBanner(currentYear, currentMonth + 1)
+  const vault = getRandomVaultBanner(currentYear, currentMonth)
+
+  return [
+    lastMonth && { ...lastMonth, blackMarketSlot: 'last' },
+    nextMonth && { ...nextMonth, blackMarketSlot: 'next' },
+    vault && { ...vault, blackMarketSlot: 'vault' }
+  ].filter(Boolean)
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { banners, getActiveBanners, getBannerById, getBannerAvailabilityText, getDayOfYear, ROTATION_CHUNK_DAYS } from '../banners.js'
+import { banners, getActiveBanners, getBannerById, getBannerAvailabilityText, getDayOfYear, ROTATION_CHUNK_DAYS, getMonthlyBanner, getBlackMarketBanners } from '../banners.js'
 
 describe('banners data', () => {
   describe('standard banner', () => {
@@ -259,5 +259,34 @@ describe('getBannerAvailabilityText', () => {
     vi.setSystemTime(new Date(2026, 0, 31)) // Jan 31 - last day
     const banner = banners.find(b => b.id === 'musical_mayhem')
     expect(getBannerAvailabilityText(banner)).toBe('Last day!')
+  })
+})
+
+describe('getMonthlyBanner', () => {
+  it('returns undefined when no monthly banners exist', () => {
+    const result = getMonthlyBanner(2026, 1)
+    expect(result).toBeUndefined()
+  })
+
+  it('handles month wraparound to previous year', () => {
+    const result = getMonthlyBanner(2026, 0) // Should look for Dec 2025
+    expect(result).toBeUndefined()
+  })
+
+  it('handles month wraparound to next year', () => {
+    const result = getMonthlyBanner(2025, 13) // Should look for Jan 2026
+    expect(result).toBeUndefined()
+  })
+})
+
+describe('getBlackMarketBanners', () => {
+  it('returns empty array when no monthly banners exist', () => {
+    const result = getBlackMarketBanners()
+    expect(result).toEqual([])
+  })
+
+  it('filters out undefined slots', () => {
+    const result = getBlackMarketBanners()
+    expect(result.every(b => b !== undefined)).toBe(true)
   })
 })
