@@ -11,6 +11,7 @@ import FocusIndicator from '../components/FocusIndicator.vue'
 import ValorBar from '../components/ValorBar.vue'
 import RageBar from '../components/RageBar.vue'
 import VerseIndicator from '../components/VerseIndicator.vue'
+import EssenceBar from '../components/EssenceBar.vue'
 import SkillPanel from '../components/SkillPanel.vue'
 import ActionBar from '../components/ActionBar.vue'
 import { getItem } from '../data/items.js'
@@ -212,6 +213,11 @@ const isInspectedHeroBerserker = computed(() => {
 // Check if inspected hero is a bard (uses Verse)
 const isInspectedHeroBard = computed(() => {
   return inspectedHero.value?.class?.resourceType === 'verse'
+})
+
+// Check if inspected hero is an alchemist (uses Essence)
+const isInspectedHeroAlchemist = computed(() => {
+  return inspectedHero.value?.class?.resourceType === 'essence'
 })
 
 // Helper functions for skill display
@@ -1602,6 +1608,14 @@ function getStatChange(hero, stat) {
           <div v-else-if="isInspectedHeroBard" class="inspect-bar-row">
             <span class="bar-label">Verse</span>
             <VerseIndicator :currentVerses="inspectedHero.currentVerses || 0" size="md" />
+          </div>
+          <div v-else-if="isInspectedHeroAlchemist" class="inspect-bar-row">
+            <span class="bar-label">Essence</span>
+            <EssenceBar
+              :currentEssence="inspectedHero.currentEssence || 0"
+              :maxEssence="inspectedHero.maxEssence || 60"
+              size="md"
+            />
           </div>
           <div v-else class="inspect-bar-row">
             <span class="bar-label">{{ inspectedHero.class?.resourceName || 'MP' }}</span>

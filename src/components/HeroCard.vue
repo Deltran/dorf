@@ -6,6 +6,7 @@ import FocusIndicator from './FocusIndicator.vue'
 import ValorBar from './ValorBar.vue'
 import RageBar from './RageBar.vue'
 import VerseIndicator from './VerseIndicator.vue'
+import EssenceBar from './EssenceBar.vue'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 
@@ -80,6 +81,10 @@ const isBerserkerHero = computed(() => {
 
 const isBardHero = computed(() => {
   return heroClass.value?.resourceType === 'verse'
+})
+
+const isAlchemistHero = computed(() => {
+  return heroClass.value?.resourceType === 'essence'
 })
 
 const isDead = computed(() => {
@@ -180,6 +185,13 @@ const isOnExploration = computed(() => {
       <VerseIndicator
         v-else-if="isBardHero"
         :currentVerses="hero.currentVerses || 0"
+        size="sm"
+      />
+      <!-- Essence bar for Alchemists -->
+      <EssenceBar
+        v-else-if="isAlchemistHero"
+        :currentEssence="hero.currentEssence || 0"
+        :maxEssence="hero.maxEssence || 60"
         size="sm"
       />
       <!-- MP bar for others -->
