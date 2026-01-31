@@ -420,6 +420,16 @@ export const useBattleStore = defineStore('battle', () => {
       unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount)
     }
 
+    // Damage the source hero if damageToSourceOnTrigger is set (Philemon's Undying Devotion)
+    if (deathPreventionEffect.damageToSourceOnTrigger && deathPreventionEffect.sourceId) {
+      const source = heroes.value.find(h => h.instanceId === deathPreventionEffect.sourceId)
+      if (source && source.currentHp > 0) {
+        const selfDamage = Math.floor(source.maxHp * deathPreventionEffect.damageToSourceOnTrigger / 100)
+        source.currentHp = Math.max(1, source.currentHp - selfDamage)
+        addLog(`${source.template.name} takes ${selfDamage} damage from Undying Devotion!`)
+      }
+    }
+
     // Remove the effect (one-time use)
     unit.statusEffects = unit.statusEffects.filter(
       e => e.type !== EffectType.DEATH_PREVENTION
