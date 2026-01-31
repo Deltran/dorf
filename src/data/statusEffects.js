@@ -64,7 +64,10 @@ export const EffectType = {
   SHATTERED_TEMPO: 'shattered_tempo', // Acts in top N of turn order
 
   // Accuracy reduction
-  BLIND: 'blind' // Miss chance on attacks
+  BLIND: 'blind', // Miss chance on attacks
+
+  // Stance effects
+  SEATED: 'seated' // Cannot use skills while active
 }
 
 // Effect definitions with display info and default behavior
@@ -339,6 +342,14 @@ export const effectDefinitions = {
     color: '#6b7280',
     isBuff: false,  // Debuff - counts for Penny/Vicious synergy
     isBlind: true,
+    stackable: false
+  },
+  [EffectType.SEATED]: {
+    name: 'Seated',
+    icon: '🪑',
+    color: '#3b82f6',
+    isBuff: true,
+    isSeated: true,
     stackable: false
   }
 }
