@@ -3,11 +3,13 @@ import { ember_witch } from './ember_witch.js'
 import { lady_moonwhisper } from './lady_moonwhisper.js'
 import { swift_arrow } from './swift_arrow.js'
 import { chroma } from './chroma.js'
+import { philemon_the_ardent } from './philemon_the_ardent.js'
 
 export const heroes = {
   sir_gallan,
   ember_witch,
   lady_moonwhisper,
   swift_arrow,
-  chroma
+  chroma,
+  philemon_the_ardent
 }
