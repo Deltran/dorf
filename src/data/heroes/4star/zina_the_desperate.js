@@ -1,0 +1,77 @@
+import { EffectType } from '../../statusEffects.js'
+
+export const zina_the_desperate = {
+  id: 'zina_the_desperate',
+  name: 'Zina the Desperate',
+  rarity: 4,
+  classId: 'alchemist',
+  baseStats: { hp: 75, atk: 38, def: 15, spd: 16, mp: 60 },
+
+  skills: [
+    {
+      name: 'Tainted Tonic',
+      description: 'Deal 90% ATK damage. Apply Poison for 2 turns. Damage scales with Volatility.',
+      skillUnlockLevel: 1,
+      essenceCost: 10,
+      targetType: 'enemy',
+      damagePercent: 90,
+      usesVolatility: true,
+      effects: [
+        { type: EffectType.POISON, target: 'enemy', duration: 2, atkPercent: 35 }
+      ]
+    },
+    {
+      name: 'Tainted Feast',
+      description: 'Poison ALL enemies for 3 turns. Zina takes 15% max HP self-damage. Damage scales with Volatility.',
+      skillUnlockLevel: 1,
+      essenceCost: 20,
+      targetType: 'all_enemies',
+      noDamage: true,
+      usesVolatility: true,
+      selfDamagePercentMaxHp: 15,
+      effects: [
+        { type: EffectType.POISON, target: 'all_enemies', duration: 3, atkPercent: 45 }
+      ]
+    },
+    {
+      name: 'Cornered Animal',
+      description: 'Passive: When Zina drops below 30% HP, gain +40% ATK and +30% SPD for 2 turns. Once per battle.',
+      skillUnlockLevel: 3,
+      isPassive: true,
+      passiveType: 'lowHpTrigger',
+      triggerBelowHpPercent: 30,
+      oncePerBattle: true,
+      triggerEffects: [
+        { type: EffectType.ATK_UP, target: 'self', duration: 2, value: 40 },
+        { type: EffectType.SPD_UP, target: 'self', duration: 2, value: 30 }
+      ]
+    },
+    {
+      name: "Death's Needle",
+      description: 'Deal 175% ATK damage. Below 30% HP: ignores DEF and cannot miss. Damage scales with Volatility.',
+      skillUnlockLevel: 6,
+      essenceCost: 25,
+      targetType: 'enemy',
+      damagePercent: 175,
+      usesVolatility: true,
+      conditionalAtLowHp: {
+        hpThreshold: 30,
+        ignoresDef: true,
+        cannotMiss: true
+      }
+    },
+    {
+      name: 'Last Breath',
+      description: 'Passive: On death, deal 175% ATK damage to random enemy and Poison all enemies for 3 turns.',
+      skillUnlockLevel: 12,
+      isPassive: true,
+      passiveType: 'onDeath',
+      onDeath: {
+        damage: { damagePercent: 175, targetType: 'random_enemy' },
+        effects: [
+          { type: EffectType.POISON, target: 'all_enemies', duration: 3, atkPercent: 50 }
+        ]
+      }
+    }
+  ]
+}
