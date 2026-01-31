@@ -67,7 +67,11 @@ export const EffectType = {
   BLIND: 'blind', // Miss chance on attacks
 
   // Stance effects
-  SEATED: 'seated' // Cannot use skills while active
+  SEATED: 'seated', // Cannot use skills while active
+
+  // Oriental Fighters effects
+  RELUCTANCE: 'reluctance', // Reduces healing received (stacks up to 5, -10% per stack)
+  STEALTH: 'stealth' // Untargetable by enemies, CAN receive ally support
 }
 
 // Effect definitions with display info and default behavior
@@ -350,6 +354,22 @@ export const effectDefinitions = {
     color: '#3b82f6',
     isBuff: true,
     isSeated: true,
+    stackable: false
+  },
+  [EffectType.RELUCTANCE]: {
+    name: 'Reluctance',
+    icon: '🚫',
+    color: '#9ca3af',
+    isBuff: false,
+    isReluctance: true,
+    stackable: true // Stacks up to 5 (-10% healing per stack, max -50%)
+  },
+  [EffectType.STEALTH]: {
+    name: 'Stealth',
+    icon: '🌫️',
+    color: '#6366f1',
+    isBuff: true,
+    isStealth: true,
     stackable: false
   }
 }

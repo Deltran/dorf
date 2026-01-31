@@ -110,6 +110,20 @@ export const banners = [
       2: ['militia_soldier', 'herb_gatherer', 'fennick'],
       1: ['beggar_monk', 'street_urchin', 'farm_hand']
     }
+  },
+  {
+    id: 'oriental_fighters',
+    name: 'Oriental Fighters',
+    description: 'Warriors from the East bring ancient techniques to battle. Featuring Onibaba and martial heroes.',
+    permanent: false,
+    monthlySchedule: { year: 2026, month: 3 },
+    heroPool: {
+      5: ['onibaba'],
+      4: ['shinobi_jin', 'swift_arrow'],
+      3: ['matsuda', 'town_guard', 'hedge_wizard'],
+      2: ['militia_soldier', 'apprentice_mage', 'fennick'],
+      1: ['farm_hand', 'street_urchin', 'beggar_monk']
+    }
   }
 ]
 

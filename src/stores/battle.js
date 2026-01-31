@@ -296,7 +296,21 @@ export const useBattleStore = defineStore('battle', () => {
       modifier += unit.leaderBonuses[statName]
     }
 
-    return Math.max(1, Math.floor(baseStat * (1 + modifier / 100)))
+    let total = Math.max(1, Math.floor(baseStat * (1 + modifier / 100)))
+
+    // Apply Bushido passive for ATK (passive object format from hero templates)
+    if (statName === 'atk' && unit.template?.passive?.atkPerMissingHpPercent) {
+      const passive = unit.template.passive
+      const maxHp = unit.maxHp || unit.stats?.hp || 1
+      const missingHpPercent = 100 - (unit.currentHp / maxHp * 100)
+      const bonusPercent = Math.min(
+        missingHpPercent * passive.atkPerMissingHpPercent,
+        passive.maxAtkBonus || 50
+      )
+      total = Math.floor(total * (1 + bonusPercent / 100))
+    }
+
+    return total
   }
 
   // Calculate effect value (supports flat value or ATK percentage)
@@ -3449,11 +3463,11 @@ export const useBattleStore = defineStore('battle', () => {
     if (tauntingHeroes.length > 0) {
       targets = tauntingHeroes
     } else {
-      // Filter out untargetable heroes (only if no taunt)
+      // Filter out untargetable and stealthed heroes (only if no taunt)
       const targetableHeroes = targets.filter(h =>
-        !h.statusEffects?.some(e => e.definition?.isUntargetable)
+        !h.statusEffects?.some(e => e.definition?.isUntargetable || e.definition?.isStealth)
       )
-      // If all heroes are untargetable, enemy can still attack (no valid targets edge case)
+      // If all heroes are untargetable/stealthed, enemy can still attack (no valid targets edge case)
       if (targetableHeroes.length > 0) {
         targets = targetableHeroes
       }
@@ -3932,6 +3946,110 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== ORIENTAL FIGHTERS MECHANICS ==========
+
+  /**
+   * Apply healing to a unit, accounting for Reluctance stacks
+   * @param {object} unit - The unit to heal
+   * @param {number} amount - Base heal amount
+   * @param {object} options - Options like { bypassReluctance: true }
+   * @returns {number} - Actual heal amount applied
+   */
+  function applyHeal(unit, amount, options = {}) {
+    if (amount <= 0) return 0
+
+    let healAmount = amount
+
+    // Check for Reluctance stacks (unless bypassed)
+    if (!options.bypassReluctance) {
+      const reluctanceStacks = (unit.statusEffects || []).filter(
+        e => e.type === EffectType.RELUCTANCE
+      ).length
+
+      if (reluctanceStacks > 0) {
+        // Each stack reduces healing by 10%, max 5 stacks = 50% reduction
+        const effectiveStacks = Math.min(reluctanceStacks, 5)
+        const reduction = effectiveStacks * 10 / 100
+        healAmount = Math.floor(amount * (1 - reduction))
+      }
+    }
+
+    const oldHp = unit.currentHp
+    unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount)
+    const actualHeal = unit.currentHp - oldHp
+
+    return actualHeal
+  }
+
+  /**
+   * Get valid targets for enemy attacks (filters out STEALTH and UNTARGETABLE)
+   * @returns {Array} - Array of targetable heroes
+   */
+  function getValidEnemyTargets() {
+    let targets = heroes.value.filter(h => h.currentHp > 0)
+
+    // Check for taunt - if any hero has taunt, they must be targeted
+    const tauntingHeroes = targets.filter(h =>
+      h.statusEffects?.some(e => e.definition?.isTaunt)
+    )
+    if (tauntingHeroes.length > 0) {
+      return tauntingHeroes
+    }
+
+    // Filter out untargetable and stealthed heroes
+    const targetableHeroes = targets.filter(h =>
+      !h.statusEffects?.some(e => e.definition?.isUntargetable || e.definition?.isStealth)
+    )
+
+    // If all heroes are untargetable/stealthed, enemy can still attack (edge case)
+    if (targetableHeroes.length > 0) {
+      return targetableHeroes
+    }
+
+    return targets
+  }
+
+  /**
+   * Get valid ally targets for support/healing skills (includes STEALTH heroes)
+   * @param {string} casterId - The instanceId of the casting hero (for excludeSelf logic)
+   * @returns {Array} - Array of targetable allies
+   */
+  function getValidAllyTargets(casterId) {
+    return heroes.value.filter(h => h.currentHp > 0)
+    // Note: STEALTH heroes CAN be targeted by allies, unlike UNTARGETABLE
+    // We return all alive heroes - the UI will handle excludeSelf if needed
+  }
+
+  /**
+   * Get effective stat including passive abilities like Bushido
+   * @param {object} unit - The unit
+   * @param {string} statName - The stat name (atk, def, spd)
+   * @returns {number} - The effective stat value
+   */
+  function getEffectiveStatWithPassives(unit, statName) {
+    // Start with base effective stat from status effects
+    // Note: getEffectiveStat now handles passive object format (atkPerMissingHpPercent)
+    let effectiveStat = getEffectiveStat(unit, statName)
+
+    // Handle both passives array and passive object formats
+    const passives = unit.template?.passives ||
+      (unit.template?.passive ? [unit.template.passive] : [])
+
+    for (const passive of passives) {
+      // Bushido passive (array format with type: 'bushido'): ATK scales with missing HP
+      if (passive.type === 'bushido' && statName === 'atk') {
+        const currentHpPercent = (unit.currentHp / unit.maxHp) * 100
+        const missingHpPercent = 100 - currentHpPercent
+        // Bonus is 0.5% ATK per 1% missing HP, capped at 50%
+        const bonusPercent = Math.min(missingHpPercent * 0.5, 50)
+        effectiveStat = Math.floor(effectiveStat * (1 + bonusPercent / 100))
+      }
+      // Note: passive object format with atkPerMissingHpPercent is already handled in getEffectiveStat
+    }
+
+    return effectiveStat
+  }
+
   // ========== CACOPHON ALLY HP COST FUNCTIONS ==========
 
   function resetAllyHpTracking() {
@@ -4213,6 +4331,11 @@ export const useBattleStore = defineStore('battle', () => {
     getFinaleBoost,
     // Constants
     BattleState,
-    EffectType
+    EffectType,
+    // Oriental Fighters mechanics
+    applyHeal,
+    getValidEnemyTargets,
+    getValidAllyTargets,
+    getEffectiveStatWithPassives
   }
 })

@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useGachaStore } from '../gacha'
+import { getBannerById } from '../../data/banners'
 
 describe('gacha banner support', () => {
   let store
@@ -53,5 +54,33 @@ describe('gacha banner support', () => {
   it('restores selectedBannerId from loadState', () => {
     store.loadState({ selectedBannerId: 'natures_call' })
     expect(store.selectedBannerId).toBe('natures_call')
+  })
+})
+
+describe('Oriental Fighters banner', () => {
+  it('should have oriental_fighters banner defined', () => {
+    const banner = getBannerById('oriental_fighters')
+    expect(banner).toBeDefined()
+    expect(banner.name).toBe('Oriental Fighters')
+  })
+
+  it('should feature Onibaba as 5-star', () => {
+    const banner = getBannerById('oriental_fighters')
+    expect(banner.heroPool[5]).toContain('onibaba')
+  })
+
+  it('should feature Shinobi Jin as 4-star', () => {
+    const banner = getBannerById('oriental_fighters')
+    expect(banner.heroPool[4]).toContain('shinobi_jin')
+  })
+
+  it('should feature Matsuda as 3-star', () => {
+    const banner = getBannerById('oriental_fighters')
+    expect(banner.heroPool[3]).toContain('matsuda')
+  })
+
+  it('should have March 2026 monthly schedule', () => {
+    const banner = getBannerById('oriental_fighters')
+    expect(banner.monthlySchedule).toEqual({ year: 2026, month: 3 })
   })
 })
