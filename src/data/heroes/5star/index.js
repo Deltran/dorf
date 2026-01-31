@@ -3,11 +3,13 @@ import { shadow_king } from './shadow_king.js'
 import { yggra_world_root } from './yggra_world_root.js'
 import { cacophon } from './cacophon.js'
 import { rosara_the_unmoved } from './rosara_the_unmoved.js'
+import { fortuna_inversus } from './fortuna_inversus.js'
 
 export const heroes = {
   aurora_the_dawn,
   shadow_king,
   yggra_world_root,
   cacophon,
-  rosara_the_unmoved
+  rosara_the_unmoved,
+  fortuna_inversus
 }
