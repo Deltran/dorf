@@ -107,9 +107,12 @@ describe('battle store - Heartbreak passive system', () => {
         currentHp: 500
       }
 
+      // NOTE: This function is called AFTER damage is applied
+      // So ally.currentHp represents the HP AFTER taking 200 damage
+      // Ally was at 600/1000 (60%), took 200 damage, now at 400/1000 (40%)
       const ally = {
         instanceId: 'ally1',
-        currentHp: 600,
+        currentHp: 400, // HP AFTER damage (was 600, took 200 damage)
         maxHp: 1000,
         triggeredHeartbreak: false
       }

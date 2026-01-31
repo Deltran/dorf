@@ -157,12 +157,21 @@ export const useBattleStore = defineStore('battle', () => {
     if (!leaderSkill) return
 
     for (const effect of leaderSkill.effects) {
-      if (effect.type !== 'passive') continue
+      if (effect.type === 'passive') {
+        for (const hero of heroes.value) {
+          if (matchesCondition(hero, effect.condition)) {
+            if (!hero.leaderBonuses) hero.leaderBonuses = {}
+            hero.leaderBonuses[effect.stat] = (hero.leaderBonuses[effect.stat] || 0) + effect.value
+          }
+        }
+      }
 
-      for (const hero of heroes.value) {
-        if (matchesCondition(hero, effect.condition)) {
-          if (!hero.leaderBonuses) hero.leaderBonuses = {}
-          hero.leaderBonuses[effect.stat] = (hero.leaderBonuses[effect.stat] || 0) + effect.value
+      // Handle passive_lifesteal type (Mara's leader skill)
+      if (effect.type === 'passive_lifesteal') {
+        const targets = getLeaderEffectTargets(effect.target, effect.condition)
+        for (const target of targets) {
+          if (!target.leaderBonuses) target.leaderBonuses = {}
+          target.leaderBonuses.lifesteal = (target.leaderBonuses.lifesteal || 0) + effect.value
         }
       }
     }
@@ -244,6 +253,41 @@ export const useBattleStore = defineStore('battle', () => {
           emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
           addLog(`${target.template.name} regenerates ${actualHeal} HP!`)
         }
+      }
+    }
+  }
+
+  // Check HP threshold triggers from leader skill (Mara's "What Doesn't Kill Us")
+  function checkHpThresholdLeaderTriggers(unit, hpBefore) {
+    // Only trigger for heroes (not enemies)
+    if (!unit.instanceId) return
+
+    const leaderSkill = getActiveLeaderSkill()
+    if (!leaderSkill) return
+
+    for (const effect of leaderSkill.effects) {
+      if (effect.type !== 'hp_threshold_triggered') continue
+
+      const threshold = unit.maxHp * (effect.threshold / 100)
+
+      // Check if HP crossed the threshold (was above, now at or below)
+      if (hpBefore > threshold && unit.currentHp <= threshold) {
+        // Check triggerOnce flag
+        if (effect.triggerOnce && unit.leaderThresholdTriggered) continue
+
+        if (effect.triggerOnce) {
+          unit.leaderThresholdTriggered = true
+        }
+
+        // Apply the effect
+        applyEffect(unit, effect.apply.effectType, {
+          duration: effect.apply.duration,
+          value: effect.apply.value,
+          sourceId: 'leader_skill'
+        })
+
+        const unitName = unit.template?.name || 'Unknown'
+        addLog(`${leaderSkill.name}: ${unitName} gains ${effect.apply.effectType}!`)
       }
     }
   }
@@ -1029,6 +1073,8 @@ export const useBattleStore = defineStore('battle', () => {
   }
 
   // Check if ally dropping below 50% HP triggers Heartbreak
+  // Check if ally dropping below 50% HP triggers Heartbreak
+  // NOTE: This is called AFTER damage is applied, so ally.currentHp already reflects the damage
   function checkHeartbreakAllyHpTrigger(maraUnit, ally, damageDealt) {
     if (!hasHeartbreakPassive(maraUnit)) return
     if (ally.instanceId === maraUnit.instanceId) return
@@ -1037,8 +1083,9 @@ export const useBattleStore = defineStore('battle', () => {
     const triggers = maraUnit.template.heartbreakPassive.triggers
     if (!triggers?.allyBelowHalfHp) return
 
-    const hpAfter = ally.currentHp - damageDealt
-    const hpBefore = ally.currentHp
+    // ally.currentHp already has damage applied, so calculate what HP was before
+    const hpAfter = ally.currentHp
+    const hpBefore = ally.currentHp + damageDealt
     const halfHp = ally.maxHp * 0.5
 
     if (hpBefore > halfHp && hpAfter <= halfHp) {
@@ -1322,6 +1369,7 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    const hpBeforeDamage = unit.currentHp
     const actualDamage = Math.min(unit.currentHp, damage)
     unit.currentHp = Math.max(0, unit.currentHp - actualDamage)
 
@@ -1353,6 +1401,26 @@ export const useBattleStore = defineStore('battle', () => {
       unit.wasAttacked = true
     }
 
+    // Check Heartbreak triggers for any Mara in party (only for hero units taking damage)
+    const isHeroTarget = !!unit.instanceId
+    if (isHeroTarget && actualDamage > 0 && unit.currentHp > 0) {
+      const maraHeroes = heroes.value.filter(h => hasHeartbreakPassive(h) && h.currentHp > 0)
+      for (const mara of maraHeroes) {
+        if (unit.instanceId !== mara.instanceId) {
+          // Check ally HP threshold trigger
+          checkHeartbreakAllyHpTrigger(mara, unit, actualDamage)
+        } else {
+          // Check self-damage trigger
+          checkHeartbreakSelfDamageTrigger(mara, actualDamage)
+        }
+      }
+    }
+
+    // Check HP threshold leader triggers (e.g., Mara's "What Doesn't Kill Us")
+    if (actualDamage > 0 && unit.currentHp > 0) {
+      checkHpThresholdLeaderTriggers(unit, hpBeforeDamage)
+    }
+
     // Check for Well Fed trigger (auto-heal when HP drops below threshold)
     if (unit.currentHp > 0 && unit.statusEffects) {
       const wellFedEffect = unit.statusEffects.find(e => e.type === EffectType.WELL_FED && !e.triggered)
@@ -1381,6 +1449,15 @@ export const useBattleStore = defineStore('battle', () => {
       // Reset rage on death for berserkers
       if (isBerserker(unit)) {
         unit.currentRage = 0
+      }
+      // Check Heartbreak ally death trigger (only for hero deaths)
+      if (unit.instanceId) {
+        const maraHeroes = heroes.value.filter(h => hasHeartbreakPassive(h) && h.currentHp > 0)
+        for (const mara of maraHeroes) {
+          if (unit.instanceId !== mara.instanceId) {
+            checkHeartbreakAllyDeathTrigger(mara)
+          }
+        }
       }
     }
 
@@ -1964,6 +2041,9 @@ export const useBattleStore = defineStore('battle', () => {
       if (!isOnExpedition) {
         applyStartingEquipmentEffects(battleHero, heroFull.templateId)
       }
+
+      // Initialize Heartbreak stacks for heroes with heartbreakPassive (e.g., Mara Thornheart)
+      initializeHeartbreakStacks(battleHero)
 
       heroes.value.push(battleHero)
     }
