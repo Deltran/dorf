@@ -67,7 +67,12 @@ export const EffectType = {
   BLIND: 'blind', // Miss chance on attacks
 
   // Stance effects
-  SEATED: 'seated' // Cannot use skills while active
+  SEATED: 'seated', // Cannot use skills while active
+
+  // Gambler effects
+  COIN_FLIP_HEADS: 'coin_flip_heads',
+  LOADED_DICE: 'loaded_dice',
+  FORTUNE_SWAPPED: 'fortune_swapped'
 }
 
 // Effect definitions with display info and default behavior
@@ -350,6 +355,30 @@ export const effectDefinitions = {
     color: '#3b82f6',
     isBuff: true,
     isSeated: true,
+    stackable: false
+  },
+  [EffectType.COIN_FLIP_HEADS]: {
+    name: 'Lucky Flip',
+    icon: '🪙',
+    color: '#fbbf24',
+    isBuff: true,
+    isCoinFlip: true,
+    stackable: false
+  },
+  [EffectType.LOADED_DICE]: {
+    name: 'Loaded Dice',
+    icon: '🎲',
+    color: '#22c55e',
+    isBuff: true,
+    isLoadedDice: true,
+    stackable: false
+  },
+  [EffectType.FORTUNE_SWAPPED]: {
+    name: 'Fate Reversed',
+    icon: '🎡',
+    color: '#a855f7',
+    isBuff: true,
+    isTracker: true,
     stackable: false
   }
 }
