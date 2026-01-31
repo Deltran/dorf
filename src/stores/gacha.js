@@ -99,6 +99,70 @@ export const useGachaStore = defineStore('gacha', () => {
     return rates
   }
 
+  // Internal: Calculate rates with Black Market pity
+  function getBlackMarketRatesWithPity(guarantee4Star = false) {
+    const rates = { ...BASE_RATES }
+
+    if (blackMarketPullsSince5Star.value >= HARD_PITY - 1) {
+      return { 1: 0, 2: 0, 3: 0, 4: 0, 5: 1.0 }
+    }
+
+    if (blackMarketPullsSince5Star.value >= SOFT_PITY_START) {
+      const extraPulls = blackMarketPullsSince5Star.value - SOFT_PITY_START
+      const bonus = extraPulls * SOFT_PITY_RATE_INCREASE
+      rates[5] = Math.min(BASE_RATES[5] + bonus, 1.0)
+
+      const totalReduction = rates[5] - BASE_RATES[5]
+      const lowerTotal = rates[1] + rates[2] + rates[3]
+      rates[1] -= totalReduction * (rates[1] / lowerTotal)
+      rates[2] -= totalReduction * (rates[2] / lowerTotal)
+      rates[3] -= totalReduction * (rates[3] / lowerTotal)
+    }
+
+    if (guarantee4Star || blackMarketPullsSince4Star.value >= FOUR_STAR_PITY - 1) {
+      const lowRates = rates[1] + rates[2] + rates[3]
+      rates[4] += lowRates * 0.9
+      rates[5] += lowRates * 0.1
+      rates[1] = 0
+      rates[2] = 0
+      rates[3] = 0
+    }
+
+    return rates
+  }
+
+  // Internal: Perform single Black Market pull
+  function performBlackMarketPull(bannerId, guarantee4Star = false) {
+    const rates = getBlackMarketRatesWithPity(guarantee4Star)
+    const rarity = rollRarity(rates)
+
+    // Get hero from specified banner
+    const banner = getBannerById(bannerId)
+    let heroTemplate
+    if (banner && banner.heroPool[rarity] && banner.heroPool[rarity].length > 0) {
+      const heroIds = banner.heroPool[rarity]
+      const heroId = heroIds[Math.floor(Math.random() * heroIds.length)]
+      heroTemplate = getHeroTemplate(heroId)
+    } else {
+      const heroesOfRarity = getHeroTemplatesByRarity(rarity)
+      heroTemplate = heroesOfRarity[Math.floor(Math.random() * heroesOfRarity.length)]
+    }
+
+    // Update Black Market pity counters
+    blackMarketPullsSince4Star.value++
+    blackMarketPullsSince5Star.value++
+    blackMarketTotalPulls.value++
+
+    if (rarity >= 4) {
+      blackMarketPullsSince4Star.value = 0
+    }
+    if (rarity >= 5) {
+      blackMarketPullsSince5Star.value = 0
+    }
+
+    return heroTemplate
+  }
+
   // Internal: Roll for rarity
   function rollRarity(rates) {
     const roll = Math.random()
@@ -221,6 +285,43 @@ export const useGachaStore = defineStore('gacha', () => {
     return false
   }
 
+  function blackMarketSinglePull(bannerId) {
+    if (gems.value < BLACK_MARKET_SINGLE_COST) return null
+
+    gems.value -= BLACK_MARKET_SINGLE_COST
+
+    const heroTemplate = performBlackMarketPull(bannerId)
+    const heroesStore = useHeroesStore()
+    const heroInstance = heroesStore.addHero(heroTemplate.id)
+
+    return {
+      template: heroTemplate,
+      instance: heroInstance
+    }
+  }
+
+  function blackMarketTenPull(bannerId) {
+    if (gems.value < BLACK_MARKET_TEN_COST) return null
+
+    gems.value -= BLACK_MARKET_TEN_COST
+
+    const results = []
+    const heroesStore = useHeroesStore()
+
+    for (let i = 0; i < 10; i++) {
+      const guarantee4Star = i === 9 && !results.some(r => r.template.rarity >= 4)
+      const heroTemplate = performBlackMarketPull(bannerId, guarantee4Star)
+      const heroInstance = heroesStore.addHero(heroTemplate.id)
+
+      results.push({
+        template: heroTemplate,
+        instance: heroInstance
+      })
+    }
+
+    return results
+  }
+
   // Persistence
   function loadState(savedState) {
     if (savedState.gems !== undefined) gems.value = savedState.gems
@@ -277,6 +378,8 @@ export const useGachaStore = defineStore('gacha', () => {
     spendGems,
     addGold,
     spendGold,
+    blackMarketSinglePull,
+    blackMarketTenPull,
     // Persistence
     loadState,
     saveState,
