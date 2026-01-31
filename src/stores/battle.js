@@ -770,6 +770,55 @@ export const useBattleStore = defineStore('battle', () => {
     return modifier.baseDamagePercent || 100
   }
 
+  // Get hero's on-death passive if any
+  function getHeroOnDeathPassive(hero) {
+    const skills = hero.template?.skills || []
+    const onDeathSkill = skills.find(s => s.isPassive && s.passiveType === 'onDeath')
+    return onDeathSkill?.onDeath || null
+  }
+
+  // Process hero death triggers
+  function processHeroDeathTrigger(hero) {
+    const onDeath = getHeroOnDeathPassive(hero)
+    if (!onDeath) return
+
+    addLog(`${hero.template.name}'s Last Breath triggers!`)
+
+    // Deal damage if specified
+    if (onDeath.damage) {
+      const { damagePercent, targetType } = onDeath.damage
+      const damage = Math.floor(hero.stats.atk * (damagePercent / 100))
+
+      if (targetType === 'random_enemy') {
+        const aliveEnemyList = enemies.value.filter(e => e.currentHp > 0)
+        if (aliveEnemyList.length > 0) {
+          const target = aliveEnemyList[Math.floor(Math.random() * aliveEnemyList.length)]
+          applyDamage(target, damage, 'skill', hero)
+        }
+      }
+    }
+
+    // Apply effects if specified
+    if (onDeath.effects) {
+      for (const effectConfig of onDeath.effects) {
+        if (effectConfig.target === 'all_enemies') {
+          for (const enemy of enemies.value.filter(e => e.currentHp > 0)) {
+            const effect = createEffect(effectConfig.type, {
+              duration: effectConfig.duration,
+              value: effectConfig.value,
+              atkPercent: effectConfig.atkPercent,
+              casterAtk: hero.stats.atk,
+              sourceId: hero.instanceId
+            })
+            if (effect) {
+              enemy.statusEffects.push(effect)
+            }
+          }
+        }
+      }
+    }
+  }
+
   // Check if a unit can use their skill based on resource type
   function canUseSkill(unit) {
     if (!unit.skill) return false
@@ -4083,6 +4132,9 @@ export const useBattleStore = defineStore('battle', () => {
     isSeated,
     // Basic attack modifier passive (for Rosara's Quiet Defiance)
     getBasicAttackDamagePercent,
+    // Hero on-death triggers (for Zina's Last Breath)
+    getHeroOnDeathPassive,
+    processHeroDeathTrigger,
     // Valor helpers (for UI)
     isKnight,
     getValorTier,
