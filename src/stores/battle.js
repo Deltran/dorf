@@ -970,6 +970,96 @@ export const useBattleStore = defineStore('battle', () => {
     return totalMissing / heroList.length
   }
 
+  // ========== HEARTBREAK STACK SYSTEM (for Mara Thornheart) ==========
+
+  // Check if a unit has the Heartbreak passive
+  function hasHeartbreakPassive(unit) {
+    return unit.template?.heartbreakPassive !== undefined
+  }
+
+  // Initialize Heartbreak stacks for a unit (called at battle start)
+  function initializeHeartbreakStacks(unit) {
+    if (hasHeartbreakPassive(unit)) {
+      unit.heartbreakStacks = unit.heartbreakStacks ?? 0
+    }
+  }
+
+  // Gain Heartbreak stacks (capped at maxStacks)
+  function gainHeartbreakStack(unit, amount = 1) {
+    if (!hasHeartbreakPassive(unit)) return
+    const maxStacks = unit.template.heartbreakPassive.maxStacks || 5
+    const oldStacks = unit.heartbreakStacks || 0
+    unit.heartbreakStacks = Math.min(maxStacks, oldStacks + amount)
+
+    if (unit.heartbreakStacks > oldStacks) {
+      addLog(`${unit.template.name} gains Heartbreak! (${unit.heartbreakStacks}/${maxStacks})`)
+    }
+  }
+
+  // Consume all Heartbreak stacks and return the count
+  function consumeAllHeartbreakStacks(unit) {
+    if (!hasHeartbreakPassive(unit)) return 0
+    const stacks = unit.heartbreakStacks || 0
+    unit.heartbreakStacks = 0
+    if (stacks > 0) {
+      addLog(`${unit.template.name} consumes ${stacks} Heartbreak stacks!`)
+    }
+    return stacks
+  }
+
+  // Get ATK and lifesteal bonuses from Heartbreak stacks
+  function getHeartbreakBonuses(unit) {
+    if (!hasHeartbreakPassive(unit)) return { atkBonus: 0, lifestealBonus: 0 }
+    const passive = unit.template.heartbreakPassive
+    const stacks = unit.heartbreakStacks || 0
+    return {
+      atkBonus: stacks * (passive.atkPerStack || 0),
+      lifestealBonus: stacks * (passive.lifestealPerStack || 0)
+    }
+  }
+
+  // Check if ally dropping below 50% HP triggers Heartbreak
+  function checkHeartbreakAllyHpTrigger(maraUnit, ally, damageDealt) {
+    if (!hasHeartbreakPassive(maraUnit)) return
+    if (ally.instanceId === maraUnit.instanceId) return
+    if (ally.triggeredHeartbreak) return
+
+    const triggers = maraUnit.template.heartbreakPassive.triggers
+    if (!triggers?.allyBelowHalfHp) return
+
+    const hpAfter = ally.currentHp - damageDealt
+    const hpBefore = ally.currentHp
+    const halfHp = ally.maxHp * 0.5
+
+    if (hpBefore > halfHp && hpAfter <= halfHp) {
+      ally.triggeredHeartbreak = true
+      gainHeartbreakStack(maraUnit, 1)
+    }
+  }
+
+  // Check if Mara taking heavy damage (15%+ max HP) triggers Heartbreak
+  function checkHeartbreakSelfDamageTrigger(maraUnit, damageDealt) {
+    if (!hasHeartbreakPassive(maraUnit)) return
+
+    const triggers = maraUnit.template.heartbreakPassive.triggers
+    if (!triggers?.heavyDamagePercent) return
+
+    const threshold = maraUnit.maxHp * (triggers.heavyDamagePercent / 100)
+    if (damageDealt >= threshold) {
+      gainHeartbreakStack(maraUnit, 1)
+    }
+  }
+
+  // Check if ally death triggers Heartbreak
+  function checkHeartbreakAllyDeathTrigger(maraUnit) {
+    if (!hasHeartbreakPassive(maraUnit)) return
+
+    const triggers = maraUnit.template.heartbreakPassive.triggers
+    if (!triggers?.allyDeath) return
+
+    gainHeartbreakStack(maraUnit, 1)
+  }
+
   // Reset ally HP tracking (called at battle start)
   function resetAllyHpTracking() {
     totalAllyHpLost.value = 0
@@ -4047,6 +4137,15 @@ export const useBattleStore = defineStore('battle', () => {
     // Desperation heal scaling (bonus based on missing HP)
     calculateDesperationHeal,
     calculatePartyMissingHpPercent,
+    // Heartbreak Stack System (for Mara Thornheart)
+    hasHeartbreakPassive,
+    initializeHeartbreakStacks,
+    gainHeartbreakStack,
+    consumeAllHeartbreakStacks,
+    getHeartbreakBonuses,
+    checkHeartbreakAllyHpTrigger,
+    checkHeartbreakSelfDamageTrigger,
+    checkHeartbreakAllyDeathTrigger,
     // Ally HP cost (for Cacophon's skills)
     totalAllyHpLost,
     resetAllyHpTracking,
