@@ -877,6 +877,47 @@ export const useBattleStore = defineStore('battle', () => {
     return { valorConsumed, damagePercent }
   }
 
+  // ========== ESSENCE RESOURCE SYSTEM (Alchemist) ==========
+
+  function isAlchemist(unit) {
+    return unit.class?.resourceType === 'essence'
+  }
+
+  function initializeEssence(hero) {
+    if (!isAlchemist(hero)) return
+    hero.maxEssence = hero.template?.baseStats?.mp || 60
+    hero.currentEssence = Math.floor(hero.maxEssence / 2) // Start at 50%
+  }
+
+  function regenerateEssence(hero) {
+    if (!isAlchemist(hero)) return
+    const regenAmount = 10
+    hero.currentEssence = Math.min(hero.maxEssence, (hero.currentEssence || 0) + regenAmount)
+  }
+
+  function getVolatilityTier(hero) {
+    if (!isAlchemist(hero)) return null
+    const essence = hero.currentEssence || 0
+    if (essence <= 20) return 'stable'
+    if (essence <= 40) return 'reactive'
+    return 'volatile'
+  }
+
+  function getVolatilityDamageBonus(hero) {
+    const tier = getVolatilityTier(hero)
+    if (tier === 'reactive') return 15
+    if (tier === 'volatile') return 30
+    return 0
+  }
+
+  function getVolatilitySelfDamage(hero) {
+    const tier = getVolatilityTier(hero)
+    if (tier === 'volatile') {
+      return Math.floor((hero.maxHp || 0) * 0.05)
+    }
+    return 0
+  }
+
   // Check if an effect should be applied based on valorThreshold
   function shouldApplyEffect(effect, hero) {
     if (effect.valorThreshold === undefined) return true
@@ -4047,6 +4088,13 @@ export const useBattleStore = defineStore('battle', () => {
     getValorTier,
     resolveValorCost,
     gainValor,
+    // Essence helpers (for Alchemist class)
+    isAlchemist,
+    initializeEssence,
+    regenerateEssence,
+    getVolatilityTier,
+    getVolatilityDamageBonus,
+    getVolatilitySelfDamage,
     // Chain bounce helpers
     getChainTargets,
     // Flame Shield trigger (for reactive burn)

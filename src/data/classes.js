@@ -64,6 +64,7 @@ export const classes = {
     title: 'Alchemist',
     role: 'support',
     resourceName: 'Essence',
+    resourceType: 'essence',
     color: '#06b6d4'
   }
 }
