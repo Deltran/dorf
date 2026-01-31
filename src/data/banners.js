@@ -96,6 +96,20 @@ export const banners = [
       2: ['militia_soldier', 'apprentice_mage', 'herb_gatherer', 'fennick'],
       1: ['street_busker', 'farm_hand', 'street_urchin', 'beggar_monk']
     }
+  },
+  {
+    id: 'civil_rights',
+    name: 'Voices of Change',
+    description: 'Heroes who stood firm against injustice. Featuring Rosara the Unmoved and allies.',
+    permanent: false,
+    monthlySchedule: { year: 2026, month: 2 },
+    heroPool: {
+      5: ['rosara_the_unmoved'],
+      4: ['zina_the_desperate', 'sir_gallan'],
+      3: ['vashek_the_unrelenting', 'town_guard', 'village_healer'],
+      2: ['militia_soldier', 'herb_gatherer', 'fennick'],
+      1: ['beggar_monk', 'street_urchin', 'farm_hand']
+    }
   }
 ]
 
@@ -143,6 +157,15 @@ function isDateRangeBanner(banner) {
 }
 
 /**
+ * Check if a banner has a monthly schedule (for Black Market).
+ * @param {object} banner
+ * @returns {boolean}
+ */
+function isMonthlyBanner(banner) {
+  return banner.monthlySchedule !== undefined
+}
+
+/**
  * Return all banners that are currently active.
  * - Permanent banners are always active
  * - Exactly one rotating banner is active at a time (10-day cycle)
@@ -155,8 +178,8 @@ export function getActiveBanners() {
   const month = now.getMonth() + 1 // 1-12
   const day = now.getDate()
 
-  // Rotating banners (non-permanent, non-date-range)
-  const rotatingBanners = banners.filter(b => !b.permanent && !isDateRangeBanner(b))
+  // Rotating banners (non-permanent, non-date-range, non-monthly)
+  const rotatingBanners = banners.filter(b => !b.permanent && !isDateRangeBanner(b) && !isMonthlyBanner(b))
   const cycleLength = ROTATION_CHUNK_DAYS * rotatingBanners.length
   const dayOfYear = getDayOfYear()
   const cyclePosition = (dayOfYear - 1) % cycleLength

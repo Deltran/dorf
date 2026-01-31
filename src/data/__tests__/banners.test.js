@@ -45,8 +45,8 @@ describe('banners data', () => {
     })
   })
 
-  it('has exactly 3 rotating banners (non-date-range)', () => {
-    const rotating = banners.filter(b => !b.permanent && !b.startMonth)
+  it('has exactly 3 rotating banners (non-date-range, non-monthly)', () => {
+    const rotating = banners.filter(b => !b.permanent && !b.startMonth && !b.monthlySchedule)
     expect(rotating).toHaveLength(3)
   })
 
@@ -195,7 +195,7 @@ describe('date-range banners', () => {
     expect(active.some(b => b.id === 'standard')).toBe(true)
     expect(active.some(b => b.id === 'musical_mayhem')).toBe(true)
     // One rotating banner should also be active
-    const rotating = active.filter(b => !b.permanent && !b.startMonth)
+    const rotating = active.filter(b => !b.permanent && !b.startMonth && !b.monthlySchedule)
     expect(rotating.length).toBe(1)
   })
 
@@ -263,8 +263,14 @@ describe('getBannerAvailabilityText', () => {
 })
 
 describe('getMonthlyBanner', () => {
-  it('returns undefined when no monthly banners exist', () => {
-    const result = getMonthlyBanner(2026, 1)
+  it('returns civil_rights banner for February 2026', () => {
+    const result = getMonthlyBanner(2026, 2)
+    expect(result).toBeDefined()
+    expect(result.id).toBe('civil_rights')
+  })
+
+  it('returns undefined for months without a scheduled banner', () => {
+    const result = getMonthlyBanner(2026, 1) // January has no monthly banner
     expect(result).toBeUndefined()
   })
 
@@ -280,9 +286,26 @@ describe('getMonthlyBanner', () => {
 })
 
 describe('getBlackMarketBanners', () => {
-  it('returns empty array when no monthly banners exist', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('returns civil_rights banner as next month during January 2026', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 0, 15)) // January 2026
     const result = getBlackMarketBanners()
-    expect(result).toEqual([])
+    expect(result.some(b => b.id === 'civil_rights')).toBe(true)
+    const civilRights = result.find(b => b.id === 'civil_rights')
+    expect(civilRights.blackMarketSlot).toBe('next')
+  })
+
+  it('returns civil_rights banner as last month during March 2026', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 2, 15)) // March 2026
+    const result = getBlackMarketBanners()
+    expect(result.some(b => b.id === 'civil_rights')).toBe(true)
+    const civilRights = result.find(b => b.id === 'civil_rights')
+    expect(civilRights.blackMarketSlot).toBe('last')
   })
 
   it('filters out undefined slots', () => {
