@@ -144,4 +144,48 @@ describe('battle store - Heartbreak passive system', () => {
       expect(mara.heartbreakStacks).toBe(1)
     })
   })
+
+  describe('getEffectiveStat with Heartbreak ATK bonus', () => {
+    it('applies Heartbreak ATK bonus to effective ATK stat', () => {
+      const mara = {
+        instanceId: 'mara1',
+        template: {
+          heartbreakPassive: {
+            maxStacks: 5,
+            atkPerStack: 4,
+            lifestealPerStack: 3
+          }
+        },
+        stats: { atk: 100 },
+        heartbreakStacks: 3,
+        statusEffects: [],
+        leaderBonuses: {}
+      }
+
+      // With 3 stacks at 4% per stack = 12% bonus
+      // Base 100 ATK * 1.12 = 112
+      const effectiveAtk = store.getEffectiveStat(mara, 'atk')
+      expect(effectiveAtk).toBe(112)
+    })
+
+    it('does not apply Heartbreak bonus to non-ATK stats', () => {
+      const mara = {
+        instanceId: 'mara1',
+        template: {
+          heartbreakPassive: {
+            maxStacks: 5,
+            atkPerStack: 4,
+            lifestealPerStack: 3
+          }
+        },
+        stats: { def: 50 },
+        heartbreakStacks: 3,
+        statusEffects: [],
+        leaderBonuses: {}
+      }
+
+      const effectiveDef = store.getEffectiveStat(mara, 'def')
+      expect(effectiveDef).toBe(50)
+    })
+  })
 })

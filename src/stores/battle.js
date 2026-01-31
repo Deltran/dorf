@@ -340,6 +340,12 @@ export const useBattleStore = defineStore('battle', () => {
       modifier += unit.leaderBonuses[statName]
     }
 
+    // Add Heartbreak ATK bonus for Heartbreak heroes
+    if (statName === 'atk' && hasHeartbreakPassive(unit)) {
+      const { atkBonus } = getHeartbreakBonuses(unit)
+      modifier += atkBonus
+    }
+
     return Math.max(1, Math.floor(baseStat * (1 + modifier / 100)))
   }
 
@@ -2647,11 +2653,29 @@ export const useBattleStore = defineStore('battle', () => {
               debuffCount = (target.statusEffects || []).filter(e => !e.definition?.isBuff).length
             }
 
+            // Handle Heartbreak stack mechanics for damage calculation
+            let heartbreakStacksConsumed = 0
+            let heartbreakBonusDamagePercent = 0
+
+            // If skill consumes all Heartbreak stacks, do it now and calculate bonus
+            if (skill.consumeAllHeartbreakStacks && hasHeartbreakPassive(hero)) {
+              heartbreakStacksConsumed = consumeAllHeartbreakStacks(hero)
+              if (skill.damagePerHeartbreakStackConsumed) {
+                heartbreakBonusDamagePercent = heartbreakStacksConsumed * skill.damagePerHeartbreakStackConsumed
+              }
+            }
+
+            // If skill has damagePerHeartbreakStack, add bonus per current stack (without consuming)
+            if (skill.damagePerHeartbreakStack && hasHeartbreakPassive(hero)) {
+              const currentStacks = hero.heartbreakStacks || 0
+              heartbreakBonusDamagePercent += currentStacks * skill.damagePerHeartbreakStack
+            }
+
             // Check for Valor-scaled damage
             const scaledDamage = getSkillDamage(skill, hero)
             if (scaledDamage !== null) {
-              // Apply shard bonus to Valor-scaled damage percentage
-              const multiplier = (scaledDamage + shardBonus) / 100
+              // Apply shard bonus and Heartbreak bonus to Valor-scaled damage percentage
+              const multiplier = (scaledDamage + shardBonus + heartbreakBonusDamagePercent) / 100
               damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
             } else if (skill.damageMultiplier !== undefined) {
               // Use explicit damageMultiplier if provided (with bonus per debuff)
@@ -2659,12 +2683,18 @@ export const useBattleStore = defineStore('battle', () => {
               if (skill.bonusDamagePerDebuff && debuffCount > 0) {
                 baseMultiplier += (skill.bonusDamagePerDebuff / 100) * debuffCount
               }
-              // Apply shard bonus as percentage
-              baseMultiplier += shardBonus / 100
+              // Apply shard bonus and Heartbreak bonus as percentage
+              baseMultiplier += (shardBonus + heartbreakBonusDamagePercent) / 100
               damage = calculateDamageWithMarked(finalDamageStat, baseMultiplier, reducedDef, markedMultiplier)
-            } else {
-              const multiplier = parseSkillMultiplier(skill.description, shardBonus)
+            } else if (skill.damagePercent !== undefined) {
+              // Use explicit damagePercent if provided (for skills like Mara's)
+              const multiplier = (skill.damagePercent + shardBonus + heartbreakBonusDamagePercent) / 100
               damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+            } else {
+              // Parse from description with Heartbreak bonus
+              const baseMultiplier = parseSkillMultiplier(skill.description, shardBonus)
+              const finalMultiplier = baseMultiplier + heartbreakBonusDamagePercent / 100
+              damage = calculateDamageWithMarked(finalDamageStat, finalMultiplier, reducedDef, markedMultiplier)
             }
 
             // Apply crit and spell amp
@@ -2692,9 +2722,22 @@ export const useBattleStore = defineStore('battle', () => {
               addLog(`All allies are healed from the life force reclaimed!`)
             }
 
-            // Handle healSelfPercent (lifesteal)
-            if (skill.healSelfPercent && damage > 0) {
-              const healAmount = calculateHealSelfPercent(damage, skill.healSelfPercent)
+            // Handle healSelfPercent (lifesteal) and Heartbreak lifesteal
+            let totalLifestealPercent = skill.healSelfPercent || 0
+
+            // Add Heartbreak lifesteal bonus if skill uses it
+            if (skill.usesHeartbreakLifesteal && hasHeartbreakPassive(hero)) {
+              const { lifestealBonus } = getHeartbreakBonuses(hero)
+              totalLifestealPercent += lifestealBonus
+            }
+
+            // Also add leader bonus lifesteal if present
+            if (hero.leaderBonuses?.lifesteal) {
+              totalLifestealPercent += hero.leaderBonuses.lifesteal
+            }
+
+            if (totalLifestealPercent > 0 && damage > 0) {
+              const healAmount = calculateHealSelfPercent(damage, totalLifestealPercent)
               if (healAmount > 0) {
                 const maxHp = hero.stats?.hp || hero.maxHp
                 const oldHp = hero.currentHp
@@ -2768,6 +2811,23 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
+          // Handle conditionalEffects with Heartbreak threshold (Bitter Embrace)
+          if (skill.conditionalEffects && skill.conditionalEffects.heartbreakThreshold && !targetEvaded) {
+            const threshold = skill.conditionalEffects.heartbreakThreshold
+            const currentStacks = hasHeartbreakPassive(hero) ? (hero.heartbreakStacks || 0) : 0
+            if (currentStacks >= threshold && target.currentHp > 0) {
+              for (const effect of skill.conditionalEffects.effects || []) {
+                if (effect.target === 'enemy') {
+                  const effectDuration = resolveEffectDuration(effect, hero)
+                  const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
+                  applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
+                  emitCombatEffect(target.id, 'enemy', 'debuff', 0)
+                  addLog(`${target.template.name} is ${effect.displayName || 'affected'}!`)
+                }
+              }
+            }
+          }
+
           // Handle spreadBurn skill
           if (skill.spreadBurn && target.currentHp > 0) {
             const spreadCount = spreadBurnFromTarget(target, aliveEnemies.value, hero.instanceId)
@@ -2779,6 +2839,24 @@ export const useBattleStore = defineStore('battle', () => {
           if (target.currentHp <= 0) {
             addLog(`${target.template.name} defeated!`)
             processRageOnKill(hero)
+
+            // Grant Heartbreak stacks on kill
+            if (skill.onKillGrantHeartbreakStacks && hasHeartbreakPassive(hero)) {
+              gainHeartbreakStack(hero, skill.onKillGrantHeartbreakStacks)
+            }
+          }
+
+          // Grant Heartbreak stacks when skill is used (regardless of kill)
+          if (skill.grantHeartbreakStacks && hasHeartbreakPassive(hero)) {
+            gainHeartbreakStack(hero, skill.grantHeartbreakStacks)
+          }
+
+          // Apply self-damage after skill use (Love's Final Thorn)
+          if (skill.selfDamagePercentMaxHp && hero.currentHp > 0) {
+            const selfDamage = Math.floor(hero.maxHp * skill.selfDamagePercentMaxHp / 100)
+            hero.currentHp = Math.max(1, hero.currentHp - selfDamage)
+            addLog(`${hero.template.name} takes ${selfDamage} self-damage!`)
+            emitCombatEffect(hero.instanceId, 'hero', 'damage', selfDamage)
           }
 
           // Handle chain bounce damage (e.g., Chain Lightning)
@@ -3279,9 +3357,35 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
-          // Use Valor-scaled damage if available (with shard bonus)
+          // Handle Heartbreak stack mechanics for AoE damage calculation
+          let heartbreakStacksConsumedAoe = 0
+          let heartbreakBonusDamagePercentAoe = 0
+
+          // If skill consumes all Heartbreak stacks, do it now and calculate bonus
+          if (skill.consumeAllHeartbreakStacks && hasHeartbreakPassive(hero)) {
+            heartbreakStacksConsumedAoe = consumeAllHeartbreakStacks(hero)
+            if (skill.damagePerHeartbreakStackConsumed) {
+              heartbreakBonusDamagePercentAoe = heartbreakStacksConsumedAoe * skill.damagePerHeartbreakStackConsumed
+            }
+          }
+
+          // If skill has damagePerHeartbreakStack, add bonus per current stack (without consuming)
+          if (skill.damagePerHeartbreakStack && hasHeartbreakPassive(hero)) {
+            const currentStacks = hero.heartbreakStacks || 0
+            heartbreakBonusDamagePercentAoe += currentStacks * skill.damagePerHeartbreakStack
+          }
+
+          // Use Valor-scaled damage, damagePercent, or parse from description (with shard and Heartbreak bonus)
           const scaledDamage = getSkillDamage(skill, hero)
-          const multiplier = scaledDamage !== null ? (scaledDamage + shardBonus) / 100 : parseSkillMultiplier(skill.description, shardBonus)
+          let multiplier
+          if (scaledDamage !== null) {
+            multiplier = (scaledDamage + shardBonus + heartbreakBonusDamagePercentAoe) / 100
+          } else if (skill.damagePercent !== undefined) {
+            multiplier = (skill.damagePercent + shardBonus + heartbreakBonusDamagePercentAoe) / 100
+          } else {
+            const baseMultiplier = parseSkillMultiplier(skill.description, shardBonus)
+            multiplier = baseMultiplier + heartbreakBonusDamagePercentAoe / 100
+          }
           let totalDamage = 0
           let totalThornsDamage = 0
           let killedAny = false
@@ -3329,7 +3433,46 @@ export const useBattleStore = defineStore('battle', () => {
           // Process rage_on_kill if any enemy was killed
           if (killedAny) {
             processRageOnKill(hero)
+
+            // Grant Heartbreak stacks on kill (AoE)
+            if (skill.onKillGrantHeartbreakStacks && hasHeartbreakPassive(hero)) {
+              gainHeartbreakStack(hero, skill.onKillGrantHeartbreakStacks)
+            }
           }
+
+          // Grant Heartbreak stacks when skill is used (regardless of kill, for AoE)
+          if (skill.grantHeartbreakStacks && hasHeartbreakPassive(hero)) {
+            gainHeartbreakStack(hero, skill.grantHeartbreakStacks)
+          }
+
+          // Handle healSelfPercent (lifesteal) for AoE - heals based on total damage dealt
+          let totalLifestealPercentAoe = skill.healSelfPercent || 0
+
+          // Add Heartbreak lifesteal bonus if skill uses it
+          if (skill.usesHeartbreakLifesteal && hasHeartbreakPassive(hero)) {
+            const { lifestealBonus } = getHeartbreakBonuses(hero)
+            totalLifestealPercentAoe += lifestealBonus
+          }
+
+          // Also add leader bonus lifesteal if present
+          if (hero.leaderBonuses?.lifesteal) {
+            totalLifestealPercentAoe += hero.leaderBonuses.lifesteal
+          }
+
+          if (totalLifestealPercentAoe > 0 && totalDamage > 0) {
+            const healAmount = calculateHealSelfPercent(totalDamage, totalLifestealPercentAoe)
+            if (healAmount > 0) {
+              const maxHp = hero.stats?.hp || hero.maxHp
+              const oldHp = hero.currentHp
+              hero.currentHp = Math.min(maxHp, hero.currentHp + healAmount)
+              const actualHeal = hero.currentHp - oldHp
+              if (actualHeal > 0) {
+                addLog(`${hero.template.name} heals for ${actualHeal}!`)
+                emitCombatEffect(hero.instanceId, 'hero', 'heal', actualHeal)
+              }
+            }
+          }
+
           // Apply accumulated thorns damage
           if (totalThornsDamage > 0) {
             applyDamage(hero, totalThornsDamage, 'thorns')
