@@ -95,10 +95,10 @@ export const useBattleStore = defineStore('battle', () => {
     if (!condition) return true
 
     const template = unit.template
-    if (!template) return false
 
     // Class-based conditions
     if (condition.classId) {
+      if (!template) return false
       if (typeof condition.classId === 'string') {
         if (template.classId !== condition.classId) return false
       } else if (condition.classId.not) {
@@ -108,6 +108,7 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Role-based conditions (hero template role overrides class role)
     if (condition.role) {
+      if (!template) return false
       const heroClass = getClass(template.classId)
       if (!heroClass) return false
       const effectiveRole = template.role || heroClass.role
@@ -119,7 +120,33 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // HP threshold condition - check if HP percentage is below threshold
+    if (condition.hpBelow !== undefined) {
+      const hpPercent = (unit.currentHp / unit.maxHp) * 100
+      if (hpPercent >= condition.hpBelow) return false
+    }
+
     return true
+  }
+
+  // Public wrapper for condition checking (exposed as store action)
+  function checkLeaderCondition(hero, condition) {
+    return matchesCondition(hero, condition)
+  }
+
+  // Get bonus stat from leader skill passive effects
+  function getLeaderBonusStat(hero, statName, leaderSkill) {
+    if (!leaderSkill?.effects) return 0
+
+    let bonus = 0
+    for (const effect of leaderSkill.effects) {
+      if (effect.type === 'passive' && effect.stat === statName) {
+        if (matchesCondition(hero, effect.condition)) {
+          bonus += Math.floor(hero[statName] * (effect.value / 100))
+        }
+      }
+    }
+    return bonus
   }
 
   // Get the active leader skill from the party leader
@@ -4517,6 +4544,9 @@ export const useBattleStore = defineStore('battle', () => {
     // Fortune swap system (for Fortuna Inversus)
     executeFortuneSwap,
     executeFortunaFinale,
+    // Leader skill condition helpers (for HP-based conditions)
+    checkLeaderCondition,
+    getLeaderBonusStat,
     // Constants
     BattleState,
     EffectType
