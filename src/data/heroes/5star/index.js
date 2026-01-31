@@ -5,6 +5,7 @@ import { cacophon } from './cacophon.js'
 import { rosara_the_unmoved } from './rosara_the_unmoved.js'
 import { onibaba } from './onibaba.js'
 import { fortuna_inversus } from './fortuna_inversus.js'
+import { grandmother_rot } from './grandmother_rot.js'
 
 export const heroes = {
   aurora_the_dawn,
@@ -13,5 +14,6 @@ export const heroes = {
   cacophon,
   rosara_the_unmoved,
   onibaba,
-  fortuna_inversus
+  fortuna_inversus,
+  grandmother_rot
 }
