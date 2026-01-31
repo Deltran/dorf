@@ -4,6 +4,7 @@ import { lady_moonwhisper } from './lady_moonwhisper.js'
 import { swift_arrow } from './swift_arrow.js'
 import { chroma } from './chroma.js'
 import { zina_the_desperate } from './zina_the_desperate.js'
+import { copper_jack } from './copper_jack.js'
 
 export const heroes = {
   sir_gallan,
@@ -11,5 +12,6 @@ export const heroes = {
   lady_moonwhisper,
   swift_arrow,
   chroma,
-  zina_the_desperate
+  zina_the_desperate,
+  copper_jack
 }
