@@ -20,8 +20,7 @@ describe('Valentine\'s Day banner', () => {
     expect(banner.endDate).toBe('2026-02-28')
   })
 
-  it('has rate-up configured', () => {
-    expect(banner.rateUp['mara_thornheart']).toBe(0.5)
-    expect(banner.rateUp['philemon_the_ardent']).toBe(0.5)
+  it('is a limited banner', () => {
+    expect(banner.bannerType).toBe('limited')
   })
 })
