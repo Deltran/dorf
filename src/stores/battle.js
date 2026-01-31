@@ -1386,6 +1386,10 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Clear all status effects on death
     if (unit.currentHp <= 0) {
+      // Process on-death triggers for heroes before clearing effects
+      if (unit.instanceId && heroes.value.includes(unit)) {
+        processHeroDeathTrigger(unit)
+      }
       if (unit.statusEffects?.length > 0) {
         unit.statusEffects = []
       }
