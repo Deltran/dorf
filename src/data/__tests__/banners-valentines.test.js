@@ -10,11 +10,11 @@ describe('Valentine\'s Day banner', () => {
     expect(banner.name).toBe("Love's Thorny Path")
   })
 
-  it('is active every February', () => {
+  it('is active around Valentine\'s Day (Feb 7-21)', () => {
     expect(banner.startMonth).toBe(2)
-    expect(banner.startDay).toBe(1)
+    expect(banner.startDay).toBe(7)
     expect(banner.endMonth).toBe(2)
-    expect(banner.endDay).toBe(28)
+    expect(banner.endDay).toBe(21)
   })
 
   it('has limited hero pool', () => {

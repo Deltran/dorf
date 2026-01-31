@@ -4,9 +4,9 @@ export const valentines_heartbreak = {
   description: "A banner of heartbreak and devotion. Featured: Mara Thornheart and Philemon the Ardent.",
   permanent: false,
   startMonth: 2,
-  startDay: 1,
+  startDay: 7,
   endMonth: 2,
-  endDay: 28,
+  endDay: 21,
   heroPool: {
     5: ['mara_thornheart'],
     4: ['philemon_the_ardent']
