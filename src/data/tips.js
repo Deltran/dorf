@@ -22,6 +22,11 @@ export const tips = {
   hero_inspect_intro: {
     title: 'Hero Details',
     message: 'Double-click on a hero\'s combat card to get detailed information about their current stats and the different effects that are currently affecting them.'
+  },
+  black_market_unlock: {
+    title: 'A Whisper in the Dark',
+    message: "Psst... looking for something special? I've got wares you won't find on the regular shelves. Come find me.",
+    anchor: 'black-market-tab'
   }
 }
 
