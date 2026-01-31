@@ -85,10 +85,7 @@ export const banners = [
     name: 'Musical Mayhem',
     description: 'A cacophony of bardic talent! Featuring Cacophon and musical heroes.',
     permanent: false,
-    startMonth: 1,
-    startDay: 1,
-    endMonth: 1,
-    endDay: 31,
+    monthlySchedule: { month: 2 },
     heroPool: {
       5: ['cacophon'],
       4: ['chroma', 'lady_moonwhisper'],
@@ -102,7 +99,7 @@ export const banners = [
     name: 'Voices of Change',
     description: 'Heroes who stood firm against injustice. Featuring Rosara the Unmoved and allies.',
     permanent: false,
-    monthlySchedule: { year: 2026, month: 2 },
+    monthlySchedule: { month: 1 },
     heroPool: {
       5: ['rosara_the_unmoved'],
       4: ['zina_the_desperate', 'sir_gallan'],
@@ -116,7 +113,7 @@ export const banners = [
     name: 'Oriental Fighters',
     description: 'Warriors from the East bring ancient techniques to battle. Featuring Onibaba and martial heroes.',
     permanent: false,
-    monthlySchedule: { year: 2026, month: 3 },
+    monthlySchedule: { month: 3 },
     heroPool: {
       5: ['onibaba'],
       4: ['shinobi_jin', 'swift_arrow'],
@@ -126,14 +123,11 @@ export const banners = [
     }
   },
   {
-    id: 'fortunes_fools',
-    name: "Fortune's Fools",
+    id: 'golden_showers',
+    name: 'Golden Showers',
     description: 'Roll the dice on fate itself! Featuring gambling heroes who thrive on risk and reward.',
     permanent: false,
-    startMonth: 2,
-    startDay: 1,
-    endMonth: 2,
-    endDay: 28,
+    monthlySchedule: { month: 4 },
     heroPool: {
       5: ['fortuna_inversus'],
       4: ['copper_jack', 'sir_gallan'],
@@ -305,46 +299,41 @@ export function getBannerAvailabilityText(banner) {
 }
 
 /**
- * Get monthly banner for a specific year/month.
- * Handles year wraparound.
- * @param {number} year
+ * Get monthly banner for a specific month.
+ * Handles month wraparound.
+ * @param {number} _year - Ignored (kept for API compatibility)
  * @param {number} month - 1-indexed (1 = January)
  * @returns {object|undefined}
  */
-export function getMonthlyBanner(year, month) {
+export function getMonthlyBanner(_year, month) {
   // Handle wraparound
-  if (month < 1) { year--; month = 12 }
-  if (month > 12) { year++; month = 1 }
+  if (month < 1) { month = 12 }
+  if (month > 12) { month = 1 }
 
-  return banners.find(b =>
-    b.monthlySchedule?.year === year &&
-    b.monthlySchedule?.month === month
-  )
+  return banners.find(b => b.monthlySchedule?.month === month)
 }
 
 /**
  * Get a random vault banner (seeded by day for daily rotation).
  * Excludes current month, last month, and next month.
- * @param {number} currentYear
+ * @param {number} _currentYear - Ignored (kept for API compatibility)
  * @param {number} currentMonth
  * @returns {object|undefined}
  */
-function getRandomVaultBanner(currentYear, currentMonth) {
+function getRandomVaultBanner(_currentYear, currentMonth) {
   const excluded = new Set()
 
   // Exclude current, last, and next month
   for (let offset = -1; offset <= 1; offset++) {
-    let y = currentYear
     let m = currentMonth + offset
-    if (m < 1) { y--; m = 12 }
-    if (m > 12) { y++; m = 1 }
-    excluded.add(`${y}-${m}`)
+    if (m < 1) { m = 12 }
+    if (m > 12) { m = 1 }
+    excluded.add(m)
   }
 
   const candidates = banners.filter(b => {
     if (!b.monthlySchedule) return false
-    const key = `${b.monthlySchedule.year}-${b.monthlySchedule.month}`
-    return !excluded.has(key)
+    return !excluded.has(b.monthlySchedule.month)
   })
 
   if (candidates.length === 0) return undefined

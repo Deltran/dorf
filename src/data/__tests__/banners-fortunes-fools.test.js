@@ -1,24 +1,21 @@
 import { describe, it, expect } from 'vitest'
-import { banners, getBannerById, isDateInRange } from '../banners'
+import { banners, getBannerById, getMonthlyBanner } from '../banners'
 
-describe("Fortune's Fools Banner", () => {
-  const banner = banners.find(b => b.id === 'fortunes_fools')
+describe('Golden Showers Banner', () => {
+  const banner = banners.find(b => b.id === 'golden_showers')
 
   it('should exist', () => {
     expect(banner).toBeDefined()
   })
 
   it('should have correct name and description', () => {
-    expect(banner.name).toBe("Fortune's Fools")
+    expect(banner.name).toBe('Golden Showers')
     expect(banner.description).toContain('gambl')
   })
 
-  it('should be a date-range banner for February', () => {
+  it('should be a monthly banner for April (repeats yearly)', () => {
     expect(banner.permanent).toBe(false)
-    expect(banner.startMonth).toBe(2)
-    expect(banner.startDay).toBe(1)
-    expect(banner.endMonth).toBe(2)
-    expect(banner.endDay).toBe(28)
+    expect(banner.monthlySchedule).toEqual({ month: 4 })
   })
 
   it('should have all three gambler heroes', () => {
@@ -28,24 +25,10 @@ describe("Fortune's Fools Banner", () => {
   })
 
   it('should be findable by id', () => {
-    expect(getBannerById('fortunes_fools')).toBe(banner)
+    expect(getBannerById('golden_showers')).toBe(banner)
   })
 
-  describe('date range checks', () => {
-    it('should be active on Feb 1', () => {
-      expect(isDateInRange(2, 1, 2, 1, 2, 28)).toBe(true)
-    })
-
-    it('should be active on Feb 28', () => {
-      expect(isDateInRange(2, 28, 2, 1, 2, 28)).toBe(true)
-    })
-
-    it('should not be active on Jan 31', () => {
-      expect(isDateInRange(1, 31, 2, 1, 2, 28)).toBe(false)
-    })
-
-    it('should not be active on Mar 1', () => {
-      expect(isDateInRange(3, 1, 2, 1, 2, 28)).toBe(false)
-    })
+  it('should be findable as April 2026 monthly banner', () => {
+    expect(getMonthlyBanner(2026, 4)).toBe(banner)
   })
 })

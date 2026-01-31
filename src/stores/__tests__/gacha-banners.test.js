@@ -79,8 +79,8 @@ describe('Oriental Fighters banner', () => {
     expect(banner.heroPool[3]).toContain('matsuda')
   })
 
-  it('should have March 2026 monthly schedule', () => {
+  it('should have March monthly schedule (repeats yearly)', () => {
     const banner = getBannerById('oriental_fighters')
-    expect(banner.monthlySchedule).toEqual({ year: 2026, month: 3 })
+    expect(banner.monthlySchedule).toEqual({ month: 3 })
   })
 })
