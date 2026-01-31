@@ -10,17 +10,15 @@ describe('Valentine\'s Day banner', () => {
     expect(banner.name).toBe("Love's Thorny Path")
   })
 
-  it('features Mara and Philemon', () => {
-    expect(banner.featuredHeroes).toContain('mara_thornheart')
-    expect(banner.featuredHeroes).toContain('philemon_the_ardent')
+  it('is active every February', () => {
+    expect(banner.startMonth).toBe(2)
+    expect(banner.startDay).toBe(1)
+    expect(banner.endMonth).toBe(2)
+    expect(banner.endDay).toBe(28)
   })
 
-  it('has correct date range for February', () => {
-    expect(banner.startDate).toBe('2026-02-01')
-    expect(banner.endDate).toBe('2026-02-28')
-  })
-
-  it('is a limited banner', () => {
-    expect(banner.bannerType).toBe('limited')
+  it('has limited hero pool', () => {
+    expect(banner.heroPool[5]).toContain('mara_thornheart')
+    expect(banner.heroPool[4]).toContain('philemon_the_ardent')
   })
 })
