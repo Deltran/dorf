@@ -4096,6 +4096,47 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== COIN FLIP SYSTEM (for Copper Jack) ==========
+
+  // Flip a coin - returns 'heads' or 'tails'
+  function flipCoin() {
+    return Math.random() < 0.5 ? 'heads' : 'tails'
+  }
+
+  // Apply coin flip result to hero based on their coinFlipEffects template
+  function applyCoinFlipResult(hero, result) {
+    const effects = hero.template?.coinFlipEffects
+    if (!effects) return
+
+    if (result === 'heads') {
+      // Apply damage multiplier effect
+      hero.statusEffects.push({
+        type: 'coin_flip_heads',
+        duration: 1,
+        value: effects.heads.damageMultiplier,
+        firstHitOnly: effects.heads.firstHitOnly
+      })
+    } else {
+      // Tails: deal self damage and gain rage
+      const damage = Math.floor(hero.maxHp * (effects.tails.selfDamagePercent / 100))
+      hero.currentHp = Math.max(1, hero.currentHp - damage)
+      hero.currentRage = Math.min(100, (hero.currentRage || 0) + effects.tails.rageGain)
+      hero.tookSelfDamageThisTurn = true
+    }
+    hero.coinFlippedThisTurn = true
+  }
+
+  // Consume and return coin flip damage bonus (returns multiplier, removes effect)
+  function consumeCoinFlipBonus(hero) {
+    const idx = hero.statusEffects.findIndex(e => e.type === 'coin_flip_heads')
+    if (idx !== -1) {
+      const effect = hero.statusEffects[idx]
+      hero.statusEffects.splice(idx, 1)
+      return effect.value
+    }
+    return 1
+  }
+
   return {
     // State
     state,
@@ -4241,6 +4282,10 @@ export const useBattleStore = defineStore('battle', () => {
     rollDice,
     getDiceTier,
     checkLoadedDice,
+    // Coin flip system (for Copper Jack)
+    flipCoin,
+    applyCoinFlipResult,
+    consumeCoinFlipBonus,
     // Constants
     BattleState,
     EffectType
