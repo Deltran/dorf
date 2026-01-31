@@ -6,6 +6,7 @@ import { chroma } from './chroma.js'
 import { zina_the_desperate } from './zina_the_desperate.js'
 import { shinobi_jin } from './shinobi_jin.js'
 import { copper_jack } from './copper_jack.js'
+import { vraxx_thunderskin } from './vraxx_thunderskin.js'
 
 export const heroes = {
   sir_gallan,
@@ -15,5 +16,6 @@ export const heroes = {
   chroma,
   zina_the_desperate,
   shinobi_jin,
-  copper_jack
+  copper_jack,
+  vraxx_thunderskin
 }
