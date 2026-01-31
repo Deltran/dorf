@@ -754,9 +754,19 @@ export const useBattleStore = defineStore('battle', () => {
     unit.currentVerses = Math.min(3, unit.currentVerses + 1)
   }
 
+  // Check if unit has SEATED stance (cannot use skills)
+  function isSeated(unit) {
+    return unit.statusEffects?.some(e => e.definition?.isSeated) || false
+  }
+
   // Check if a unit can use their skill based on resource type
   function canUseSkill(unit) {
     if (!unit.skill) return false
+
+    // Check if unit is in SEATED stance (cannot use non-basic skills)
+    if (isSeated(unit)) {
+      return false
+    }
 
     // Rangers check focus
     if (isRanger(unit)) {
@@ -4017,6 +4027,8 @@ export const useBattleStore = defineStore('battle', () => {
     isBard,
     gainVerse,
     canUseSkill,
+    // SEATED stance check (for Civil Rights heroes)
+    isSeated,
     // Valor helpers (for UI)
     isKnight,
     getValorTier,
