@@ -3,11 +3,13 @@ import { hedge_wizard } from './hedge_wizard.js'
 import { village_healer } from './village_healer.js'
 import { wandering_bard } from './wandering_bard.js'
 import { vashek_the_unrelenting } from './vashek_the_unrelenting.js'
+import { bones_mccready } from './bones_mccready.js'
 
 export const heroes = {
   town_guard,
   hedge_wizard,
   village_healer,
   wandering_bard,
-  vashek_the_unrelenting
+  vashek_the_unrelenting,
+  bones_mccready
 }
