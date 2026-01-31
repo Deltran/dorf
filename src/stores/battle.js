@@ -1135,6 +1135,32 @@ export const useBattleStore = defineStore('battle', () => {
     return Math.random() < missChance
   }
 
+  // Dice roll utility for Bones McCready
+  function rollDice(count, sides) {
+    const rolls = []
+    for (let i = 0; i < count; i++) {
+      rolls.push(Math.floor(Math.random() * sides) + 1)
+    }
+    const total = rolls.reduce((a, b) => a + b, 0)
+    const isDoubles = count === 2 && rolls[0] === rolls[1]
+    return { rolls, total, isDoubles }
+  }
+
+  // Get the tier from a dice result
+  function getDiceTier(rollTotal, tiers) {
+    return tiers.find(t => rollTotal >= t.min && rollTotal <= t.max)
+  }
+
+  // Check and consume LOADED_DICE effect
+  function checkLoadedDice(target) {
+    const idx = target.statusEffects.findIndex(e => e.type === 'loaded_dice')
+    if (idx !== -1) {
+      target.statusEffects.splice(idx, 1)
+      return true
+    }
+    return false
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null, result = null) {
@@ -4211,6 +4237,10 @@ export const useBattleStore = defineStore('battle', () => {
     getHealAmp,
     getAllyDamageReduction,
     getFinaleBoost,
+    // Dice roll utilities (for Bones McCready)
+    rollDice,
+    getDiceTier,
+    checkLoadedDice,
     // Constants
     BattleState,
     EffectType
