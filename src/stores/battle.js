@@ -95,10 +95,10 @@ export const useBattleStore = defineStore('battle', () => {
     if (!condition) return true
 
     const template = unit.template
-    if (!template) return false
 
     // Class-based conditions
     if (condition.classId) {
+      if (!template) return false
       if (typeof condition.classId === 'string') {
         if (template.classId !== condition.classId) return false
       } else if (condition.classId.not) {
@@ -108,6 +108,7 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Role-based conditions (hero template role overrides class role)
     if (condition.role) {
+      if (!template) return false
       const heroClass = getClass(template.classId)
       if (!heroClass) return false
       const effectiveRole = template.role || heroClass.role
@@ -119,7 +120,33 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // HP threshold condition - check if HP percentage is below threshold
+    if (condition.hpBelow !== undefined) {
+      const hpPercent = (unit.currentHp / unit.maxHp) * 100
+      if (hpPercent >= condition.hpBelow) return false
+    }
+
     return true
+  }
+
+  // Public wrapper for condition checking (exposed as store action)
+  function checkLeaderCondition(hero, condition) {
+    return matchesCondition(hero, condition)
+  }
+
+  // Get bonus stat from leader skill passive effects
+  function getLeaderBonusStat(hero, statName, leaderSkill) {
+    if (!leaderSkill?.effects) return 0
+
+    let bonus = 0
+    for (const effect of leaderSkill.effects) {
+      if (effect.type === 'passive' && effect.stat === statName) {
+        if (matchesCondition(hero, effect.condition)) {
+          bonus += Math.floor(hero[statName] * (effect.value / 100))
+        }
+      }
+    }
+    return bonus
   }
 
   // Get the active leader skill from the party leader
@@ -1147,6 +1174,85 @@ export const useBattleStore = defineStore('battle', () => {
 
     const missChance = blindEffect.value / 100
     return Math.random() < missChance
+  }
+
+  // Dice roll utility for Bones McCready
+  function rollDice(count, sides) {
+    const rolls = []
+    for (let i = 0; i < count; i++) {
+      rolls.push(Math.floor(Math.random() * sides) + 1)
+    }
+    const total = rolls.reduce((a, b) => a + b, 0)
+    const isDoubles = count === 2 && rolls[0] === rolls[1]
+    return { rolls, total, isDoubles }
+  }
+
+  // Get the tier from a dice result
+  function getDiceTier(rollTotal, tiers) {
+    return tiers.find(t => rollTotal >= t.min && rollTotal <= t.max)
+  }
+
+  // Check and consume LOADED_DICE effect
+  function checkLoadedDice(target) {
+    const idx = target.statusEffects.findIndex(e => e.type === 'loaded_dice')
+    if (idx !== -1) {
+      target.statusEffects.splice(idx, 1)
+      return true
+    }
+    return false
+  }
+
+  // Execute dice-based healing (Bones McCready's Roll the Bones)
+  function executeDiceHeal(caster, target, skill) {
+    let roll
+    const isLoaded = checkLoadedDice(target)
+
+    if (isLoaded) {
+      // Loaded dice guarantees max roll
+      roll = skill.diceSides * skill.diceCount
+    } else {
+      const result = rollDice(skill.diceCount, skill.diceSides)
+      roll = result.total
+    }
+
+    const tier = getDiceTier(roll, skill.diceTiers)
+    if (!tier) return { roll, healed: 0 }
+
+    const healAmount = Math.floor(caster.atk * (tier.healPercent / 100))
+    target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
+
+    if (tier.applyRegen) {
+      target.statusEffects.push({
+        type: 'regen',
+        duration: 2,
+        value: 25,
+        sourceId: caster.instanceId
+      })
+    }
+
+    return { roll, healed: healAmount, tier }
+  }
+
+  // Execute dice-based effect (Bones McCready's Snake Eyes)
+  function executeDiceEffect(caster, target, skill) {
+    const result = rollDice(skill.diceCount, skill.diceSides)
+
+    for (const effectDef of skill.effects || []) {
+      let duration = effectDef.duration
+
+      if (result.isDoubles && skill.onDoubles?.extendDuration) {
+        duration += skill.onDoubles.extendDuration
+      }
+
+      target.statusEffects.push({
+        type: effectDef.type,
+        duration,
+        value: effectDef.value,
+        sourceId: caster.instanceId
+      })
+    }
+
+    return { roll: result.total, isDoubles: result.isDoubles }
   }
 
   // Apply damage to a unit and handle focus loss for rangers
@@ -4188,6 +4294,218 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== COIN FLIP SYSTEM (for Copper Jack) ==========
+
+  // Flip a coin - returns 'heads' or 'tails'
+  function flipCoin() {
+    return Math.random() < 0.5 ? 'heads' : 'tails'
+  }
+
+  // Apply coin flip result to hero based on their coinFlipEffects template
+  function applyCoinFlipResult(hero, result) {
+    const effects = hero.template?.coinFlipEffects
+    if (!effects) return
+
+    if (result === 'heads') {
+      // Apply damage multiplier effect
+      hero.statusEffects.push({
+        type: 'coin_flip_heads',
+        duration: 1,
+        value: effects.heads.damageMultiplier,
+        firstHitOnly: effects.heads.firstHitOnly
+      })
+    } else {
+      // Tails: deal self damage and gain rage
+      const damage = Math.floor(hero.maxHp * (effects.tails.selfDamagePercent / 100))
+      hero.currentHp = Math.max(1, hero.currentHp - damage)
+      hero.currentRage = Math.min(100, (hero.currentRage || 0) + effects.tails.rageGain)
+      hero.tookSelfDamageThisTurn = true
+    }
+    hero.coinFlippedThisTurn = true
+  }
+
+  // Consume and return coin flip damage bonus (returns multiplier, removes effect)
+  function consumeCoinFlipBonus(hero) {
+    const idx = hero.statusEffects.findIndex(e => e.type === 'coin_flip_heads')
+    if (idx !== -1) {
+      const effect = hero.statusEffects[idx]
+      hero.statusEffects.splice(idx, 1)
+      return effect.value
+    }
+    return 1
+  }
+
+  // Calculate damage for Copper Jack's coin flip-aware skills
+  function calculateCoinFlipSkillDamage(hero, skill) {
+    let damagePercent = skill.damagePercent || 0
+
+    // Weighted Toss: +coinFlipBonus% if coin was flipped this turn
+    if (skill.coinFlipBonus && hero.coinFlippedThisTurn) {
+      damagePercent += skill.coinFlipBonus
+    }
+
+    // Double Down: use selfDamageBonusPercent if took self damage this turn
+    if (skill.selfDamageBonusPercent && hero.tookSelfDamageThisTurn) {
+      damagePercent = skill.selfDamageBonusPercent
+    }
+
+    return Math.floor(hero.atk * (damagePercent / 100))
+  }
+
+  // Execute Jackpot skill (5 coin flips)
+  function executeJackpot(hero, skill) {
+    let heads = 0
+    let tails = 0
+
+    for (let i = 0; i < skill.jackpotFlips; i++) {
+      if (flipCoin() === 'heads') {
+        heads++
+      } else {
+        tails++
+      }
+    }
+
+    // Damage: damagePerHeads% ATK per heads
+    const damagePercent = heads * skill.damagePerHeads
+    const damage = Math.floor(hero.atk * (damagePercent / 100))
+
+    // Rage: ragePerTails per tails
+    const rageGained = tails * skill.ragePerTails
+    hero.currentRage = Math.min(100, (hero.currentRage || 0) + rageGained)
+
+    // ATK buff: atkPerTails% per tails for atkDuration turns
+    if (tails > 0) {
+      hero.statusEffects.push({
+        type: 'atk_up',
+        duration: skill.atkDuration,
+        value: tails * skill.atkPerTails,
+        sourceId: hero.instanceId
+      })
+    }
+
+    return { damage, heads, tails, rageGained, atkBuffStacks: tails }
+  }
+
+  // ========== FORTUNE SWAP SYSTEM (for Fortuna Inversus Finale) ==========
+
+  // Execute Fortuna's Wheel of Reversal finale
+  // Swaps buff/debuff pairs between allies and enemies, dispels certain effects
+  function executeFortuneSwap(allies, enemies, swapPairs, dispelList, sourceId) {
+    let swapped = 0
+    let dispelled = 0
+
+    const allyEffectsToProcess = []
+    const enemyEffectsToProcess = []
+
+    // Collect effects from allies
+    for (const ally of allies) {
+      for (const effect of [...ally.statusEffects]) {
+        if (swapPairs[effect.type]) {
+          allyEffectsToProcess.push({ unit: ally, effect, isAlly: true })
+        } else if (dispelList.includes(effect.type)) {
+          allyEffectsToProcess.push({ unit: ally, effect, isAlly: true, dispel: true })
+        }
+      }
+    }
+
+    // Collect effects from enemies
+    for (const enemy of enemies) {
+      for (const effect of [...enemy.statusEffects]) {
+        if (swapPairs[effect.type]) {
+          enemyEffectsToProcess.push({ unit: enemy, effect, isAlly: false })
+        } else if (dispelList.includes(effect.type)) {
+          enemyEffectsToProcess.push({ unit: enemy, effect, isAlly: false, dispel: true })
+        }
+      }
+    }
+
+    const isEmpty = allyEffectsToProcess.length === 0 && enemyEffectsToProcess.length === 0
+
+    // Process ally effects: swap to random enemy or dispel
+    for (const { unit, effect, dispel } of allyEffectsToProcess) {
+      const idx = unit.statusEffects.indexOf(effect)
+      if (idx !== -1) {
+        unit.statusEffects.splice(idx, 1)
+        if (dispel) {
+          dispelled++
+        } else {
+          // Swap to random enemy
+          const target = enemies[Math.floor(Math.random() * enemies.length)]
+          target.statusEffects.push({
+            type: swapPairs[effect.type],
+            duration: effect.duration,
+            value: effect.value,
+            sourceId
+          })
+          swapped++
+        }
+      }
+    }
+
+    // Process enemy effects: swap to random ally or dispel
+    for (const { unit, effect, dispel } of enemyEffectsToProcess) {
+      const idx = unit.statusEffects.indexOf(effect)
+      if (idx !== -1) {
+        unit.statusEffects.splice(idx, 1)
+        if (dispel) {
+          dispelled++
+        } else {
+          // Swap to random ally
+          const target = allies[Math.floor(Math.random() * allies.length)]
+          target.statusEffects.push({
+            type: swapPairs[effect.type],
+            duration: effect.duration,
+            value: effect.value,
+            sourceId
+          })
+          swapped++
+        }
+      }
+    }
+
+    return { swapped, dispelled, isEmpty }
+  }
+
+  // Execute Fortuna's Wheel of Reversal finale
+  function executeFortunaFinale(fortuna) {
+    const finale = fortuna.template.finale
+    if (!finale?.isFortuneSwap) return { success: false }
+
+    const aliveAllies = heroes.value.filter(h => h.currentHp > 0)
+    const aliveEnemies = enemies.value.filter(e => e.currentHp > 0)
+
+    const result = executeFortuneSwap(
+      aliveAllies,
+      aliveEnemies,
+      finale.swapPairs,
+      finale.dispelList,
+      fortuna.instanceId
+    )
+
+    if (result.isEmpty && finale.emptyFallback) {
+      const allUnits = [...aliveAllies, ...aliveEnemies]
+      const randomUnit = allUnits[Math.floor(Math.random() * allUnits.length)]
+      const randomEffect = finale.emptyFallback.options[
+        Math.floor(Math.random() * finale.emptyFallback.options.length)
+      ]
+
+      randomUnit.statusEffects.push({
+        type: randomEffect.type,
+        duration: randomEffect.duration,
+        value: randomEffect.value,
+        sourceId: fortuna.instanceId
+      })
+
+      result.usedFallback = true
+      result.fallbackMessage = finale.emptyFallback.message
+    }
+
+    fortuna.currentVerses = 0
+    fortuna.lastSkillName = null
+
+    return result
+  }
+
   return {
     // State
     state,
@@ -4329,6 +4647,24 @@ export const useBattleStore = defineStore('battle', () => {
     getHealAmp,
     getAllyDamageReduction,
     getFinaleBoost,
+    // Dice roll utilities (for Bones McCready)
+    rollDice,
+    getDiceTier,
+    checkLoadedDice,
+    executeDiceHeal,
+    executeDiceEffect,
+    // Coin flip system (for Copper Jack)
+    flipCoin,
+    applyCoinFlipResult,
+    consumeCoinFlipBonus,
+    calculateCoinFlipSkillDamage,
+    executeJackpot,
+    // Fortune swap system (for Fortuna Inversus)
+    executeFortuneSwap,
+    executeFortunaFinale,
+    // Leader skill condition helpers (for HP-based conditions)
+    checkLeaderCondition,
+    getLeaderBonusStat,
     // Constants
     BattleState,
     EffectType,

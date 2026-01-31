@@ -4,6 +4,7 @@ import { village_healer } from './village_healer.js'
 import { wandering_bard } from './wandering_bard.js'
 import { vashek_the_unrelenting } from './vashek_the_unrelenting.js'
 import { matsuda } from './matsuda.js'
+import { bones_mccready } from './bones_mccready.js'
 
 export const heroes = {
   town_guard,
@@ -11,5 +12,6 @@ export const heroes = {
   village_healer,
   wandering_bard,
   vashek_the_unrelenting,
-  matsuda
+  matsuda,
+  bones_mccready
 }

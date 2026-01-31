@@ -71,7 +71,12 @@ export const EffectType = {
 
   // Oriental Fighters effects
   RELUCTANCE: 'reluctance', // Reduces healing received (stacks up to 5, -10% per stack)
-  STEALTH: 'stealth' // Untargetable by enemies, CAN receive ally support
+  STEALTH: 'stealth', // Untargetable by enemies, CAN receive ally support
+
+  // Gambler effects
+  COIN_FLIP_HEADS: 'coin_flip_heads',
+  LOADED_DICE: 'loaded_dice',
+  FORTUNE_SWAPPED: 'fortune_swapped'
 }
 
 // Effect definitions with display info and default behavior
@@ -370,6 +375,30 @@ export const effectDefinitions = {
     color: '#6366f1',
     isBuff: true,
     isStealth: true,
+    stackable: false
+  },
+  [EffectType.COIN_FLIP_HEADS]: {
+    name: 'Lucky Flip',
+    icon: '🪙',
+    color: '#fbbf24',
+    isBuff: true,
+    isCoinFlip: true,
+    stackable: false
+  },
+  [EffectType.LOADED_DICE]: {
+    name: 'Loaded Dice',
+    icon: '🎲',
+    color: '#22c55e',
+    isBuff: true,
+    isLoadedDice: true,
+    stackable: false
+  },
+  [EffectType.FORTUNE_SWAPPED]: {
+    name: 'Fate Reversed',
+    icon: '🎡',
+    color: '#a855f7',
+    isBuff: true,
+    isTracker: true,
     stackable: false
   }
 }

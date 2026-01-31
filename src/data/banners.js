@@ -124,6 +124,23 @@ export const banners = [
       2: ['militia_soldier', 'apprentice_mage', 'fennick'],
       1: ['farm_hand', 'street_urchin', 'beggar_monk']
     }
+  },
+  {
+    id: 'fortunes_fools',
+    name: "Fortune's Fools",
+    description: 'Roll the dice on fate itself! Featuring gambling heroes who thrive on risk and reward.',
+    permanent: false,
+    startMonth: 2,
+    startDay: 1,
+    endMonth: 2,
+    endDay: 28,
+    heroPool: {
+      5: ['fortuna_inversus'],
+      4: ['copper_jack', 'sir_gallan'],
+      3: ['bones_mccready', 'town_guard', 'village_healer'],
+      2: ['militia_soldier', 'apprentice_mage', 'herb_gatherer', 'fennick'],
+      1: ['farm_hand', 'street_urchin', 'beggar_monk', 'street_busker']
+    }
   }
 ]
 
