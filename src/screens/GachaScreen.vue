@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useGachaStore } from '../stores'
+import { useGachaStore, useTipsStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import StarRating from '../components/StarRating.vue'
+import BlackMarketContent from '../components/BlackMarketContent.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import { getBannerAvailabilityText, getBannerImageUrl } from '../data/banners.js'
 import { getHeroTemplate } from '../data/heroes/index.js'
@@ -10,6 +11,7 @@ import { getHeroTemplate } from '../data/heroes/index.js'
 const emit = defineEmits(['navigate'])
 
 const gachaStore = useGachaStore()
+const tipsStore = useTipsStore()
 
 const pullResults = ref([])
 const isAnimating = ref(false)
@@ -17,6 +19,14 @@ const showResults = ref(false)
 const showPool = ref(false)
 const showPityTooltip = ref(false)
 const revealedCount = ref(0)
+const activeTab = ref('summon')
+
+// Check for unlock and show tip
+watch(() => gachaStore.blackMarketUnlocked, (unlocked) => {
+  if (unlocked) {
+    tipsStore.showTip('black_market_unlock')
+  }
+}, { immediate: true })
 
 // Sequentially reveal heroes when results are shown
 watch(showResults, (newVal) => {
@@ -138,6 +148,11 @@ function nextBanner() {
   const idx = (currentBannerIndex.value + 1) % banners.length
   gachaStore.selectBanner(banners[idx].id)
 }
+
+function handleBlackMarketResults(results) {
+  pullResults.value = results
+  showResults.value = true
+}
 </script>
 
 <template>
@@ -160,6 +175,27 @@ function nextBanner() {
       </div>
     </header>
 
+    <div class="tab-bar">
+      <button
+        class="tab"
+        :class="{ active: activeTab === 'summon' }"
+        @click="activeTab = 'summon'"
+      >
+        Summon
+      </button>
+      <button
+        v-if="gachaStore.blackMarketUnlocked"
+        id="black-market-tab"
+        class="tab tab-black-market"
+        :class="{ active: activeTab === 'black-market' }"
+        @click="activeTab = 'black-market'"
+      >
+        <span class="tab-icon">🌑</span>
+        Black Market
+      </button>
+    </div>
+
+    <template v-if="activeTab === 'summon'">
     <section class="banner-area">
       <div class="banner" :style="bannerImageUrl ? { backgroundImage: `url(${bannerImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}">
         <div class="banner-glow"></div>
@@ -302,6 +338,13 @@ function nextBanner() {
         <span class="pull-bonus">Guaranteed 4★+</span>
       </button>
     </section>
+    </template>
+
+    <template v-else-if="activeTab === 'black-market'">
+      <BlackMarketContent
+        @pull-results="handleBlackMarketResults"
+      />
+    </template>
 
     <!-- Animation overlay -->
     <div v-if="isAnimating" class="animation-overlay">
@@ -1380,5 +1423,61 @@ function nextBanner() {
   color: #6b7280;
   font-size: 0.75rem;
   text-transform: capitalize;
+}
+
+/* ===== Tab Bar ===== */
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid #334155;
+  border-radius: 10px;
+  color: #9ca3af;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.tab:hover {
+  background: rgba(55, 65, 81, 0.6);
+  color: #d1d5db;
+}
+
+.tab.active {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: #7c3aed;
+  color: #c4b5fd;
+}
+
+.tab-black-market {
+  background: rgba(20, 10, 30, 0.8);
+  border-color: #4a1942;
+}
+
+.tab-black-market:hover {
+  background: rgba(40, 20, 50, 0.8);
+  border-color: #6b2158;
+}
+
+.tab-black-market.active {
+  background: rgba(60, 20, 40, 0.6);
+  border-color: #991b1b;
+  color: #fca5a5;
+}
+
+.tab-icon {
+  font-size: 1rem;
 }
 </style>
