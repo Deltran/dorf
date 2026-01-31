@@ -17,6 +17,11 @@ const BASE_RATES = {
 const SINGLE_PULL_COST = 100
 const TEN_PULL_COST = 900
 
+// Black Market cost constants
+const BLACK_MARKET_SINGLE_COST = 200
+const BLACK_MARKET_TEN_COST = 1800
+const BLACK_MARKET_UNLOCK_THRESHOLD = 135
+
 // Pity constants
 const FOUR_STAR_PITY = 10
 const SOFT_PITY_START = 50
@@ -31,6 +36,11 @@ export const useGachaStore = defineStore('gacha', () => {
   const pullsSince5Star = ref(0)
   const totalPulls = ref(0)
   const selectedBannerId = ref('standard')
+
+  // Black Market state
+  const blackMarketPullsSince4Star = ref(0)
+  const blackMarketPullsSince5Star = ref(0)
+  const blackMarketTotalPulls = ref(0)
 
   // Getters
   const canSinglePull = computed(() => gems.value >= SINGLE_PULL_COST)
@@ -49,6 +59,8 @@ export const useGachaStore = defineStore('gacha', () => {
 
   const activeBanners = computed(() => getActiveBanners())
   const selectedBanner = computed(() => getBannerById(selectedBannerId.value))
+
+  const blackMarketUnlocked = computed(() => totalPulls.value >= BLACK_MARKET_UNLOCK_THRESHOLD)
 
   // Internal: Calculate rates with pity
   function getRatesWithPity(guarantee4Star = false) {
@@ -217,6 +229,12 @@ export const useGachaStore = defineStore('gacha', () => {
     if (savedState.pullsSince5Star !== undefined) pullsSince5Star.value = savedState.pullsSince5Star
     if (savedState.totalPulls !== undefined) totalPulls.value = savedState.totalPulls
     if (savedState.selectedBannerId !== undefined) selectedBannerId.value = savedState.selectedBannerId
+    if (savedState.blackMarketPullsSince4Star !== undefined)
+      blackMarketPullsSince4Star.value = savedState.blackMarketPullsSince4Star
+    if (savedState.blackMarketPullsSince5Star !== undefined)
+      blackMarketPullsSince5Star.value = savedState.blackMarketPullsSince5Star
+    if (savedState.blackMarketTotalPulls !== undefined)
+      blackMarketTotalPulls.value = savedState.blackMarketTotalPulls
   }
 
   function saveState() {
@@ -226,7 +244,10 @@ export const useGachaStore = defineStore('gacha', () => {
       pullsSince4Star: pullsSince4Star.value,
       pullsSince5Star: pullsSince5Star.value,
       totalPulls: totalPulls.value,
-      selectedBannerId: selectedBannerId.value
+      selectedBannerId: selectedBannerId.value,
+      blackMarketPullsSince4Star: blackMarketPullsSince4Star.value,
+      blackMarketPullsSince5Star: blackMarketPullsSince5Star.value,
+      blackMarketTotalPulls: blackMarketTotalPulls.value
     }
   }
 
@@ -238,12 +259,16 @@ export const useGachaStore = defineStore('gacha', () => {
     pullsSince5Star,
     totalPulls,
     selectedBannerId,
+    blackMarketPullsSince4Star,
+    blackMarketPullsSince5Star,
+    blackMarketTotalPulls,
     // Getters
     canSinglePull,
     canTenPull,
     current5StarRate,
     activeBanners,
     selectedBanner,
+    blackMarketUnlocked,
     // Actions
     selectBanner,
     singlePull,
@@ -260,6 +285,9 @@ export const useGachaStore = defineStore('gacha', () => {
     TEN_PULL_COST,
     FOUR_STAR_PITY,
     SOFT_PITY_START,
-    HARD_PITY
+    HARD_PITY,
+    BLACK_MARKET_SINGLE_COST,
+    BLACK_MARKET_TEN_COST,
+    BLACK_MARKET_UNLOCK_THRESHOLD
   }
 })
