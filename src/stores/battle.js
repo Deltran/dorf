@@ -759,6 +759,17 @@ export const useBattleStore = defineStore('battle', () => {
     return unit.statusEffects?.some(e => e.definition?.isSeated) || false
   }
 
+  // Get basic attack damage percent, accounting for modifier passives
+  function getBasicAttackDamagePercent(hero) {
+    const modifier = hero.template?.basicAttackModifier
+    if (!modifier) return 100
+
+    if (hero.wasAttacked && modifier.ifAttackedDamagePercent) {
+      return modifier.ifAttackedDamagePercent
+    }
+    return modifier.baseDamagePercent || 100
+  }
+
   // Check if a unit can use their skill based on resource type
   function canUseSkill(unit) {
     if (!unit.skill) return false
@@ -4029,6 +4040,8 @@ export const useBattleStore = defineStore('battle', () => {
     canUseSkill,
     // SEATED stance check (for Civil Rights heroes)
     isSeated,
+    // Basic attack modifier passive (for Rosara's Quiet Defiance)
+    getBasicAttackDamagePercent,
     // Valor helpers (for UI)
     isKnight,
     getValorTier,
