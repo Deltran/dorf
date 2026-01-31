@@ -76,7 +76,10 @@ export const EffectType = {
   // Gambler effects
   COIN_FLIP_HEADS: 'coin_flip_heads',
   LOADED_DICE: 'loaded_dice',
-  FORTUNE_SWAPPED: 'fortune_swapped'
+  FORTUNE_SWAPPED: 'fortune_swapped',
+
+  // Deplorable Companions effects
+  DECOMPOSITION: 'decomposition'
 }
 
 // Effect definitions with display info and default behavior
@@ -399,6 +402,14 @@ export const effectDefinitions = {
     color: '#a855f7',
     isBuff: true,
     isTracker: true,
+    stackable: false
+  },
+  [EffectType.DECOMPOSITION]: {
+    name: 'Decomposition',
+    icon: '🍂',
+    color: '#84cc16',
+    isBuff: true,
+    isDecomposition: true,
     stackable: false
   }
 }
