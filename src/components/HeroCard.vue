@@ -212,10 +212,10 @@ const isOnExploration = computed(() => {
         class="effect-badge"
         :class="{ buff: effect.definition?.isBuff, debuff: !effect.definition?.isBuff }"
         :style="{ backgroundColor: effect.definition?.color + '33' }"
-        :title="`${effect.definition?.name} (${effect.duration} turns)`"
+        :title="effect.duration > 99 ? effect.definition?.name : `${effect.definition?.name} (${effect.duration} turns)`"
       >
         <span class="effect-icon">{{ effect.definition?.icon }}</span>
-        <span class="effect-duration">{{ effect.duration }}</span>
+        <span v-if="effect.duration <= 99" class="effect-duration">{{ effect.duration }}</span>
       </div>
     </div>
 

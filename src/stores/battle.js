@@ -204,6 +204,17 @@ export const useBattleStore = defineStore('battle', () => {
           target.leaderBonuses.lifesteal = (target.leaderBonuses.lifesteal || 0) + effect.value
         }
       }
+
+      // Handle battle_start_debuff type (Cacophon's Harmonic Bleeding)
+      if (effect.type === 'battle_start_debuff') {
+        const heroesStore = useHeroesStore()
+        // Trigger visual announcement (golden glow + floating text)
+        leaderSkillActivation.value = {
+          skillName: leaderSkill.name,
+          leaderId: heroesStore.partyLeader
+        }
+        applyBattleStartDebuffLeaderEffect(heroes.value, effect)
+      }
     }
 
     addLog(`Leader skill: ${leaderSkill.name} is active!`)
@@ -595,7 +606,22 @@ export const useBattleStore = defineStore('battle', () => {
 
     if (!finale.effects) return
 
+    // Handle special finale types that work on the whole party (not per-target)
     for (const effect of finale.effects) {
+      if (effect.type === 'suffering_crescendo') {
+        processSufferingCrescendoFinale(heroes.value, effect)
+        addLog(`All allies gain ATK and DEF from accumulated suffering!`)
+        for (const hero of heroes.value) {
+          if (hero.currentHp > 0) {
+            emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+          }
+        }
+      }
+    }
+
+    for (const effect of finale.effects) {
+      // Skip effects already handled above
+      if (effect.type === 'suffering_crescendo') continue
       if (finale.target === 'all_allies') {
         for (const hero of heroes.value) {
           if (hero.currentHp <= 0) continue
@@ -1632,6 +1658,30 @@ export const useBattleStore = defineStore('battle', () => {
     // Process valor_on_block effect for knights blocking damage
     if (isHeroUnit && isKnight(unit) && damageBlockedByReduction > 0) {
       processValorOnBlock(unit, damageBlockedByReduction)
+    }
+
+    // Check for SHIELD effect - absorbs damage before HP
+    const shieldEffect = (unit.statusEffects || []).find(e => e.type === EffectType.SHIELD && e.shieldHp > 0)
+    if (shieldEffect) {
+      const shieldAbsorbed = Math.min(shieldEffect.shieldHp, damage)
+      shieldEffect.shieldHp -= shieldAbsorbed
+      damage -= shieldAbsorbed
+
+      const unitName = unit.template?.name || 'Unknown'
+      if (shieldAbsorbed > 0) {
+        addLog(`${unitName}'s shield absorbs ${shieldAbsorbed} damage!`)
+      }
+
+      // Remove shield if depleted
+      if (shieldEffect.shieldHp <= 0) {
+        unit.statusEffects = unit.statusEffects.filter(e => e !== shieldEffect)
+        addLog(`${unitName}'s shield breaks!`)
+      }
+
+      // If shield absorbed all damage, return early
+      if (damage <= 0) {
+        return shieldAbsorbed
+      }
     }
 
     // Check death prevention before applying lethal damage
@@ -2977,6 +3027,9 @@ export const useBattleStore = defineStore('battle', () => {
             // Apply crit and spell amp
             damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
 
+            // Apply DISCORDANT_RESONANCE damage bonus (Cacophon's leader skill)
+            damage = Math.floor(damage * getDiscordantDamageBonus(hero))
+
             // Process focus_on_crit for rangers
             if (critResult.isCrit) {
               processFocusOnCrit(hero, true)
@@ -3042,6 +3095,25 @@ export const useBattleStore = defineStore('battle', () => {
             if (skill.splashCount && skill.splashDamagePercent) {
               const otherEnemies = aliveEnemies.value.filter(e => e.id !== target.id)
               applySplashDamage(hero, target, otherEnemies, skill)
+            }
+
+            // Handle ECHOING effect splash damage (Cacophon's Screaming Echo)
+            if (checkAndApplyEchoing(hero, skill) && damage > 0) {
+              const splashPercent = getEchoingSplashPercent(hero)
+              if (splashPercent > 0) {
+                const splashDamage = Math.floor(damage * splashPercent / 100)
+                const otherEnemies = aliveEnemies.value.filter(e => e.id !== target.id && e.currentHp > 0)
+
+                if (otherEnemies.length > 0 && splashDamage > 0) {
+                  for (const enemy of otherEnemies) {
+                    applyDamage(enemy, splashDamage, 'attack', hero)
+                    emitCombatEffect(enemy.id, 'enemy', 'damage', splashDamage)
+                  }
+                  addLog(`Echoing damage strikes ${otherEnemies.length} other enemies for ${splashDamage} each!`)
+                }
+
+                consumeEchoingEffect(hero)
+              }
             }
           } else {
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
@@ -3208,6 +3280,9 @@ export const useBattleStore = defineStore('battle', () => {
             if (healAmp > 0) {
               healAmount = Math.floor(healAmount * (1 + healAmp / 100))
             }
+            // Apply DISCORDANT_RESONANCE healing penalty (Cacophon's leader skill)
+            healAmount = Math.floor(healAmount * getDiscordantHealingPenalty(target))
+
             const oldHp = target.currentHp
             target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
             const actualHeal = target.currentHp - oldHp
@@ -3221,6 +3296,11 @@ export const useBattleStore = defineStore('battle', () => {
             }
           } else {
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}!`)
+          }
+
+          // Apply ally HP cost (for Cacophon's skills)
+          if (skill.allyHpCostPercent) {
+            processAllyHpCostForSkill(hero, skill, [target])
           }
 
           // Cleanse stat debuffs only (not DoT or control effects)
@@ -3322,6 +3402,45 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
+          // Resource restore (Chroma's Resonance - restores appropriate resource based on class)
+          if (skill.resourceRestore) {
+            const amount = skill.resourceRestore
+            if (isBerserker(target)) {
+              const oldRage = target.currentRage || 0
+              target.currentRage = Math.min(100, oldRage + amount)
+              const actual = target.currentRage - oldRage
+              if (actual > 0) {
+                addLog(`${target.template.name} gains ${actual} Rage!`)
+                emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              }
+            } else if (isRanger(target)) {
+              if (!target.hasFocus) {
+                grantFocus(target)
+                addLog(`${target.template.name} regains Focus!`)
+                emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              }
+            } else if (isKnight(target)) {
+              const oldValor = target.currentValor || 0
+              target.currentValor = Math.min(100, oldValor + amount)
+              const actual = target.currentValor - oldValor
+              if (actual > 0) {
+                addLog(`${target.template.name} gains ${actual} Valor!`)
+                emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              }
+            } else if (!isBard(target)) {
+              // MP-based classes (Mage, Cleric, Paladin, Druid, Alchemist)
+              const oldMp = target.currentMp || 0
+              const maxMp = target.maxMp || 100
+              target.currentMp = Math.min(maxMp, oldMp + amount)
+              const actual = target.currentMp - oldMp
+              if (actual > 0) {
+                addLog(`${target.template.name} recovers ${actual} MP!`)
+                emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              }
+            }
+            // Bards use Verse which is capped at 3 and builds via skill use, so we skip them
+          }
+
           // Grant focus to rangers
           if (skill.grantsFocus && isRanger(target)) {
             grantFocus(target)
@@ -3350,6 +3469,10 @@ export const useBattleStore = defineStore('battle', () => {
                     ? resolveValorScaling(effect.redirectPercent, valorTier)
                     : effect.redirectPercent
                   if (effect.valorOnRedirect) effectOptions.valorOnRedirect = effect.valorOnRedirect
+                }
+                // SHIELD specific properties - calculate shieldHp from shieldPercentMaxHp
+                if (effect.type === EffectType.SHIELD && effect.shieldPercentMaxHp) {
+                  effectOptions.shieldHp = calculateShieldFromPercentMaxHp(target, effect)
                 }
                 applyEffect(target, effect.type, effectOptions)
                 emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
@@ -3765,6 +3888,12 @@ export const useBattleStore = defineStore('battle', () => {
 
         case 'all_allies': {
           addLog(`${hero.template.name} uses ${skill.name} on all allies!`)
+
+          // Apply ally HP cost (for Cacophon's Discordant Anthem)
+          if (skill.allyHpCostPercent) {
+            processAllyHpCostForSkill(hero, skill, aliveHeroes.value)
+          }
+
           if (skill.healPercent || skill.description.toLowerCase().includes('heal')) {
             let healAmount
             if (skill.desperationHealBonus) {
@@ -5002,6 +5131,7 @@ export const useBattleStore = defineStore('battle', () => {
     calculateSufferingCrescendoBonus,
     processSufferingCrescendoFinale,
     processFinaleEffects,
+    executeFinale,
     // ECHOING AoE conversion (for Cacophon)
     checkAndApplyEchoing,
     getEchoingSplashPercent,
