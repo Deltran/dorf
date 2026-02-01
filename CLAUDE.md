@@ -401,6 +401,31 @@ watch(showResults, (show) => {
 
 Template uses `v-if="index < revealedCount"` to control visibility.
 
+### New Hero Spotlight Animation
+
+When a player summons a hero they've never owned, the reveal pauses for a dramatic spotlight:
+
+**Components:**
+- `HeroSpotlight.vue` - Full-screen takeover with cosmic background and animations
+
+**Hero template fields (optional):**
+```js
+{
+  epithet: 'The Dawn',           // Title shown below name
+  introQuote: 'Light breaks...'  // Hero's signature line
+}
+```
+
+**Store helper:**
+```js
+heroesStore.hasTemplate(templateId) // Check if player owns this hero
+```
+
+**Rarity effects:**
+- 1-3★: Standard entrance animation
+- 4★: Purple flash, enhanced glow, faster starfield
+- 5★: Screen shake, golden burst, intense glow
+
 ## Damage Interception System
 
 The `applyDamage` function in `battle.js` checks protection effects in this order:
