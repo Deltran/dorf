@@ -35,7 +35,7 @@ function handleDismiss() {
     <div class="starfield"></div>
     <div class="nebula" :class="`rarity-${rarity}`"></div>
     <div class="spotlight-content" :class="`rarity-${rarity}`">
-      <div class="hero-image-container">
+      <div class="hero-image-container animate-entrance">
         <div class="hero-glow" :class="`rarity-${rarity}`"></div>
         <img
           v-if="heroImageUrl"
@@ -46,9 +46,9 @@ function handleDismiss() {
         <div v-else class="hero-placeholder">?</div>
       </div>
       <div class="hero-text">
-        <h2 class="hero-name">{{ heroName }}</h2>
-        <p v-if="epithet" class="hero-epithet">{{ epithet }}</p>
-        <p v-if="introQuote" class="hero-quote">"{{ introQuote }}"</p>
+        <h2 class="hero-name animate-slam" :class="`rarity-${rarity}`">{{ heroName }}</h2>
+        <p v-if="epithet" class="hero-epithet animate-sweep">{{ epithet }}</p>
+        <p v-if="introQuote" class="hero-quote animate-fade">"{{ introQuote }}"</p>
       </div>
       <p class="tap-hint">Tap to continue</p>
     </div>
@@ -199,5 +199,56 @@ function handleDismiss() {
   font-size: 3rem;
   color: #4b5563;
   z-index: 1;
+}
+
+/* Entrance animations */
+.animate-entrance {
+  animation: heroEntrance 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes heroEntrance {
+  0% { opacity: 0; transform: scale(0); }
+  70% { transform: scale(1.1); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-slam {
+  animation: textSlam 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 0.4s;
+  opacity: 0;
+}
+
+@keyframes textSlam {
+  0% { opacity: 0; transform: scale(1.3); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-sweep {
+  animation: textSweep 0.2s ease-out forwards;
+  animation-delay: 0.55s;
+  opacity: 0;
+  transform: translateX(20px);
+}
+
+@keyframes textSweep {
+  0% { opacity: 0; transform: translateX(20px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade {
+  animation: textFade 0.3s ease-out forwards;
+  animation-delay: 0.75s;
+  opacity: 0;
+}
+
+@keyframes textFade {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.tap-hint {
+  animation: textFade 0.3s ease-out forwards;
+  animation-delay: 1.5s;
+  opacity: 0;
 }
 </style>

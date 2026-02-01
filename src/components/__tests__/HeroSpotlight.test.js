@@ -92,4 +92,18 @@ describe('HeroSpotlight', () => {
     expect(wrapper.find('.hero-image-container').exists()).toBe(true)
     expect(wrapper.find('.hero-glow').exists()).toBe(true)
   })
+
+  it('has entrance animation class on hero image', () => {
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: mockHero, visible: true }
+    })
+    expect(wrapper.find('.hero-image-container').classes()).toContain('animate-entrance')
+  })
+
+  it('has slam animation class on hero name', () => {
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: mockHero, visible: true }
+    })
+    expect(wrapper.find('.hero-name').classes()).toContain('animate-slam')
+  })
 })
