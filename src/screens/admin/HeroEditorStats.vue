@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue'
-import { classes } from '@/data/classes'
+import { classes } from '../../data/classes.js'
 
 const model = defineModel()
 
