@@ -121,18 +121,22 @@ describe('Vraxx the Thunderskin hero template', () => {
       expect(skill().targetType).toBe('all_allies')
       expect(skill().noDamage).toBe(true)
     })
-    it('grants ATK and DEF buff', () => {
+    it('has exactly 2 effects', () => {
+      expect(skill().effects).toHaveLength(2)
+    })
+    it('grants ATK buff', () => {
       const atkUp = skill().effects.find(e => e.type === EffectType.ATK_UP)
-      const defUp = skill().effects.find(e => e.type === EffectType.DEF_UP)
       expect(atkUp).toBeDefined()
       expect(atkUp.value).toBe(25)
-      expect(defUp).toBeDefined()
-      expect(defUp.value).toBe(25)
+      expect(atkUp.duration).toBe(3)
     })
-    it('grants debuff immunity', () => {
+    it('does NOT grant DEF buff', () => {
+      const defUp = skill().effects.find(e => e.type === EffectType.DEF_UP)
+      expect(defUp).toBeUndefined()
+    })
+    it('does NOT grant debuff immunity', () => {
       const immune = skill().effects.find(e => e.type === EffectType.DEBUFF_IMMUNE)
-      expect(immune).toBeDefined()
-      expect(immune.duration).toBe(3)
+      expect(immune).toBeUndefined()
     })
     it('grants rage to berserkers', () => {
       const rageGrant = skill().effects.find(e => e.type === 'rage_grant')
