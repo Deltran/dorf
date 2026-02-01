@@ -84,4 +84,12 @@ describe('HeroSpotlight', () => {
     })
     expect(wrapper.find('.starfield').exists()).toBe(true)
   })
+
+  it('renders hero image container with glow', () => {
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: mockHero, visible: true }
+    })
+    expect(wrapper.find('.hero-image-container').exists()).toBe(true)
+    expect(wrapper.find('.hero-glow').exists()).toBe(true)
+  })
 })

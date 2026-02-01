@@ -8,6 +8,18 @@ const props = defineProps({
 
 const emit = defineEmits(['dismiss'])
 
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
+
+const heroImageUrl = computed(() => {
+  const heroId = props.hero?.template?.id
+  if (!heroId) return null
+  const gifPath = `../assets/heroes/${heroId}.gif`
+  if (heroGifs[gifPath]) return heroGifs[gifPath]
+  const pngPath = `../assets/heroes/${heroId}.png`
+  return heroImages[pngPath] || null
+})
+
 const heroName = computed(() => props.hero?.template?.name || '')
 const epithet = computed(() => props.hero?.template?.epithet || '')
 const introQuote = computed(() => props.hero?.template?.introQuote || '')
@@ -24,7 +36,14 @@ function handleDismiss() {
     <div class="nebula" :class="`rarity-${rarity}`"></div>
     <div class="spotlight-content" :class="`rarity-${rarity}`">
       <div class="hero-image-container">
-        <!-- Hero image placeholder -->
+        <div class="hero-glow" :class="`rarity-${rarity}`"></div>
+        <img
+          v-if="heroImageUrl"
+          :src="heroImageUrl"
+          :alt="heroName"
+          class="hero-image"
+        />
+        <div v-else class="hero-placeholder">?</div>
       </div>
       <div class="hero-text">
         <h2 class="hero-name">{{ heroName }}</h2>
@@ -134,5 +153,51 @@ function handleDismiss() {
 @keyframes nebulaPulse {
   0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(1); }
   50% { opacity: 0.25; transform: translate(-50%, -50%) scale(1.1); }
+}
+
+.hero-image-container {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--rarity-color) 0%, transparent 70%);
+  opacity: 0.6;
+  animation: heroGlowPulse 2s ease-in-out infinite;
+}
+
+@keyframes heroGlowPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+.hero-image {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  image-rendering: pixelated;
+  z-index: 1;
+}
+
+.hero-placeholder {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  background: rgba(55, 65, 81, 0.5);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  color: #4b5563;
+  z-index: 1;
 }
 </style>
