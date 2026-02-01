@@ -106,4 +106,22 @@ describe('HeroSpotlight', () => {
     })
     expect(wrapper.find('.hero-name').classes()).toContain('animate-slam')
   })
+
+  it('applies screen-shake class for 5-star heroes', () => {
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: mockHero, visible: true }
+    })
+    expect(wrapper.find('.hero-spotlight').classes()).toContain('shake-5star')
+  })
+
+  it('does not apply screen-shake for lower rarity', () => {
+    const rareHero = {
+      ...mockHero,
+      template: { ...mockHero.template, rarity: 3 }
+    }
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: rareHero, visible: true }
+    })
+    expect(wrapper.find('.hero-spotlight').classes()).not.toContain('shake-5star')
+  })
 })

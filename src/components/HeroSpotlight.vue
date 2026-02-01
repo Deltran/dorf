@@ -31,7 +31,12 @@ function handleDismiss() {
 </script>
 
 <template>
-  <div v-if="visible" class="hero-spotlight" @click="handleDismiss">
+  <div
+    v-if="visible"
+    class="hero-spotlight"
+    :class="{ 'shake-5star': rarity === 5 }"
+    @click="handleDismiss"
+  >
     <div class="starfield"></div>
     <div class="nebula" :class="`rarity-${rarity}`"></div>
     <div class="spotlight-content" :class="`rarity-${rarity}`">
@@ -250,5 +255,41 @@ function handleDismiss() {
   animation: textFade 0.3s ease-out forwards;
   animation-delay: 1.5s;
   opacity: 0;
+}
+
+.shake-5star {
+  animation: screenShake 0.4s ease-out;
+  animation-delay: 0.4s;
+}
+
+@keyframes screenShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+  20%, 40%, 60%, 80% { transform: translateX(3px); }
+}
+
+/* 5-star specific enhancements */
+.rarity-5 .hero-glow {
+  animation: heroGlowPulse5Star 1.5s ease-in-out infinite;
+}
+
+@keyframes heroGlowPulse5Star {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Golden burst particles for 5-star */
+.rarity-5.animate-entrance::after {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.4) 0%, transparent 50%);
+  animation: goldenBurst 0.6s ease-out forwards;
+}
+
+@keyframes goldenBurst {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
 }
 </style>
