@@ -6,7 +6,7 @@ A browser-based gacha hero collector with turn-based tactical combat. Summon her
 ## Features
 
 - **Gacha System**: Summon heroes with 1-5 star rarities, featuring soft pity at 50 pulls and hard pity at 90 pulls
-- **Hero Collection**: Collect and manage a roster of unique heroes across multiple classes (Knight, Mage, Cleric, Ranger, Berserker, Bard, Druid, Paladin)
+- **Hero Collection**: Collect and manage a roster of unique heroes across multiple classes (Knight, Mage, Cleric, Ranger, Berserker, Bard, Druid, Paladin, Alchemist)
 - **Party Building**: Assemble a team of 4 heroes with complementary roles (Tank, DPS, Healer, Support)
 - **Leader Skills**: Designate a 5-star hero as party leader to unlock powerful team-wide bonuses
 - **Turn-Based Combat**: Strategic battles with speed-based turn order, skills, and status effects
@@ -206,11 +206,31 @@ export const backgroundPrompts = {
 ### Combat
 
 - Turn order is determined by speed stat (highest acts first)
-- Heroes start battles with full HP and 30% MP
-- MP regenerates 10% per round
-- Basic attacks are free; skills cost MP
+- Heroes start battles with full HP and 30% of their resource (MP, Essence)
+- Basic attacks are free; skills cost resources (varies by class)
 - Status effects (buffs/debuffs) last for a set number of turns
 - Heroes unlock additional skills at levels 2 and 3
+
+### Class Resource Systems
+
+Each class uses a unique resource system that defines their combat rhythm:
+
+| Class | Resource | Type | Mechanic |
+|-------|----------|------|----------|
+| **Berserker** | Rage | Build & Spend | Starts at 0, gains +10 on attack or taking damage. Capped at 100. Skills consume Rage for powerful attacks. |
+| **Ranger** | Focus | Binary State | Starts battle focused. Loses Focus when hit or debuffed. Cannot use skills without Focus. Regains Focus from ally buffs or critical hits. |
+| **Knight** | Valor | Build & Spend | Starts at 0, gains +5 when redirecting damage (Guardian Link, blocking). Skills have minimum Valor requirements and scale effects with current Valor tier (0/25/50/75/100). |
+| **Bard** | Verse | Build to Finale | All skills are free but add +1 Verse (0-3 max). Cannot repeat same skill consecutively. At 3 Verses, Finale auto-triggers next turn as a free action with powerful team effects. |
+| **Alchemist** | Essence | Manage Volatility | Starts at 50%, regenerates +10 per turn. Skills cost Essence. **Volatility tiers**: Stable (0-20, no bonus), Reactive (21-40, +15% damage), Volatile (41+, +30% damage but 5% max HP self-damage per skill). |
+| **Paladin** | Faith | Standard MP | Starts at 30%, skills cost MP. |
+| **Mage** | Mana | Standard MP | Starts at 30%, skills cost MP. |
+| **Cleric** | Devotion | Standard MP | Starts at 30%, skills cost MP. |
+| **Druid** | Nature | Standard MP | Starts at 30%, skills cost MP. |
+
+**Special Skill Costs:**
+- `rageCost: 'all'` - Consumes all Rage with scaling damage (e.g., +1% per Rage consumed)
+- `valorCost: 'all'` - Consumes all Valor with scaling effects
+- Valor skills use `valorRequired` for minimum threshold and scale duration/strength at higher tiers
 
 ### Leader Skills
 
@@ -220,7 +240,14 @@ export const backgroundPrompts = {
 |------|--------------|--------|
 | Aurora the Dawn | Dawn's Protection | Non-knight allies gain +15% DEF |
 | Shadow King | Lord of Shadows | Round 1: All allies gain +25% ATK for 2 turns |
-| Yggra, the World Root | Ancient Awakening | Round 1: Heal all allies for 10% of Yggra's ATK |
+| Yggra the World Root | Ancient Awakening | All allies regenerate 3% max HP each round |
+| Cacophon | Harmonic Bleeding | All allies +15% damage but -30% healing (cleansable debuff) |
+| Rosara the Unmoved | The First to Stand | Lowest HP% ally gains Taunt and +25% DEF for round 1 |
+| Onibaba | Grandmother's Vigil | Auto Soul Siphon when ally drops below 30% HP (once per ally) |
+| Fortuna Inversus | Fortune Favors the Bold | Allies below 50% HP gain +20% ATK |
+| Mara Thornheart | What Doesn't Kill Us | All allies +5% lifesteal; +15% ATK when first dropping below 50% HP |
+| Grandmother Rot | The Circle Continues | Each round, if enemy has poison: heal allies 5% ATK, extend poison +1 turn |
+| Korrath Hollow Ear | Blood Remembers | Round 2: All allies gain +20% ATK and +15% SPD for 3 turns |
 
 ### Status Effects
 
@@ -296,30 +323,38 @@ Genus Loci are powerful boss enemies with unique abilities and passives:
 
 | Rarity | Heroes |
 |--------|--------|
-| 5-star | Aurora the Dawn (Paladin), Shadow King (Berserker), Yggra the World Root (Druid) |
-| 4-star | Sir Gallan (Knight), Shasha Ember Witch (Mage), Lady Moonwhisper (Cleric), Swift Arrow (Ranger) |
-| 3-star | Kensin Squire (Knight), Knarly Zeek (Mage), Grandma Helga (Cleric), Harl the Handsom (Bard) |
-| 2-star | Sorju Gate Guard (Knight), Calisus (Mage), Bertan the Gatherer (Druid) |
-| 1-star | Darl (Berserker), Salia (Ranger), Vagrant Bil (Cleric) |
+| 5-star | Aurora the Dawn (Paladin), Shadow King (Berserker), Yggra the World Root (Druid), Cacophon (Bard), Rosara the Unmoved (Knight), Onibaba (Druid), Fortuna Inversus (Bard), Mara Thornheart (Berserker), Grandmother Rot (Druid), Korrath Hollow Ear (Ranger) |
+| 4-star | Sir Gallan (Knight), Ember Witch (Mage), Lady Moonwhisper (Cleric), Swift Arrow (Ranger), Chroma (Bard), Zina the Desperate (Alchemist), Shinobi Jin (Ranger), Copper Jack (Berserker), Philemon the Ardent (Knight), Penny Dreadful (Alchemist), Vraxx Thunderskin (Bard) |
+| 3-star | Town Guard (Knight), Hedge Wizard (Mage), Village Healer (Cleric), Wandering Bard (Bard), Vashek the Unrelenting (Knight), Matsuda (Berserker), Bones McCready (Druid), The Grateful Dead (Knight), Torga Bloodbeat (Berserker) |
+| 2-star | Militia Soldier (Knight), Apprentice Mage (Mage), Herb Gatherer (Druid), Fennick (Ranger) |
+| 1-star | Farm Hand (Berserker), Street Urchin (Ranger), Beggar Monk (Cleric), Street Busker (Bard) |
 
 ### Featured 5-Star Heroes
 
 **Aurora the Dawn** (Paladin) - Divine Protector
-- **Holy Strike**: 120% ATK damage with 50% lifesteal
+- Uses Faith (standard MP) resource
 - **Guardian Link**: Link to an ally, absorbing 40% of their damage
-- **Consecrated Ground**: Grant ally 25% damage reduction
-- **Judgment's Echo**: Store all damage taken for 2 turns, then release as AoE
 - **Divine Sacrifice**: Intercept ALL ally damage with 50% DR and self-healing
 
 **Shadow King** (Berserker) - Rage-Fueled Warrior
-- Builds Rage when taking damage or killing enemies
-- Rage increases ATK but reduces DEF
-- Ultimate abilities consume Rage for massive damage
+- Builds Rage (+10) when attacking or taking damage
+- **Void Strike** (50 Rage): 200% ATK, ignores 50% DEF
+- **Crushing Eternity** (ALL Rage): Three hits at 50% ATK + 1% per Rage consumed
 
-**Yggra the World Root** (Druid) - Nature's Guardian
-- **Nature's Grasp**: Root enemies and deal damage over time
-- **Verdant Shield**: Grant ally death prevention (survive fatal hit at 1 HP)
-- **Nature's Reclamation**: Damage enemies and heal all allies from the damage
+**Rosara the Unmoved** (Knight) - Valor Tank
+- Builds Valor by protecting allies and redirecting damage
+- Skills scale with Valor tiers (0/25/50/75/100)
+- **Unbroken Vow** (50+ Valor): Shield that explodes on break, buffs allies if she dies
+
+**Cacophon** (Bard) - Discordant Support
+- Uses Verse system: all skills free, build 3 Verses for Finale
+- **Finale - Dissonant Crescendo**: Deal damage to all enemies based on ally damage taken
+- **Warding Noise**: Costs 5% ally HP, grants 25% max HP shield
+
+**Korrath Hollow Ear** (Ranger) - Focus Assassin
+- Binary Focus state: loses Focus when hit, regains from ally buffs
+- **Whisper Shot**: Single-target execute, bonus damage to low HP enemies
+- Focus-dependent kit rewards positioning and protection
 
 ## New Player Start
 

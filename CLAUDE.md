@@ -505,18 +505,63 @@ Effects are defined in `src/data/statusEffects.js`. Key categories:
 
 ## Class Resource Systems
 
-Each class has a unique resource besides MP:
+Each class uses a unique resource system. Classes with `resourceType` in `classes.js` have custom mechanics; others use standard MP.
 
-| Class | Resource | Mechanic |
-|-------|----------|----------|
-| Berserker | Rage | Builds on damage taken/kills, increases ATK, reduces DEF |
-| Ranger | Focus | Builds per turn, spent on powerful shots |
-| Knight | Valor | Builds when protecting allies, enables defensive skills |
-| Paladin | Faith | Standard MP-like resource |
-| Mage | Mana | Standard MP |
-| Cleric | Divine Power | Standard MP |
-| Druid | Nature | Standard MP |
-| Bard | Verse | Free skills build 3 verses toward Finale. No consecutive repeats. |
+| Class | Resource | Type | Mechanic |
+|-------|----------|------|----------|
+| Berserker | Rage | Build & Spend | Starts at 0. +10 on attack, +10 when hit. Skills cost `rageCost`. `rageCost: 'all'` consumes all for scaling damage. |
+| Ranger | Focus | Binary State | Starts focused. Loses Focus when hit or debuffed. Cannot use skills without Focus. Regains from ally buffs or crits. |
+| Knight | Valor | Build & Scale | Starts at 0. +5 when redirecting damage. Skills have `valorRequired` minimum and scale at tiers (0/25/50/75/100). |
+| Bard | Verse | Build to Finale | All skills free, +1 Verse each. At 3/3 Verses, Finale auto-triggers next turn. No consecutive skill repeats. |
+| Alchemist | Essence | Volatility | Starts at 50%, +10/turn regen. Skills cost `essenceCost`. Volatility tiers: Stable (0-20), Reactive (21-40, +15% dmg), Volatile (41+, +30% dmg, 5% HP self-damage). |
+| Paladin | Faith | Standard MP | Starts at 30%. Skills cost `mpCost`. |
+| Mage | Mana | Standard MP | Starts at 30%. Skills cost `mpCost`. |
+| Cleric | Devotion | Standard MP | Starts at 30%. Skills cost `mpCost`. |
+| Druid | Nature | Standard MP | Starts at 30%. Skills cost `mpCost`. |
+
+### Key Battle State Properties
+
+```js
+// Rage (Berserker)
+hero.currentRage  // 0-100
+
+// Focus (Ranger)
+hero.hasFocus  // true/false
+
+// Valor (Knight)
+hero.currentValor  // 0-100
+
+// Verse (Bard)
+hero.currentVerses  // 0-3
+hero.lastSkillName  // prevents repeats
+
+// Essence (Alchemist)
+hero.currentEssence  // 0 to maxEssence
+hero.maxEssence  // from hero's MP stat
+
+// MP (standard classes)
+hero.currentMp  // 0 to maxMp
+hero.maxMp
+```
+
+### Skill Cost Properties
+
+```js
+// Berserker
+{ rageCost: 50 }        // Costs 50 Rage
+{ rageCost: 'all' }     // Consumes all Rage, damage scales with amount
+
+// Knight
+{ valorRequired: 25 }   // Minimum 25 Valor to use
+{ valorCost: 'all' }    // Consumes all Valor, effects scale
+
+// Alchemist
+{ essenceCost: 12 }     // Costs 12 Essence
+{ usesVolatility: true } // Gains Volatility damage bonus
+
+// Standard MP
+{ mpCost: 20 }          // Costs 20 MP
+```
 
 ## Bard Verse System
 
@@ -549,15 +594,49 @@ finale: {
 - `hero.lastSkillName` — tracks last skill for repeat prevention
 - `finaleActivation` ref — `{ bardId, finaleName }` for UI visual
 
+## Alchemist Essence System
+
+Alchemists use Essence with a Volatility mechanic that rewards risk-taking.
+
+**Key rules:**
+- `maxEssence` = hero's MP stat (or 60 default)
+- Starts at 50% of maxEssence
+- Regenerates +10 Essence per turn
+- Skills cost `essenceCost`
+
+**Volatility Tiers:**
+| Tier | Essence Range | Damage Bonus | Self-Damage |
+|------|---------------|--------------|-------------|
+| Stable | 0-20 | +0% | None |
+| Reactive | 21-40 | +15% | None |
+| Volatile | 41+ | +30% | 5% max HP per skill |
+
+**Skill properties:**
+```js
+{
+  name: 'Tainted Tonic',
+  essenceCost: 10,
+  usesVolatility: true,  // Gains Volatility damage bonus
+  damagePercent: 90
+}
+```
+
+**Battle.js functions:**
+- `getVolatilityTier(hero)` — returns 'stable', 'reactive', or 'volatile'
+- `getVolatilityDamageBonus(hero)` — returns 0, 15, or 30
+- `getVolatilitySelfDamage(hero)` — returns 0 or 5
+
+**Example Heroes:** Penny Dreadful, Zina the Desperate (4-star Alchemists)
+
 ## Hero Roster
 
 | Rarity | Heroes |
 |--------|--------|
-| 5-star | Aurora the Dawn (Paladin), Shadow King (Berserker), Yggra the World Root (Druid) |
-| 4-star | Sir Gallan (Knight), Shasha Ember Witch (Mage), Lady Moonwhisper (Cleric), Swift Arrow (Ranger) |
-| 3-star | Kensin Squire (Knight), Knarly Zeek (Mage), Grandma Helga (Cleric), Harl the Handsom (Bard) |
-| 2-star | Sorju Gate Guard (Knight), Calisus (Mage), Bertan the Gatherer (Druid) |
-| 1-star | Darl (Berserker), Salia (Ranger), Vagrant Bil (Cleric) |
+| 5-star | Aurora the Dawn (Paladin), Shadow King (Berserker), Yggra the World Root (Druid), Cacophon (Bard), Rosara the Unmoved (Knight), Onibaba (Druid), Fortuna Inversus (Bard), Mara Thornheart (Berserker), Grandmother Rot (Druid), Korrath Hollow Ear (Ranger) |
+| 4-star | Sir Gallan (Knight), Ember Witch (Mage), Lady Moonwhisper (Cleric), Swift Arrow (Ranger), Chroma (Bard), Zina the Desperate (Alchemist), Shinobi Jin (Ranger), Copper Jack (Berserker), Philemon the Ardent (Knight), Penny Dreadful (Alchemist), Vraxx Thunderskin (Bard) |
+| 3-star | Town Guard (Knight), Hedge Wizard (Mage), Village Healer (Cleric), Wandering Bard (Bard), Vashek the Unrelenting (Knight), Matsuda (Berserker), Bones McCready (Druid), The Grateful Dead (Knight), Torga Bloodbeat (Berserker) |
+| 2-star | Militia Soldier (Knight), Apprentice Mage (Mage), Herb Gatherer (Druid), Fennick (Ranger) |
+| 1-star | Farm Hand (Berserker), Street Urchin (Ranger), Beggar Monk (Cleric), Street Busker (Bard) |
 
 ## Genus Loci System
 
