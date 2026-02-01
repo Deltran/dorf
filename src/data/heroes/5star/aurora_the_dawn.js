@@ -5,6 +5,8 @@ export const aurora_the_dawn = {
   name: 'Aurora the Dawn',
   rarity: 5,
   classId: 'paladin',
+  epithet: 'The Dawn',
+  introQuote: 'Light breaks even the longest darkness.',
   baseStats: { hp: 140, atk: 28, def: 30, spd: 12, mp: 60 },
   skills: [
     {

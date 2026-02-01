@@ -5,6 +5,8 @@ export const town_guard = {
   name: 'Kensin',
   rarity: 3,
   classId: 'knight',
+  epithet: 'Keeper of the Gate',
+  introQuote: 'Halt! State your business.',
   baseStats: { hp: 110, atk: 22, def: 35, spd: 8 },
   skills: [
     {

@@ -5,6 +5,8 @@ export const sir_gallan = {
   name: 'Sir Gallan',
   rarity: 4,
   classId: 'knight',
+  epithet: 'Shield of the Realm',
+  introQuote: 'My blade stands ready.',
   baseStats: { hp: 130, atk: 30, def: 45, spd: 10, mp: 50 },
   skills: [
     {
