@@ -62,17 +62,18 @@ describe('Torga Bloodbeat hero template', () => {
     })
   })
 
-  describe('Rage Surge (Level 3)', () => {
-    const skill = () => torga.skills.find(s => s.name === 'Rage Surge')
+  describe('Blood Echo (Level 3)', () => {
+    const skill = () => torga.skills.find(s => s.name === 'Blood Echo')
     it('exists with correct properties', () => {
       expect(skill()).toBeDefined()
       expect(skill().skillUnlockLevel).toBe(3)
-      expect(skill().rageCost).toBe(25)
+      expect(skill().rageCost).toBe(20)
       expect(skill().targetType).toBe('enemy')
     })
-    it('has rage-scaling damage', () => {
-      expect(skill().damagePercent).toBe(80)
-      expect(skill().bonusDamagePerRage).toBe(0.5)
+    it('has Blood Tempo-scaling damage', () => {
+      expect(skill().damagePercent).toBe(90)
+      expect(skill().bonusDamagePerBloodTempo).toBe(30)
+      expect(skill().maxBloodTempoBonus).toBe(90)
     })
   })
 

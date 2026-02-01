@@ -30,13 +30,14 @@ export const torga_bloodbeat = {
       ]
     },
     {
-      name: 'Rage Surge',
-      description: 'Deal 80% ATK damage to one enemy. Deal bonus damage equal to 0.5% per current Rage.',
+      name: 'Blood Echo',
+      description: 'Deal 90% ATK damage to one enemy. Deal +30% bonus damage for each time Blood Tempo was used this battle (max +90%).',
       skillUnlockLevel: 3,
-      rageCost: 25,
+      rageCost: 20,
       targetType: 'enemy',
-      damagePercent: 80,
-      bonusDamagePerRage: 0.5
+      damagePercent: 90,
+      bonusDamagePerBloodTempo: 30,
+      maxBloodTempoBonus: 90
     },
     {
       name: 'Death Knell',
