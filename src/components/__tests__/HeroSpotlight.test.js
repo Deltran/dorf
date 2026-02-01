@@ -1,7 +1,7 @@
 /**
  * @vitest-environment happy-dom
  */
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import HeroSpotlight from '../HeroSpotlight.vue'
 
@@ -17,6 +17,14 @@ const mockHero = {
 }
 
 describe('HeroSpotlight', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('renders when visible with hero', () => {
     const wrapper = mount(HeroSpotlight, {
       props: { hero: mockHero, visible: true }
@@ -52,11 +60,13 @@ describe('HeroSpotlight', () => {
     expect(wrapper.text()).toContain('Light breaks even the longest darkness.')
   })
 
-  it('emits dismiss event on click', async () => {
+  it('emits dismiss event on click after animation delay', async () => {
     const wrapper = mount(HeroSpotlight, {
       props: { hero: mockHero, visible: true }
     })
     await wrapper.find('.hero-spotlight').trigger('click')
+    // Dismiss is delayed by 250ms for exit animation
+    vi.advanceTimersByTime(250)
     expect(wrapper.emitted('dismiss')).toBeTruthy()
   })
 
@@ -145,5 +155,13 @@ describe('HeroSpotlight', () => {
       props: { hero: rareHero, visible: true }
     })
     expect(wrapper.find('.spotlight-content').classes()).not.toContain('enhanced-4star')
+  })
+
+  it('applies exiting class when dismissing', async () => {
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: mockHero, visible: true }
+    })
+    await wrapper.find('.hero-spotlight').trigger('click')
+    expect(wrapper.find('.hero-spotlight').classes()).toContain('exiting')
   })
 })

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps({
   hero: { type: Object, default: null },
@@ -7,6 +7,8 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['dismiss'])
+
+const isExiting = ref(false)
 
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
 const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
@@ -26,7 +28,11 @@ const introQuote = computed(() => props.hero?.template?.introQuote || '')
 const rarity = computed(() => props.hero?.template?.rarity || 1)
 
 function handleDismiss() {
-  emit('dismiss')
+  isExiting.value = true
+  setTimeout(() => {
+    isExiting.value = false
+    emit('dismiss')
+  }, 250) // Wait for exit animation
 }
 </script>
 
@@ -34,7 +40,10 @@ function handleDismiss() {
   <div
     v-if="visible"
     class="hero-spotlight"
-    :class="{ 'shake-5star': rarity === 5 }"
+    :class="{
+      'shake-5star': rarity === 5 && !isExiting,
+      'exiting': isExiting
+    }"
     @click="handleDismiss"
   >
     <div class="starfield"></div>
@@ -329,5 +338,32 @@ function handleDismiss() {
 @keyframes purpleFlash {
   0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -50%) scale(3); }
+}
+
+.exiting {
+  animation: spotlightExit 0.25s ease-in forwards;
+}
+
+.exiting .hero-image-container {
+  animation: heroExit 0.2s ease-in forwards;
+}
+
+.exiting .hero-text {
+  animation: textExit 0.15s ease-in forwards;
+}
+
+@keyframes spotlightExit {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes heroExit {
+  0% { opacity: 1; transform: scale(1); }
+  100% { opacity: 0; transform: scale(0.9); }
+}
+
+@keyframes textExit {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
 }
 </style>
