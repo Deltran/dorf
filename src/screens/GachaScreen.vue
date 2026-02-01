@@ -1,7 +1,8 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useGachaStore, useTipsStore } from '../stores'
+import { useGachaStore, useTipsStore, useHeroesStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
+import HeroSpotlight from '../components/HeroSpotlight.vue'
 import StarRating from '../components/StarRating.vue'
 import BlackMarketContent from '../components/BlackMarketContent.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
@@ -12,6 +13,7 @@ const emit = defineEmits(['navigate'])
 
 const gachaStore = useGachaStore()
 const tipsStore = useTipsStore()
+const heroesStore = useHeroesStore()
 
 const pullResults = ref([])
 const isAnimating = ref(false)
@@ -19,6 +21,8 @@ const showResults = ref(false)
 const showPool = ref(false)
 const showPityTooltip = ref(false)
 const revealedCount = ref(0)
+const spotlightHero = ref(null)
+const pendingRevealIndex = ref(0)
 const activeTab = ref('summon')
 
 // Check for unlock and show tip
@@ -32,15 +36,50 @@ watch(() => gachaStore.blackMarketUnlocked, (unlocked) => {
 watch(showResults, (newVal) => {
   if (newVal && pullResults.value.length > 0) {
     revealedCount.value = 0
-    revealHeroesSequentially()
+    pendingRevealIndex.value = 0
+    spotlightHero.value = null
+    setTimeout(revealHeroesSequentially, 300)
   }
 })
 
 function revealHeroesSequentially() {
-  if (revealedCount.value < pullResults.value.length) {
-    revealedCount.value++
+  if (pendingRevealIndex.value >= pullResults.value.length) {
+    return // All revealed
+  }
+
+  const result = pullResults.value[pendingRevealIndex.value]
+
+  // Check if this hero was just added in this pull (meaning it's truly new)
+  // A hero is "new" if only 1 copy exists in the collection
+  const existingCount = heroesStore.collection.filter(
+    h => h.templateId === result.template.id
+  ).length
+
+  // Only spotlight if this is the only copy (meaning it's new from this pull)
+  if (existingCount === 1) {
+    spotlightHero.value = result
+    return // Pause reveal until spotlight dismissed
+  }
+
+  // Normal reveal
+  revealedCount.value++
+  pendingRevealIndex.value++
+
+  if (pendingRevealIndex.value < pullResults.value.length) {
     setTimeout(revealHeroesSequentially, 300)
   }
+}
+
+function onSpotlightDismiss() {
+  spotlightHero.value = null
+  // Resume reveal after brief delay
+  setTimeout(() => {
+    revealedCount.value++
+    pendingRevealIndex.value++
+    if (pendingRevealIndex.value < pullResults.value.length) {
+      setTimeout(revealHeroesSequentially, 300)
+    }
+  }, 50)
 }
 
 const pityInfo = computed(() => ({
@@ -419,6 +458,13 @@ function handleBlackMarketResults(results) {
         </div>
       </div>
     </div>
+
+    <!-- New Hero Spotlight -->
+    <HeroSpotlight
+      :hero="spotlightHero"
+      :visible="!!spotlightHero"
+      @dismiss="onSpotlightDismiss"
+    />
   </div>
 </template>
 
