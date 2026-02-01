@@ -3995,6 +3995,40 @@ export const useBattleStore = defineStore('battle', () => {
               emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
             }
           }
+          // The Great Composting: Consume poison from enemies, grant regen to allies
+          if (skill.consumesPoisonFromEnemies) {
+            // Count and remove all POISON effects from all enemies
+            let poisonStacksConsumed = 0
+            for (const enemy of enemies.value) {
+              const poisonEffects = enemy.statusEffects?.filter(e => e.type === EffectType.POISON) || []
+              poisonStacksConsumed += poisonEffects.length
+              // Remove all poison effects from this enemy
+              if (enemy.statusEffects) {
+                enemy.statusEffects = enemy.statusEffects.filter(e => e.type !== EffectType.POISON)
+              }
+            }
+            if (poisonStacksConsumed > 0) {
+              addLog(`Consumed ${poisonStacksConsumed} poison stack${poisonStacksConsumed > 1 ? 's' : ''} from enemies!`)
+            }
+            // Apply REGEN to all alive allies based on baseline + scaling
+            if (skill.baselineRegen) {
+              const baseAtkPercent = skill.baselineRegen.atkPercent || 5
+              const scalingPerStack = 2 // +2% per poison stack consumed
+              const totalAtkPercent = baseAtkPercent + (poisonStacksConsumed * scalingPerStack)
+              const duration = skill.baselineRegen.duration || 2
+              for (const target of aliveHeroes.value) {
+                applyEffect(target, EffectType.REGEN, {
+                  duration,
+                  sourceId: hero.instanceId,
+                  fromAllySkill: true,
+                  atkPercent: totalAtkPercent,
+                  casterAtk: effectiveAtk
+                })
+                emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+              }
+              addLog(`All allies gain Regen (${totalAtkPercent}% ATK) for ${duration} turns!`)
+            }
+          }
           break
         }
       }
