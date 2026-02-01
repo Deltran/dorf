@@ -60,8 +60,8 @@ async function loadHero() {
       throw new Error(`Failed to load hero: ${response.statusText}`)
     }
     const data = await response.json()
-    hero.value = data.hero
-    rawCode.value = serializeHero(data.hero)
+    hero.value = parseHeroFile(data.content)
+    rawCode.value = data.content
   } catch (err) {
     error.value = err.message
   } finally {

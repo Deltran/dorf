@@ -6,7 +6,6 @@ export const penny_dreadful = {
   rarity: 4,
   classId: 'alchemist',
   baseStats: { hp: 78, atk: 36, def: 16, spd: 15, mp: 65 },
-
   skills: [
     {
       name: 'A Spot of Tea',
@@ -17,7 +16,12 @@ export const penny_dreadful = {
       damagePercent: 80,
       usesVolatility: true,
       effects: [
-        { type: EffectType.POISON, target: 'enemy', duration: 2, atkPercent: 25 }
+        {
+          type: EffectType.POISON,
+          target: 'enemy',
+          duration: 2,
+          atkPercent: 25
+        }
       ]
     },
     {
@@ -28,8 +32,18 @@ export const penny_dreadful = {
       targetType: 'enemy',
       damagePercent: 70,
       effects: [
-        { type: EffectType.SPD_DOWN, target: 'enemy', duration: 2, value: 20 },
-        { type: EffectType.ATK_DOWN, target: 'enemy', duration: 2, value: 15 }
+        {
+          type: EffectType.SPD_DOWN,
+          target: 'enemy',
+          duration: 2,
+          value: 20
+        },
+        {
+          type: EffectType.ATK_DOWN,
+          target: 'enemy',
+          duration: 2,
+          value: 15
+        }
       ]
     },
     {
@@ -40,8 +54,8 @@ export const penny_dreadful = {
       targetType: 'enemy',
       damagePercent: 100,
       debuffThresholds: {
-        at2: { type: EffectType.MARKED, duration: 2, value: 25 },
-        at3: { type: EffectType.MARKED, duration: 2, value: 35 },
+        at2: { type: 'marked', duration: 2, value: 25 },
+        at3: { type: 'marked', duration: 2, value: 35 },
         at4: { refreshAllDebuffs: 1 }
       }
     },
@@ -53,7 +67,7 @@ export const penny_dreadful = {
       targetType: 'all_allies',
       noDamage: true,
       cleanseDebuffs: 1,
-      ifCleansed: { type: EffectType.DEF_UP, duration: 2, value: 15 }
+      ifCleansed: { type: 'def_up', duration: 2, value: 15 }
     },
     {
       name: 'Tidy Up',
@@ -65,5 +79,7 @@ export const penny_dreadful = {
       bonusDamagePerDebuff: 20,
       maxBonusDamage: 100
     }
-  ]
+  ],
+  epithet: 'The Tidy Terror',
+  introQuote: "Don't you worry, yah! Penny'll sort you out right proper!"
 }

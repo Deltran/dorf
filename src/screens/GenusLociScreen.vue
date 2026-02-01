@@ -110,7 +110,7 @@ const itemDropsDisplay = computed(() => {
 })
 
 function goBack() {
-  emit('navigate', 'map-room')
+  emit('navigate', 'genus-loci-list')
 }
 </script>
 
@@ -224,7 +224,7 @@ function goBack() {
                 <span class="reward-value">{{ drop.qty }}<span v-if="drop.isPerLevel" class="per-level">/lvl</span></span>
               </div>
             </div>
-            <div v-if="selectedLevel > highestCleared" class="first-clear-badge">
+            <div v-if="selectedLevel && highestCleared === 0" class="first-clear-badge">
               First Clear Bonus
             </div>
           </div>

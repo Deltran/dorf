@@ -24,7 +24,13 @@ export const grandmother_rot = {
       targetType: 'ally',
       noDamage: true,
       effects: [
-        { type: EffectType.DECOMPOSITION, target: 'ally', duration: 3, shieldAtkPercent: 10, healAtkPercent: 25 }
+        {
+          type: EffectType.DECOMPOSITION,
+          target: 'ally',
+          duration: 3,
+          shieldAtkPercent: 10,
+          healAtkPercent: 25
+        }
       ]
     },
     {
@@ -53,12 +59,12 @@ export const grandmother_rot = {
       targetType: 'all_allies',
       noDamage: true,
       consumesPoisonFromEnemies: true,
-      baselineRegen: { type: EffectType.REGEN, target: 'all_allies', duration: 2, atkPercent: 5 }
+      baselineRegen: { type: 'regen', target: 'all_allies', duration: 2, atkPercent: 5 }
     }
   ],
   leaderSkill: {
     name: 'The Circle Continues',
-    description: 'At the start of each round, if any enemy has poison, all allies heal for 5% of Grandmother Rot\'s ATK and extend all poison effects by 1 turn.',
+    description: "At the start of each round, if any enemy has poison, all allies heal for 5% of Grandmother Rot's ATK and extend all poison effects by 1 turn.",
     effects: [
       {
         type: 'passive_round_start',
@@ -67,5 +73,7 @@ export const grandmother_rot = {
         extendEffect: { type: 'poison', duration: 1 }
       }
     ]
-  }
+  },
+  epithet: 'The Compost Mother',
+  introQuote: 'Come now, dear. Everything blooms eventually... even you.'
 }
