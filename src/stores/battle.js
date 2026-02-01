@@ -812,6 +812,14 @@ export const useBattleStore = defineStore('battle', () => {
     return { damagePercent }
   }
 
+  // Process skill execution for Blood Tempo tracking
+  // Call this when a skill is executed to check if it's Blood Tempo
+  function processSkillForBloodTempoTracking(hero, skill) {
+    if (skill.name === 'Blood Tempo') {
+      incrementBloodTempoUses(hero.instanceId)
+    }
+  }
+
   // ========== VERSE HELPERS (Bards) ==========
 
   // Check if a unit is a Bard (uses Verse)
@@ -2532,6 +2540,9 @@ export const useBattleStore = defineStore('battle', () => {
         hero.lastSkillName = skill.name
         addLog(`${hero.template.name} plays ${skill.name}! (Verse ${hero.currentVerses}/3)`)
       }
+
+      // Track Blood Tempo uses for Torga's Blood Echo
+      processSkillForBloodTempoTracking(hero, skill)
 
       const targetType = skill.targetType || 'enemy'
       let effectiveAtk = getEffectiveStat(hero, 'atk')
@@ -4599,6 +4610,7 @@ export const useBattleStore = defineStore('battle', () => {
     getBloodTempoUses,
     incrementBloodTempoUses,
     calculateBloodEchoDamage,
+    processSkillForBloodTempoTracking,
 // Verse helpers (for UI)
     isBard,
     gainVerse,

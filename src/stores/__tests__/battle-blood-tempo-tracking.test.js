@@ -73,4 +73,48 @@ describe('battle store - Blood Tempo tracking', () => {
       expect(store.getBloodTempoUses(battleHero.instanceId)).toBe(0)
     })
   })
+
+  describe('Blood Tempo skill detection', () => {
+    it('increments counter when Blood Tempo skill is used', () => {
+      const hero = { instanceId: 'torga_1' }
+      const skill = { name: 'Blood Tempo' }
+
+      expect(store.getBloodTempoUses('torga_1')).toBe(0)
+
+      // Process skill execution
+      store.processSkillForBloodTempoTracking(hero, skill)
+
+      expect(store.getBloodTempoUses('torga_1')).toBe(1)
+    })
+
+    it('increments counter multiple times for multiple Blood Tempo uses', () => {
+      const hero = { instanceId: 'torga_2' }
+      const skill = { name: 'Blood Tempo' }
+
+      // Use Blood Tempo three times
+      store.processSkillForBloodTempoTracking(hero, skill)
+      store.processSkillForBloodTempoTracking(hero, skill)
+      store.processSkillForBloodTempoTracking(hero, skill)
+
+      expect(store.getBloodTempoUses('torga_2')).toBe(3)
+    })
+
+    it('does not increment counter for other skills', () => {
+      const hero = { instanceId: 'torga_3' }
+      const otherSkill = { name: 'Rhythm Strike' }
+
+      store.processSkillForBloodTempoTracking(hero, otherSkill)
+
+      expect(store.getBloodTempoUses('torga_3')).toBe(0)
+    })
+
+    it('does not increment counter for skills with similar names', () => {
+      const hero = { instanceId: 'torga_4' }
+
+      store.processSkillForBloodTempoTracking(hero, { name: 'Blood Tempo Mastery' })
+      store.processSkillForBloodTempoTracking(hero, { name: 'Quick Blood Tempo' })
+
+      expect(store.getBloodTempoUses('torga_4')).toBe(0)
+    })
+  })
 })
