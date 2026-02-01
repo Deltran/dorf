@@ -4,6 +4,8 @@ import AssetViewerHeroes from './admin/AssetViewerHeroes.vue'
 import AssetViewerEnemies from './admin/AssetViewerEnemies.vue'
 import AssetViewerBackgrounds from './admin/AssetViewerBackgrounds.vue'
 import AssetViewerMaps from './admin/AssetViewerMaps.vue'
+import HeroPicker from './admin/HeroPicker.vue'
+import HeroEditor from './admin/HeroEditor.vue'
 
 const activeSection = ref(
   import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_admin_section') || 'hero-editor') : 'hero-editor'
@@ -11,6 +13,17 @@ const activeSection = ref(
 
 if (import.meta.env.DEV) {
   watch(activeSection, (val) => sessionStorage.setItem('dorf_dev_admin_section', val))
+}
+
+// Hero editor state
+const editingHeroId = ref(null)
+
+function selectHeroToEdit(hero) {
+  editingHeroId.value = hero.id
+}
+
+function backToHeroPicker() {
+  editingHeroId.value = null
 }
 
 const menuSections = [
@@ -81,9 +94,17 @@ function selectSection(item) {
       </div>
 
       <div class="content-body">
-        <div v-if="activeSection === 'hero-editor'" class="placeholder">
-          Hero Editor coming next...
-        </div>
+        <template v-if="activeSection === 'hero-editor'">
+          <HeroEditor
+            v-if="editingHeroId"
+            :hero-id="editingHeroId"
+            @back="backToHeroPicker"
+          />
+          <HeroPicker
+            v-else
+            @select="selectHeroToEdit"
+          />
+        </template>
         <AssetViewerHeroes v-else-if="activeSection === 'heroes'" />
         <AssetViewerEnemies v-else-if="activeSection === 'enemies'" />
         <AssetViewerBackgrounds v-else-if="activeSection === 'backgrounds'" />
