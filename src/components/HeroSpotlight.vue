@@ -20,7 +20,7 @@ function handleDismiss() {
 
 <template>
   <div v-if="visible" class="hero-spotlight" @click="handleDismiss">
-    <div class="spotlight-content">
+    <div class="spotlight-content" :class="`rarity-${rarity}`">
       <div class="hero-image-container">
         <!-- Hero image placeholder -->
       </div>
@@ -58,10 +58,18 @@ function handleDismiss() {
   padding: 20px;
 }
 
+/* Rarity color variables */
+.rarity-1 { --rarity-color: #9ca3af; }
+.rarity-2 { --rarity-color: #22c55e; }
+.rarity-3 { --rarity-color: #3b82f6; }
+.rarity-4 { --rarity-color: #a855f7; }
+.rarity-5 { --rarity-color: #f59e0b; }
+
 .hero-name {
   font-size: 2rem;
   font-weight: 700;
-  color: #f3f4f6;
+  color: var(--rarity-color, #f3f4f6);
+  text-shadow: 0 0 20px var(--rarity-color);
   margin: 0;
 }
 

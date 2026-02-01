@@ -59,4 +59,22 @@ describe('HeroSpotlight', () => {
     await wrapper.find('.hero-spotlight').trigger('click')
     expect(wrapper.emitted('dismiss')).toBeTruthy()
   })
+
+  it('applies rarity-5 class for legendary heroes', () => {
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: mockHero, visible: true }
+    })
+    expect(wrapper.find('.spotlight-content').classes()).toContain('rarity-5')
+  })
+
+  it('applies rarity-3 class for rare heroes', () => {
+    const rareHero = {
+      ...mockHero,
+      template: { ...mockHero.template, rarity: 3 }
+    }
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: rareHero, visible: true }
+    })
+    expect(wrapper.find('.spotlight-content').classes()).toContain('rarity-3')
+  })
 })
