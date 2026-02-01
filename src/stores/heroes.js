@@ -713,6 +713,11 @@ export const useHeroesStore = defineStore('heroes', () => {
     return (hero.shardTier || 0) * 5 // 0, 5, 10, or 15
   }
 
+  // Check if player owns at least one hero with the given templateId
+  function hasTemplate(templateId) {
+    return collection.value.some(h => h.templateId === templateId)
+  }
+
   return {
     // State
     collection,
@@ -751,6 +756,8 @@ export const useHeroesStore = defineStore('heroes', () => {
     upgradeShardTier,
     getShardBonus,
     SHARD_TIER_COSTS,
+    // Collection queries
+    hasTemplate,
     // Exploration
     availableForExploration,
     isHeroLocked,
