@@ -42,6 +42,9 @@ export const useBattleStore = defineStore('battle', () => {
   // Track total ally HP lost for Cacophon's Finale
   const totalAllyHpLost = ref(0)
 
+  // Track Blood Tempo uses per hero for Torga's Blood Echo
+  const bloodTempoUses = ref({})
+
   // Getters
   const currentUnit = computed(() => {
     if (turnOrder.value.length === 0) return null
@@ -780,6 +783,21 @@ export const useBattleStore = defineStore('battle', () => {
     if (unit.currentRage !== undefined) {
       unit.currentRage = Math.max(0, unit.currentRage - amount)
     }
+  }
+
+  // ========== BLOOD TEMPO TRACKING (for Torga's Blood Echo) ==========
+
+  // Get the number of Blood Tempo uses for a hero this battle
+  function getBloodTempoUses(heroInstanceId) {
+    return bloodTempoUses.value[heroInstanceId] || 0
+  }
+
+  // Increment Blood Tempo uses for a hero
+  function incrementBloodTempoUses(heroInstanceId) {
+    if (!bloodTempoUses.value[heroInstanceId]) {
+      bloodTempoUses.value[heroInstanceId] = 0
+    }
+    bloodTempoUses.value[heroInstanceId]++
   }
 
   // ========== VERSE HELPERS (Bards) ==========
@@ -2032,6 +2050,7 @@ export const useBattleStore = defineStore('battle', () => {
     battleLog.value = []
     selectedAction.value = null
     selectedTarget.value = null
+    bloodTempoUses.value = {}
     battleType.value = genusLociContext ? 'genusLoci' : 'normal'
     genusLociMeta.value = genusLociContext ? {
       genusLociId: genusLociContext.genusLociId,
@@ -4564,6 +4583,9 @@ export const useBattleStore = defineStore('battle', () => {
     isBerserker,
     gainRage,
     spendRage,
+// Blood Tempo tracking (for Torga's Blood Echo)
+    getBloodTempoUses,
+    incrementBloodTempoUses,
 // Verse helpers (for UI)
     isBard,
     gainVerse,
