@@ -1,29 +1,67 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import AssetViewerHeroes from './admin/AssetViewerHeroes.vue'
 import AssetViewerEnemies from './admin/AssetViewerEnemies.vue'
 import AssetViewerBackgrounds from './admin/AssetViewerBackgrounds.vue'
 import AssetViewerMaps from './admin/AssetViewerMaps.vue'
+import HeroPicker from './admin/HeroPicker.vue'
+import HeroEditor from './admin/HeroEditor.vue'
 
 const activeSection = ref(
-  import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_admin_section') || 'heroes') : 'heroes'
+  import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_admin_section') || 'hero-editor') : 'hero-editor'
 )
 
 if (import.meta.env.DEV) {
   watch(activeSection, (val) => sessionStorage.setItem('dorf_dev_admin_section', val))
 }
 
-const sections = [
-  { id: 'heroes', label: 'Heroes' },
-  { id: 'enemies', label: 'Enemies' },
-  { id: 'backgrounds', label: 'Backgrounds' },
-  { id: 'maps', label: 'Maps' }
+// Hero editor state
+const editingHeroId = ref(null)
+
+function selectHeroToEdit(hero) {
+  editingHeroId.value = hero.id
+}
+
+function backToHeroPicker() {
+  editingHeroId.value = null
+}
+
+const menuSections = [
+  {
+    label: 'Data',
+    items: [
+      { id: 'hero-editor', label: 'Heroes' },
+      { id: 'enemy-editor', label: 'Enemies', disabled: true }
+    ]
+  },
+  {
+    label: 'Assets',
+    items: [
+      { id: 'heroes', label: 'Hero Art' },
+      { id: 'enemies', label: 'Enemy Art' },
+      { id: 'backgrounds', label: 'Battle BG' },
+      { id: 'maps', label: 'Map Art' }
+    ]
+  }
 ]
+
+const allItems = computed(() => menuSections.flatMap(s => s.items))
+
+const activeLabel = computed(() => {
+  const item = allItems.value.find(i => i.id === activeSection.value)
+  return item?.label || ''
+})
 
 const emit = defineEmits(['navigate'])
 
 function exitAdmin() {
   emit('navigate', 'home')
+}
+
+function selectSection(item) {
+  if (!item.disabled) {
+    activeSection.value = item.id
+  }
 }
 </script>
 
@@ -31,28 +69,43 @@ function exitAdmin() {
   <div class="admin-screen">
     <aside class="sidebar">
       <div class="sidebar-header">
-        <h2>Assets</h2>
+        <h2>Admin</h2>
         <button class="exit-btn" @click="exitAdmin">Exit</button>
       </div>
       <nav class="sidebar-nav">
-        <button
-          v-for="section in sections"
-          :key="section.id"
-          :class="['nav-item', { active: activeSection === section.id }]"
-          @click="activeSection = section.id"
-        >
-          {{ section.label }}
-        </button>
+        <div v-for="section in menuSections" :key="section.label" class="nav-section">
+          <div class="section-label">{{ section.label }}</div>
+          <button
+            v-for="item in section.items"
+            :key="item.id"
+            :class="['nav-item', { active: activeSection === item.id, disabled: item.disabled }]"
+            @click="selectSection(item)"
+          >
+            {{ item.label }}
+            <span v-if="item.disabled" class="coming-soon">soon</span>
+          </button>
+        </div>
       </nav>
     </aside>
 
     <main class="content">
       <div class="content-header">
-        <h1>{{ sections.find(s => s.id === activeSection)?.label }}</h1>
+        <h1>{{ activeLabel }}</h1>
       </div>
 
       <div class="content-body">
-        <AssetViewerHeroes v-if="activeSection === 'heroes'" />
+        <template v-if="activeSection === 'hero-editor'">
+          <HeroEditor
+            v-if="editingHeroId"
+            :hero-id="editingHeroId"
+            @back="backToHeroPicker"
+          />
+          <HeroPicker
+            v-else
+            @select="selectHeroToEdit"
+          />
+        </template>
+        <AssetViewerHeroes v-else-if="activeSection === 'heroes'" />
         <AssetViewerEnemies v-else-if="activeSection === 'enemies'" />
         <AssetViewerBackgrounds v-else-if="activeSection === 'backgrounds'" />
         <AssetViewerMaps v-else-if="activeSection === 'maps'" />
@@ -112,6 +165,19 @@ function exitAdmin() {
   gap: 4px;
 }
 
+.nav-section {
+  margin-bottom: 8px;
+}
+
+.section-label {
+  padding: 8px 12px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+}
+
 .nav-item {
   padding: 10px 12px;
   background: transparent;
@@ -121,9 +187,13 @@ function exitAdmin() {
   text-align: left;
   cursor: pointer;
   font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
 }
 
-.nav-item:hover {
+.nav-item:hover:not(.disabled) {
   background: #374151;
   color: #f3f4f6;
 }
@@ -131,6 +201,19 @@ function exitAdmin() {
 .nav-item.active {
   background: #3b82f6;
   color: white;
+}
+
+.nav-item.disabled {
+  color: #4b5563;
+  cursor: not-allowed;
+}
+
+.coming-soon {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: #374151;
+  border-radius: 4px;
+  color: #6b7280;
 }
 
 .content {
@@ -155,5 +238,17 @@ function exitAdmin() {
   flex: 1;
   padding: 24px;
   overflow-y: auto;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: #6b7280;
+  font-size: 16px;
+  background: #1f2937;
+  border-radius: 8px;
+  border: 1px dashed #374151;
 }
 </style>

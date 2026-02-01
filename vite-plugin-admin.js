@@ -355,6 +355,104 @@ export default function adminPlugin() {
         next()
       })
 
+      // Helper: find hero file by heroId across rarity folders
+      function findHeroFile(heroId) {
+        const heroesDir = path.resolve(process.cwd(), 'src/data/heroes')
+        const rarityFolders = ['1star', '2star', '3star', '4star', '5star']
+
+        for (const folder of rarityFolders) {
+          const filePath = path.join(heroesDir, folder, `${heroId}.js`)
+          if (fs.existsSync(filePath)) {
+            return filePath
+          }
+        }
+        return null
+      }
+
+      // Helper: invalidate hero module cache so changes are picked up on refresh
+      function invalidateHeroModules() {
+        const moduleGraph = server.moduleGraph
+        for (const [id, mod] of moduleGraph.idToModuleMap) {
+          if (id.includes('/src/data/heroes/')) {
+            moduleGraph.invalidateModule(mod)
+          }
+        }
+      }
+
+      // GET /__admin/hero/:heroId - read a specific hero file
+      server.middlewares.use((req, res, next) => {
+        const match = req.url?.match(/^\/__admin\/hero\/([^/]+)$/)
+        if (req.method === 'GET' && match) {
+          const heroId = decodeURIComponent(match[1])
+
+          try {
+            const filePath = findHeroFile(heroId)
+            if (!filePath) {
+              res.statusCode = 404
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: `Hero file for "${heroId}" not found` }))
+              return
+            }
+
+            const content = fs.readFileSync(filePath, 'utf-8')
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ path: filePath, content }))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
+
+      // PUT /__admin/hero/:heroId - write to a specific hero file
+      server.middlewares.use(async (req, res, next) => {
+        const match = req.url?.match(/^\/__admin\/hero\/([^/]+)$/)
+        if (req.method === 'PUT' && match) {
+          const heroId = decodeURIComponent(match[1])
+
+          let body = ''
+          for await (const chunk of req) {
+            body += chunk
+          }
+
+          try {
+            const { content } = JSON.parse(body)
+
+            if (!content || typeof content !== 'string') {
+              res.statusCode = 400
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'content is required and must be a string' }))
+              return
+            }
+
+            const filePath = findHeroFile(heroId)
+            if (!filePath) {
+              res.statusCode = 404
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: `Hero file for "${heroId}" not found` }))
+              return
+            }
+
+            fs.writeFileSync(filePath, content, 'utf-8')
+
+            // Invalidate module cache so refresh picks up changes
+            invalidateHeroModules()
+
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true }))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
+
       // Helper: find which quest file contains a node by ID
       function findQuestFileForNode(nodeId) {
         const questsDir = path.resolve(process.cwd(), 'src/data/quests')
