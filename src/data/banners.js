@@ -135,6 +135,20 @@ export const banners = [
       2: ['militia_soldier', 'apprentice_mage', 'herb_gatherer', 'fennick'],
       1: ['farm_hand', 'street_urchin', 'beggar_monk', 'street_busker']
     }
+  },
+  {
+    id: 'deplorable_companions',
+    name: 'Deplorable Companions',
+    description: 'Unlikely allies emerge from the shadows. Featuring anti-heroes, reluctant saviors, and those who found their own equilibrium with darkness.',
+    permanent: false,
+    monthlySchedule: { month: 5 },
+    heroPool: {
+      5: ['grandmother_rot'],
+      4: ['penny_dreadful', 'zina_the_desperate'],
+      3: ['the_grateful_dead', 'vashek_the_unrelenting', 'village_healer'],
+      2: ['militia_soldier', 'herb_gatherer', 'fennick'],
+      1: ['beggar_monk', 'street_urchin', 'farm_hand']
+    }
   }
 ]
 
