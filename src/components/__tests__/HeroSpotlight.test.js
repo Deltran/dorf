@@ -124,4 +124,26 @@ describe('HeroSpotlight', () => {
     })
     expect(wrapper.find('.hero-spotlight').classes()).not.toContain('shake-5star')
   })
+
+  it('applies enhanced-4star class for 4-star heroes', () => {
+    const epicHero = {
+      ...mockHero,
+      template: { ...mockHero.template, rarity: 4 }
+    }
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: epicHero, visible: true }
+    })
+    expect(wrapper.find('.spotlight-content').classes()).toContain('enhanced-4star')
+  })
+
+  it('does not apply enhanced-4star for 3-star', () => {
+    const rareHero = {
+      ...mockHero,
+      template: { ...mockHero.template, rarity: 3 }
+    }
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: rareHero, visible: true }
+    })
+    expect(wrapper.find('.spotlight-content').classes()).not.toContain('enhanced-4star')
+  })
 })

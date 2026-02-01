@@ -39,7 +39,13 @@ function handleDismiss() {
   >
     <div class="starfield"></div>
     <div class="nebula" :class="`rarity-${rarity}`"></div>
-    <div class="spotlight-content" :class="`rarity-${rarity}`">
+    <div
+      class="spotlight-content"
+      :class="[
+        `rarity-${rarity}`,
+        { 'enhanced-4star': rarity === 4, 'enhanced-5star': rarity === 5 }
+      ]"
+    >
       <div class="hero-image-container animate-entrance">
         <div class="hero-glow" :class="`rarity-${rarity}`"></div>
         <img
@@ -291,5 +297,37 @@ function handleDismiss() {
 @keyframes goldenBurst {
   0% { transform: scale(0); opacity: 1; }
   100% { transform: scale(2); opacity: 0; }
+}
+
+/* 4-star enhancements */
+.enhanced-4star .hero-glow {
+  animation: heroGlowPulse4Star 2s ease-in-out infinite;
+}
+
+@keyframes heroGlowPulse4Star {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+.enhanced-4star .starfield {
+  animation: starDrift 15s linear infinite;
+}
+
+.enhanced-4star::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100px;
+  height: 100px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.3) 0%, transparent 70%);
+  animation: purpleFlash 0.3s ease-out;
+  pointer-events: none;
+}
+
+@keyframes purpleFlash {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(3); }
 }
 </style>
