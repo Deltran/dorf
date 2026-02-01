@@ -20,6 +20,8 @@ function handleDismiss() {
 
 <template>
   <div v-if="visible" class="hero-spotlight" @click="handleDismiss">
+    <div class="starfield"></div>
+    <div class="nebula" :class="`rarity-${rarity}`"></div>
     <div class="spotlight-content" :class="`rarity-${rarity}`">
       <div class="hero-image-container">
         <!-- Hero image placeholder -->
@@ -91,5 +93,46 @@ function handleDismiss() {
   font-size: 0.8rem;
   color: #4b5563;
   margin-top: 24px;
+}
+
+.starfield {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.4), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.4), transparent),
+    radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 200px 90px, rgba(255,255,255,0.3), transparent),
+    radial-gradient(2px 2px at 250px 150px, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 300px 60px, rgba(255,255,255,0.3), transparent);
+  background-size: 350px 200px;
+  animation: starDrift 20s linear infinite;
+}
+
+@keyframes starDrift {
+  0% { background-position: 0 0; }
+  100% { background-position: 350px -200px; }
+}
+
+.nebula {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 400px;
+  height: 400px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, var(--rarity-color) 0%, transparent 70%);
+  opacity: 0.15;
+  animation: nebulaPulse 3s ease-in-out infinite;
+}
+
+@keyframes nebulaPulse {
+  0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.25; transform: translate(-50%, -50%) scale(1.1); }
 }
 </style>

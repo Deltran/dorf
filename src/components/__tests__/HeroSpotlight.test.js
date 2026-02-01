@@ -77,4 +77,11 @@ describe('HeroSpotlight', () => {
     })
     expect(wrapper.find('.spotlight-content').classes()).toContain('rarity-3')
   })
+
+  it('renders starfield background', () => {
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: mockHero, visible: true }
+    })
+    expect(wrapper.find('.starfield').exists()).toBe(true)
+  })
 })
