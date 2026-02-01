@@ -149,6 +149,20 @@ export const banners = [
       2: ['militia_soldier', 'herb_gatherer', 'fennick'],
       1: ['beggar_monk', 'street_urchin', 'farm_hand']
     }
+  },
+  {
+    id: 'drums_of_old_blood',
+    name: 'Drums of the Old Blood',
+    description: 'The Drumcaller warband emerges from Stormwind Peaks! Featuring Korrath, Vraxx, and Torga.',
+    permanent: false,
+    monthlySchedule: { month: 6 },
+    heroPool: {
+      5: ['korrath_hollow_ear'],
+      4: ['vraxx_thunderskin', 'swift_arrow'],
+      3: ['torga_bloodbeat', 'town_guard', 'wandering_bard'],
+      2: ['militia_soldier', 'apprentice_mage', 'fennick'],
+      1: ['farm_hand', 'street_urchin', 'beggar_monk']
+    }
   }
 ]
 

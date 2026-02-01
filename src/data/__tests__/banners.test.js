@@ -215,7 +215,7 @@ describe('getMonthlyBanner', () => {
   })
 
   it('returns undefined for months without a scheduled banner', () => {
-    const result = getMonthlyBanner(2026, 6) // June has no monthly banner
+    const result = getMonthlyBanner(2026, 7) // July has no monthly banner
     expect(result).toBeUndefined()
   })
 

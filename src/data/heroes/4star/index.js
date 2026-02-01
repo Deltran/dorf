@@ -8,6 +8,7 @@ import { shinobi_jin } from './shinobi_jin.js'
 import { copper_jack } from './copper_jack.js'
 import { philemon_the_ardent } from './philemon_the_ardent.js'
 import { penny_dreadful } from './penny_dreadful.js'
+import { vraxx_thunderskin } from './vraxx_thunderskin.js'
 
 export const heroes = {
   sir_gallan,
@@ -19,5 +20,6 @@ export const heroes = {
   shinobi_jin,
   copper_jack,
   philemon_the_ardent,
-  penny_dreadful
+  penny_dreadful,
+  vraxx_thunderskin
 }

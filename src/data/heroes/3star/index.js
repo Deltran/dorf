@@ -6,6 +6,7 @@ import { vashek_the_unrelenting } from './vashek_the_unrelenting.js'
 import { matsuda } from './matsuda.js'
 import { bones_mccready } from './bones_mccready.js'
 import { the_grateful_dead } from './the_grateful_dead.js'
+import { torga_bloodbeat } from './torga_bloodbeat.js'
 
 export const heroes = {
   town_guard,
@@ -15,5 +16,6 @@ export const heroes = {
   vashek_the_unrelenting,
   matsuda,
   bones_mccready,
-  the_grateful_dead
+  the_grateful_dead,
+  torga_bloodbeat
 }

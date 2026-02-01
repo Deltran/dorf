@@ -7,6 +7,7 @@ import { onibaba } from './onibaba.js'
 import { fortuna_inversus } from './fortuna_inversus.js'
 import { mara_thornheart } from './mara_thornheart.js'
 import { grandmother_rot } from './grandmother_rot.js'
+import { korrath_hollow_ear } from './korrath_hollow_ear.js'
 
 export const heroes = {
   aurora_the_dawn,
@@ -17,5 +18,6 @@ export const heroes = {
   onibaba,
   fortuna_inversus,
   mara_thornheart,
-  grandmother_rot
+  grandmother_rot,
+  korrath_hollow_ear
 }

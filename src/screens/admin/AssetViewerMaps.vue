@@ -27,7 +27,7 @@ function getNodeCount(regionName) {
 function getRegionNodes(regionName) {
   return Object.values(questNodes)
     .filter(n => n.region === regionName)
-    .map(n => ({ id: n.id, name: n.name, x: n.x, y: n.y, type: n.type || null, region: n.region, connections: n.connections || [] }))
+    .map(n => ({ id: n.id, name: n.name, x: n.x, y: n.y, type: n.type || null, region: n.region, connections: n.connections || [], regionLinkPosition: n.regionLinkPosition || null }))
 }
 
 // --- Super region groups ---
