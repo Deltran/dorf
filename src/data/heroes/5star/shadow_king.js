@@ -5,6 +5,8 @@ export const shadow_king = {
   name: 'The Shadow King',
   rarity: 5,
   classId: 'berserker',
+  epithet: 'Lord of the Endless Night',
+  introQuote: 'Kneel before the darkness.',
   baseStats: { hp: 110, atk: 55, def: 25, spd: 18 },
   skills: [
     {

@@ -5,6 +5,8 @@ export const yggra_world_root = {
   name: 'Yggra, the World Root',
   rarity: 5,
   classId: 'druid',
+  epithet: 'The World Root',
+  introQuote: 'All things return to the earth.',
   baseStats: { hp: 120, atk: 28, def: 35, spd: 10, mp: 75 },
   skills: [
     {
