@@ -70,14 +70,12 @@ export const vraxx_thunderskin = {
     },
     {
       name: 'Drums of the Old Blood',
-      description: 'All allies gain +25% ATK, +25% DEF, and immunity to debuffs for 3 turns. Berserker allies also gain 25 Rage.',
+      description: 'All allies gain +25% ATK for 3 turns. Berserker allies also gain 25 Rage.',
       skillUnlockLevel: 12,
       targetType: 'all_allies',
       noDamage: true,
       effects: [
         { type: EffectType.ATK_UP, target: 'all_allies', duration: 3, value: 25 },
-        { type: EffectType.DEF_UP, target: 'all_allies', duration: 3, value: 25 },
-        { type: EffectType.DEBUFF_IMMUNE, target: 'all_allies', duration: 3 },
         { type: 'rage_grant', classCondition: 'berserker', amount: 25 }
       ]
     }

@@ -122,13 +122,18 @@ describe('Drums of the Old Blood banner heroes integration', () => {
       expect(atkUp.value).toBe(15)
     })
 
-    it('has Drums of the Old Blood with debuff immunity', () => {
+    it('has Drums of the Old Blood with ATK buff and Rage grant', () => {
       const vraxx = heroTemplates.vraxx_thunderskin
       const drums = vraxx.skills.find(s => s.name === 'Drums of the Old Blood')
       expect(drums).toBeDefined()
-      const debuffImmune = drums.effects.find(e => e.type === EffectType.DEBUFF_IMMUNE)
-      expect(debuffImmune).toBeDefined()
-      expect(debuffImmune.duration).toBe(3)
+      const atkUp = drums.effects.find(e => e.type === EffectType.ATK_UP)
+      expect(atkUp).toBeDefined()
+      expect(atkUp.duration).toBe(3)
+      expect(atkUp.value).toBe(25)
+      const rageGrant = drums.effects.find(e => e.type === 'rage_grant')
+      expect(rageGrant).toBeDefined()
+      expect(rageGrant.classCondition).toBe('berserker')
+      expect(rageGrant.amount).toBe(25)
     })
 
     it('Thunderclap Crescendo consumes excess rage', () => {
@@ -142,10 +147,10 @@ describe('Drums of the Old Blood banner heroes integration', () => {
   })
 
   describe('Torga battle functionality', () => {
-    it('has Berserker skills with rage costs', () => {
+    it('has Blood Echo with rage cost', () => {
       const torga = heroTemplates.torga_bloodbeat
-      const rageSurge = torga.skills.find(s => s.name === 'Rage Surge')
-      expect(rageSurge.rageCost).toBe(25)
+      const bloodEcho = torga.skills.find(s => s.name === 'Blood Echo')
+      expect(bloodEcho.rageCost).toBe(20)
     })
 
     it('has rageGain on Rhythm Strike', () => {
@@ -177,10 +182,11 @@ describe('Drums of the Old Blood banner heroes integration', () => {
       expect(finale.onKill.rageGain).toBe(50)
     })
 
-    it('Rage Surge has bonus damage per rage', () => {
+    it('Blood Echo has bonus damage per Blood Tempo use', () => {
       const torga = heroTemplates.torga_bloodbeat
-      const rageSurge = torga.skills.find(s => s.name === 'Rage Surge')
-      expect(rageSurge.bonusDamagePerRage).toBe(0.5)
+      const bloodEcho = torga.skills.find(s => s.name === 'Blood Echo')
+      expect(bloodEcho.bonusDamagePerBloodTempo).toBe(30)
+      expect(bloodEcho.maxBloodTempoBonus).toBe(90)
     })
   })
 

@@ -42,6 +42,9 @@ export const useBattleStore = defineStore('battle', () => {
   // Track total ally HP lost for Cacophon's Finale
   const totalAllyHpLost = ref(0)
 
+  // Track Blood Tempo uses per hero for Torga's Blood Echo
+  const bloodTempoUses = ref({})
+
   // Getters
   const currentUnit = computed(() => {
     if (turnOrder.value.length === 0) return null
@@ -839,6 +842,41 @@ export const useBattleStore = defineStore('battle', () => {
   function spendRage(unit, amount) {
     if (unit.currentRage !== undefined) {
       unit.currentRage = Math.max(0, unit.currentRage - amount)
+    }
+  }
+
+  // ========== BLOOD TEMPO TRACKING (for Torga's Blood Echo) ==========
+
+  // Get the number of Blood Tempo uses for a hero this battle
+  function getBloodTempoUses(heroInstanceId) {
+    return bloodTempoUses.value[heroInstanceId] || 0
+  }
+
+  // Increment Blood Tempo uses for a hero
+  function incrementBloodTempoUses(heroInstanceId) {
+    if (!bloodTempoUses.value[heroInstanceId]) {
+      bloodTempoUses.value[heroInstanceId] = 0
+    }
+    bloodTempoUses.value[heroInstanceId]++
+  }
+
+  // Calculate Blood Echo damage based on Blood Tempo uses
+  function calculateBloodEchoDamage(atk, bloodTempoUses) {
+    const baseDamagePercent = 90
+    const bonusPerUse = 30
+    const maxBonus = 90
+
+    const bonus = Math.min(bloodTempoUses * bonusPerUse, maxBonus)
+    const damagePercent = baseDamagePercent + bonus
+
+    return { damagePercent }
+  }
+
+  // Process skill execution for Blood Tempo tracking
+  // Call this when a skill is executed to check if it's Blood Tempo
+  function processSkillForBloodTempoTracking(hero, skill) {
+    if (skill.name === 'Blood Tempo') {
+      incrementBloodTempoUses(hero.instanceId)
     }
   }
 
@@ -2215,6 +2253,7 @@ export const useBattleStore = defineStore('battle', () => {
     battleLog.value = []
     selectedAction.value = null
     selectedTarget.value = null
+    bloodTempoUses.value = {}
     battleType.value = genusLociContext ? 'genusLoci' : 'normal'
     genusLociMeta.value = genusLociContext ? {
       genusLociId: genusLociContext.genusLociId,
@@ -2687,6 +2726,9 @@ export const useBattleStore = defineStore('battle', () => {
         hero.lastSkillName = skill.name
         addLog(`${hero.template.name} plays ${skill.name}! (Verse ${hero.currentVerses}/3)`)
       }
+
+      // Track Blood Tempo uses for Torga's Blood Echo
+      processSkillForBloodTempoTracking(hero, skill)
 
       const targetType = skill.targetType || 'enemy'
       let effectiveAtk = getEffectiveStat(hero, 'atk')
@@ -4887,6 +4929,11 @@ export const useBattleStore = defineStore('battle', () => {
     isBerserker,
     gainRage,
     spendRage,
+// Blood Tempo tracking (for Torga's Blood Echo)
+    getBloodTempoUses,
+    incrementBloodTempoUses,
+    calculateBloodEchoDamage,
+    processSkillForBloodTempoTracking,
 // Verse helpers (for UI)
     isBard,
     gainVerse,
