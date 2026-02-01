@@ -800,6 +800,18 @@ export const useBattleStore = defineStore('battle', () => {
     bloodTempoUses.value[heroInstanceId]++
   }
 
+  // Calculate Blood Echo damage based on Blood Tempo uses
+  function calculateBloodEchoDamage(atk, bloodTempoUses) {
+    const baseDamagePercent = 90
+    const bonusPerUse = 30
+    const maxBonus = 90
+
+    const bonus = Math.min(bloodTempoUses * bonusPerUse, maxBonus)
+    const damagePercent = baseDamagePercent + bonus
+
+    return { damagePercent }
+  }
+
   // ========== VERSE HELPERS (Bards) ==========
 
   // Check if a unit is a Bard (uses Verse)
@@ -4586,6 +4598,7 @@ export const useBattleStore = defineStore('battle', () => {
 // Blood Tempo tracking (for Torga's Blood Echo)
     getBloodTempoUses,
     incrementBloodTempoUses,
+    calculateBloodEchoDamage,
 // Verse helpers (for UI)
     isBard,
     gainVerse,
