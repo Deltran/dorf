@@ -67,15 +67,17 @@ const resourceDisplay = computed(() => {
 
   switch (resourceType.value) {
     case 'rage':
-      return { icon: '🔥', value: h.currentRage || 0, max: 100 }
+      return { icon: '🔥', name: 'Rage', value: h.currentRage || 0, max: 100 }
     case 'focus':
-      return { icon: '🎯', value: h.hasFocus ? 'Ready' : '—', max: null }
+      return { icon: '🎯', name: 'Focus', value: h.hasFocus ? 'Ready' : '—', max: null }
     case 'valor':
-      return { icon: '⚜️', value: h.currentValor || 0, max: 100 }
+      return { icon: '⚜️', name: 'Valor', value: h.currentValor || 0, max: 100 }
     case 'verse':
-      return { icon: '🎵', value: `${h.currentVerses || 0}/3`, max: null }
+      return { icon: '🎵', name: 'Verse', value: `${h.currentVerses || 0}/3`, max: null }
+    case 'essence':
+      return { icon: '🧪', name: 'Essence', value: h.currentEssence || 0, max: h.maxEssence || 60 }
     default:
-      return { icon: '⚡', value: h.currentMp || 0, max: h.maxMp || 0 }
+      return { icon: '⚡', name: h.class?.resourceName || 'Mana', value: h.currentMp || 0, max: h.maxMp || 0 }
   }
 })
 
@@ -145,6 +147,7 @@ function formatTargetType(skill) {
           <!-- Resource indicator -->
           <div v-if="resourceDisplay" class="resource-line">
             <span class="resource-icon">{{ resourceDisplay.icon }}</span>
+            <span class="resource-name">{{ resourceDisplay.name }}</span>
             <span class="resource-value">
               {{ resourceDisplay.value }}
               <template v-if="resourceDisplay.max && typeof resourceDisplay.value === 'number'">
@@ -269,6 +272,11 @@ function formatTargetType(skill) {
   margin-bottom: 8px;
   border-bottom: 1px solid #374151;
   font-size: 0.85rem;
+}
+
+.resource-name {
+  color: #d1d5db;
+  font-weight: 500;
 }
 
 .resource-icon {
