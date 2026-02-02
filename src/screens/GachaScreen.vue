@@ -1163,7 +1163,14 @@ function handleTenPull() {
   flex: 1;
   position: relative;
   z-index: 1;
-  transition: transform 0.4s ease-in-out;
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 0.3s ease-in-out, transform 0.4s ease-in-out;
+}
+
+.altar-container.view-black-market {
+  opacity: 1;
+  transform: translateX(0);
 }
 
 /* ===== Corrupted Black Market Palette ===== */
