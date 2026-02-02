@@ -100,8 +100,7 @@ const hasParty = computed(() => {
         class="summon-button"
         @click="emit('navigate', 'gacha')"
       >
-        <span class="nav-icon">✨</span>
-        <span class="nav-label">Summon</span>
+        <span class="summon-label">Summon Heroes</span>
       </button>
 
       <div class="room-buttons">
@@ -346,34 +345,54 @@ const hasParty = computed(() => {
   z-index: 1;
 }
 
-/* Summon button - PRIMARY action, dramatically prominent */
+/* Summon button - PRIMARY action, bold and unmissable */
 .summon-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 18px 24px;
-  background: #6366f1;
-  border: none;
-  border-radius: 12px;
+  position: relative;
+  padding: 20px 32px;
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  border: 3px solid #b45309;
+  border-radius: 4px;
   cursor: pointer;
-  box-shadow: 0 0 24px rgba(99, 102, 241, 0.5);
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 4px 0 #78350f,
+    0 6px 12px rgba(0, 0, 0, 0.5);
+}
+
+.summon-button::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(180, 83, 9, 0.3);
+  border-radius: 2px;
+  pointer-events: none;
 }
 
 .summon-button:hover {
-  background: #818cf8;
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.6);
+  border-color: #d97706;
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 5px 0 #78350f,
+    0 8px 16px rgba(0, 0, 0, 0.5);
 }
 
-.summon-button .nav-icon {
-  font-size: 1.5rem;
+.summon-button:active {
+  transform: translateY(2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 2px 0 #78350f,
+    0 3px 8px rgba(0, 0, 0, 0.5);
 }
 
-.summon-button .nav-label {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: white;
+.summon-label {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #f59e0b;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
 }
 
 /* ===== Room Buttons ===== */
