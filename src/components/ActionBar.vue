@@ -58,7 +58,6 @@ const heroCardStyle = computed(() => {
         <span class="role-icon">{{ roleIcon }}</span>
         <span class="hero-name">{{ heroName }}</span>
       </div>
-      <span class="hint">tap enemy to attack</span>
     </div>
     <button
       v-if="hasSkills"
@@ -81,9 +80,8 @@ const heroCardStyle = computed(() => {
 .hero-card {
   flex: 1;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 10px 14px;
+  align-items: center;
+  padding: 12px 14px;
   background-color: #111827;
   background-size: cover, cover;
   background-position: center, center;
@@ -114,12 +112,6 @@ const heroCardStyle = computed(() => {
   font-weight: 600;
   color: #f3f4f6;
   letter-spacing: 0.02em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
-}
-
-.hint {
-  font-size: 0.7rem;
-  color: #9ca3af;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
 }
 
