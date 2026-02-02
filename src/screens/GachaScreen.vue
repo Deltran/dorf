@@ -677,6 +677,10 @@ function handleTenPull() {
           @click="handleSinglePull"
         >
           <span class="pull-label">&#215;1</span>
+          <span class="pull-cost">
+            <span class="cost-icon">&#128142;</span>
+            {{ displaySingleCost }}
+          </span>
         </button>
 
         <button
