@@ -117,7 +117,8 @@ const revealedItemCount = ref(0)
 const selectedItem = ref(null) // For item detail popup
 const victoryStep = ref(1) // 1 = rewards, 2 = xp/level ups
 const shardDropDisplay = ref(null) // For displaying shard drops in victory
-const inspectedHero = ref(null) // For hero stats popup
+const inspectedHero = ref(null) // For hero stats popup (legacy, replaced by detailSheetHero)
+const detailSheetHero = ref(null) // For HeroDetailSheet
 const lastClickedHero = ref(null) // Track for double-click detection
 const genusLociRewards = ref(null) // For Genus Loci victory rewards
 const combatLogExpanded = ref(false)
@@ -1145,9 +1146,21 @@ function closeItemDetail() {
 }
 
 function handleHeroClick(hero) {
-  // If clicking same hero twice, show stats
+  // Handle ally targeting if applicable
+  if (isHeroTargetable(hero)) {
+    selectHeroTarget(hero)
+    return
+  }
+
+  // Handle dead ally targeting for revive skills
+  if (deadAlliesTargetable.value && hero.currentHp <= 0) {
+    selectDeadHeroTarget(hero)
+    return
+  }
+
+  // If not in targeting mode, open detail sheet on double-tap
   if (lastClickedHero.value === hero.instanceId) {
-    inspectedHero.value = hero
+    openHeroDetail(hero)
     lastClickedHero.value = null
   } else {
     lastClickedHero.value = hero.instanceId
@@ -1158,20 +1171,18 @@ function handleHeroClick(hero) {
       }
     }, 500)
   }
-
-  // Also handle ally targeting if applicable
-  if (isHeroTargetable(hero)) {
-    selectHeroTarget(hero)
-  }
-
-  // Handle dead ally targeting for revive skills
-  if (deadAlliesTargetable.value && hero.currentHp <= 0) {
-    selectDeadHeroTarget(hero)
-  }
 }
 
 function closeHeroInspect() {
   inspectedHero.value = null
+}
+
+function openHeroDetail(hero) {
+  detailSheetHero.value = hero
+}
+
+function closeHeroDetail() {
+  detailSheetHero.value = null
 }
 
 function getHeroEffectiveStats(hero) {
@@ -1277,6 +1288,10 @@ function getStatChange(hero, stat) {
               ...getEnemyImageSize(enemy)
             }"
           />
+          <StatusOverlay
+            :effects="enemy.statusEffects"
+            position="top-right"
+          />
           <div class="enemy-image-stats">
             <StatBar
               :current="enemy.currentHp"
@@ -1284,18 +1299,6 @@ function getStatChange(hero, stat) {
               color="red"
               size="sm"
             />
-            <div v-if="enemy.statusEffects?.length > 0" class="enemy-image-effects">
-              <div
-                v-for="(effect, index) in enemy.statusEffects"
-                :key="index"
-                class="effect-badge"
-                :class="{ buff: effect.definition?.isBuff, debuff: !effect.definition?.isBuff }"
-                :title="`${effect.definition?.name} (${effect.duration} turns)`"
-              >
-                <span class="effect-icon">{{ effect.definition?.icon }}</span>
-                <span class="effect-duration">{{ effect.duration }}</span>
-              </div>
-            </div>
           </div>
         </div>
         <!-- Enemy without image (fallback to card) -->
@@ -2002,6 +2005,7 @@ function getStatChange(hero, stat) {
 
 /* Enemy Image Display */
 .enemy-image-display {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2068,43 +2072,6 @@ function getStatChange(hero, stat) {
 .enemy-image-stats {
   width: 100%;
   margin-top: 8px;
-}
-
-.enemy-image-effects {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
-  justify-content: center;
-}
-
-.enemy-image-display .effect-badge {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 2px 4px;
-  border-radius: 4px;
-  font-size: 0.7rem;
-}
-
-.enemy-image-display .effect-badge.buff {
-  border: 1px solid rgba(34, 197, 94, 0.5);
-  background-color: rgba(34, 197, 94, 0.2);
-}
-
-.enemy-image-display .effect-badge.debuff {
-  border: 1px solid rgba(239, 68, 68, 0.5);
-  background-color: rgba(239, 68, 68, 0.2);
-}
-
-.enemy-image-display .effect-icon {
-  font-size: 0.8rem;
-}
-
-.enemy-image-display .effect-duration {
-  color: #d1d5db;
-  font-size: 0.65rem;
-  font-weight: 600;
 }
 
 /* Hit Effects for enemy images */
@@ -2191,8 +2158,10 @@ function getStatChange(hero, stat) {
 .hero-area {
   display: flex;
   justify-content: center;
-  gap: 8px;
-  padding: 12px;
+  gap: 4px;
+  padding: 0 4px;
+  width: 100%;
+  box-sizing: border-box;
   flex-wrap: nowrap;
   margin-top: -90px;
   position: relative;
@@ -2200,6 +2169,8 @@ function getStatChange(hero, stat) {
 }
 
 .hero-wrapper {
+  flex: 1;
+  max-width: 24%;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -2213,15 +2184,16 @@ function getStatChange(hero, stat) {
 }
 
 .hero-wrapper.active .hero-image-container {
-  height: 85px;
+  aspect-ratio: 100 / 85; /* Show more of hero when active */
 }
 
 .hero-image-container {
-  width: 100px;
-  height: 67px; /* Shows top 2/3 of a 100x100 image */
+  width: 100%;
+  max-width: 100px;
+  aspect-ratio: 100 / 67; /* Shows top 2/3 of a 100x100 image */
   overflow: hidden;
   border-radius: 8px 8px 0 0;
-  transition: transform 0.2s ease, height 0.2s ease;
+  transition: transform 0.2s ease;
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.6));
 }
 
