@@ -6,6 +6,7 @@ import HeroSpotlight from '../components/HeroSpotlight.vue'
 import StarRating from '../components/StarRating.vue'
 import EmberParticles from '../components/EmberParticles.vue'
 import SummonInfoSheet from '../components/SummonInfoSheet.vue'
+import SummonRevealCard from '../components/SummonRevealCard.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import { getBannerAvailabilityText, getBannerImageUrl, getBlackMarketBanners } from '../data/banners.js'
 
@@ -25,6 +26,22 @@ const pendingRevealIndex = ref(0)
 const ownedBeforePull = ref(new Set())  // Templates owned before current pull
 const spotlightedThisPull = ref(new Set())  // Templates already spotlighted in current reveal
 
+// 10-pull reveal sequence state
+const showRevealStage = ref(false)
+const showSummaryGrid = ref(false)
+const revealSequenceActive = ref(false)
+const revealPaused = ref(false)  // True when spotlight is showing
+const pendingSpotlightFromSummary = ref(null)  // Hero clicked in summary grid
+
+// Timing constants (ms) per rarity
+const REVEAL_TIMING = {
+  1: 250,  // Common
+  2: 250,  // Uncommon
+  3: 250,  // Rare
+  4: 400,  // Epic
+  5: 500   // Legendary
+}
+
 // Ritual animation state
 const ritualActive = ref(false)
 const ritualPhase = ref('idle')  // 'idle' | 'gem-float' | 'ignition' | 'fade'
@@ -40,9 +57,10 @@ watch(() => gachaStore.blackMarketUnlocked, (unlocked) => {
   }
 }, { immediate: true })
 
-// Sequentially reveal heroes when results are shown
+// Handle single pull results (direct to spotlight for new heroes)
 watch(showResults, (newVal) => {
-  if (newVal && pullResults.value.length > 0) {
+  if (newVal && pullResults.value.length === 1) {
+    // Single pull - use spotlight directly for new heroes
     revealedCount.value = 0
     pendingRevealIndex.value = 0
     spotlightHero.value = null
@@ -51,6 +69,121 @@ watch(showResults, (newVal) => {
   }
 })
 
+// Handle 10-pull reveal sequence
+watch(showRevealStage, (newVal) => {
+  if (newVal && pullResults.value.length > 1) {
+    revealedCount.value = 0
+    pendingRevealIndex.value = 0
+    spotlightHero.value = null
+    spotlightedThisPull.value = new Set()
+    showSummaryGrid.value = false
+    revealSequenceActive.value = true
+    revealPaused.value = false
+    setTimeout(revealNextCard, 300)
+  }
+})
+
+// Get timing for revealing a card based on rarity
+function getRevealTiming(rarity) {
+  return REVEAL_TIMING[rarity] || 250
+}
+
+// Check if a hero is new (not owned before this pull)
+function isHeroNew(result) {
+  const templateId = result.template.id
+  return !ownedBeforePull.value.has(templateId)
+}
+
+// Check if hero should trigger spotlight (first occurrence of new template)
+function shouldSpotlight(result) {
+  const templateId = result.template.id
+  const isNewTemplate = !ownedBeforePull.value.has(templateId)
+  const alreadySpotlighted = spotlightedThisPull.value.has(templateId)
+  return isNewTemplate && !alreadySpotlighted
+}
+
+// 10-pull reveal: reveal next card
+function revealNextCard() {
+  if (!revealSequenceActive.value || revealPaused.value) return
+
+  if (pendingRevealIndex.value >= pullResults.value.length) {
+    // All revealed - show summary grid
+    showSummaryGrid.value = true
+    revealSequenceActive.value = false
+    return
+  }
+
+  const result = pullResults.value[pendingRevealIndex.value]
+
+  // Check if this hero should trigger spotlight
+  if (shouldSpotlight(result)) {
+    spotlightedThisPull.value.add(result.template.id)
+    revealPaused.value = true
+    spotlightHero.value = result
+    // The card is revealed but we pause for spotlight
+    revealedCount.value++
+    pendingRevealIndex.value++
+    return
+  }
+
+  // Normal reveal
+  revealedCount.value++
+  pendingRevealIndex.value++
+
+  if (pendingRevealIndex.value < pullResults.value.length) {
+    const nextResult = pullResults.value[pendingRevealIndex.value]
+    const timing = getRevealTiming(nextResult?.template?.rarity || 1)
+    setTimeout(revealNextCard, timing)
+  } else {
+    // All revealed - show summary grid
+    showSummaryGrid.value = true
+    revealSequenceActive.value = false
+  }
+}
+
+// Advance reveal (tap to speed up)
+function advanceReveal() {
+  if (revealPaused.value || !revealSequenceActive.value) return
+
+  // Immediately reveal next card
+  if (pendingRevealIndex.value < pullResults.value.length) {
+    revealNextCard()
+  }
+}
+
+// Skip to summary grid
+function skipReveal() {
+  revealSequenceActive.value = false
+  revealPaused.value = false
+  // Reveal all cards immediately
+  revealedCount.value = pullResults.value.length
+  pendingRevealIndex.value = pullResults.value.length
+  showSummaryGrid.value = true
+}
+
+// Handle card click in summary grid (for new heroes)
+function handleSummaryCardClick(result) {
+  const templateId = result.template.id
+  const isNew = !ownedBeforePull.value.has(templateId)
+
+  if (isNew && !spotlightedThisPull.value.has(templateId)) {
+    spotlightedThisPull.value.add(templateId)
+    pendingSpotlightFromSummary.value = result
+    spotlightHero.value = result
+  }
+}
+
+// Close reveal stage and return to altar
+function closeRevealStage() {
+  showRevealStage.value = false
+  showSummaryGrid.value = false
+  revealSequenceActive.value = false
+  pullResults.value = []
+  revealedCount.value = 0
+  pendingRevealIndex.value = 0
+}
+
+// Sequential reveal for SINGLE pulls (existing logic)
 function revealHeroesSequentially() {
   if (pendingRevealIndex.value >= pullResults.value.length) {
     return // All revealed
@@ -83,7 +216,32 @@ function revealHeroesSequentially() {
 
 function onSpotlightDismiss() {
   spotlightHero.value = null
-  // Resume reveal after brief delay
+
+  // Check if this was a summary grid click
+  if (pendingSpotlightFromSummary.value) {
+    pendingSpotlightFromSummary.value = null
+    return // Stay on summary grid
+  }
+
+  // If in 10-pull reveal sequence
+  if (showRevealStage.value && revealPaused.value) {
+    revealPaused.value = false
+    // Resume reveal after brief delay
+    setTimeout(() => {
+      if (pendingRevealIndex.value < pullResults.value.length) {
+        const nextResult = pullResults.value[pendingRevealIndex.value]
+        const timing = getRevealTiming(nextResult?.template?.rarity || 1)
+        setTimeout(revealNextCard, timing)
+      } else {
+        // All revealed - show summary grid
+        showSummaryGrid.value = true
+        revealSequenceActive.value = false
+      }
+    }, 50)
+    return
+  }
+
+  // Single pull reveal (existing logic)
   setTimeout(() => {
     revealedCount.value++
     pendingRevealIndex.value++
@@ -265,7 +423,8 @@ async function doTenPull() {
   const results = gachaStore.tenPull()
   if (results) {
     pullResults.value = results
-    showResults.value = true
+    // Use reveal stage for 10-pull
+    showRevealStage.value = true
   }
 
   isAnimating.value = false
@@ -385,7 +544,8 @@ async function doBlackMarketTenPull() {
   const results = gachaStore.blackMarketTenPull(selectedBlackMarketBanner.value.id)
   if (results) {
     pullResults.value = results
-    showResults.value = true
+    // Use reveal stage for 10-pull
+    showRevealStage.value = true
   }
 
   isAnimating.value = false
@@ -533,7 +693,58 @@ function handleTenPull() {
       <p class="summon-text">Summoning...</p>
     </div>
 
-    <!-- Results modal -->
+    <!-- 10-Pull Reveal Stage -->
+    <div v-if="showRevealStage" class="reveal-stage" @click="advanceReveal">
+      <!-- Card reveal area -->
+      <div class="reveal-cards" v-if="!showSummaryGrid">
+        <template v-for="(result, index) in pullResults" :key="result.instance.instanceId">
+          <SummonRevealCard
+            :hero="result"
+            :revealed="index < revealedCount"
+            :isNew="isHeroNew(result)"
+            :revealDelay="0"
+            @click.stop="() => {}"
+          />
+        </template>
+      </div>
+
+      <!-- Summary grid (2x5 layout) -->
+      <div v-if="showSummaryGrid" class="summary-grid" @click.stop>
+        <template v-for="(result, index) in pullResults" :key="result.instance.instanceId">
+          <SummonRevealCard
+            :hero="result"
+            :revealed="true"
+            :isNew="isHeroNew(result)"
+            @click="handleSummaryCardClick(result)"
+          />
+        </template>
+      </div>
+
+      <!-- Skip button during reveal -->
+      <button
+        v-if="!showSummaryGrid"
+        class="skip-reveal-button"
+        @click.stop="skipReveal"
+      >
+        Skip
+      </button>
+
+      <!-- Continue button in summary -->
+      <button
+        v-if="showSummaryGrid"
+        class="continue-button"
+        @click.stop="closeRevealStage"
+      >
+        Continue
+      </button>
+
+      <!-- Progress indicator -->
+      <div class="reveal-progress" v-if="!showSummaryGrid">
+        {{ revealedCount }} / {{ pullResults.length }}
+      </div>
+    </div>
+
+    <!-- Results modal (for single pulls only) -->
     <div v-if="showResults" class="results-modal" @click.self="closeResults">
       <div class="results-content">
         <div class="results-banner" :style="{ backgroundImage: `url(${summoningBg})` }">
@@ -1103,6 +1314,97 @@ function handleTenPull() {
 @keyframes textPulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+/* ===== 10-Pull Reveal Stage ===== */
+.reveal-stage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #050505;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+  cursor: pointer;
+}
+
+.reveal-cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  max-width: 600px;
+  padding: 20px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  max-width: 580px;
+  padding: 16px;
+}
+
+@media (max-width: 500px) {
+  .summary-grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    padding: 12px;
+  }
+}
+
+.skip-reveal-button {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  padding: 8px 20px;
+  background: rgba(30, 30, 30, 0.8);
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.skip-reveal-button:hover {
+  background: rgba(50, 50, 50, 0.9);
+  color: #e5e5e5;
+}
+
+.continue-button {
+  margin-top: 24px;
+  padding: 16px 48px;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+}
+
+.continue-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+.reveal-progress {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #6b6b6b;
+  font-size: 0.85rem;
 }
 
 /* ===== Results Modal ===== */

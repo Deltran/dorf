@@ -796,7 +796,8 @@ describe('GachaScreen - Dark Altar Redesign', () => {
             EmberParticles: true,
             SummonInfoSheet: true,
             HeroSpotlight: true,
-            HeroCard: true
+            HeroCard: true,
+            SummonRevealCard: true
           }
         }
       })
@@ -809,15 +810,15 @@ describe('GachaScreen - Dark Altar Redesign', () => {
       // Should be in ritual state
       expect(wrapper.find('.gacha-screen').classes()).toContain('ritual-active')
 
-      // Results should not be shown at 800ms (single pull timing)
+      // Reveal stage should not be shown at 800ms (single pull timing)
       await vi.advanceTimersByTimeAsync(800)
       await flushPromises()
-      expect(wrapper.find('.results-modal').exists()).toBe(false)
+      expect(wrapper.find('.reveal-stage').exists()).toBe(false)
 
-      // After 1200ms total, results should show
+      // After 1200ms total, reveal stage should show (10-pulls use reveal sequence now)
       await vi.advanceTimersByTimeAsync(400)
       await flushPromises()
-      expect(wrapper.find('.results-modal').exists()).toBe(true)
+      expect(wrapper.find('.reveal-stage').exists()).toBe(true)
     })
   })
 })
