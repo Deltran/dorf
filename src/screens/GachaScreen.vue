@@ -514,6 +514,17 @@ function handleNextBanner() {
   }
 }
 
+// Touch handlers for banner swipe gestures
+function handleBannerTouchStart(e) {
+  bannerTouchStartX.value = e.touches[0].clientX
+}
+
+function handleBannerTouchEnd(e) {
+  const deltaX = e.changedTouches[0].clientX - bannerTouchStartX.value
+  if (deltaX > 50) handlePrevBanner()
+  else if (deltaX < -50) handleNextBanner()
+}
+
 // Black Market pull functions
 async function doBlackMarketSinglePull() {
   if (!canDisplaySinglePull.value || isAnimating.value) return
@@ -616,7 +627,7 @@ function handleTenPull() {
 
       <!-- Banner Section -->
       <section class="banner-section">
-        <div class="banner-frame" :class="{ 'frame-corrupted': isBlackMarketView }">
+        <div class="banner-frame" :class="{ 'frame-corrupted': isBlackMarketView }" @touchstart="handleBannerTouchStart" @touchend="handleBannerTouchEnd">
           <div
             class="banner-image"
             :style="displayBannerImageUrl ? { backgroundImage: `url(${displayBannerImageUrl})` } : {}"
@@ -669,6 +680,7 @@ function handleTenPull() {
             <span class="cost-icon">&#128142;</span>
             {{ displayTenCost }}
           </span>
+          <span class="guarantee-badge">4★+</span>
         </button>
       </section>
 
