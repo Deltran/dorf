@@ -4,10 +4,10 @@ import { useGachaStore, useTipsStore, useHeroesStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import HeroSpotlight from '../components/HeroSpotlight.vue'
 import StarRating from '../components/StarRating.vue'
-import BlackMarketContent from '../components/BlackMarketContent.vue'
+import EmberParticles from '../components/EmberParticles.vue'
+import SummonInfoSheet from '../components/SummonInfoSheet.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
 import { getBannerAvailabilityText, getBannerImageUrl } from '../data/banners.js'
-import { getHeroTemplate } from '../data/heroes/index.js'
 
 const emit = defineEmits(['navigate'])
 
@@ -18,12 +18,12 @@ const heroesStore = useHeroesStore()
 const pullResults = ref([])
 const isAnimating = ref(false)
 const showResults = ref(false)
-const showPool = ref(false)
-const showPityTooltip = ref(false)
+const showInfoSheet = ref(false)
 const revealedCount = ref(0)
 const spotlightHero = ref(null)
 const pendingRevealIndex = ref(0)
-const activeTab = ref('summon')
+const ownedBeforePull = ref(new Set())  // Templates owned before current pull
+const spotlightedThisPull = ref(new Set())  // Templates already spotlighted in current reveal
 
 // Check for unlock and show tip
 watch(() => gachaStore.blackMarketUnlocked, (unlocked) => {
@@ -38,6 +38,7 @@ watch(showResults, (newVal) => {
     revealedCount.value = 0
     pendingRevealIndex.value = 0
     spotlightHero.value = null
+    spotlightedThisPull.value = new Set()
     setTimeout(revealHeroesSequentially, 300)
   }
 })
@@ -48,15 +49,17 @@ function revealHeroesSequentially() {
   }
 
   const result = pullResults.value[pendingRevealIndex.value]
+  const templateId = result.template.id
 
-  // Check if this hero was just added in this pull (meaning it's truly new)
-  // A hero is "new" if only 1 copy exists in the collection
-  const existingCount = heroesStore.collection.filter(
-    h => h.templateId === result.template.id
-  ).length
+  // A hero is "new" if:
+  // 1. Player didn't own this template before the pull, AND
+  // 2. We haven't already spotlighted this template in this reveal session
+  const isNewTemplate = !ownedBeforePull.value.has(templateId)
+  const alreadySpotlighted = spotlightedThisPull.value.has(templateId)
 
-  // Only spotlight if this is the only copy (meaning it's new from this pull)
-  if (existingCount === 1) {
+  // Spotlight first occurrence of any new template
+  if (isNewTemplate && !alreadySpotlighted) {
+    spotlightedThisPull.value.add(templateId)
     spotlightHero.value = result
     return // Pause reveal until spotlight dismissed
   }
@@ -91,7 +94,10 @@ const pityInfo = computed(() => ({
   current5StarRate: (gachaStore.current5StarRate * 100).toFixed(1),
   pity4Percent: Math.min(100, (gachaStore.pullsSince4Star / gachaStore.FOUR_STAR_PITY) * 100),
   pity5SoftPercent: Math.min(100, (gachaStore.pullsSince5Star / gachaStore.SOFT_PITY_START) * 100),
-  pity5HardPercent: Math.min(100, (gachaStore.pullsSince5Star / gachaStore.HARD_PITY) * 100)
+  pity5HardPercent: Math.min(100, (gachaStore.pullsSince5Star / gachaStore.HARD_PITY) * 100),
+  FOUR_STAR_PITY: gachaStore.FOUR_STAR_PITY,
+  SOFT_PITY_START: gachaStore.SOFT_PITY_START,
+  HARD_PITY: gachaStore.HARD_PITY
 }))
 
 const activeBanners = computed(() => gachaStore.activeBanners)
@@ -113,20 +119,15 @@ const bannerImageUrl = computed(() => {
 const currentBannerIndex = computed(() => {
   return activeBanners.value.findIndex(b => b.id === gachaStore.selectedBannerId)
 })
-const poolByRarity = computed(() => {
-  if (!selectedBanner.value) return []
-  const pool = selectedBanner.value.heroPool
-  return [5, 4, 3, 2, 1].map(rarity => ({
-    rarity,
-    heroes: (pool[rarity] || []).map(id => getHeroTemplate(id)).filter(Boolean)
-  }))
-})
 
 async function doSinglePull() {
   if (!gachaStore.canSinglePull || isAnimating.value) return
 
   isAnimating.value = true
   pullResults.value = []
+
+  // Capture owned templates BEFORE pulling
+  ownedBeforePull.value = new Set(heroesStore.collection.map(h => h.templateId))
 
   // Simulate animation delay
   await new Promise(r => setTimeout(r, 800))
@@ -145,6 +146,9 @@ async function doTenPull() {
 
   isAnimating.value = true
   pullResults.value = []
+
+  // Capture owned templates BEFORE pulling
+  ownedBeforePull.value = new Set(heroesStore.collection.map(h => h.templateId))
 
   // Simulate animation delay
   await new Promise(r => setTimeout(r, 1200))
@@ -188,177 +192,72 @@ function nextBanner() {
   gachaStore.selectBanner(banners[idx].id)
 }
 
-function handleBlackMarketResults(results) {
-  pullResults.value = results
-  showResults.value = true
+function openInfoSheet() {
+  showInfoSheet.value = true
+}
+
+function closeInfoSheet() {
+  showInfoSheet.value = false
 }
 </script>
 
 <template>
   <div class="gacha-screen">
-    <!-- Animated background -->
-    <div class="bg-layer bg-gradient"></div>
-    <div class="bg-layer bg-stars"></div>
+    <!-- Dark vignette background -->
     <div class="bg-vignette"></div>
 
+    <!-- Header -->
     <header class="gacha-header">
       <button class="back-button" @click="emit('navigate', 'home')">
-        <span class="back-arrow">‹</span>
+        <span class="back-arrow">&#8249;</span>
         <span>Back</span>
       </button>
-      <h1 class="screen-title">Summon</h1>
       <div class="gem-display">
-        <div class="gem-glow"></div>
-        <span class="gem-icon">💎</span>
+        <span class="gem-icon">&#128142;</span>
         <span class="gem-count">{{ gachaStore.gems.toLocaleString() }}</span>
       </div>
     </header>
 
-    <div class="tab-bar">
-      <button
-        class="tab"
-        :class="{ active: activeTab === 'summon' }"
-        @click="activeTab = 'summon'"
-      >
-        Summon
-      </button>
-      <button
-        v-if="gachaStore.blackMarketUnlocked"
-        id="black-market-tab"
-        class="tab tab-black-market"
-        :class="{ active: activeTab === 'black-market' }"
-        @click="activeTab = 'black-market'"
-      >
-        <span class="tab-icon">🌑</span>
-        Black Market
-      </button>
-    </div>
-
-    <template v-if="activeTab === 'summon'">
-    <section class="banner-area">
-      <div class="banner" :style="bannerImageUrl ? { backgroundImage: `url(${bannerImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}">
-        <div class="banner-glow"></div>
+    <!-- Banner Section -->
+    <section class="banner-section">
+      <div class="banner-frame">
+        <div
+          class="banner-image"
+          :style="bannerImageUrl ? { backgroundImage: `url(${bannerImageUrl})` } : {}"
+        >
+          <div class="banner-inner-shadow"></div>
+        </div>
+        <!-- Navigation arrows -->
         <div class="banner-nav" v-if="activeBanners.length > 1">
-          <button class="banner-arrow banner-arrow-left" @click="prevBanner">‹</button>
-          <button class="banner-arrow banner-arrow-right" @click="nextBanner">›</button>
-        </div>
-        <div class="banner-content">
-          <span class="banner-label">{{ selectedBanner?.permanent ? 'Standard Banner' : 'Featured Banner' }}</span>
-          <h2>{{ selectedBanner?.name || 'Hero Summoning' }}</h2>
-          <p>{{ selectedBanner?.description || 'Call forth powerful heroes to join your party!' }}</p>
-        </div>
-        <div class="banner-stars">
-          <span>&#10022;</span><span>&#10022;</span><span>&#10022;</span>
+          <button class="banner-arrow banner-arrow-left" @click="prevBanner">&#9668;</button>
+          <button class="banner-arrow banner-arrow-right" @click="nextBanner">&#9658;</button>
         </div>
       </div>
+
+      <!-- Banner info -->
+      <h2 class="banner-name">{{ selectedBanner?.name || 'Hero Summoning' }}</h2>
       <div class="banner-availability">
         <span class="availability-text" :class="{ 'availability-urgent': bannerUrgent }">
           {{ bannerAvailability }}
         </span>
-        <button class="view-pool-button" @click="showPool = true">View Pool</button>
-        <div class="banner-dots" v-if="activeBanners.length > 1">
-          <span
-            v-for="(b, i) in activeBanners"
-            :key="b.id"
-            class="banner-dot"
-            :class="{ active: i === currentBannerIndex }"
-            @click="gachaStore.selectBanner(b.id)"
-          ></span>
-        </div>
       </div>
     </section>
 
-    <section class="rates-info">
-      <div class="section-header">
-        <div class="section-line"></div>
-        <h3>Summon Rates</h3>
-        <div class="section-line"></div>
-      </div>
-      <div class="rate-grid">
-        <div class="rate rate-5">
-          <div class="rate-stars">
-            <StarRating :rating="5" size="sm" />
-          </div>
-          <span class="rate-value">{{ pityInfo.current5StarRate }}%</span>
-          <span class="rate-label">Legendary</span>
-        </div>
-        <div class="rate rate-4">
-          <div class="rate-stars">
-            <StarRating :rating="4" size="sm" />
-          </div>
-          <span class="rate-value">8%</span>
-          <span class="rate-label">Epic</span>
-        </div>
-        <div class="rate rate-3">
-          <div class="rate-stars">
-            <StarRating :rating="3" size="sm" />
-          </div>
-          <span class="rate-value">20%</span>
-          <span class="rate-label">Rare</span>
-        </div>
-      </div>
-      <p class="rate-footer">2★ Uncommon: 30% · 1★ Common: 40%</p>
-    </section>
-
-    <section class="pity-info">
-      <div class="section-header">
-        <div class="section-line"></div>
-        <h3>Pity Progress</h3>
-        <button class="pity-info-button" @click="showPityTooltip = !showPityTooltip">?</button>
-        <div class="section-line"></div>
-      </div>
-      <div v-if="showPityTooltip" class="pity-tooltip-backdrop" @click="showPityTooltip = false"></div>
-      <div v-if="showPityTooltip" class="pity-tooltip">
-        <p>Pity ensures you get rare heroes even with bad luck. Counters are shared across all banners.</p>
-        <p><strong>4★ Pity:</strong> Every {{ gachaStore.FOUR_STAR_PITY }} pulls without a 4★+ hero guarantees one on your next pull.</p>
-        <p><strong>5★ Soft Pity:</strong> After {{ gachaStore.SOFT_PITY_START }} pulls without a 5★, the legendary drop rate starts increasing with every pull.</p>
-        <p><strong>5★ Hard Pity:</strong> At {{ gachaStore.HARD_PITY }} pulls without a 5★, your next pull is a guaranteed legendary.</p>
-      </div>
-      <div class="pity-grid">
-        <div class="pity-item">
-          <div class="pity-header">
-            <span class="pity-label">4★ Pity</span>
-            <span class="pity-value">{{ pityInfo.pullsSince4Star }}/{{ gachaStore.FOUR_STAR_PITY }}</span>
-          </div>
-          <div class="pity-bar">
-            <div class="pity-fill pity-4" :style="{ width: pityInfo.pity4Percent + '%' }"></div>
-          </div>
-        </div>
-        <div class="pity-item">
-          <div class="pity-header">
-            <span class="pity-label">5★ Soft Pity</span>
-            <span class="pity-value">{{ pityInfo.pullsSince5Star }}/{{ gachaStore.SOFT_PITY_START }}</span>
-          </div>
-          <div class="pity-bar">
-            <div class="pity-fill pity-5-soft" :style="{ width: pityInfo.pity5SoftPercent + '%' }"></div>
-          </div>
-        </div>
-        <div class="pity-item">
-          <div class="pity-header">
-            <span class="pity-label">5★ Hard Pity</span>
-            <span class="pity-value">{{ pityInfo.pullsSince5Star }}/{{ gachaStore.HARD_PITY }}</span>
-          </div>
-          <div class="pity-bar">
-            <div class="pity-fill pity-5-hard" :style="{ width: pityInfo.pity5HardPercent + '%' }"></div>
-          </div>
-        </div>
+    <!-- Altar Section with Embers -->
+    <section class="altar-section">
+      <div class="altar-surface">
+        <EmberParticles :count="16" palette="warm" intensity="medium" />
       </div>
     </section>
 
+    <!-- Pull Buttons -->
     <section class="pull-buttons">
       <button
         class="pull-button single"
         :disabled="!gachaStore.canSinglePull || isAnimating"
         @click="doSinglePull"
       >
-        <div class="pull-icon">✦</div>
-        <div class="pull-content">
-          <span class="pull-label">Single Pull</span>
-          <span class="pull-cost">
-            <span class="cost-icon">💎</span>
-            {{ gachaStore.SINGLE_PULL_COST }}
-          </span>
-        </div>
+        <span class="pull-label">&#215;1</span>
       </button>
 
       <button
@@ -366,32 +265,31 @@ function handleBlackMarketResults(results) {
         :disabled="!gachaStore.canTenPull || isAnimating"
         @click="doTenPull"
       >
-        <div class="pull-icon">✦✦✦</div>
-        <div class="pull-content">
-          <span class="pull-label">10 Pull</span>
-          <span class="pull-cost">
-            <span class="cost-icon">💎</span>
-            {{ gachaStore.TEN_PULL_COST }}
-          </span>
-        </div>
-        <span class="pull-bonus">Guaranteed 4★+</span>
+        <span class="pull-label">&#215;10</span>
+        <span class="pull-divider">&#183;</span>
+        <span class="pull-cost">
+          <span class="cost-icon">&#128142;</span>
+          {{ gachaStore.TEN_PULL_COST }}
+        </span>
       </button>
     </section>
-    </template>
 
-    <template v-else-if="activeTab === 'black-market'">
-      <BlackMarketContent
-        @pull-results="handleBlackMarketResults"
-      />
-    </template>
+    <!-- Info Button -->
+    <button class="info-button" @click="openInfoSheet">?</button>
+
+    <!-- Black Market Hidden Door -->
+    <div
+      v-if="gachaStore.blackMarketUnlocked"
+      class="black-market-door"
+      @click="emit('navigate', 'black-market')"
+    >
+      <span class="door-icon">&#127761;</span>
+    </div>
 
     <!-- Animation overlay -->
     <div v-if="isAnimating" class="animation-overlay">
       <div class="summon-effect">
-        <div class="summon-ring ring-1"></div>
-        <div class="summon-ring ring-2"></div>
-        <div class="summon-ring ring-3"></div>
-        <div class="summon-core"></div>
+        <div class="altar-flare"></div>
       </div>
       <p class="summon-text">Summoning...</p>
     </div>
@@ -402,9 +300,9 @@ function handleBlackMarketResults(results) {
         <div class="results-banner" :style="{ backgroundImage: `url(${summoningBg})` }">
           <div class="banner-overlay"></div>
           <div class="banner-text">
-            <div class="results-sparkle left">✦</div>
+            <div class="results-sparkle left">&#10022;</div>
             <h2>Summon Results!</h2>
-            <div class="results-sparkle right">✦</div>
+            <div class="results-sparkle right">&#10022;</div>
           </div>
         </div>
         <div class="results-body">
@@ -435,29 +333,15 @@ function handleBlackMarketResults(results) {
         </div>
       </div>
     </div>
-    <!-- Pool modal -->
-    <div v-if="showPool" class="pool-modal" @click.self="showPool = false">
-      <div class="pool-content">
-        <div class="pool-header">
-          <h2>{{ selectedBanner?.name }} - Hero Pool</h2>
-          <button class="pool-close" @click="showPool = false">&times;</button>
-        </div>
-        <div class="pool-body">
-          <div v-for="group in poolByRarity" :key="group.rarity" class="pool-rarity-group">
-            <div class="pool-rarity-header">
-              <StarRating :rating="group.rarity" size="sm" />
-              <span class="pool-rarity-label">{{ ['', 'Common', 'Uncommon', 'Rare', 'Epic', 'Legendary'][group.rarity] }}</span>
-            </div>
-            <div class="pool-heroes">
-              <div v-for="hero in group.heroes" :key="hero.id" class="pool-hero" :class="`pool-hero-rarity-${group.rarity}`">
-                <span class="pool-hero-name">{{ hero.name }}</span>
-                <span class="pool-hero-class">{{ hero.classId }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+
+    <!-- Summon Info Sheet -->
+    <SummonInfoSheet
+      :visible="showInfoSheet"
+      :banner="selectedBanner"
+      :pity-info="pityInfo"
+      banner-type="normal"
+      @close="closeInfoSheet"
+    />
 
     <!-- New Hero Spotlight -->
     <HeroSpotlight
@@ -471,69 +355,25 @@ function handleBlackMarketResults(results) {
 <style scoped>
 /* ===== Base Layout ===== */
 .gacha-screen {
-  min-height: 100vh;
-  padding: 20px;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 20px;
   position: relative;
   overflow: hidden;
+  background: linear-gradient(to bottom, #0a0a0a 0%, #121212 100%);
+  padding: 16px;
 }
 
-/* ===== Animated Background ===== */
-.bg-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.bg-gradient {
-  background: linear-gradient(
-    135deg,
-    #1e1b4b 0%,
-    #312e81 25%,
-    #4c1d95 50%,
-    #312e81 75%,
-    #1e1b4b 100%
-  );
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.bg-stars {
-  background-image:
-    radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.3), transparent),
-    radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.2), transparent),
-    radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.3), transparent),
-    radial-gradient(2px 2px at 130px 80px, rgba(255,255,255,0.2), transparent),
-    radial-gradient(1px 1px at 160px 120px, rgba(255,255,255,0.4), transparent);
-  background-size: 200px 200px;
-  animation: starsTwinkle 4s ease-in-out infinite;
-}
-
-@keyframes starsTwinkle {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
-
+/* ===== Dark Vignette Background ===== */
 .bg-vignette {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.5) 100%);
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.8) 100%);
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
 }
 
 /* ===== Header ===== */
@@ -543,14 +383,16 @@ function handleBlackMarketResults(results) {
   align-items: center;
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
+  margin-bottom: 16px;
 }
 
 .back-button {
   display: flex;
   align-items: center;
   gap: 4px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid #334155;
+  background: rgba(26, 26, 26, 0.8);
+  border: 1px solid #2a2520;
   border-radius: 8px;
   color: #9ca3af;
   font-size: 0.9rem;
@@ -560,8 +402,8 @@ function handleBlackMarketResults(results) {
 }
 
 .back-button:hover {
-  color: #f3f4f6;
-  border-color: #4b5563;
+  color: #e5e5e5;
+  border-color: #3a3530;
 }
 
 .back-arrow {
@@ -569,383 +411,187 @@ function handleBlackMarketResults(results) {
   line-height: 1;
 }
 
-.screen-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #f3f4f6;
-  margin: 0;
-  text-shadow: 0 2px 10px rgba(168, 85, 247, 0.5);
-}
-
 .gem-display {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: rgba(26, 26, 26, 0.9);
   padding: 10px 18px;
   border-radius: 24px;
-  border: 1px solid #334155;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-}
-
-.gem-glow {
-  position: absolute;
-  top: 50%;
-  left: 20px;
-  width: 30px;
-  height: 30px;
-  background: radial-gradient(circle, rgba(96, 165, 250, 0.4) 0%, transparent 70%);
-  transform: translateY(-50%);
-  animation: gemPulse 2s ease-in-out infinite;
-}
-
-@keyframes gemPulse {
-  0%, 100% { opacity: 0.5; transform: translateY(-50%) scale(1); }
-  50% { opacity: 1; transform: translateY(-50%) scale(1.2); }
+  border: 1px solid #2a2520;
 }
 
 .gem-icon {
   font-size: 1.2rem;
-  position: relative;
-  z-index: 1;
 }
 
 .gem-count {
   font-size: 1.1rem;
   font-weight: 700;
   color: #60a5fa;
-  position: relative;
-  z-index: 1;
 }
 
-/* ===== Banner ===== */
-.banner-area {
+/* ===== Banner Section ===== */
+.banner-section {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 12px;
 }
 
-.banner {
-  background: linear-gradient(135deg, #312e81 0%, #4c1d95 50%, #6d28d9 100%);
-  border-radius: 16px;
-  padding: 32px 24px;
-  text-align: center;
+.banner-frame {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 16/9;
+  background: #1a1a1a;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.5),
+    0 4px 8px rgba(0,0,0,0.3),
+    0 0 0 2px #2a2520;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-color: #111;
+  border-radius: 4px;
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 0 8px 32px rgba(109, 40, 217, 0.3);
 }
 
-.banner-glow {
+.banner-inner-shadow {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+  pointer-events: none;
+}
+
+/* ===== Banner Navigation ===== */
+.banner-nav {
   position: absolute;
   top: 50%;
-  left: 50%;
-  width: 200%;
-  height: 200%;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.2) 0%, transparent 50%);
-  animation: bannerPulse 3s ease-in-out infinite;
-}
-
-@keyframes bannerPulse {
-  0%, 100% { opacity: 0.5; transform: translate(-50%, -50%) scale(1); }
-  50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-}
-
-.banner-content {
-  position: relative;
-  z-index: 1;
-}
-
-.banner-label {
-  font-size: 0.75rem;
-  color: #c4b5fd;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-}
-
-.banner h2 {
-  color: #f3f4f6;
-  margin: 8px 0;
-  font-size: 1.5rem;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.banner p {
-  color: #c4b5fd;
-  margin: 0;
-  font-size: 0.9rem;
-}
-
-.banner-stars {
-  margin-top: 16px;
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  color: #fbbf24;
-  font-size: 1.2rem;
-  animation: starsFloat 2s ease-in-out infinite;
-}
-
-@keyframes starsFloat {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-.banner-stars span:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.banner-stars span:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-/* ===== Section Headers ===== */
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.section-header h3 {
-  font-size: 0.8rem;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 0;
-  white-space: nowrap;
-}
-
-.section-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, #374151 50%, transparent 100%);
-}
-
-/* ===== Rates ===== */
-.rates-info {
-  position: relative;
-  z-index: 1;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid #334155;
-}
-
-.rate-grid {
-  display: flex;
-  justify-content: space-around;
-  gap: 12px;
-}
-
-.rate {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  padding: 12px 16px;
-  background: rgba(55, 65, 81, 0.5);
-  border-radius: 10px;
-  flex: 1;
-  transition: transform 0.2s ease;
-}
-
-.rate:hover {
-  transform: translateY(-2px);
-}
-
-.rate-5 { border-bottom: 2px solid #f59e0b; }
-.rate-4 { border-bottom: 2px solid #a855f7; }
-.rate-3 { border-bottom: 2px solid #3b82f6; }
-
-.rate-value {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #f3f4f6;
-}
-
-.rate-label {
-  font-size: 0.7rem;
-  color: #6b7280;
-  text-transform: uppercase;
-}
-
-.rate-footer {
-  margin: 10px 0 0;
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-align: center;
-}
-
-/* ===== Pity ===== */
-.pity-info {
-  position: relative;
-  z-index: 2;
-  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
-  border-radius: 12px;
-  padding: 16px;
-  border: 1px solid #334155;
-}
-
-.pity-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pity-item {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.pity-header {
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  padding: 0 4px;
+  pointer-events: none;
 }
 
-.pity-label {
-  font-size: 0.8rem;
+.banner-arrow {
+  pointer-events: auto;
+  background: rgba(26, 26, 26, 0.9);
+  border: 1px solid #2a2520;
   color: #9ca3af;
-}
-
-.pity-value {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #f3f4f6;
-}
-
-.pity-bar {
-  height: 8px;
-  background: #374151;
+  font-size: 1rem;
+  width: 32px;
+  height: 32px;
   border-radius: 4px;
-  overflow: hidden;
-}
-
-.pity-fill {
-  height: 100%;
-  border-radius: 4px;
-  transition: width 0.5s ease;
-}
-
-.pity-info-button {
-  background: none;
-  border: 1px solid #4b5563;
-  color: #9ca3af;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  font-size: 0.65rem;
-  font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
   transition: all 0.2s ease;
-  flex-shrink: 0;
 }
 
-.pity-info-button:hover {
-  color: #f3f4f6;
-  border-color: #6b7280;
+.banner-arrow:hover {
+  background: rgba(42, 37, 32, 0.9);
+  color: #e5e5e5;
+  transform: scale(1.1);
 }
 
-.pity-tooltip-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 50;
+/* ===== Banner Info ===== */
+.banner-name {
+  color: #e5e5e5;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 12px 0 4px;
+  text-align: center;
 }
 
-.pity-tooltip {
-  position: absolute;
-  top: 44px;
-  left: 16px;
-  right: 16px;
-  background: #1e293b;
-  border: 1px solid #475569;
+.banner-availability {
+  text-align: center;
+}
+
+.availability-text {
+  font-size: 0.85rem;
+  color: #6b6b6b;
+}
+
+.availability-text.availability-urgent {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+/* ===== Altar Section ===== */
+.altar-section {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.altar-surface {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  height: 80px;
+  background: linear-gradient(
+    to top,
+    #1a1816 0%,
+    #221f1c 50%,
+    #1a1816 100%
+  );
   border-radius: 8px;
-  padding: 12px 14px;
-  z-index: 51;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-}
-
-.pity-tooltip p {
-  margin: 0 0 6px;
-  font-size: 0.78rem;
-  color: #9ca3af;
-  line-height: 1.4;
-}
-
-.pity-tooltip p:last-child {
-  margin-bottom: 0;
-}
-
-.pity-tooltip strong {
-  color: #d1d5db;
-}
-
-.pity-fill.pity-4 {
-  background: linear-gradient(90deg, #a855f7 0%, #c084fc 100%);
-}
-
-.pity-fill.pity-5-soft {
-  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 100%);
-}
-
-.pity-fill.pity-5-hard {
-  background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);
+  border: 1px solid #2a2520;
+  box-shadow:
+    0 0 20px rgba(255, 176, 32, 0.1),
+    inset 0 -4px 8px rgba(0,0,0,0.3);
+  overflow: hidden;
 }
 
 /* ===== Pull Buttons ===== */
 .pull-buttons {
   display: flex;
-  gap: 16px;
-  margin-top: auto;
+  gap: 12px;
   position: relative;
   z-index: 1;
+  flex-shrink: 0;
+  margin-bottom: 12px;
 }
 
 .pull-button {
-  flex: 1;
-  padding: 20px;
-  border-radius: 14px;
-  border: 2px solid #374151;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 10px;
+  border: 1px solid #2a2520;
+  background: linear-gradient(to bottom, #1a1816 0%, #141210 100%);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  position: relative;
-  overflow: hidden;
-}
-
-.pull-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-  transition: left 0.5s ease;
-}
-
-.pull-button:hover:not(:disabled)::before {
-  left: 100%;
+  padding: 16px 20px;
+  color: #e5e5e5;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .pull-button:hover:not(:disabled) {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+  border-color: #3a3530;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
 .pull-button:disabled {
@@ -953,40 +599,33 @@ function handleBlackMarketResults(results) {
   cursor: not-allowed;
 }
 
+.pull-button.single {
+  flex: 0 0 30%;
+}
+
 .pull-button.ten {
-  border-color: #7c3aed;
-  background: linear-gradient(135deg, #312e81 0%, #1e1b4b 100%);
+  flex: 1;
+  background: linear-gradient(to bottom, #221f1c 0%, #1a1816 100%);
+  border-color: #3a3530;
+  box-shadow: 0 0 15px rgba(255, 176, 32, 0.1);
 }
 
 .pull-button.ten:hover:not(:disabled) {
-  border-color: #a78bfa;
-  box-shadow: 0 8px 30px rgba(124, 58, 237, 0.4);
-}
-
-.pull-icon {
-  font-size: 1.5rem;
-  color: #fbbf24;
-  text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
-}
-
-.pull-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
+  box-shadow: 0 0 20px rgba(255, 176, 32, 0.2), 0 4px 12px rgba(0,0,0,0.4);
 }
 
 .pull-label {
   font-size: 1.1rem;
-  font-weight: 600;
-  color: #f3f4f6;
+}
+
+.pull-divider {
+  color: #4b4b4b;
 }
 
 .pull-cost {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 1rem;
   color: #60a5fa;
 }
 
@@ -994,13 +633,56 @@ function handleBlackMarketResults(results) {
   font-size: 0.9rem;
 }
 
-.pull-bonus {
-  font-size: 0.7rem;
-  color: #a78bfa;
-  background: rgba(167, 139, 250, 0.2);
-  padding: 4px 10px;
-  border-radius: 10px;
-  margin-top: 4px;
+/* ===== Info Button ===== */
+.info-button {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  background: transparent;
+  border: 1px solid #3a3530;
+  color: #6b6b6b;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.info-button:hover {
+  color: #e5e5e5;
+  border-color: #4b4540;
+}
+
+/* ===== Black Market Door ===== */
+.black-market-door {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 2;
+  opacity: 0.6;
+  transition: all 0.3s ease;
+}
+
+.black-market-door:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.door-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 4px rgba(64, 255, 96, 0.3));
 }
 
 /* ===== Animation Overlay ===== */
@@ -1024,61 +706,25 @@ function handleBlackMarketResults(results) {
   height: 200px;
 }
 
-.summon-ring {
+.altar-flare {
   position: absolute;
   top: 50%;
   left: 50%;
-  border-radius: 50%;
-  border: 2px solid;
-  transform: translate(-50%, -50%);
-}
-
-.ring-1 {
   width: 100px;
   height: 100px;
-  border-color: #a855f7;
-  animation: ringPulse 1.5s ease-in-out infinite;
-}
-
-.ring-2 {
-  width: 140px;
-  height: 140px;
-  border-color: #c084fc;
-  animation: ringPulse 1.5s ease-in-out infinite 0.2s;
-}
-
-.ring-3 {
-  width: 180px;
-  height: 180px;
-  border-color: #e9d5ff;
-  animation: ringPulse 1.5s ease-in-out infinite 0.4s;
-}
-
-@keyframes ringPulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-  50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.5; }
-}
-
-.summon-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 40px;
-  height: 40px;
-  background: radial-gradient(circle, #fbbf24 0%, #f59e0b 100%);
+  background: radial-gradient(circle, rgba(255, 176, 32, 0.8) 0%, rgba(255, 96, 48, 0.4) 50%, transparent 70%);
   border-radius: 50%;
   transform: translate(-50%, -50%);
-  animation: corePulse 0.8s ease-in-out infinite;
-  box-shadow: 0 0 30px rgba(251, 191, 36, 0.6);
+  animation: altarPulse 0.8s ease-in-out infinite;
 }
 
-@keyframes corePulse {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -50%) scale(1.2); }
+@keyframes altarPulse {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  50% { transform: translate(-50%, -50%) scale(1.3); opacity: 0.7; }
 }
 
 .summon-text {
-  color: #f3f4f6;
+  color: #e5e5e5;
   font-size: 1.2rem;
   margin-top: 30px;
   letter-spacing: 2px;
@@ -1106,13 +752,13 @@ function handleBlackMarketResults(results) {
 }
 
 .results-content {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
   border-radius: 20px;
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
-  border: 1px solid #334155;
+  border: 1px solid #2a2520;
   box-shadow: 0 20px 50px rgba(0,0,0,0.5);
   display: flex;
   flex-direction: column;
@@ -1133,7 +779,7 @@ function handleBlackMarketResults(results) {
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.3) 0%,
-    rgba(30, 27, 75, 0.7) 100%
+    rgba(10, 10, 10, 0.8) 100%
   );
 }
 
@@ -1149,14 +795,14 @@ function handleBlackMarketResults(results) {
 }
 
 .banner-text h2 {
-  color: #f3f4f6;
+  color: #e5e5e5;
   margin: 0;
   font-size: 1.5rem;
   text-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 
 .results-sparkle {
-  color: #fbbf24;
+  color: #ffb020;
   font-size: 1.2rem;
   animation: sparkle 1s ease-in-out infinite;
 }
@@ -1221,13 +867,13 @@ function handleBlackMarketResults(results) {
 }
 
 @keyframes glowGolden {
-  0%, 100% { filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.6)); }
-  50% { filter: drop-shadow(0 0 25px rgba(251, 191, 36, 0.9)); }
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(255, 176, 32, 0.6)); }
+  50% { filter: drop-shadow(0 0 25px rgba(255, 176, 32, 0.9)); }
 }
 
 .results-counter {
   text-align: center;
-  color: #6b7280;
+  color: #6b6b6b;
   font-size: 0.85rem;
   margin-bottom: 16px;
 }
@@ -1249,281 +895,5 @@ function handleBlackMarketResults(results) {
 .close-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
-}
-
-/* ===== Banner Navigation ===== */
-.banner-nav {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 2;
-  pointer-events: none;
-}
-
-.banner-arrow {
-  pointer-events: auto;
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #f3f4f6;
-  font-size: 1.8rem;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  margin: 0 8px;
-  line-height: 1;
-}
-
-.banner-arrow:hover {
-  background: rgba(0, 0, 0, 0.6);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: scale(1.1);
-}
-
-/* ===== Banner Availability + Dots ===== */
-.banner-availability {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 4px 0;
-}
-
-.availability-text {
-  font-size: 0.8rem;
-  color: #9ca3af;
-  letter-spacing: 0.5px;
-}
-
-.availability-text.availability-urgent {
-  color: #f59e0b;
-  font-weight: 600;
-}
-
-.banner-dots {
-  display: flex;
-  gap: 8px;
-}
-
-.banner-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #4b5563;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.banner-dot.active {
-  background: #a78bfa;
-  box-shadow: 0 0 6px rgba(167, 139, 250, 0.5);
-}
-
-.banner-dot:hover {
-  background: #6b7280;
-}
-
-/* ===== View Pool Button ===== */
-.view-pool-button {
-  background: rgba(55, 65, 81, 0.6);
-  border: 1px solid #4b5563;
-  border-radius: 6px;
-  color: #c4b5fd;
-  font-size: 0.75rem;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.5px;
-}
-
-.view-pool-button:hover {
-  background: rgba(75, 85, 99, 0.8);
-  color: #e9d5ff;
-  border-color: #6b7280;
-}
-
-/* ===== Pool Modal ===== */
-.pool-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 20px;
-}
-
-.pool-content {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 16px;
-  max-width: 480px;
-  width: 100%;
-  max-height: 85vh;
-  overflow: hidden;
-  border: 1px solid #334155;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-  display: flex;
-  flex-direction: column;
-}
-
-.pool-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid #334155;
-  flex-shrink: 0;
-}
-
-.pool-header h2 {
-  color: #f3f4f6;
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.pool-close {
-  background: none;
-  border: none;
-  color: #9ca3af;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0 4px;
-  line-height: 1;
-  transition: color 0.2s ease;
-}
-
-.pool-close:hover {
-  color: #f3f4f6;
-}
-
-.pool-body {
-  padding: 16px 20px;
-  overflow-y: auto;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.pool-rarity-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.pool-rarity-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pool-rarity-label {
-  font-size: 0.8rem;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.pool-heroes {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-left: 4px;
-}
-
-.pool-hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 12px;
-  background: rgba(55, 65, 81, 0.4);
-  border-radius: 6px;
-  border-left: 3px solid #4b5563;
-}
-
-.pool-hero-rarity-5 { border-left-color: #f59e0b; }
-.pool-hero-rarity-4 { border-left-color: #a855f7; }
-.pool-hero-rarity-3 { border-left-color: #3b82f6; }
-.pool-hero-rarity-2 { border-left-color: #22c55e; }
-.pool-hero-rarity-1 { border-left-color: #9ca3af; }
-
-.pool-hero-name {
-  color: #f3f4f6;
-  font-size: 0.85rem;
-  font-weight: 500;
-}
-
-.pool-hero-class {
-  color: #6b7280;
-  font-size: 0.75rem;
-  text-transform: capitalize;
-}
-
-/* ===== Tab Bar ===== */
-.tab-bar {
-  display: flex;
-  gap: 8px;
-  position: relative;
-  z-index: 1;
-}
-
-.tab {
-  flex: 1;
-  padding: 12px 16px;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid #334155;
-  border-radius: 10px;
-  color: #9ca3af;
-  font-size: 0.95rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
-.tab:hover {
-  background: rgba(55, 65, 81, 0.6);
-  color: #d1d5db;
-}
-
-.tab.active {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: #7c3aed;
-  color: #c4b5fd;
-}
-
-.tab-black-market {
-  background: rgba(20, 10, 30, 0.8);
-  border-color: #4a1942;
-}
-
-.tab-black-market:hover {
-  background: rgba(40, 20, 50, 0.8);
-  border-color: #6b2158;
-}
-
-.tab-black-market.active {
-  background: rgba(60, 20, 40, 0.6);
-  border-color: #991b1b;
-  color: #fca5a5;
-}
-
-.tab-icon {
-  font-size: 1rem;
 }
 </style>
