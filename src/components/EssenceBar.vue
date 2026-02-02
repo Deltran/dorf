@@ -12,7 +12,8 @@ const props = defineProps({
   },
   size: {
     type: String,
-    default: 'sm' // 'sm' or 'md'
+    default: 'sm', // 'xs', 'sm', or 'md'
+    validator: (v) => ['xs', 'sm', 'md'].includes(v)
   }
 })
 
@@ -42,17 +43,19 @@ const tierInfo = computed(() => {
 
 <template>
   <div :class="['essence-bar', size, `tier-${volatilityTier}`]">
-    <div class="essence-header">
+    <div v-if="size !== 'xs'" class="essence-header">
       <span class="essence-label">Essence</span>
       <span class="essence-value">{{ currentEssence }}/{{ maxEssence }}</span>
     </div>
     <div class="essence-track">
       <div class="essence-fill" :style="{ width: percentage + '%' }"></div>
       <!-- Tier threshold markers at 20 and 40 -->
-      <div class="tier-marker" style="left: 33.33%"></div>
-      <div class="tier-marker" style="left: 66.66%"></div>
+      <template v-if="size !== 'xs'">
+        <div class="tier-marker" style="left: 33.33%"></div>
+        <div class="tier-marker" style="left: 66.66%"></div>
+      </template>
     </div>
-    <div class="volatility-indicator">
+    <div v-if="size !== 'xs'" class="volatility-indicator">
       <span class="tier-icon" :style="{ color: tierInfo.color }">{{ tierInfo.icon }}</span>
       <span class="tier-name" :style="{ color: tierInfo.color }">{{ tierInfo.name }}</span>
       <span v-if="tierInfo.bonus > 0" class="tier-bonus">+{{ tierInfo.bonus }}%</span>
@@ -99,6 +102,10 @@ const tierInfo = computed(() => {
 
 .sm .essence-track {
   height: 4px;
+}
+
+.xs .essence-track {
+  height: 6px;
 }
 
 .essence-fill {

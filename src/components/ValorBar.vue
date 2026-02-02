@@ -8,7 +8,8 @@ const props = defineProps({
   },
   size: {
     type: String,
-    default: 'sm' // sm, md
+    default: 'sm', // xs, sm, md
+    validator: (v) => ['xs', 'sm', 'md'].includes(v)
   }
 })
 
@@ -38,12 +39,14 @@ const currentTier = computed(() => {
     <div class="valor-container">
       <div class="valor-fill" :style="{ width: percentage + '%' }"></div>
       <!-- Threshold markers -->
-      <div class="threshold-marker" style="left: 25%"></div>
-      <div class="threshold-marker" style="left: 50%"></div>
-      <div class="threshold-marker" style="left: 75%"></div>
-      <span class="valor-text">{{ currentValor }}/100</span>
+      <template v-if="size !== 'xs'">
+        <div class="threshold-marker" style="left: 25%"></div>
+        <div class="threshold-marker" style="left: 50%"></div>
+        <div class="threshold-marker" style="left: 75%"></div>
+      </template>
+      <span v-if="size !== 'xs'" class="valor-text">{{ currentValor }}/100</span>
     </div>
-    <div class="valor-tiers">
+    <div v-if="size !== 'xs'" class="valor-tiers">
       <span :class="['tier-pip', { active: currentTier >= 1 }]">◆</span>
       <span :class="['tier-pip', { active: currentTier >= 2 }]">◆</span>
       <span :class="['tier-pip', { active: currentTier >= 3 }]">◆</span>
@@ -63,6 +66,11 @@ const currentTier = computed(() => {
   border-radius: 4px;
   overflow: hidden;
   height: 12px;
+}
+
+.valor-bar.xs .valor-container {
+  height: 6px;
+  border-radius: 3px;
 }
 
 .valor-bar.md .valor-container {

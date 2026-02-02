@@ -6,7 +6,8 @@ defineProps({
   },
   size: {
     type: String,
-    default: 'sm' // sm, md
+    default: 'sm', // xs, sm, md
+    validator: (v) => ['xs', 'sm', 'md'].includes(v)
   }
 })
 </script>
@@ -20,7 +21,7 @@ defineProps({
     <div class="focus-icon">
       <span class="focus-symbol">◎</span>
     </div>
-    <span class="focus-label">{{ hasFocus ? 'Focused' : 'Unfocused' }}</span>
+    <span v-if="size !== 'xs'" class="focus-label">{{ hasFocus ? 'Focused' : 'Unfocused' }}</span>
   </div>
 </template>
 
@@ -38,6 +39,11 @@ defineProps({
 .focus-indicator.sm {
   padding: 2px 6px;
   gap: 4px;
+}
+
+.focus-indicator.xs {
+  padding: 2px 4px;
+  gap: 0;
 }
 
 .focus-indicator.focused {
@@ -64,6 +70,10 @@ defineProps({
 
 .sm .focus-symbol {
   font-size: 0.85rem;
+}
+
+.xs .focus-symbol {
+  font-size: 0.7rem;
 }
 
 .focused .focus-symbol {

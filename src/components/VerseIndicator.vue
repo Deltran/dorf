@@ -6,7 +6,8 @@ defineProps({
   },
   size: {
     type: String,
-    default: 'sm'
+    default: 'sm', // xs, sm, md
+    validator: (v) => ['xs', 'sm', 'md'].includes(v)
   }
 })
 </script>
@@ -24,7 +25,7 @@ defineProps({
         :class="['verse-pip', { filled: i <= currentVerses }]"
       >&#9679;</span>
     </div>
-    <span class="verse-label">Verse</span>
+    <span v-if="size !== 'xs'" class="verse-label">Verse</span>
   </div>
 </template>
 
@@ -44,11 +45,19 @@ defineProps({
   justify-content: center;
 }
 
+.xs .verse-pips {
+  gap: 3px;
+}
+
 .verse-pip {
   font-size: 0.7rem;
   color: #4b5563;
   transition: all 0.3s ease;
   user-select: none;
+}
+
+.xs .verse-pip {
+  font-size: 0.45rem;
 }
 
 .sm .verse-pip {

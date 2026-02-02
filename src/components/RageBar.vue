@@ -8,7 +8,8 @@ const props = defineProps({
   },
   size: {
     type: String,
-    default: 'md' // 'sm' or 'md'
+    default: 'md', // 'xs', 'sm', or 'md'
+    validator: (v) => ['xs', 'sm', 'md'].includes(v)
   }
 })
 
@@ -21,7 +22,7 @@ const sizeClass = computed(() => `size-${props.size}`)
 
 <template>
   <div :class="['rage-bar', sizeClass]">
-    <div class="rage-label">
+    <div v-if="size !== 'xs'" class="rage-label">
       <span class="label-text">Rage</span>
       <span class="label-value">{{ currentRage }}/100</span>
     </div>
@@ -68,6 +69,10 @@ const sizeClass = computed(() => `size-${props.size}`)
 
 .size-sm .rage-track {
   height: 4px;
+}
+
+.size-xs .rage-track {
+  height: 6px;
 }
 
 .rage-fill {
