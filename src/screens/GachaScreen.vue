@@ -52,6 +52,7 @@ const ritualPhase = ref('idle')  // 'idle' | 'gem-float' | 'ignition' | 'fade'
 // View state for Black Market transition
 const currentView = ref('normal')  // 'normal' | 'blackMarket'
 const selectedBlackMarketBannerId = ref(null)
+const isViewTransitioning = ref(false)  // Track transition state for animation
 
 // Check for unlock and show tip
 watch(() => gachaStore.blackMarketUnlocked, (unlocked) => {
@@ -473,14 +474,24 @@ function closeInfoSheet() {
 
 // Black Market navigation
 function enterBlackMarket() {
+  isViewTransitioning.value = true
   currentView.value = 'blackMarket'
   if (blackMarketBanners.value.length > 0 && !selectedBlackMarketBannerId.value) {
     selectedBlackMarketBannerId.value = blackMarketBanners.value[0].id
   }
+  // Clear transition flag after animation completes
+  setTimeout(() => {
+    isViewTransitioning.value = false
+  }, 400)
 }
 
 function exitBlackMarket() {
+  isViewTransitioning.value = true
   currentView.value = 'normal'
+  // Clear transition flag after animation completes
+  setTimeout(() => {
+    isViewTransitioning.value = false
+  }, 400)
 }
 
 function prevBlackMarketBanner() {
@@ -607,7 +618,7 @@ function handleTenPull() {
     </div>
 
     <!-- Altar Container - handles slide transitions -->
-    <div class="altar-container" :class="{ 'view-black-market': isBlackMarketView }">
+    <div class="altar-container" :class="{ 'view-black-market': isBlackMarketView, 'view-transitioning': isViewTransitioning }">
       <!-- Header -->
       <header class="gacha-header">
         <!-- Back button for Black Market view -->
@@ -1164,13 +1175,27 @@ function handleTenPull() {
   position: relative;
   z-index: 1;
   opacity: 1;
-  transform: translateX(0);
-  transition: opacity 0.3s ease-in-out, transform 0.4s ease-in-out;
+  transition: opacity 0.3s ease-in-out;
 }
 
-.altar-container.view-black-market {
-  opacity: 1;
-  transform: translateX(0);
+.altar-container.view-transitioning {
+  opacity: 0;
+}
+
+.altar-container.view-black-market.view-transitioning {
+  opacity: 0;
+  animation: slideInFromRight 0.4s ease-in-out forwards 0.1s;
+}
+
+@keyframes slideInFromRight {
+  0% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* ===== Corrupted Black Market Palette ===== */
