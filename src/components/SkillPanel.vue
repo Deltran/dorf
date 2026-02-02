@@ -124,25 +124,7 @@ function formatTargetType(skill) {
   >
     <Transition name="panel">
       <div v-if="isOpen" class="skill-panel">
-        <!-- Description Panel (left) -->
-        <Transition name="description">
-          <div v-if="hoveredSkill" class="description-panel">
-            <div class="description-content">
-              <h3 class="skill-title" :style="{ color: classColor }">
-                {{ hoveredSkill.name }}
-              </h3>
-              <p class="skill-cost">{{ formatCost(hoveredSkill) }}</p>
-              <p class="skill-desc">
-                {{ hoveredSkill.fullDescription || 'No description available.' }}
-              </p>
-              <span v-if="formatTargetType(hoveredSkill)" class="target-tag">
-                {{ formatTargetType(hoveredSkill) }}
-              </span>
-            </div>
-          </div>
-        </Transition>
-
-        <!-- Skills Column (right) -->
+        <!-- Skills Column (full width) -->
         <div class="skills-column">
           <!-- Resource indicator -->
           <div v-if="resourceDisplay" class="resource-line">
@@ -155,24 +137,43 @@ function formatTargetType(skill) {
             </span>
           </div>
 
-          <!-- Skill rows -->
-          <div class="skills-list">
-            <button
-              v-for="(skill, index) in skills"
-              :key="skill.name"
-              :class="['skill-row', {
-                disabled: skill.disabled,
-                hovered: hoveredIndex === index
-              }]"
-              :disabled="skill.disabled"
-              @mouseenter="handleSkillEnter(skill, index, $event)"
-              @mouseleave="handleSkillLeave"
-              @touchstart.passive="handleSkillEnter(skill, index, $event)"
-              @click="handleSkillSelect(index)"
-            >
-              <span class="skill-name">{{ skill.name }}</span>
-              <span v-if="getSkillCostNumber(skill)" class="skill-cost">{{ getSkillCostNumber(skill) }}</span>
-            </button>
+          <!-- Skill grid with floating tooltip -->
+          <div class="skills-grid-container">
+            <!-- Floating tooltip (above buttons) -->
+            <Transition name="tooltip">
+              <div v-if="hoveredSkill" class="skill-tooltip">
+                <h3 class="tooltip-title" :style="{ color: classColor }">
+                  {{ hoveredSkill.name }}
+                </h3>
+                <p class="tooltip-cost">{{ formatCost(hoveredSkill) }}</p>
+                <p class="tooltip-desc">
+                  {{ hoveredSkill.fullDescription || 'No description available.' }}
+                </p>
+                <span v-if="formatTargetType(hoveredSkill)" class="target-tag">
+                  {{ formatTargetType(hoveredSkill) }}
+                </span>
+              </div>
+            </Transition>
+
+            <!-- Skill grid -->
+            <div class="skills-grid">
+              <button
+                v-for="(skill, index) in skills"
+                :key="skill.name"
+                :class="['skill-btn', {
+                  disabled: skill.disabled,
+                  hovered: hoveredIndex === index
+                }]"
+                :disabled="skill.disabled"
+                @mouseenter="handleSkillEnter(skill, index, $event)"
+                @mouseleave="handleSkillLeave"
+                @touchstart.passive="handleSkillEnter(skill, index, $event)"
+                @click="handleSkillSelect(index)"
+              >
+                <span class="skill-name">{{ skill.name }}</span>
+                <span v-if="getSkillCostNumber(skill)" class="skill-cost-badge">{{ getSkillCostNumber(skill) }}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -222,7 +223,6 @@ function formatTargetType(skill) {
 .skill-panel {
   position: relative;
   display: flex;
-  justify-content: flex-end;
   pointer-events: auto;
 }
 
@@ -237,9 +237,9 @@ function formatTargetType(skill) {
   opacity: 0;
 }
 
-/* Skills Column (right side) */
+/* Skills Column (full width) */
 .skills-column {
-  width: 50%;
+  width: 100%;
   background: #111827;
   border-left: 3px solid var(--class-color);
   border-top: 1px solid #374151;
@@ -282,119 +282,52 @@ function formatTargetType(skill) {
   font-variant-numeric: tabular-nums;
 }
 
-.skills-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.skill-row {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 10px 12px;
-  background: transparent;
-  border: none;
-  border-left: 2px solid transparent;
-  border-bottom: 1px solid #374151;
-  color: #f3f4f6;
-  font-size: 0.9rem;
-  font-weight: 500;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.1s ease, border-color 0.1s ease;
-}
-
-.skill-row:last-child {
-  border-bottom: none;
-}
-
-.skill-row:hover:not(.disabled),
-.skill-row.hovered:not(.disabled) {
-  transform: translateX(4px);
-  border-left-color: var(--class-color);
-}
-
-.skill-row.disabled {
-  cursor: not-allowed;
-}
-
-.skill-row.disabled .skill-name {
-  text-decoration: line-through;
-  color: #6b7280;
-}
-
-.skill-name {
-  flex: 1;
-}
-
-.skill-cost {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #9ca3af;
-  background: rgba(17, 24, 39, 0.9);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-/* Description Panel (left side) */
-.description-panel {
-  width: 50%;
-  padding-right: 8px;
-}
-
-.description-content {
-  background: #111827;
-  border: 1px solid #374151;
-  border-right: none;
-  padding: 12px;
-  height: 100%;
+/* Skills grid container with tooltip */
+.skills-grid-container {
   position: relative;
 }
 
-/* Left edge gradient */
-.description-content::before {
-  content: '';
+/* Floating tooltip (absolutely positioned above grid) */
+.skill-tooltip {
   position: absolute;
+  bottom: 100%;
   left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: linear-gradient(to right, rgba(55, 65, 81, 0.5), transparent);
+  right: 0;
+  margin-bottom: 8px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-left: 3px solid var(--class-color);
+  padding: 12px;
+  z-index: 10;
 }
 
-.description-enter-active,
-.description-leave-active {
+.tooltip-enter-active,
+.tooltip-leave-active {
   transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.description-enter-from,
-.description-leave-to {
-  transform: translateX(-10px);
+.tooltip-enter-from,
+.tooltip-leave-to {
+  transform: translateY(8px);
   opacity: 0;
 }
 
-.skill-title {
-  font-size: 1.1rem;
+.tooltip-title {
+  font-size: 1rem;
   font-weight: 600;
   margin: 0 0 4px 0;
 }
 
-.skill-cost {
+.tooltip-cost {
   font-size: 0.8rem;
   color: #9ca3af;
   margin: 0 0 8px 0;
 }
 
-.skill-desc {
+.tooltip-desc {
   font-size: 0.85rem;
   color: #9ca3af;
-  line-height: 1.5;
+  line-height: 1.4;
   margin: 0 0 8px 0;
 }
 
@@ -409,25 +342,88 @@ function formatTargetType(skill) {
   letter-spacing: 0.05em;
 }
 
+/* 2-column skill grid */
+.skills-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.skill-btn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 56px;
+  padding: 16px 12px;
+  background: rgba(55, 65, 81, 0.3);
+  border: 1px solid #374151;
+  border-radius: 4px;
+  color: #f3f4f6;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.1s ease, border-color 0.1s ease, transform 0.1s ease;
+}
+
+.skill-btn:hover:not(.disabled),
+.skill-btn.hovered:not(.disabled) {
+  background: rgba(55, 65, 81, 0.5);
+  border-color: var(--class-color);
+  transform: scale(1.02);
+}
+
+.skill-btn:active:not(.disabled) {
+  transform: scale(0.98);
+}
+
+.skill-btn.disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.skill-btn.disabled .skill-name {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
+.skill-btn .skill-name {
+  line-height: 1.2;
+}
+
+.skill-cost-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  background: rgba(17, 24, 39, 0.9);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .backdrop-enter-active,
   .backdrop-leave-active,
   .panel-enter-active,
   .panel-leave-active,
-  .description-enter-active,
-  .description-leave-active {
+  .tooltip-enter-active,
+  .tooltip-leave-active {
     transition: none;
   }
 
   .panel-enter-from,
   .panel-leave-to,
-  .description-enter-from,
-  .description-leave-to {
+  .tooltip-enter-from,
+  .tooltip-leave-to {
     transform: none;
   }
 
-  .skill-row {
+  .skill-btn {
     transition: none;
   }
 }
