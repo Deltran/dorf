@@ -576,9 +576,9 @@ function handleTenPull() {
     <!-- Summon Info Sheet -->
     <SummonInfoSheet
       :visible="showInfoSheet"
-      :banner="selectedBanner"
-      :pity-info="pityInfo"
-      banner-type="normal"
+      :banner="displayBanner"
+      :pity-info="displayPityInfo"
+      :banner-type="displayBannerType"
       @close="closeInfoSheet"
     />
 
@@ -922,6 +922,136 @@ function handleTenPull() {
 .door-icon {
   font-size: 1.5rem;
   filter: drop-shadow(0 0 4px rgba(64, 255, 96, 0.3));
+}
+
+.door-embers {
+  position: absolute;
+  inset: -10px;
+  pointer-events: none;
+}
+
+/* ===== Altar Container for Slide Transitions ===== */
+.altar-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.4s ease-in-out;
+}
+
+/* ===== Corrupted Black Market Palette ===== */
+
+/* Vignette with green tint */
+.bg-vignette.vignette-corrupted {
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 20, 0, 0.85) 100%);
+}
+
+/* Corrupted banner frame */
+.banner-frame.frame-corrupted {
+  background: #0f1a0f;
+  box-shadow:
+    inset 0 2px 4px rgba(0,0,0,0.6),
+    0 4px 8px rgba(0,0,0,0.4),
+    0 0 0 2px #1a3020,
+    0 0 15px rgba(64, 255, 96, 0.15);
+}
+
+/* Corrupted navigation arrows */
+.banner-arrow.arrow-corrupted {
+  background: rgba(15, 26, 15, 0.9);
+  border-color: #1a3020;
+  color: #40ff60;
+}
+
+.banner-arrow.arrow-corrupted:hover {
+  background: rgba(26, 48, 32, 0.9);
+  color: #60ff80;
+  border-color: #2a4530;
+}
+
+/* Corrupted banner name */
+.banner-name.name-corrupted {
+  color: #40ff60;
+  text-shadow: 0 0 10px rgba(64, 255, 96, 0.3);
+}
+
+/* Corrupted availability text */
+.availability-text.availability-corrupted {
+  color: #ff2020;
+}
+
+/* Corrupted altar surface */
+.altar-surface.altar-corrupted {
+  background: linear-gradient(
+    to top,
+    #0a1a0a 0%,
+    #102010 50%,
+    #0a1a0a 100%
+  );
+  border-color: #1a3020;
+  box-shadow:
+    0 0 20px rgba(64, 255, 96, 0.15),
+    0 0 30px rgba(255, 32, 32, 0.1),
+    inset 0 -4px 8px rgba(0,0,0,0.4);
+}
+
+/* Corrupted pull buttons */
+.pull-button.button-corrupted {
+  background: linear-gradient(to bottom, #0f1a0f 0%, #0a120a 100%);
+  border-color: #1a3020;
+}
+
+.pull-button.button-corrupted:hover:not(:disabled) {
+  border-color: #2a4530;
+  box-shadow: 0 4px 12px rgba(0, 20, 0, 0.5), 0 0 15px rgba(64, 255, 96, 0.2);
+}
+
+.pull-button.ten.button-corrupted {
+  background: linear-gradient(to bottom, #152015 0%, #0f1a0f 100%);
+  border-color: #1a3020;
+  box-shadow: 0 0 15px rgba(64, 255, 96, 0.15);
+}
+
+.pull-button.ten.button-corrupted:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(64, 255, 96, 0.25), 0 4px 12px rgba(0, 20, 0, 0.5);
+}
+
+/* Corrupted info button */
+.info-button.info-corrupted {
+  border-color: #1a3020;
+  color: #40ff60;
+}
+
+.info-button.info-corrupted:hover {
+  color: #60ff80;
+  border-color: #2a4530;
+}
+
+/* Corrupted gem display */
+.gem-display.gem-display-corrupted {
+  border-color: #1a3020;
+  background: rgba(15, 26, 15, 0.9);
+}
+
+/* Black Market back button */
+.back-button.black-market-back {
+  border-color: #1a3020;
+  color: #40ff60;
+}
+
+.back-button.black-market-back:hover {
+  color: #60ff80;
+  border-color: #2a4530;
+}
+
+/* Corrupted ignition effects */
+.ignition-core.ignition-corrupted {
+  background: radial-gradient(circle, rgba(100, 255, 140, 0.9) 0%, rgba(64, 255, 96, 0.6) 40%, transparent 70%);
+}
+
+.ignition-burst.burst-corrupted {
+  background: radial-gradient(circle, rgba(64, 255, 96, 0.5) 0%, rgba(255, 32, 32, 0.3) 30%, transparent 60%);
 }
 
 /* ===== Animation Overlay ===== */
