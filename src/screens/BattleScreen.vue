@@ -1204,13 +1204,15 @@ function getStatChange(hero, stat) {
 
 <template>
   <div class="battle-screen" :class="{ 'battle-defeat-fading': defeatPhase }">
+    <!-- Full-screen battle background -->
+    <div
+      v-if="battleBackgroundUrl"
+      class="battle-background"
+      :style="{ backgroundImage: `url(${battleBackgroundUrl})` }"
+    ></div>
+
     <!-- Enemy Area -->
     <section class="enemy-area">
-      <div
-        v-if="battleBackgroundUrl"
-        class="enemy-area-background"
-        :style="{ backgroundImage: `url(${battleBackgroundUrl})` }"
-      ></div>
       <div class="battle-header-overlay">
         <div class="node-info">
           <span class="node-name">{{ currentNode?.name || (questsStore.lastVisitedNode ? getQuestNode(questsStore.lastVisitedNode)?.name : 'Battle') }}</span>
@@ -1937,17 +1939,15 @@ function getStatChange(hero, stat) {
   overflow: visible;
 }
 
-.enemy-area-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+/* Full-screen battle background */
+.battle-background {
+  position: fixed;
+  inset: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   image-rendering: pixelated;
-  z-index: 0;
+  z-index: -1;
   opacity: 0.7;
 }
 
