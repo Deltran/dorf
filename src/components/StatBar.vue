@@ -22,9 +22,17 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
+  showLabel: {
+    type: Boolean,
+    default: true
+  },
+  showNumbers: {
+    type: Boolean,
+    default: true
+  },
   size: {
     type: String,
-    default: 'md' // sm, md, lg
+    default: 'md' // xs, sm, md, lg
   }
 })
 
@@ -42,6 +50,7 @@ const colorClasses = {
 }
 
 const sizeClasses = {
+  xs: 'bar-xs',
   sm: 'bar-sm',
   md: 'bar-md',
   lg: 'bar-lg'
@@ -50,13 +59,13 @@ const sizeClasses = {
 
 <template>
   <div :class="['stat-bar', sizeClasses[size]]">
-    <div v-if="label" class="bar-label">{{ label }}</div>
+    <div v-if="label && showLabel" class="bar-label">{{ label }}</div>
     <div class="bar-container">
       <div
         :class="['bar-fill', colorClasses[color]]"
         :style="{ width: percentage + '%' }"
       ></div>
-      <span v-if="showValues" class="bar-text">
+      <span v-if="showValues && showNumbers" class="bar-text">
         {{ current }} / {{ max }}
       </span>
     </div>
@@ -79,6 +88,10 @@ const sizeClasses = {
   background: #374151;
   border-radius: 4px;
   overflow: hidden;
+}
+
+.bar-xs .bar-container {
+  height: 6px;
 }
 
 .bar-sm .bar-container {
@@ -127,6 +140,10 @@ const sizeClasses = {
   font-weight: 600;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+.bar-xs .bar-text {
+  font-size: 0.5rem;
 }
 
 .bar-sm .bar-text {
