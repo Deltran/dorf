@@ -26,6 +26,9 @@ const pendingRevealIndex = ref(0)
 const ownedBeforePull = ref(new Set())  // Templates owned before current pull
 const spotlightedThisPull = ref(new Set())  // Templates already spotlighted in current reveal
 
+// Touch tracking for banner swipe gestures
+const bannerTouchStartX = ref(0)
+
 // 10-pull reveal sequence state
 const showRevealStage = ref(false)
 const showSummaryGrid = ref(false)
@@ -1382,20 +1385,21 @@ function handleTenPull() {
 .continue-button {
   margin-top: 24px;
   padding: 16px 48px;
-  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-  border: none;
+  background: linear-gradient(to bottom, #2a2520 0%, #1a1816 100%);
+  border: 1px solid #3a3530;
   border-radius: 12px;
-  color: white;
+  color: #e5e5e5;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .continue-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  border-color: #4b4540;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
 .reveal-progress {
@@ -1552,20 +1556,21 @@ function handleTenPull() {
 .close-button {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
-  border: none;
+  background: linear-gradient(to bottom, #2a2520 0%, #1a1816 100%);
+  border: 1px solid #3a3530;
   border-radius: 12px;
-  color: white;
+  color: #e5e5e5;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
 .close-button:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  border-color: #4b4540;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* ===== Ritual Animation ===== */
