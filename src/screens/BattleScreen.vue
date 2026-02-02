@@ -1356,13 +1356,17 @@ function getStatChange(hero, stat) {
             class="hero-image"
           />
           <div v-else class="hero-image-placeholder"></div>
+          <StatusOverlay
+            :effects="hero.statusEffects || []"
+            position="top-right"
+            @click="(effect) => showEffectTooltip($event, getEffectTooltipText(effect))"
+          />
         </div>
-        <HeroCard
+        <HeroBattleInfo
           :hero="hero"
           :active="battleStore.currentUnit?.instanceId === hero.instanceId"
           :hitEffect="getHeroHitEffect(hero.instanceId)"
-          showBars
-          compact
+          size="xs"
         />
         <DamageNumber
           v-for="dmg in damageNumbers.filter(d => d.targetType === 'hero' && d.targetId === hero.instanceId)"
@@ -1709,6 +1713,13 @@ function getStatChange(hero, stat) {
         </div>
       </div>
     </div>
+
+    <!-- Hero Detail Sheet (uses Teleport to body) -->
+    <HeroDetailSheet
+      :hero="detailSheetHero"
+      :isOpen="detailSheetHero !== null"
+      @close="closeHeroDetail"
+    />
   </div>
 
   <!-- Defeat Scene (outside battle-screen to avoid grayscale filter) -->
