@@ -16,21 +16,21 @@ describe('Civil Rights Banner heroes integration', () => {
   describe('Hero template existence', () => {
     it('Rosara exists in heroTemplates', () => {
       expect(heroTemplates.rosara_the_unmoved).toBeDefined()
-      expect(heroTemplates.rosara_the_unmoved.name).toBe('Rosara the Unmoved')
+      expect(heroTemplates.rosara_the_unmoved.name).toBe('Rosara')
       expect(heroTemplates.rosara_the_unmoved.rarity).toBe(5)
       expect(heroTemplates.rosara_the_unmoved.classId).toBe('knight')
     })
 
     it('Zina exists in heroTemplates', () => {
       expect(heroTemplates.zina_the_desperate).toBeDefined()
-      expect(heroTemplates.zina_the_desperate.name).toBe('Zina the Desperate')
+      expect(heroTemplates.zina_the_desperate.name).toBe('Zina')
       expect(heroTemplates.zina_the_desperate.rarity).toBe(4)
       expect(heroTemplates.zina_the_desperate.classId).toBe('alchemist')
     })
 
     it('Vashek exists in heroTemplates', () => {
       expect(heroTemplates.vashek_the_unrelenting).toBeDefined()
-      expect(heroTemplates.vashek_the_unrelenting.name).toBe('Vashek the Unrelenting')
+      expect(heroTemplates.vashek_the_unrelenting.name).toBe('Vashek')
       expect(heroTemplates.vashek_the_unrelenting.rarity).toBe(3)
       expect(heroTemplates.vashek_the_unrelenting.classId).toBe('knight')
     })

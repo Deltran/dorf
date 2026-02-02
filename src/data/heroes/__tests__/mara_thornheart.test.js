@@ -52,10 +52,10 @@ describe('Mara Thornheart', () => {
       expect(thornLash.targetType).toBe('enemy')
     })
 
-    it('should have Bitter Embrace with Bleeding at level 5', () => {
+    it('should have Bitter Embrace with Bleeding at level 1', () => {
       const bitterEmbrace = mara_thornheart.skills.find(s => s.name === 'Bitter Embrace')
       expect(bitterEmbrace).toBeDefined()
-      expect(bitterEmbrace.skillUnlockLevel).toBe(5)
+      expect(bitterEmbrace.skillUnlockLevel).toBe(1)
       expect(bitterEmbrace.targetType).toBe('enemy')
       expect(bitterEmbrace.damagePercent).toBe(150)
       expect(bitterEmbrace.rageCost).toBe(25)
@@ -79,10 +79,10 @@ describe('Mara Thornheart', () => {
       )
     })
 
-    it('should have Scorned with Reflect at level 15', () => {
+    it('should have Scorned with Reflect at level 3', () => {
       const scorned = mara_thornheart.skills.find(s => s.name === 'Scorned')
       expect(scorned).toBeDefined()
-      expect(scorned.skillUnlockLevel).toBe(15)
+      expect(scorned.skillUnlockLevel).toBe(3)
       expect(scorned.targetType).toBe('self')
       expect(scorned.noDamage).toBe(true)
       expect(scorned.rageCost).toBe(40)
@@ -97,10 +97,10 @@ describe('Mara Thornheart', () => {
       )
     })
 
-    it('should have Vengeance Garden AoE at level 25', () => {
+    it('should have Vengeance Garden AoE at level 6', () => {
       const vengeanceGarden = mara_thornheart.skills.find(s => s.name === 'Vengeance Garden')
       expect(vengeanceGarden).toBeDefined()
-      expect(vengeanceGarden.skillUnlockLevel).toBe(25)
+      expect(vengeanceGarden.skillUnlockLevel).toBe(6)
       expect(vengeanceGarden.damagePercent).toBe(90)
       expect(vengeanceGarden.damagePerHeartbreakStack).toBe(15)
       expect(vengeanceGarden.targetType).toBe('all_enemies')
@@ -109,10 +109,10 @@ describe('Mara Thornheart', () => {
       expect(vengeanceGarden.healSelfPercent).toBe(5)
     })
 
-    it('should have Love\'s Final Thorn ultimate at level 40', () => {
+    it('should have Love\'s Final Thorn ultimate at level 12', () => {
       const finalThorn = mara_thornheart.skills.find(s => s.name === "Love's Final Thorn")
       expect(finalThorn).toBeDefined()
-      expect(finalThorn.skillUnlockLevel).toBe(40)
+      expect(finalThorn.skillUnlockLevel).toBe(12)
       expect(finalThorn.damagePercent).toBe(200)
       expect(finalThorn.damagePerHeartbreakStackConsumed).toBe(25)
       expect(finalThorn.consumeAllHeartbreakStacks).toBe(true)

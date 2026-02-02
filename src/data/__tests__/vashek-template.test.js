@@ -6,7 +6,7 @@ describe('Vashek the Unrelenting hero template', () => {
   it('exists with correct identity', () => {
     expect(vashek_the_unrelenting).toBeDefined()
     expect(vashek_the_unrelenting.id).toBe('vashek_the_unrelenting')
-    expect(vashek_the_unrelenting.name).toBe('Vashek the Unrelenting')
+    expect(vashek_the_unrelenting.name).toBe('Vashek')
     expect(vashek_the_unrelenting.rarity).toBe(3)
     expect(vashek_the_unrelenting.classId).toBe('knight')
   })

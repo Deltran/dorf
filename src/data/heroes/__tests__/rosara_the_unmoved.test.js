@@ -6,7 +6,7 @@ describe('Rosara the Unmoved', () => {
   describe('basic properties', () => {
     it('should have correct id and name', () => {
       expect(rosara_the_unmoved.id).toBe('rosara_the_unmoved')
-      expect(rosara_the_unmoved.name).toBe('Rosara the Unmoved')
+      expect(rosara_the_unmoved.name).toBe('Rosara')
     })
 
     it('should be a 5-star knight', () => {

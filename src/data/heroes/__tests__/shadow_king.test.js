@@ -24,8 +24,8 @@ describe('The Shadow King', () => {
     })
 
     it('should have epithet and intro quote', () => {
-      expect(shadow_king.epithet).toBe('Lord of the Endless Night')
-      expect(shadow_king.introQuote).toBe('Kneel before the darkness.')
+      expect(shadow_king.epithet).toBe('Avatar of the Endless Night')
+      expect(shadow_king.introQuote).toBe('Kneel before the darkness, mortal.')
     })
   })
 

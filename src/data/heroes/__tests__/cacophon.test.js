@@ -6,7 +6,7 @@ describe('Cacophon, the Beautiful Disaster', () => {
   describe('basic properties', () => {
     it('should have correct id and name', () => {
       expect(cacophon.id).toBe('cacophon')
-      expect(cacophon.name).toBe('Cacophon, the Beautiful Disaster')
+      expect(cacophon.name).toBe('Cacophon')
     })
 
     it('should be a 5-star bard', () => {

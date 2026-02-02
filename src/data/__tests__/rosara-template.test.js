@@ -6,7 +6,7 @@ describe('Rosara the Unmoved hero template', () => {
   it('exists with correct identity', () => {
     expect(rosara_the_unmoved).toBeDefined()
     expect(rosara_the_unmoved.id).toBe('rosara_the_unmoved')
-    expect(rosara_the_unmoved.name).toBe('Rosara the Unmoved')
+    expect(rosara_the_unmoved.name).toBe('Rosara')
     expect(rosara_the_unmoved.rarity).toBe(5)
     expect(rosara_the_unmoved.classId).toBe('knight')
   })

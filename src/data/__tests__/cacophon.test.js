@@ -5,7 +5,7 @@ import { EffectType } from '../statusEffects.js'
 describe('Cacophon hero data', () => {
   it('should have correct basic properties', () => {
     expect(cacophon.id).toBe('cacophon')
-    expect(cacophon.name).toBe('Cacophon, the Beautiful Disaster')
+    expect(cacophon.name).toBe('Cacophon')
     expect(cacophon.rarity).toBe(5)
     expect(cacophon.classId).toBe('bard')
   })

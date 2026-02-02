@@ -7,7 +7,7 @@ describe('Zina the Desperate hero template', () => {
   it('exists with correct identity', () => {
     expect(zina_the_desperate).toBeDefined()
     expect(zina_the_desperate.id).toBe('zina_the_desperate')
-    expect(zina_the_desperate.name).toBe('Zina the Desperate')
+    expect(zina_the_desperate.name).toBe('Zina')
     expect(zina_the_desperate.rarity).toBe(4)
     expect(zina_the_desperate.classId).toBe('alchemist')
   })

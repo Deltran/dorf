@@ -6,7 +6,7 @@ describe('Zina the Desperate', () => {
   describe('basic properties', () => {
     it('should have correct id and name', () => {
       expect(zina_the_desperate.id).toBe('zina_the_desperate')
-      expect(zina_the_desperate.name).toBe('Zina the Desperate')
+      expect(zina_the_desperate.name).toBe('Zina')
     })
 
     it('should be a 4-star alchemist', () => {
