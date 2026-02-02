@@ -612,4 +612,212 @@ describe('GachaScreen - Dark Altar Redesign', () => {
       expect(vignette.exists()).toBe(true)
     })
   })
+
+  describe('Ritual animation sequence', () => {
+    it('should apply ritual-active class during animation', async () => {
+      const gachaStore = useGachaStore()
+      gachaStore.addGems(1000)
+
+      const wrapper = mount(GachaScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            StarRating: true,
+            BlackMarketContent: true,
+            EmberParticles: true,
+            SummonInfoSheet: true,
+            HeroSpotlight: true,
+            HeroCard: true
+          }
+        }
+      })
+
+      // Before pull - no ritual class
+      const screen = wrapper.find('.gacha-screen')
+      expect(screen.classes()).not.toContain('ritual-active')
+
+      // Trigger pull
+      const singlePull = wrapper.find('.pull-button.single')
+      await singlePull.trigger('click')
+
+      // During animation - ritual class should be applied
+      await wrapper.vm.$nextTick()
+      expect(wrapper.find('.gacha-screen').classes()).toContain('ritual-active')
+
+      // Advance past animation
+      await vi.advanceTimersByTimeAsync(800)
+      await flushPromises()
+
+      // After animation - class should be removed (or screen shows results)
+      // Note: class may still be present briefly during transition
+    })
+
+    it('should show gem-float element during ritual animation', async () => {
+      const gachaStore = useGachaStore()
+      gachaStore.addGems(1000)
+
+      const wrapper = mount(GachaScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            StarRating: true,
+            BlackMarketContent: true,
+            EmberParticles: true,
+            SummonInfoSheet: true,
+            HeroSpotlight: true,
+            HeroCard: true
+          }
+        }
+      })
+
+      // Trigger pull
+      const singlePull = wrapper.find('.pull-button.single')
+      await singlePull.trigger('click')
+      await wrapper.vm.$nextTick()
+
+      // Gem float element should appear during ritual
+      const gemFloat = wrapper.find('.gem-float')
+      expect(gemFloat.exists()).toBe(true)
+    })
+
+    it('should show altar ignition effect during ritual', async () => {
+      const gachaStore = useGachaStore()
+      gachaStore.addGems(1000)
+
+      const wrapper = mount(GachaScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            StarRating: true,
+            BlackMarketContent: true,
+            SummonInfoSheet: true,
+            HeroSpotlight: true,
+            HeroCard: true
+          }
+        }
+      })
+
+      // Trigger pull
+      const singlePull = wrapper.find('.pull-button.single')
+      await singlePull.trigger('click')
+      await wrapper.vm.$nextTick()
+
+      // Advance past gem-float phase (400ms) to ignition phase
+      await vi.advanceTimersByTimeAsync(400)
+      await flushPromises()
+
+      // Altar ignition should be visible
+      const altarIgnition = wrapper.find('.altar-ignition')
+      expect(altarIgnition.exists()).toBe(true)
+    })
+
+    it('should show fade-to-black overlay during ritual transition', async () => {
+      const gachaStore = useGachaStore()
+      gachaStore.addGems(1000)
+
+      const wrapper = mount(GachaScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            StarRating: true,
+            BlackMarketContent: true,
+            EmberParticles: true,
+            SummonInfoSheet: true,
+            HeroSpotlight: true,
+            HeroCard: true
+          }
+        }
+      })
+
+      // Trigger pull
+      const singlePull = wrapper.find('.pull-button.single')
+      await singlePull.trigger('click')
+
+      // Advance to the fade phase (0.4s gem float + 0.6s ignition = 1s, then 0.3s fade)
+      await vi.advanceTimersByTimeAsync(500)
+      await wrapper.vm.$nextTick()
+
+      // Fade overlay should be visible during later phase
+      const fadeOverlay = wrapper.find('.ritual-fade-overlay')
+      expect(fadeOverlay.exists()).toBe(true)
+    })
+
+    it('should complete animation before showing results', async () => {
+      const gachaStore = useGachaStore()
+      const heroesStore = useHeroesStore()
+      gachaStore.addGems(1000)
+
+      const wrapper = mount(GachaScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            StarRating: true,
+            BlackMarketContent: true,
+            EmberParticles: true,
+            SummonInfoSheet: true,
+            HeroSpotlight: true,
+            HeroCard: true
+          }
+        }
+      })
+
+      // Trigger pull
+      const singlePull = wrapper.find('.pull-button.single')
+      await singlePull.trigger('click')
+
+      // Results should not be shown immediately
+      await wrapper.vm.$nextTick()
+      expect(wrapper.find('.results-modal').exists()).toBe(false)
+
+      // Animation in progress
+      await vi.advanceTimersByTimeAsync(400)
+      await flushPromises()
+      // Still animating, no results yet
+      expect(wrapper.find('.results-modal').exists()).toBe(false)
+
+      // After full animation completes
+      await vi.advanceTimersByTimeAsync(800)
+      await flushPromises()
+
+      // Now results should be shown
+      expect(wrapper.find('.results-modal').exists()).toBe(true)
+    })
+
+    it('should use longer animation timing for 10-pull', async () => {
+      const gachaStore = useGachaStore()
+      gachaStore.addGems(2000)
+
+      const wrapper = mount(GachaScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            StarRating: true,
+            BlackMarketContent: true,
+            EmberParticles: true,
+            SummonInfoSheet: true,
+            HeroSpotlight: true,
+            HeroCard: true
+          }
+        }
+      })
+
+      // Trigger 10-pull
+      const tenPull = wrapper.find('.pull-button.ten')
+      await tenPull.trigger('click')
+      await wrapper.vm.$nextTick()
+
+      // Should be in ritual state
+      expect(wrapper.find('.gacha-screen').classes()).toContain('ritual-active')
+
+      // Results should not be shown at 800ms (single pull timing)
+      await vi.advanceTimersByTimeAsync(800)
+      await flushPromises()
+      expect(wrapper.find('.results-modal').exists()).toBe(false)
+
+      // After 1200ms total, results should show
+      await vi.advanceTimersByTimeAsync(400)
+      await flushPromises()
+      expect(wrapper.find('.results-modal').exists()).toBe(true)
+    })
+  })
 })

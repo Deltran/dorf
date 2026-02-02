@@ -7,7 +7,7 @@ import StarRating from '../components/StarRating.vue'
 import EmberParticles from '../components/EmberParticles.vue'
 import SummonInfoSheet from '../components/SummonInfoSheet.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
-import { getBannerAvailabilityText, getBannerImageUrl } from '../data/banners.js'
+import { getBannerAvailabilityText, getBannerImageUrl, getBlackMarketBanners } from '../data/banners.js'
 
 const emit = defineEmits(['navigate'])
 
@@ -24,6 +24,14 @@ const spotlightHero = ref(null)
 const pendingRevealIndex = ref(0)
 const ownedBeforePull = ref(new Set())  // Templates owned before current pull
 const spotlightedThisPull = ref(new Set())  // Templates already spotlighted in current reveal
+
+// Ritual animation state
+const ritualActive = ref(false)
+const ritualPhase = ref('idle')  // 'idle' | 'gem-float' | 'ignition' | 'fade'
+
+// View state for Black Market transition
+const currentView = ref('normal')  // 'normal' | 'blackMarket'
+const selectedBlackMarketBannerId = ref(null)
 
 // Check for unlock and show tip
 watch(() => gachaStore.blackMarketUnlocked, (unlocked) => {
@@ -120,6 +128,107 @@ const currentBannerIndex = computed(() => {
   return activeBanners.value.findIndex(b => b.id === gachaStore.selectedBannerId)
 })
 
+// Black Market state
+const isBlackMarketView = computed(() => currentView.value === 'blackMarket')
+const blackMarketBanners = computed(() => getBlackMarketBanners())
+const selectedBlackMarketBanner = computed(() => {
+  if (!selectedBlackMarketBannerId.value) return blackMarketBanners.value[0] || null
+  return blackMarketBanners.value.find(b => b.id === selectedBlackMarketBannerId.value) || blackMarketBanners.value[0]
+})
+const currentBlackMarketBannerIndex = computed(() => {
+  if (!selectedBlackMarketBanner.value) return 0
+  return blackMarketBanners.value.findIndex(b => b.id === selectedBlackMarketBanner.value.id)
+})
+const blackMarketBannerImageUrl = computed(() => {
+  if (!selectedBlackMarketBanner.value) return null
+  return getBannerImageUrl(selectedBlackMarketBanner.value.id)
+})
+
+// Current banner based on view
+const displayBanner = computed(() => {
+  if (isBlackMarketView.value) {
+    return selectedBlackMarketBanner.value
+  }
+  return selectedBanner.value
+})
+
+const displayBannerImageUrl = computed(() => {
+  if (isBlackMarketView.value) {
+    return blackMarketBannerImageUrl.value
+  }
+  return bannerImageUrl.value
+})
+
+const displayBannerAvailability = computed(() => {
+  if (isBlackMarketView.value && selectedBlackMarketBanner.value) {
+    return getBannerAvailabilityText(selectedBlackMarketBanner.value)
+  }
+  return bannerAvailability.value
+})
+
+const displayBannerCount = computed(() => {
+  return isBlackMarketView.value ? blackMarketBanners.value.length : activeBanners.value.length
+})
+
+// Black Market pity info
+const blackMarketPityInfo = computed(() => ({
+  pullsSince4Star: gachaStore.blackMarketPullsSince4Star,
+  pullsSince5Star: gachaStore.blackMarketPullsSince5Star,
+  pity4Percent: Math.min(100, (gachaStore.blackMarketPullsSince4Star / gachaStore.FOUR_STAR_PITY) * 100),
+  pity5HardPercent: Math.min(100, (gachaStore.blackMarketPullsSince5Star / gachaStore.HARD_PITY) * 100),
+  FOUR_STAR_PITY: gachaStore.FOUR_STAR_PITY,
+  HARD_PITY: gachaStore.HARD_PITY
+}))
+
+const displayPityInfo = computed(() => {
+  return isBlackMarketView.value ? blackMarketPityInfo.value : pityInfo.value
+})
+
+const displayBannerType = computed(() => {
+  return isBlackMarketView.value ? 'blackMarket' : 'normal'
+})
+
+// Pull costs based on view
+const displaySingleCost = computed(() => {
+  return isBlackMarketView.value ? gachaStore.BLACK_MARKET_SINGLE_COST : gachaStore.SINGLE_PULL_COST
+})
+
+const displayTenCost = computed(() => {
+  return isBlackMarketView.value ? gachaStore.BLACK_MARKET_TEN_COST : gachaStore.TEN_PULL_COST
+})
+
+const canDisplaySinglePull = computed(() => {
+  return isBlackMarketView.value
+    ? gachaStore.gems >= gachaStore.BLACK_MARKET_SINGLE_COST && selectedBlackMarketBanner.value
+    : gachaStore.canSinglePull
+})
+
+const canDisplayTenPull = computed(() => {
+  return isBlackMarketView.value
+    ? gachaStore.gems >= gachaStore.BLACK_MARKET_TEN_COST && selectedBlackMarketBanner.value
+    : gachaStore.canTenPull
+})
+
+async function runRitualAnimation(durationMs) {
+  ritualActive.value = true
+  ritualPhase.value = 'gem-float'
+
+  // Phase 1: Gem float (~0.4s)
+  await new Promise(r => setTimeout(r, 400))
+
+  // Phase 2: Altar ignition (~0.4s for single, longer for 10-pull)
+  ritualPhase.value = 'ignition'
+  const ignitionDuration = durationMs === 1200 ? 500 : 300
+  await new Promise(r => setTimeout(r, ignitionDuration))
+
+  // Phase 3: Fade to black (~0.3s)
+  ritualPhase.value = 'fade'
+  await new Promise(r => setTimeout(r, durationMs - 400 - ignitionDuration))
+
+  ritualPhase.value = 'idle'
+  ritualActive.value = false
+}
+
 async function doSinglePull() {
   if (!gachaStore.canSinglePull || isAnimating.value) return
 
@@ -129,8 +238,8 @@ async function doSinglePull() {
   // Capture owned templates BEFORE pulling
   ownedBeforePull.value = new Set(heroesStore.collection.map(h => h.templateId))
 
-  // Simulate animation delay
-  await new Promise(r => setTimeout(r, 800))
+  // Run ritual animation
+  await runRitualAnimation(800)
 
   const result = gachaStore.singlePull()
   if (result) {
@@ -150,8 +259,8 @@ async function doTenPull() {
   // Capture owned templates BEFORE pulling
   ownedBeforePull.value = new Set(heroesStore.collection.map(h => h.templateId))
 
-  // Simulate animation delay
-  await new Promise(r => setTimeout(r, 1200))
+  // Run ritual animation (longer for 10-pull)
+  await runRitualAnimation(1200)
 
   const results = gachaStore.tenPull()
   if (results) {
@@ -199,95 +308,225 @@ function openInfoSheet() {
 function closeInfoSheet() {
   showInfoSheet.value = false
 }
+
+// Black Market navigation
+function enterBlackMarket() {
+  currentView.value = 'blackMarket'
+  if (blackMarketBanners.value.length > 0 && !selectedBlackMarketBannerId.value) {
+    selectedBlackMarketBannerId.value = blackMarketBanners.value[0].id
+  }
+}
+
+function exitBlackMarket() {
+  currentView.value = 'normal'
+}
+
+function prevBlackMarketBanner() {
+  const banners = blackMarketBanners.value
+  if (banners.length <= 1) return
+  const idx = (currentBlackMarketBannerIndex.value - 1 + banners.length) % banners.length
+  selectedBlackMarketBannerId.value = banners[idx].id
+}
+
+function nextBlackMarketBanner() {
+  const banners = blackMarketBanners.value
+  if (banners.length <= 1) return
+  const idx = (currentBlackMarketBannerIndex.value + 1) % banners.length
+  selectedBlackMarketBannerId.value = banners[idx].id
+}
+
+// Unified banner navigation based on view
+function handlePrevBanner() {
+  if (isBlackMarketView.value) {
+    prevBlackMarketBanner()
+  } else {
+    prevBanner()
+  }
+}
+
+function handleNextBanner() {
+  if (isBlackMarketView.value) {
+    nextBlackMarketBanner()
+  } else {
+    nextBanner()
+  }
+}
+
+// Black Market pull functions
+async function doBlackMarketSinglePull() {
+  if (!canDisplaySinglePull.value || isAnimating.value) return
+
+  isAnimating.value = true
+  pullResults.value = []
+
+  ownedBeforePull.value = new Set(heroesStore.collection.map(h => h.templateId))
+
+  await runRitualAnimation(800)
+
+  const result = gachaStore.blackMarketSinglePull(selectedBlackMarketBanner.value.id)
+  if (result) {
+    pullResults.value = [result]
+    showResults.value = true
+  }
+
+  isAnimating.value = false
+}
+
+async function doBlackMarketTenPull() {
+  if (!canDisplayTenPull.value || isAnimating.value) return
+
+  isAnimating.value = true
+  pullResults.value = []
+
+  ownedBeforePull.value = new Set(heroesStore.collection.map(h => h.templateId))
+
+  await runRitualAnimation(1200)
+
+  const results = gachaStore.blackMarketTenPull(selectedBlackMarketBanner.value.id)
+  if (results) {
+    pullResults.value = results
+    showResults.value = true
+  }
+
+  isAnimating.value = false
+}
+
+// Unified pull handlers based on view
+function handleSinglePull() {
+  if (isBlackMarketView.value) {
+    doBlackMarketSinglePull()
+  } else {
+    doSinglePull()
+  }
+}
+
+function handleTenPull() {
+  if (isBlackMarketView.value) {
+    doBlackMarketTenPull()
+  } else {
+    doTenPull()
+  }
+}
 </script>
 
 <template>
-  <div class="gacha-screen">
+  <div class="gacha-screen" :class="{ 'ritual-active': ritualActive, 'view-black-market': isBlackMarketView }">
     <!-- Dark vignette background -->
-    <div class="bg-vignette"></div>
+    <div class="bg-vignette" :class="{ 'vignette-corrupted': isBlackMarketView }"></div>
 
-    <!-- Header -->
-    <header class="gacha-header">
-      <button class="back-button" @click="emit('navigate', 'home')">
-        <span class="back-arrow">&#8249;</span>
-        <span>Back</span>
-      </button>
-      <div class="gem-display">
-        <span class="gem-icon">&#128142;</span>
-        <span class="gem-count">{{ gachaStore.gems.toLocaleString() }}</span>
+    <!-- Ritual animation elements -->
+    <div v-if="ritualActive" class="ritual-overlay">
+      <!-- Floating gem from header to altar -->
+      <div v-if="ritualPhase === 'gem-float' || ritualPhase === 'ignition'" class="gem-float">
+        <span class="gem-float-icon">&#128142;</span>
       </div>
-    </header>
 
-    <!-- Banner Section -->
-    <section class="banner-section">
-      <div class="banner-frame">
-        <div
-          class="banner-image"
-          :style="bannerImageUrl ? { backgroundImage: `url(${bannerImageUrl})` } : {}"
+      <!-- Altar ignition burst -->
+      <div v-if="ritualPhase === 'ignition' || ritualPhase === 'fade'" class="altar-ignition">
+        <div class="ignition-core" :class="{ 'ignition-corrupted': isBlackMarketView }"></div>
+        <div class="ignition-burst" :class="{ 'burst-corrupted': isBlackMarketView }"></div>
+        <EmberParticles :count="32" :palette="isBlackMarketView ? 'corrupt' : 'warm'" intensity="high" />
+      </div>
+
+      <!-- Fade to black overlay -->
+      <div class="ritual-fade-overlay" :class="{ active: ritualPhase === 'fade' }"></div>
+    </div>
+
+    <!-- Altar Container - handles slide transitions -->
+    <div class="altar-container" :class="{ 'view-black-market': isBlackMarketView }">
+      <!-- Header -->
+      <header class="gacha-header">
+        <!-- Back button for Black Market view -->
+        <button v-if="isBlackMarketView" class="back-button black-market-back" @click="exitBlackMarket">
+          <span class="back-arrow">&#8249;</span>
+          <span>Back</span>
+        </button>
+        <button v-else class="back-button" @click="emit('navigate', 'home')">
+          <span class="back-arrow">&#8249;</span>
+          <span>Back</span>
+        </button>
+        <div class="gem-display" :class="{ 'gem-display-corrupted': isBlackMarketView }">
+          <span class="gem-icon">&#128142;</span>
+          <span class="gem-count">{{ gachaStore.gems.toLocaleString() }}</span>
+        </div>
+      </header>
+
+      <!-- Banner Section -->
+      <section class="banner-section">
+        <div class="banner-frame" :class="{ 'frame-corrupted': isBlackMarketView }">
+          <div
+            class="banner-image"
+            :style="displayBannerImageUrl ? { backgroundImage: `url(${displayBannerImageUrl})` } : {}"
+          >
+            <div class="banner-inner-shadow"></div>
+          </div>
+          <!-- Navigation arrows -->
+          <div class="banner-nav" v-if="displayBannerCount > 1">
+            <button class="banner-arrow banner-arrow-left" :class="{ 'arrow-corrupted': isBlackMarketView }" @click="handlePrevBanner">&#9668;</button>
+            <button class="banner-arrow banner-arrow-right" :class="{ 'arrow-corrupted': isBlackMarketView }" @click="handleNextBanner">&#9658;</button>
+          </div>
+        </div>
+
+        <!-- Banner info -->
+        <h2 class="banner-name" :class="{ 'name-corrupted': isBlackMarketView }">{{ displayBanner?.name || 'Hero Summoning' }}</h2>
+        <div class="banner-availability">
+          <span class="availability-text" :class="{ 'availability-urgent': bannerUrgent, 'availability-corrupted': isBlackMarketView }">
+            {{ displayBannerAvailability }}
+          </span>
+        </div>
+      </section>
+
+      <!-- Altar Section with Embers -->
+      <section class="altar-section">
+        <div class="altar-surface" :class="{ 'altar-corrupted': isBlackMarketView }">
+          <EmberParticles :count="16" :palette="isBlackMarketView ? 'corrupt' : 'warm'" intensity="medium" />
+        </div>
+      </section>
+
+      <!-- Pull Buttons -->
+      <section class="pull-buttons">
+        <button
+          class="pull-button single"
+          :class="{ 'button-corrupted': isBlackMarketView }"
+          :disabled="!canDisplaySinglePull || isAnimating"
+          @click="handleSinglePull"
         >
-          <div class="banner-inner-shadow"></div>
-        </div>
-        <!-- Navigation arrows -->
-        <div class="banner-nav" v-if="activeBanners.length > 1">
-          <button class="banner-arrow banner-arrow-left" @click="prevBanner">&#9668;</button>
-          <button class="banner-arrow banner-arrow-right" @click="nextBanner">&#9658;</button>
-        </div>
-      </div>
+          <span class="pull-label">&#215;1</span>
+        </button>
 
-      <!-- Banner info -->
-      <h2 class="banner-name">{{ selectedBanner?.name || 'Hero Summoning' }}</h2>
-      <div class="banner-availability">
-        <span class="availability-text" :class="{ 'availability-urgent': bannerUrgent }">
-          {{ bannerAvailability }}
-        </span>
-      </div>
-    </section>
+        <button
+          class="pull-button ten"
+          :class="{ 'button-corrupted': isBlackMarketView }"
+          :disabled="!canDisplayTenPull || isAnimating"
+          @click="handleTenPull"
+        >
+          <span class="pull-label">&#215;10</span>
+          <span class="pull-divider">&#183;</span>
+          <span class="pull-cost">
+            <span class="cost-icon">&#128142;</span>
+            {{ displayTenCost }}
+          </span>
+        </button>
+      </section>
 
-    <!-- Altar Section with Embers -->
-    <section class="altar-section">
-      <div class="altar-surface">
-        <EmberParticles :count="16" palette="warm" intensity="medium" />
-      </div>
-    </section>
-
-    <!-- Pull Buttons -->
-    <section class="pull-buttons">
-      <button
-        class="pull-button single"
-        :disabled="!gachaStore.canSinglePull || isAnimating"
-        @click="doSinglePull"
-      >
-        <span class="pull-label">&#215;1</span>
-      </button>
-
-      <button
-        class="pull-button ten"
-        :disabled="!gachaStore.canTenPull || isAnimating"
-        @click="doTenPull"
-      >
-        <span class="pull-label">&#215;10</span>
-        <span class="pull-divider">&#183;</span>
-        <span class="pull-cost">
-          <span class="cost-icon">&#128142;</span>
-          {{ gachaStore.TEN_PULL_COST }}
-        </span>
-      </button>
-    </section>
-
-    <!-- Info Button -->
-    <button class="info-button" @click="openInfoSheet">?</button>
+      <!-- Info Button -->
+      <button class="info-button" :class="{ 'info-corrupted': isBlackMarketView }" @click="openInfoSheet">?</button>
+    </div>
 
     <!-- Black Market Hidden Door -->
     <div
-      v-if="gachaStore.blackMarketUnlocked"
+      v-if="gachaStore.blackMarketUnlocked && !isBlackMarketView"
       class="black-market-door"
-      @click="emit('navigate', 'black-market')"
+      @click="enterBlackMarket"
     >
       <span class="door-icon">&#127761;</span>
+      <div class="door-embers">
+        <EmberParticles :count="3" palette="corrupt" intensity="low" />
+      </div>
     </div>
 
-    <!-- Animation overlay -->
-    <div v-if="isAnimating" class="animation-overlay">
+    <!-- Animation overlay (legacy - now using ritual animation) -->
+    <div v-if="isAnimating && !ritualActive" class="animation-overlay">
       <div class="summon-effect">
         <div class="altar-flare"></div>
       </div>
@@ -895,5 +1134,142 @@ function closeInfoSheet() {
 .close-button:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+}
+
+/* ===== Ritual Animation ===== */
+.ritual-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.gem-float {
+  position: absolute;
+  top: 40px;
+  right: 80px;
+  z-index: 52;
+  animation: gemFloatToAltar 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.gem-float-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 8px rgba(96, 165, 250, 0.8));
+}
+
+@keyframes gemFloatToAltar {
+  0% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(calc(50vh - 100px)) translateX(-30vw) scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(50vh - 40px)) translateX(-30vw) scale(0.5);
+  }
+}
+
+.altar-ignition {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 400px;
+  height: 200px;
+  transform: translate(-50%, -30%);
+  z-index: 51;
+  overflow: visible;
+}
+
+.ignition-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, rgba(255, 200, 100, 0.9) 0%, rgba(255, 140, 40, 0.6) 40%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ignitionCorePulse 0.6s ease-out forwards;
+}
+
+@keyframes ignitionCorePulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0.8;
+  }
+}
+
+.ignition-burst {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 176, 32, 0.5) 0%, rgba(255, 96, 48, 0.3) 30%, transparent 60%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: ignitionBurst 0.6s ease-out forwards;
+}
+
+@keyframes ignitionBurst {
+  0% {
+    transform: translate(-50%, -50%) scale(0.5);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(3);
+    opacity: 0;
+  }
+}
+
+.ritual-fade-overlay {
+  position: absolute;
+  inset: 0;
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+  z-index: 53;
+}
+
+.ritual-fade-overlay.active {
+  opacity: 1;
+}
+
+/* Dim the main UI during ritual */
+.gacha-screen.ritual-active .gacha-header,
+.gacha-screen.ritual-active .banner-section,
+.gacha-screen.ritual-active .pull-buttons,
+.gacha-screen.ritual-active .info-button {
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+.gacha-screen.ritual-active .altar-section {
+  opacity: 1;
+}
+
+/* Reduced motion: instant transitions */
+@media (prefers-reduced-motion: reduce) {
+  .gem-float,
+  .ignition-core,
+  .ignition-burst,
+  .ritual-fade-overlay {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 </style>
