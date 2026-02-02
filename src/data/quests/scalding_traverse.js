@@ -3,8 +3,8 @@ export const regionMeta = {
   name: 'Scalding Traverse',
   superRegion: 'aquarias',
   startNode: 'scalding_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#2a1a15'
 }
 

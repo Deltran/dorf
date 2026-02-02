@@ -3,8 +3,8 @@ export const regionMeta = {
   name: 'Forbidden Archives',
   superRegion: 'aquarias',
   startNode: 'archives_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#1a1a2a'
 }
 

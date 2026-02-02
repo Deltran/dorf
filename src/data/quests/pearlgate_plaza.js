@@ -3,8 +3,8 @@ export const regionMeta = {
   name: 'Pearlgate Plaza',
   superRegion: 'aquarias',
   startNode: 'pearlgate_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#1a3040'
 }
 
@@ -13,8 +13,8 @@ export const nodes = {
     id: 'pearlgate_01',
     name: 'Pearlgate Approach',
     region: 'Pearlgate Plaza',
-    x: 100,
-    y: 250,
+    x: 306,
+    y: 966,
     battles: [
       { enemies: ['pearl_guard', 'nobles_bodyguard'] },
       { enemies: ['court_mage', 'pearl_guard'] },
@@ -51,8 +51,8 @@ export const nodes = {
     id: 'pearlgate_02',
     name: 'Credential Check',
     region: 'Pearlgate Plaza',
-    x: 250,
-    y: 180,
+    x: 198,
+    y: 705,
     battles: [
       { enemies: ['pearl_guard', 'pearl_guard', 'nobles_bodyguard'] },
       { enemies: ['court_mage', 'court_mage', 'pearl_guard'] },
@@ -90,8 +90,8 @@ export const nodes = {
     id: 'pearlgate_03',
     name: "Noble's Promenade",
     region: 'Pearlgate Plaza',
-    x: 400,
-    y: 300,
+    x: 215,
+    y: 558,
     battles: [
       { enemies: ['nobles_bodyguard', 'nobles_bodyguard', 'court_mage'] },
       { enemies: ['pearl_guard', 'pearl_guard', 'pearl_guard'] },
@@ -129,8 +129,8 @@ export const nodes = {
     id: 'pearlgate_04',
     name: "Servant's Corridor",
     region: 'Pearlgate Plaza',
-    x: 550,
-    y: 200,
+    x: 376,
+    y: 499,
     battles: [
       { enemies: ['court_mage', 'court_mage', 'court_mage'] },
       { enemies: ['gilded_construct', 'gilded_construct'] },
@@ -169,8 +169,9 @@ export const nodes = {
     id: 'pearlgate_05',
     name: 'Castle Forecourt',
     region: 'Pearlgate Plaza',
-    x: 700,
-    y: 280,
+    x: 298,
+    y: 308,
+    regionLinkPosition: { x: 390, y: 195 },
     battles: [
       { enemies: ['gilded_construct', 'gilded_construct', 'court_mage'] },
       { enemies: ['pearl_guard', 'pearl_guard', 'pearl_guard', 'nobles_bodyguard'] },

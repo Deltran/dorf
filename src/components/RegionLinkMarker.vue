@@ -6,17 +6,22 @@ const props = defineProps({
     type: Object,
     required: true
   },
-  scale: {
+  logicalWidth: {
     type: Number,
-    default: 1
+    default: 800
+  },
+  logicalHeight: {
+    type: Number,
+    default: 500
   }
 })
 
 const emit = defineEmits(['navigate'])
 
+// Position as percentage of logical coordinate space
 const markerStyle = computed(() => ({
-  left: `${props.link.position.x * props.scale}px`,
-  top: `${props.link.position.y * props.scale}px`
+  left: `${(props.link.position.x / props.logicalWidth) * 100}%`,
+  top: `${(props.link.position.y / props.logicalHeight) * 100}%`
 }))
 </script>
 

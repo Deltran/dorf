@@ -5,8 +5,8 @@ export const regionMeta = {
   name: 'Underground Morass',
   superRegion: 'western_veros',
   startNode: 'morass_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#1a2a1a'
 }
 
@@ -15,8 +15,8 @@ export const nodes = {
     id: 'morass_01',
     name: 'Damp Tunnels',
     region: 'Underground Morass',
-    x: 672,
-    y: 233,
+    x: 219,
+    y: 67,
     battles: [
       { enemies: ['cave_leech', 'cave_leech', 'cave_leech'] },
       { enemies: ['cave_bat', 'cave_bat', 'cave_leech', 'cave_leech'] },
@@ -37,8 +37,8 @@ export const nodes = {
     id: 'morass_02',
     name: 'Fungal Grotto',
     region: 'Underground Morass',
-    x: 538,
-    y: 163,
+    x: 399,
+    y: 184,
     battles: [
       { enemies: ['fungal_zombie', 'fungal_zombie'] },
       { enemies: ['gloom_stalker', 'gloom_stalker'] },
@@ -59,8 +59,8 @@ export const nodes = {
     id: 'morass_03',
     name: "Stalker's Den",
     region: 'Underground Morass',
-    x: 248,
-    y: 180,
+    x: 94,
+    y: 491,
     battles: [
       { enemies: ['gloom_stalker', 'gloom_stalker', 'gloom_stalker'] },
       { enemies: ['gloom_stalker', 'gloom_stalker', 'cave_leech', 'cave_leech'] },
@@ -82,8 +82,8 @@ export const nodes = {
     id: 'morass_04',
     name: 'Spore Cavern',
     region: 'Underground Morass',
-    x: 668,
-    y: 394,
+    x: 464,
+    y: 480,
     battles: [
       { enemies: ['fungal_zombie', 'fungal_zombie', 'fungal_zombie'] },
       { enemies: ['swamp_hag', 'fungal_zombie', 'cave_leech'] },
@@ -105,8 +105,8 @@ export const nodes = {
     id: 'morass_05',
     name: "Horror's Domain",
     region: 'Underground Morass',
-    x: 390,
-    y: 357,
+    x: 151,
+    y: 845,
     battles: [
       { enemies: ['blind_horror', 'blind_horror'] },
       { enemies: ['swamp_hag', 'swamp_hag', 'fungal_zombie'] },
@@ -128,9 +128,9 @@ export const nodes = {
     id: 'morass_06',
     name: 'Abyssal Exit',
     region: 'Underground Morass',
-    x: 367,
-    y: 456,
-    regionLinkPosition: { x: 540, y: 471 },
+    x: 375,
+    y: 861,
+    regionLinkPosition: { x: 566, y: 869 },
     battles: [
       { enemies: ['blind_horror', 'swamp_hag', 'swamp_hag'] },
       { enemies: ['gloom_stalker', 'gloom_stalker', 'gloom_stalker', 'gloom_stalker'] },

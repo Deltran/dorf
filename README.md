@@ -195,10 +195,31 @@ npm run generate-assets -- enemies --id cave_leech
 npm run generate-assets -- backgrounds --id forest_01
 ```
 
+### Batch Generation (Gemini API)
+
+Generate battle backgrounds and region maps using the Gemini API.
+
+**Setup**: Add your Gemini API key to `.env`:
+```
+VITE_GEMINI_API_KEY=your-key-here
+```
+
+**Commands**:
+```bash
+# Generate all missing battle backgrounds (600x1000)
+npm run generate-battle-backgrounds
+
+# Generate all missing region maps (600x1000)
+npm run generate-region-maps
+```
+
+These scripts skip assets that already exist at the correct size.
+
 ### Asset Sizes
 
 - **Enemies**: 64x64 (regular) or 128x128 (bosses/large creatures)
-- **Backgrounds**: 320x128
+- **Backgrounds**: 320x128 (Pixellab) or 600x1000 (Gemini batch)
+- **Region Maps**: 600x1000
 
 ### Custom Prompts
 

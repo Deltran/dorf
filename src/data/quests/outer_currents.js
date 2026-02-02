@@ -3,8 +3,8 @@ export const regionMeta = {
   name: 'Outer Currents',
   superRegion: 'aquarias',
   startNode: 'currents_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#0a2540'
 }
 

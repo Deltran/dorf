@@ -1,6 +1,10 @@
 <script setup>
 import { ref, watch } from 'vue'
-import { generateHeroImage } from '../../lib/pixellab.js'
+import { generateMapImage } from '../../lib/gemini.js'
+
+// Target dimensions for portrait battle backgrounds
+const TARGET_WIDTH = 600
+const TARGET_HEIGHT = 1000
 
 const props = defineProps({
   node: { type: Object, default: null },
@@ -11,14 +15,15 @@ const props = defineProps({
 const emit = defineEmits(['close', 'save-image'])
 
 function buildDefaultPrompt(node) {
-  if (node.id === 'default') return 'Battle background. Dark fantasy pixel art.'
-  return `${node.name}. ${node.region}. Battle background. Dark fantasy pixel art.`
+  if (node.id === 'default') return 'No labels. RPG battle background. No people. No animals. No monsters. Dark fantasy pixel art. Portrait orientation.'
+  return `${node.name}. ${node.region}. No labels. RPG battle background. No people. No animals. No monsters. Dark fantasy pixel art. Portrait orientation.`
 }
 
 const prompt = ref('')
 const generating = ref(false)
 const generationError = ref(null)
 const generatedDataUrl = ref(null)
+const statusMessage = ref(null)
 
 watch(() => props.node, (newNode) => {
   if (newNode) {
@@ -26,6 +31,7 @@ watch(() => props.node, (newNode) => {
     generatedDataUrl.value = null
     generationError.value = null
     generating.value = false
+    statusMessage.value = null
   }
 }, { immediate: true })
 
@@ -34,16 +40,20 @@ async function generate() {
   generating.value = true
   generationError.value = null
   generatedDataUrl.value = null
+  statusMessage.value = 'Generating with Gemini...'
 
   try {
-    const dataUrl = await generateHeroImage({
+    const dataUrl = await generateMapImage({
       prompt: prompt.value,
-      width: 400,
-      height: 225
+      width: TARGET_WIDTH,
+      height: TARGET_HEIGHT,
+      onStatus: (msg) => { statusMessage.value = msg }
     })
     generatedDataUrl.value = dataUrl
-  } catch (e) {
-    generationError.value = e.message
+    statusMessage.value = null
+  } catch (error) {
+    generationError.value = error.message
+    statusMessage.value = null
   } finally {
     generating.value = false
   }
@@ -61,6 +71,7 @@ function saveGenerated() {
 function tryAgain() {
   generatedDataUrl.value = null
   generationError.value = null
+  statusMessage.value = null
 }
 
 function onBackdropClick(e) {
@@ -76,6 +87,7 @@ function onBackdropClick(e) {
       <div class="modal-header">
         <h2>{{ node.name }}</h2>
         <span class="node-id-label">{{ node.id }}</span>
+        <span class="size-label">{{ TARGET_WIDTH }}x{{ TARGET_HEIGHT }}</span>
         <button class="close-btn" @click="emit('close')">&times;</button>
       </div>
 
@@ -110,6 +122,10 @@ function onBackdropClick(e) {
           >
             {{ generating ? 'Generating...' : 'Generate' }}
           </button>
+
+          <div v-if="statusMessage" class="status-msg">
+            {{ statusMessage }}
+          </div>
 
           <div v-if="generationError" class="error-msg">
             {{ generationError }}
@@ -153,7 +169,7 @@ function onBackdropClick(e) {
   background: #1f2937;
   border: 1px solid #374151;
   border-radius: 12px;
-  width: 600px;
+  width: 500px;
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -176,6 +192,14 @@ function onBackdropClick(e) {
   font-size: 13px;
   color: #6b7280;
   font-family: monospace;
+}
+
+.size-label {
+  font-size: 11px;
+  color: #9ca3af;
+  background: #374151;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
 .close-btn {
@@ -205,8 +229,8 @@ function onBackdropClick(e) {
 }
 
 .main-preview {
-  width: 480px;
-  height: 270px;
+  width: 180px;
+  height: 300px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -216,10 +240,9 @@ function onBackdropClick(e) {
 }
 
 .main-image {
-  width: 480px;
-  height: 270px;
-  image-rendering: pixelated;
-  object-fit: fill;
+  width: 180px;
+  height: 300px;
+  object-fit: cover;
 }
 
 .preview-placeholder {
@@ -302,12 +325,21 @@ function onBackdropClick(e) {
   background: #4b5563;
 }
 
+.status-msg {
+  color: #fbbf24;
+  font-size: 13px;
+  padding: 8px;
+  background: rgba(251, 191, 36, 0.1);
+  border-radius: 6px;
+}
+
 .error-msg {
   color: #ef4444;
   font-size: 13px;
   padding: 8px;
   background: rgba(239, 68, 68, 0.1);
   border-radius: 6px;
+  white-space: pre-line;
 }
 
 .generation-preview {
@@ -321,9 +353,8 @@ function onBackdropClick(e) {
 
 .preview-compare {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
+  gap: 16px;
+  justify-content: center;
 }
 
 .compare-item {
@@ -337,9 +368,9 @@ function onBackdropClick(e) {
 }
 
 .preview-image {
-  width: 400px;
-  height: 225px;
-  image-rendering: pixelated;
+  width: 150px;
+  height: 250px;
+  object-fit: cover;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.3);
 }

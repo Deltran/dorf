@@ -100,7 +100,17 @@ async function saveImage({ regionId, dataUrl, prompt }) {
       body: JSON.stringify(assetPrompts.value)
     })
 
+    // Update region dimensions to match generated size (600x1000)
+    await fetch('/__admin/save-region-size', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ regionId, width: 600, height: 1000 })
+    })
+
     imageOverrides.value[regionId] = dataUrl
+    if (editingRegion.value?.id === regionId) {
+      editingRegion.value = { ...editingRegion.value, width: 600, height: 1000 }
+    }
   } catch (err) {
     alert('Failed to save map: ' + (err.message || err))
   }

@@ -5,8 +5,8 @@ export const regionMeta = {
   name: 'Coral Depths',
   superRegion: 'aquarias',
   startNode: 'coral_01',
-  width: 800,
-  height: 800,
+  width: 600,
+  height: 1000,
   backgroundColor: '#0a2a3a'
 }
 

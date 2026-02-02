@@ -14,6 +14,7 @@ const { onPointerEnter, onPointerLeave } = useTooltip()
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 const enemyPortraits = import.meta.glob('../assets/enemies/*_portrait.png', { eager: true, import: 'default' })
 const enemyImages = import.meta.glob('../assets/enemies/*.png', { eager: true, import: 'default' })
+const mapImages = import.meta.glob('../assets/maps/*.png', { eager: true, import: 'default' })
 
 function getBossPortraitUrl(bossId) {
   if (!bossId) return null
@@ -29,6 +30,11 @@ function getEnemyImageUrl(enemyId) {
   return enemyImages[imagePath] || null
 }
 
+function getRegionMapImage(regionId) {
+  const path = `../assets/maps/${regionId}.png`
+  return mapImages[path] || null
+}
+
 const emit = defineEmits(['navigate', 'startBattle', 'startGenusLociBattle'])
 const props = defineProps({
   initialRegionName: { type: String, default: null }
@@ -42,12 +48,10 @@ const explorationsStore = useExplorationsStore()
 const gachaStore = useGachaStore()
 
 const selectedNode = ref(null)
-const selectedRegion = ref(regions[0].id)
+const selectedRegion = ref(null) // null = show region list, string = show map
 const selectedSuperRegion = ref(null)
 const showTokenResults = ref(false)
 const tokenResults = ref(null)
-const isSliding = ref(false)
-const isTabSwitching = ref(false)
 
 // Combine regular unlocked nodes with unlocked exploration nodes
 const allUnlockedNodes = computed(() => {
@@ -82,7 +86,7 @@ onMounted(() => {
       // Set flag to skip the watch reset
       skipNextRegionReset = true
       selectedSuperRegion.value = regionData.superRegion
-      selectedRegion.value = savedRegion
+      // Don't auto-select region - show region list first
     }
   }
 
@@ -125,6 +129,7 @@ const filteredRegions = computed(() => {
 
 // Get the full region object
 const currentRegion = computed(() => {
+  if (!selectedRegion.value) return null
   return getRegion(selectedRegion.value)
 })
 
@@ -135,36 +140,39 @@ const currentRegionNodes = computed(() => {
 })
 
 const regionProgress = computed(() => {
+  if (!selectedRegion.value) return { completed: 0, total: 0 }
   return questsStore.regionProgress[selectedRegion.value] || { completed: 0, total: 0 }
 })
+
+// Get progress for a specific region (for region list)
+function getRegionProgress(regionId) {
+  return questsStore.regionProgress[regionId] || { completed: 0, total: 0 }
+}
 
 function getRegionBackground(region) {
   const path = `../assets/battle_backgrounds/${region.startNode}.png`
   return battleBackgrounds[path] || null
 }
 
-// Clear selection when changing regions or super-regions
-watch([selectedRegion, selectedSuperRegion], () => {
+// Clear selection when changing regions
+watch(selectedRegion, () => {
   selectedNode.value = null
 })
 
-// Reset to first region when super-region changes (but not when restoring saved region)
+// Reset region when super-region changes (but not when restoring saved region)
 watch(selectedSuperRegion, (newSuperRegion) => {
   if (skipNextRegionReset) {
     skipNextRegionReset = false
     return
   }
   if (newSuperRegion) {
-    const srRegions = getRegionsBySuperRegion(newSuperRegion)
-    if (srRegions.length > 0) {
-      selectedRegion.value = srRegions[0].id
-    }
+    // Clear region selection to show region list
+    selectedRegion.value = null
   }
 })
 
 function selectNode(node) {
   if (selectedNode.value?.id === node.id) {
-    // Second tap - could start quest directly, but we use the button
     return
   }
 
@@ -185,11 +193,9 @@ function selectNode(node) {
       highestCleared
     }
   } else if (node.type === 'exploration') {
-    // For exploration nodes, enrich with exploration status
     const activeExploration = explorationsStore.activeExplorations[node.id]
     const config = node.explorationConfig
 
-    // Calculate progress if exploration is active
     let progress = null
     if (activeExploration) {
       const elapsed = Date.now() - activeExploration.startedAt
@@ -226,22 +232,7 @@ function clearSelection() {
   selectedNode.value = null
 }
 
-function handleTabSwitch(regionId) {
-  if (regionId === selectedRegion.value) return
-  if (isTabSwitching.value || isSliding.value) return
-
-  isTabSwitching.value = true
-  setTimeout(() => {
-    selectedRegion.value = regionId
-    setTimeout(() => {
-      isTabSwitching.value = false
-    }, 50)
-  }, 350)
-}
-
 function handleRegionNavigate({ targetRegion }) {
-  if (isSliding.value) return
-
   // Handle cross-super-region navigation
   const targetSuperRegion = targetRegion.superRegion
   if (targetSuperRegion !== selectedSuperRegion.value) {
@@ -249,20 +240,11 @@ function handleRegionNavigate({ targetRegion }) {
     selectedSuperRegion.value = targetSuperRegion
   }
 
-  isSliding.value = true
-
-  // Brief delay for leave animation, then switch
-  setTimeout(() => {
-    selectedNode.value = null
-    selectedRegion.value = targetRegion.id
-    setTimeout(() => {
-      isSliding.value = false
-    }, 50)
-  }, 400)
+  selectedNode.value = null
+  selectedRegion.value = targetRegion.id
 }
 
 function getNodeEnemies(node) {
-  // Get unique enemies from all battles
   const enemyIds = new Set()
   for (const battle of node.battles) {
     for (const enemyId of battle.enemies) {
@@ -279,7 +261,6 @@ function startQuest() {
     return
   }
 
-  // Initialize party state (full HP, 30% MP)
   const partyState = {}
   for (const instanceId of heroesStore.party.filter(Boolean)) {
     const stats = heroesStore.getHeroStats(instanceId)
@@ -289,16 +270,23 @@ function startQuest() {
     }
   }
 
-  // Start the quest run
   questsStore.startRun(selectedNode.value.id, partyState)
-
-  // Navigate to battle
   emit('startBattle')
 }
 
 function goToSuperRegionSelect() {
   selectedSuperRegion.value = null
+  selectedRegion.value = null
   selectedNode.value = null
+}
+
+function goToRegionList() {
+  selectedRegion.value = null
+  selectedNode.value = null
+}
+
+function selectRegion(regionId) {
+  selectedRegion.value = regionId
 }
 
 function startGenusLociChallenge() {
@@ -315,13 +303,11 @@ function startGenusLociChallenge() {
     return
   }
 
-  // If already unlocked, navigate to GenusLociScreen for level selection
   if (isUnlocked) {
     emit('navigate', 'genusLoci', genusLociId)
     return
   }
 
-  // First time challenge - start level 1 battle directly
   emit('startGenusLociBattle', {
     genusLociId,
     powerLevel: 1
@@ -338,7 +324,6 @@ function useToken() {
 
   const result = questsStore.collectWithToken(selectedNode.value.id)
   if (result.success) {
-    // Grant currency rewards
     gachaStore.addGems(result.rewards.gems)
     gachaStore.addGold(result.rewards.gold)
     heroesStore.addExpToParty(result.rewards.exp)
@@ -353,6 +338,17 @@ function closeTokenResults() {
   tokenResults.value = null
   selectedNode.value = null
 }
+
+// Get current super-region data
+const currentSuperRegion = computed(() => {
+  if (!selectedSuperRegion.value) return null
+  return superRegions.find(sr => sr.id === selectedSuperRegion.value)
+})
+
+// Total cleared for trophy display
+const totalCleared = computed(() => {
+  return questsStore.completedNodeCount
+})
 </script>
 
 <template>
@@ -364,7 +360,7 @@ function closeTokenResults() {
       <div class="bg-vignette"></div>
     </div>
 
-    <!-- Super-Region Selection -->
+    <!-- Super-Region Selection (when multiple are unlocked) -->
     <SuperRegionSelect
       v-if="showSuperRegionSelect && !selectedSuperRegion"
       :super-regions="superRegions"
@@ -374,60 +370,68 @@ function closeTokenResults() {
       @back="emit('navigate', 'map-room')"
     />
 
-    <!-- Region Content -->
-    <div v-else class="content">
-      <header class="worldmap-header">
+    <!-- Region List View (Screen 1) -->
+    <div v-else-if="!selectedRegion" class="region-list-view">
+      <header class="floating-header">
         <button class="back-button" @click="showSuperRegionSelect ? goToSuperRegionSelect() : emit('navigate', 'map-room')">
           <span class="back-arrow">&larr;</span>
-          <span>{{ showSuperRegionSelect ? 'Regions' : 'Back' }}</span>
         </button>
-        <h1 class="page-title">{{ selectedSuperRegion ? superRegions.find(sr => sr.id === selectedSuperRegion)?.name : 'World Map' }}</h1>
-        <div class="cleared-badge">
-          <span class="cleared-icon">🏆</span>
-          <span class="cleared-count">{{ questsStore.completedNodeCount }}</span>
+        <h1 class="header-title">{{ currentSuperRegion?.name || 'World Map' }}</h1>
+        <div class="trophy-badge">
+          <span class="trophy-icon">🏆</span>
+          <span class="trophy-count">{{ totalCleared }}</span>
         </div>
       </header>
 
-      <nav class="region-tabs">
+      <div class="region-cards-scroll">
         <button
           v-for="region in filteredRegions"
           :key="region.id"
-          :class="['region-tab', { active: selectedRegion === region.id }]"
-          :style="getRegionBackground(region) ? { backgroundImage: `url(${getRegionBackground(region)})` } : {}"
-          @click="handleTabSwitch(region.id)"
+          class="region-card"
+          @click="selectRegion(region.id)"
         >
-          <div class="region-tab-overlay"></div>
-          <span class="region-tab-label">{{ region.name }}</span>
-        </button>
-      </nav>
-
-      <div class="region-progress">
-        <div class="progress-bar">
           <div
-            class="progress-fill"
-            :style="{ width: (regionProgress.total > 0 ? regionProgress.completed / regionProgress.total * 100 : 0) + '%' }"
+            class="region-card-bg"
+            :style="getRegionBackground(region) ? { backgroundImage: `url(${getRegionBackground(region)})` } : {}"
           ></div>
-          <div class="progress-shine"></div>
-        </div>
-        <span class="progress-text">{{ regionProgress.completed }} / {{ regionProgress.total }} cleared</span>
+          <div class="region-card-overlay"></div>
+          <div class="region-card-content">
+            <span class="region-name">{{ region.name }}</span>
+            <span class="region-progress-text">
+              {{ getRegionProgress(region.id).completed }}/{{ getRegionProgress(region.id).total }} cleared
+            </span>
+          </div>
+          <div class="region-card-decoration">
+            <span class="compass-icon">🧭</span>
+          </div>
+        </button>
       </div>
+    </div>
 
-      <!-- Map Canvas -->
-      <section class="map-section">
-        <Transition :name="isSliding ? 'region-slide' : isTabSwitching ? 'page-turn' : 'none'">
-          <MapCanvas
-            v-if="currentRegion"
-            :key="selectedRegion"
-            :region="currentRegion"
-            :nodes="currentRegionNodes"
-            :unlocked-nodes="allUnlockedNodes"
-            :completed-nodes="questsStore.completedNodes"
-            :selected-node-id="selectedNode?.id"
-            @select-node="selectNode"
-            @navigate-region="handleRegionNavigate"
-          />
-        </Transition>
-      </section>
+    <!-- Region Map View (Screen 2) -->
+    <div v-else class="region-map-view">
+      <!-- Floating Header -->
+      <header class="map-floating-header">
+        <button class="back-button-floating" @click="goToRegionList">
+          <span class="back-arrow">&larr;</span>
+        </button>
+        <h1 class="region-title">{{ currentRegion?.name }}</h1>
+        <span class="region-progress-badge">
+          {{ regionProgress.completed }}/{{ regionProgress.total }}
+        </span>
+      </header>
+
+      <!-- Full-Screen Map -->
+      <MapCanvas
+        v-if="currentRegion"
+        :region="currentRegion"
+        :nodes="currentRegionNodes"
+        :unlocked-nodes="allUnlockedNodes"
+        :completed-nodes="questsStore.completedNodes"
+        :selected-node-id="selectedNode?.id"
+        @select-node="selectNode"
+        @navigate-region="handleRegionNavigate"
+      />
     </div>
 
     <!-- Node Preview Modal -->
@@ -439,7 +443,7 @@ function closeTokenResults() {
           <div class="preview-title-area">
             <h2>{{ selectedNode.name }}</h2>
             <span v-if="selectedNode.isCompleted" class="completed-badge">Cleared</span>
-            <span v-if="selectedNode.battles?.length && (selectedNode.isGenusLoci || selectedNode.isExploration)" class="battle-count-badge">⚔️ {{ selectedNode.battles.length }}</span>
+            <span v-if="selectedNode.battles?.length && (selectedNode.isGenusLoci || selectedNode.isExploration)" class="battle-count-badge">{{ selectedNode.battles.length }}</span>
           </div>
           <button class="close-preview" @click="clearSelection">×</button>
         </div>
@@ -536,7 +540,6 @@ function closeTokenResults() {
             </div>
           </div>
 
-          <!-- Active exploration progress -->
           <div v-if="selectedNode.isActive" class="exploration-progress-card">
             <div class="progress-header">
               <span class="progress-icon">⏳</span>
@@ -564,7 +567,6 @@ function closeTokenResults() {
             </div>
           </div>
 
-          <!-- Requirements when not active -->
           <div v-else class="exploration-requirements">
             <div class="requirement-row">
               <span class="requirement-icon">⚔️</span>
@@ -680,7 +682,6 @@ function closeTokenResults() {
           </div>
 
           <div :class="['quest-buttons', { 'has-token': selectedNodeToken }]">
-            <!-- Use Token Button (for completed quests) -->
             <button
               v-if="selectedNodeToken"
               class="use-token-btn"
@@ -815,228 +816,237 @@ function closeTokenResults() {
   background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
 }
 
-/* Content */
-.content {
+/* ========================================
+   REGION LIST VIEW (Screen 1)
+   ======================================== */
+.region-list-view {
   position: relative;
   z-index: 1;
-  padding: 20px;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-height: 100vh;
 }
 
-/* Header */
-.worldmap-header {
+.floating-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 20px;
+  padding-top: calc(20px + env(safe-area-inset-top, 0px));
 }
 
 .back-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   color: #e2e8f0;
-  font-size: 0.9rem;
+  font-size: 1.2rem;
   cursor: pointer;
-  padding: 8px 12px;
   transition: all 0.2s ease;
 }
 
 .back-button:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.6);
   transform: translateX(-2px);
 }
 
 .back-arrow {
-  font-size: 1.1rem;
+  font-size: 1.3rem;
 }
 
-.page-title {
-  font-size: 1.5rem;
+.header-title {
+  font-size: 1.4rem;
   color: #f1f5f9;
   margin: 0;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
-.cleared-badge {
+.trophy-badge {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  padding: 6px 12px;
+  padding: 8px 14px;
 }
 
-.cleared-icon {
+.trophy-icon {
   font-size: 1rem;
 }
 
-.cleared-count {
+.trophy-count {
   color: #fbbf24;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 1rem;
 }
 
-/* Region Tabs */
-.region-tabs {
+/* Region Cards */
+.region-cards-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px 100px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-bottom: 8px;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.region-tab {
+.region-card {
   position: relative;
-  padding: 10px 14px;
-  background-color: rgba(0, 0, 0, 0.5);
-  background-size: cover;
-  background-position: center;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  color: #94a3b8;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.3s ease;
+  width: 100%;
+  min-height: 120px;
+  border: none;
+  border-radius: 12px;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: none;
+  padding: 0;
+  text-align: left;
+  /* Parchment-style torn edges */
+  clip-path: polygon(
+    0% 2%, 4% 0%, 8% 1%, 12% 0%, 16% 2%, 20% 0%, 24% 1%, 28% 0%, 32% 2%,
+    36% 0%, 40% 1%, 44% 0%, 48% 2%, 52% 0%, 56% 1%, 60% 0%, 64% 2%,
+    68% 0%, 72% 1%, 76% 0%, 80% 2%, 84% 0%, 88% 1%, 92% 0%, 96% 2%, 100% 0%,
+    100% 98%, 96% 100%, 92% 99%, 88% 100%, 84% 98%, 80% 100%, 76% 99%, 72% 100%, 68% 98%,
+    64% 100%, 60% 99%, 56% 100%, 52% 98%, 48% 100%, 44% 99%, 40% 100%, 36% 98%,
+    32% 100%, 28% 99%, 24% 100%, 20% 98%, 16% 100%, 12% 99%, 8% 100%, 4% 98%, 0% 100%
+  );
 }
 
-.region-tab-overlay {
+.region-card:active {
+  transform: scale(0.98);
+}
+
+.region-card-bg {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  transition: background 0.3s ease;
+  background-color: #3d3522;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.25;
 }
 
-.region-tab-label {
+.region-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 119, 77, 0.85) 0%,
+    rgba(87, 75, 52, 0.9) 50%,
+    rgba(61, 53, 34, 0.95) 100%
+  );
+}
+
+.region-card-content {
   position: relative;
   z-index: 1;
-  font-weight: 600;
-  text-align: center;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
-}
-
-.region-tab:hover {
-  border-color: rgba(251, 191, 36, 0.5);
-  color: #e2e8f0;
-  transform: translateY(-2px);
-}
-
-.region-tab:hover .region-tab-overlay {
-  background: rgba(0, 0, 0, 0.4);
-}
-
-.region-tab.active {
-  border-color: #fbbf24;
-  color: #fbbf24;
-}
-
-.region-tab.active .region-tab-overlay {
-  background: rgba(251, 191, 36, 0.25);
-}
-
-/* Region Progress */
-.region-progress {
+  padding: 20px 24px;
   display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  padding: 12px 16px;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 120px;
+  justify-content: center;
 }
 
-.progress-bar {
-  flex: 1;
-  height: 10px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 5px;
-  overflow: hidden;
-  position: relative;
+.region-name {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f5f0e1;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
+  font-family: Georgia, 'Times New Roman', serif;
 }
 
-.progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%);
-  border-radius: 5px;
-  transition: width 0.5s ease;
-  position: relative;
+.region-progress-text {
+  font-size: 0.85rem;
+  color: rgba(245, 240, 225, 0.7);
+  font-style: italic;
 }
 
-.progress-shine {
+.region-card-decoration {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  opacity: 0.4;
+}
+
+.compass-icon {
+  font-size: 2rem;
+}
+
+/* ========================================
+   REGION MAP VIEW (Screen 2)
+   ======================================== */
+.region-map-view {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-floating-header {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 50%;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), transparent);
-  border-radius: 5px 5px 0 0;
-}
-
-.progress-text {
-  color: #94a3b8;
-  font-size: 0.85rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-/* Map Section */
-.map-section {
-  flex: 1;
+  z-index: 10;
   display: flex;
-  flex-direction: column;
-  position: relative;
-  overflow: hidden;
-  perspective: 1200px;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  pointer-events: none;
 }
 
-/* Region slide transitions */
-.region-slide-enter-active,
-.region-slide-leave-active {
-  transition: transform 0.4s ease-out, opacity 0.4s ease-out;
+.map-floating-header > * {
+  pointer-events: auto;
 }
 
-.region-slide-leave-active {
-  position: absolute;
-  width: 100%;
+.back-button-floating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  color: #f3f4f6;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.region-slide-enter-from {
-  transform: translateX(100%);
-  opacity: 0;
+.back-button-floating:hover {
+  background: rgba(0, 0, 0, 0.7);
 }
 
-.region-slide-leave-to {
-  transform: translateX(-100%);
-  opacity: 0;
+.region-title {
+  flex: 1;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #f3f4f6;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
-.page-turn-leave-active {
-  transition: transform 0.35s ease-in, opacity 0.35s ease-in;
-  transform-origin: left center;
-  position: absolute;
-  width: 100%;
-  z-index: 1;
-}
-
-.page-turn-leave-to {
-  transform: rotateY(-90deg);
-  opacity: 0;
-}
-
-.page-turn-enter-active {
-  transition: opacity 0.15s ease-out;
-}
-
-.page-turn-enter-from {
-  opacity: 0;
+.region-progress-badge {
+  background: rgba(0, 0, 0, 0.5);
+  color: #fbbf24;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Modal Backdrop */
@@ -1129,29 +1139,6 @@ function closeTokenResults() {
   color: #f3f4f6;
 }
 
-/* Battle Count Card */
-.battle-count-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 16px;
-  background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.2) 100%);
-  border: 1px solid rgba(251, 191, 36, 0.3);
-  border-radius: 12px;
-  margin-bottom: 20px;
-}
-
-.battle-count-icon {
-  font-size: 1.5rem;
-}
-
-.battle-count-text {
-  color: #fef3c7;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
 /* Section Labels */
 .section-label {
   display: flex;
@@ -1169,43 +1156,6 @@ function closeTokenResults() {
   flex: 1;
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
-}
-
-/* Enemies Section */
-.enemies-section {
-  margin-bottom: 20px;
-}
-
-.enemy-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.enemy-preview {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  padding: 10px 14px;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.enemy-name {
-  color: #fca5a5;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.enemy-stats {
-  display: flex;
-  gap: 8px;
-}
-
-.enemy-hp {
-  color: #9ca3af;
-  font-size: 0.8rem;
 }
 
 /* Rewards Section */
@@ -1253,28 +1203,6 @@ function closeTokenResults() {
 
 .reward-value.gold {
   color: #f59e0b;
-}
-
-.first-clear-bonus-badge {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 2px 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #fbbf24;
-  background: rgba(251, 191, 36, 0.2);
-  border: 1px solid rgba(251, 191, 36, 0.5);
-  border-radius: 8px;
-  animation: bonusGlow 1.5s ease-in-out infinite;
-}
-
-@keyframes bonusGlow {
-  0%, 100% {
-    box-shadow: 0 0 4px rgba(251, 191, 36, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 10px rgba(251, 191, 36, 0.8);
-  }
 }
 
 /* Compact Quest Layout */
@@ -1473,6 +1401,16 @@ function closeTokenResults() {
 
 .btn-icon {
   font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-portrait {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 /* Genus Loci Preview */
@@ -1502,19 +1440,6 @@ function closeTokenResults() {
 .genus-loci-preview .boss-portrait {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-}
-
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-portrait {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
   object-fit: cover;
 }
 
@@ -1966,17 +1891,5 @@ function closeTokenResults() {
   border-color: #64748b;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-/* Slide up transition for modal */
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-up-enter-from,
-.slide-up-leave-to {
-  opacity: 0;
-  transform: translate(-50%, -40%);
 }
 </style>

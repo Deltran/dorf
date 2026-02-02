@@ -3,8 +3,8 @@ export const regionMeta = {
   name: 'The Abyssal Maw',
   superRegion: 'aquarias',
   startNode: 'abyss_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#0a0a15'
 }
 

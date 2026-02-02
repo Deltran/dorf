@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { getQuestNode, regions } from '../data/quests/index.js'
 import NodeMarker from './NodeMarker.vue'
 import RegionLinkMarker from './RegionLinkMarker.vue'
@@ -29,18 +29,9 @@ const props = defineProps({
 
 const emit = defineEmits(['selectNode', 'navigateRegion'])
 
-const containerRef = ref(null)
-const containerWidth = ref(0)
-
-// Calculate scale to fit map in container
-const scale = computed(() => {
-  if (!containerWidth.value || !props.region.width) return 1
-  return Math.min(containerWidth.value / props.region.width, 1)
-})
-
-const scaledHeight = computed(() => {
-  return props.region.height * scale.value
-})
+// Use region dimensions for coordinate space
+const logicalWidth = computed(() => props.region.width || 600)
+const logicalHeight = computed(() => props.region.height || 1000)
 
 // Filter to only show unlocked nodes
 const visibleNodes = computed(() => {
@@ -103,20 +94,10 @@ const regionLinks = computed(() => {
   return links
 })
 
-function handleResize() {
-  if (containerRef.value) {
-    containerWidth.value = containerRef.value.clientWidth
-  }
+// Convert logical coordinates to percentage
+function toPercent(value, max) {
+  return (value / max) * 100
 }
-
-onMounted(() => {
-  handleResize()
-  window.addEventListener('resize', handleResize)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', handleResize)
-})
 
 function selectNode(node) {
   emit('selectNode', node)
@@ -128,11 +109,7 @@ function navigateRegion(payload) {
 </script>
 
 <template>
-  <div
-    ref="containerRef"
-    class="map-canvas"
-    :style="{ height: scaledHeight + 'px' }"
-  >
+  <div class="map-canvas">
     <!-- Background -->
     <div
       class="map-background"
@@ -142,11 +119,11 @@ function navigateRegion(payload) {
       }"
     ></div>
 
-    <!-- SVG Layer for fog and trails -->
+    <!-- SVG Layer for trails -->
     <svg
       class="map-svg"
-      :viewBox="`0 0 ${region.width} ${region.height}`"
-      preserveAspectRatio="xMidYMid meet"
+      :viewBox="`0 0 ${logicalWidth} ${logicalHeight}`"
+      preserveAspectRatio="xMidYMid slice"
     >
       <!-- Dotted trail paths -->
       <g class="trails">
@@ -174,7 +151,7 @@ function navigateRegion(payload) {
       </g>
     </svg>
 
-    <!-- Node markers (positioned absolutely) -->
+    <!-- Node markers (positioned as percentages) -->
     <div class="markers-layer">
       <NodeMarker
         v-for="node in visibleNodes"
@@ -182,14 +159,16 @@ function navigateRegion(payload) {
         :node="node"
         :is-completed="completedNodes.includes(node.id)"
         :is-selected="selectedNodeId === node.id"
-        :scale="scale"
+        :logical-width="logicalWidth"
+        :logical-height="logicalHeight"
         @select="selectNode"
       />
       <RegionLinkMarker
         v-for="link in regionLinks"
         :key="link.id"
         :link="link"
-        :scale="scale"
+        :logical-width="logicalWidth"
+        :logical-height="logicalHeight"
         @navigate="navigateRegion"
       />
     </div>
@@ -198,9 +177,8 @@ function navigateRegion(payload) {
 
 <style scoped>
 .map-canvas {
-  position: relative;
-  width: 100%;
-  border-radius: 12px;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
 }
 

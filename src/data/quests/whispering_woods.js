@@ -5,8 +5,8 @@ export const regionMeta = {
   name: 'Whispering Woods',
   superRegion: 'western_veros',
   startNode: 'forest_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#1a2f1a',
   backgroundImage: whisperingWoodsMap
 }
@@ -16,8 +16,8 @@ export const nodes = {
     id: 'forest_01',
     name: 'Dark Thicket',
     region: 'Whispering Woods',
-    x: 100,
-    y: 320,
+    x: 41,
+    y: 45,
     battles: [
       { enemies: ['goblin_scout', 'goblin_scout'] },
       { enemies: ['goblin_scout', 'forest_wolf'] }
@@ -34,8 +34,8 @@ export const nodes = {
     id: 'forest_02',
     name: 'Wolf Den',
     region: 'Whispering Woods',
-    x: 280,
-    y: 250,
+    x: 182,
+    y: 413,
     battles: [
       { enemies: ['forest_wolf', 'forest_wolf'] },
       { enemies: ['forest_wolf', 'goblin_scout', 'goblin_scout'] },
@@ -54,9 +54,9 @@ export const nodes = {
     id: 'forest_03',
     name: 'Spider Nest',
     region: 'Whispering Woods',
-    x: 433,
-    y: 355,
-    regionLinkPosition: { x: 456, y: 394 },
+    x: 450,
+    y: 292,
+    regionLinkPosition: { x: 553, y: 429 },
     battles: [
       { enemies: ['forest_spider', 'forest_spider', 'forest_spider'] },
       { enemies: ['forest_spider', 'forest_spider', 'goblin_warrior'] },
@@ -77,8 +77,8 @@ export const nodes = {
     id: 'forest_04',
     name: 'Goblin Camp',
     region: 'Whispering Woods',
-    x: 550,
-    y: 270,
+    x: 134,
+    y: 607,
     battles: [
       { enemies: ['goblin_scout', 'goblin_warrior', 'goblin_thrower'] },
       { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_scout', 'goblin_thrower'] },
@@ -99,9 +99,9 @@ export const nodes = {
     id: 'forest_05',
     name: 'Goblin Cavern',
     region: 'Whispering Woods',
-    x: 586,
-    y: 164,
-    regionLinkPosition: { x: 600, y: 115 },
+    x: 108,
+    y: 885,
+    regionLinkPosition: { x: 308, y: 801 },
     battles: [
       { enemies: ['goblin_warrior', 'goblin_warrior', 'goblin_shaman'] },
       { enemies: ['goblin_thrower', 'goblin_thrower', 'goblin_bulwark', 'goblin_warrior', 'goblin_trapper'] },

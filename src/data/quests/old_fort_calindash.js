@@ -5,8 +5,8 @@ export const regionMeta = {
   name: 'Old Fort Calindash',
   superRegion: 'western_veros',
   startNode: 'fort_01',
-  width: 800,
-  height: 800,
+  width: 600,
+  height: 1000,
   backgroundColor: '#2a2a2a',
   backgroundImage: oldFortCalindashMap
 }
@@ -16,8 +16,8 @@ export const nodes = {
     id: 'fort_01',
     name: 'Outer Walls',
     region: 'Old Fort Calindash',
-    x: 402,
-    y: 692,
+    x: 296,
+    y: 893,
     battles: [
       { enemies: ['bandit_scout', 'bandit_scout', 'bandit_scout'] },
       { enemies: ['skeletal_soldier', 'skeletal_soldier'] },
@@ -38,8 +38,8 @@ export const nodes = {
     id: 'fort_02',
     name: 'Courtyard',
     region: 'Old Fort Calindash',
-    x: 292,
-    y: 564,
+    x: 286,
+    y: 721,
     battles: [
       { enemies: ['bandit_brute', 'bandit_brute'] },
       { enemies: ['skeletal_soldier', 'skeletal_soldier', 'ghostly_knight'] },
@@ -60,8 +60,8 @@ export const nodes = {
     id: 'fort_03',
     name: 'Barracks',
     region: 'Old Fort Calindash',
-    x: 230,
-    y: 325,
+    x: 481,
+    y: 650,
     battles: [
       { enemies: ['bandit_brute', 'bandit_brute', 'bandit_scout'] },
       { enemies: ['deserter_captain', 'bandit_brute'] },
@@ -83,8 +83,8 @@ export const nodes = {
     id: 'fort_04',
     name: 'Haunted Chapel',
     region: 'Old Fort Calindash',
-    x: 428,
-    y: 470,
+    x: 167,
+    y: 507,
     battles: [
       { enemies: ['ghostly_knight', 'ghostly_knight', 'skeletal_soldier'] },
       { enemies: ['fort_specter', 'fort_specter'] },
@@ -106,8 +106,8 @@ export const nodes = {
     id: 'fort_05',
     name: "Commander's Hall",
     region: 'Old Fort Calindash',
-    x: 477,
-    y: 233,
+    x: 331,
+    y: 566,
     battles: [
       { enemies: ['deserter_captain', 'ghostly_knight'] },
       { enemies: ['bandit_brute', 'bandit_brute', 'skeletal_soldier', 'skeletal_soldier'] },
@@ -129,9 +129,9 @@ export const nodes = {
     id: 'fort_06',
     name: 'Dungeon Entrance',
     region: 'Old Fort Calindash',
-    x: 598,
-    y: 324,
-    regionLinkPosition: { x: 741, y: 331 },
+    x: 253,
+    y: 478,
+    regionLinkPosition: { x: 323, y: 363 },
     battles: [
       { enemies: ['ghostly_knight', 'ghostly_knight', 'ghostly_knight'] },
       { enemies: ['deserter_captain', 'fort_specter', 'skeletal_soldier', 'skeletal_soldier'] },

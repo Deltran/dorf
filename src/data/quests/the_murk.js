@@ -3,8 +3,8 @@ export const regionMeta = {
   name: 'The Murk',
   superRegion: 'aquarias',
   startNode: 'murk_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#0a1a25'
 }
 
@@ -13,8 +13,8 @@ export const nodes = {
     id: 'murk_01',
     name: 'Dimlight Passage',
     region: 'The Murk',
-    x: 100,
-    y: 250,
+    x: 76,
+    y: 397,
     battles: [
       { enemies: ['blind_angler', 'murk_stalker'] },
       { enemies: ['outcast_thug', 'shadow_eel'] },
@@ -51,8 +51,8 @@ export const nodes = {
     id: 'murk_02',
     name: 'Outcast Hollow',
     region: 'The Murk',
-    x: 250,
-    y: 180,
+    x: 78,
+    y: 666,
     battles: [
       { enemies: ['outcast_thug', 'outcast_thug'] },
       { enemies: ['murk_stalker', 'blind_angler', 'shadow_eel'] },
@@ -90,8 +90,8 @@ export const nodes = {
     id: 'murk_03',
     name: 'The Silt Beds',
     region: 'The Murk',
-    x: 400,
-    y: 300,
+    x: 221,
+    y: 627,
     battles: [
       { enemies: ['murk_stalker', 'murk_stalker', 'blind_angler'] },
       { enemies: ['shadow_eel', 'shadow_eel', 'outcast_thug'] },
@@ -129,8 +129,8 @@ export const nodes = {
     id: 'murk_04',
     name: 'Faded Lantern Row',
     region: 'The Murk',
-    x: 550,
-    y: 200,
+    x: 393,
+    y: 383,
     battles: [
       { enemies: ['shadow_eel', 'shadow_eel', 'shadow_eel'] },
       { enemies: ['outcast_thug', 'outcast_thug', 'blind_angler', 'murk_stalker'] },
@@ -169,8 +169,9 @@ export const nodes = {
     id: 'murk_05',
     name: 'The Drop-Off',
     region: 'The Murk',
-    x: 700,
-    y: 280,
+    x: 458,
+    y: 584,
+    regionLinkPosition: { x: 509, y: 725 },
     battles: [
       { enemies: ['murk_stalker', 'murk_stalker', 'shadow_eel', 'shadow_eel'] },
       { enemies: ['outcast_thug', 'outcast_thug', 'outcast_thug', 'blind_angler'] },

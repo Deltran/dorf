@@ -3,8 +3,8 @@ export const regionMeta = {
   name: 'Primordial Nursery',
   superRegion: 'aquarias',
   startNode: 'nursery_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#2a1510'
 }
 

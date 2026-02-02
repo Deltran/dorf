@@ -2,10 +2,8 @@
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
 
-// Models to try in order — gemini-2.0-flash-exp has free tier image gen,
-// gemini-2.5-flash-image is higher quality but may require paid tier
+// Model for image generation
 const IMAGE_MODELS = [
-  'gemini-2.0-flash-exp',
   'gemini-2.5-flash-image'
 ]
 

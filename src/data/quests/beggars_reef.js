@@ -3,8 +3,8 @@ export const regionMeta = {
   name: "Beggar's Reef",
   superRegion: 'aquarias',
   startNode: 'beggar_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#12202a'
 }
 

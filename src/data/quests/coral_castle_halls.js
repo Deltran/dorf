@@ -3,8 +3,8 @@ export const regionMeta = {
   name: 'Coral Castle Halls',
   superRegion: 'aquarias',
   startNode: 'castle_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#1a2a45'
 }
 

@@ -5,8 +5,8 @@ export const regionMeta = {
   name: 'Whisper Lake',
   superRegion: 'western_veros',
   startNode: 'lake_01',
-  width: 500,
-  height: 450,
+  width: 600,
+  height: 1000,
   backgroundColor: '#1a2a2f',
   backgroundImage: whisperLakeMap
 }
@@ -16,8 +16,8 @@ export const nodes = {
     id: 'lake_01',
     name: 'Misty Shore',
     region: 'Whisper Lake',
-    x: 450,
-    y: 80,
+    x: 71,
+    y: 622,
     battles: [
       { enemies: ['forest_wolf', 'forest_wolf', 'giant_frog'] },
       { enemies: ['lake_serpent', 'lake_serpent'] },
@@ -39,8 +39,8 @@ export const nodes = {
     id: 'lake_02',
     name: 'Drowned Hollow',
     region: 'Whisper Lake',
-    x: 470,
-    y: 280,
+    x: 308,
+    y: 830,
     battles: [
       { enemies: ['lake_serpent', 'giant_frog', 'giant_frog'] },
       { enemies: ['dire_wolf', 'dire_wolf', 'lake_serpent'] },
@@ -64,8 +64,8 @@ export const nodes = {
     id: 'lake_genus_loci',
     name: 'Lake Tower',
     region: 'Whisper Lake',
-    x: 250,
-    y: 400,
+    x: 481,
+    y: 531,
     type: 'genusLoci',
     genusLociId: 'valinar',
     connections: ['lake_02']

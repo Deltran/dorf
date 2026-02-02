@@ -5,8 +5,8 @@ export const regionMeta = {
   name: 'Gate to Aquaria',
   superRegion: 'western_veros',
   startNode: 'aqua_01',
-  width: 800,
-  height: 800,
+  width: 600,
+  height: 1000,
   backgroundColor: '#1a2a3f'
 }
 
@@ -15,8 +15,8 @@ export const nodes = {
     id: 'aqua_01',
     name: 'Tidal Cave',
     region: 'Gate to Aquaria',
-    x: 60,
-    y: 250,
+    x: 103,
+    y: 236,
     battles: [
       { enemies: ['merfolk_warrior', 'merfolk_warrior'] },
       { enemies: ['lake_serpent', 'lake_serpent', 'lake_serpent'] },
@@ -38,8 +38,8 @@ export const nodes = {
     id: 'aqua_02',
     name: 'Coral Gardens',
     region: 'Gate to Aquaria',
-    x: 160,
-    y: 180,
+    x: 60,
+    y: 394,
     battles: [
       { enemies: ['coral_golem', 'coral_golem'] },
       { enemies: ['merfolk_mage', 'merfolk_mage', 'merfolk_warrior'] },
@@ -61,8 +61,8 @@ export const nodes = {
     id: 'aqua_03',
     name: 'Merfolk Outpost',
     region: 'Gate to Aquaria',
-    x: 270,
-    y: 250,
+    x: 144,
+    y: 609,
     battles: [
       { enemies: ['merfolk_warrior', 'merfolk_warrior', 'merfolk_warrior'] },
       { enemies: ['merfolk_mage', 'merfolk_mage', 'tide_priest'] },
@@ -84,8 +84,8 @@ export const nodes = {
     id: 'aqua_04',
     name: 'Serpent Shoals',
     region: 'Gate to Aquaria',
-    x: 390,
-    y: 120,
+    x: 224,
+    y: 420,
     battles: [
       { enemies: ['sea_serpent', 'sea_serpent'] },
       { enemies: ['lake_serpent', 'lake_serpent', 'sea_serpent'] },
@@ -108,8 +108,8 @@ export const nodes = {
     id: 'aqua_05',
     name: 'Sunken Temple',
     region: 'Gate to Aquaria',
-    x: 390,
-    y: 380,
+    x: 459,
+    y: 602,
     battles: [
       { enemies: ['tide_priest', 'tide_priest'] },
       { enemies: ['coral_golem', 'coral_golem', 'tide_priest'] },
@@ -132,8 +132,8 @@ export const nodes = {
     id: 'aqua_06',
     name: 'Abyssal Trench',
     region: 'Gate to Aquaria',
-    x: 520,
-    y: 250,
+    x: 359,
+    y: 479,
     battles: [
       { enemies: ['abyssal_lurker', 'abyssal_lurker'] },
       { enemies: ['sea_serpent', 'sea_serpent', 'abyssal_lurker'] },
@@ -156,8 +156,8 @@ export const nodes = {
     id: 'aqua_07',
     name: "Leviathan's Wake",
     region: 'Gate to Aquaria',
-    x: 630,
-    y: 180,
+    x: 299,
+    y: 326,
     battles: [
       { enemies: ['sea_serpent', 'sea_serpent', 'sea_serpent'] },
       { enemies: ['abyssal_lurker', 'abyssal_lurker', 'tide_priest'] },
@@ -180,8 +180,8 @@ export const nodes = {
     id: 'aqua_08',
     name: "Kraken's Domain",
     region: 'Gate to Aquaria',
-    x: 740,
-    y: 250,
+    x: 305,
+    y: 174,
     regionLinkPosition: { x: 775, y: 180 },
     battles: [
       { enemies: ['abyssal_lurker', 'abyssal_lurker', 'abyssal_lurker'] },

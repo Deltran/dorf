@@ -3,8 +3,8 @@ export const regionMeta = {
   name: 'Blackfin Den',
   superRegion: 'aquarias',
   startNode: 'blackfin_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#15151f'
 }
 

@@ -5,8 +5,8 @@ export const regionMeta = {
   name: 'Eruption Vent',
   superRegion: 'western_veros',
   startNode: 'eruption_vent_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#3f1a0a',
   backgroundImage: eruptionVentMap
 }
@@ -16,8 +16,8 @@ export const nodes = {
     id: 'eruption_vent_01',
     name: 'Basalt Corridor',
     region: 'Eruption Vent',
-    x: 694,
-    y: 448,
+    x: 303,
+    y: 923,
     battles: [
       { enemies: ['magma_golem', 'fire_elemental'] },
       { enemies: ['volcanic_drake', 'flame_salamander', 'ash_crawler'] },
@@ -37,8 +37,8 @@ export const nodes = {
     id: 'eruption_vent_02',
     name: 'Molten Chamber',
     region: 'Eruption Vent',
-    x: 505,
-    y: 373,
+    x: 220,
+    y: 667,
     battles: [
       { enemies: ['volcanic_drake', 'volcanic_drake'] },
       { enemies: ['magma_golem', 'fire_elemental', 'fire_elemental'] },
@@ -58,8 +58,8 @@ export const nodes = {
     id: 'eruption_vent_gl',
     name: 'Eruption Vent',
     region: 'Eruption Vent',
-    x: 429,
-    y: 203,
+    x: 297,
+    y: 489,
     type: 'genusLoci',
     genusLociId: 'pyroclast',
     connections: []

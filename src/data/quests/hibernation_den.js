@@ -5,8 +5,8 @@ export const regionMeta = {
   name: 'Hibernation Den',
   superRegion: 'western_veros',
   startNode: 'hibernation_01',
-  width: 800,
-  height: 500,
+  width: 600,
+  height: 1000,
   backgroundColor: '#2a3a2a',
   backgroundImage: hibernationDenMap
 }
@@ -16,8 +16,8 @@ export const nodes = {
     id: 'hibernation_01',
     name: 'Troll Warren',
     region: 'Hibernation Den',
-    x: 550,
-    y: 480,
+    x: 152,
+    y: 825,
     battles: [
       { enemies: ['mountain_giant', 'harpy'] },
       { enemies: ['frost_elemental', 'frost_elemental', 'harpy'] },
@@ -38,8 +38,8 @@ export const nodes = {
     id: 'hibernation_02',
     name: "Troll Chieftain's Cave",
     region: 'Hibernation Den',
-    x: 430,
-    y: 300,
+    x: 281,
+    y: 450,
     battles: [
       { enemies: ['mountain_giant', 'frost_elemental', 'harpy'] },
       { enemies: ['storm_elemental', 'storm_elemental', 'mountain_giant'] },

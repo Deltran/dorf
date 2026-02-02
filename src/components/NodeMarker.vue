@@ -14,9 +14,13 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  scale: {
+  logicalWidth: {
     type: Number,
-    default: 1
+    default: 800
+  },
+  logicalHeight: {
+    type: Number,
+    default: 500
   }
 })
 
@@ -42,10 +46,11 @@ const nodeBackground = computed(() => {
   return battleBackgrounds[bgPath] || null
 })
 
+// Position as percentage of logical coordinate space
 const markerStyle = computed(() => ({
-  left: `${props.node.x * props.scale}px`,
-  top: `${props.node.y * props.scale}px`,
-  transform: `translate(-50%, -50%) scale(${props.isSelected ? 1.2 : 1})`
+  left: `${(props.node.x / props.logicalWidth) * 100}%`,
+  top: `${(props.node.y / props.logicalHeight) * 100}%`,
+  transform: `translate(-50%, -50%) scale(${props.isSelected ? 1.15 : 1})`
 }))
 </script>
 

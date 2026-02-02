@@ -12,6 +12,16 @@ const props = defineProps({
 
 const emit = defineEmits(['back', 'save-image', 'save-positions', 'resize-region', 'save-link-positions'])
 
+// --- Bounds clamping ---
+const EDGE_MARGIN = 10
+
+function clampToRegion(pos) {
+  return {
+    x: Math.max(EDGE_MARGIN, Math.min(props.region.width - EDGE_MARGIN, pos.x)),
+    y: Math.max(EDGE_MARGIN, Math.min(props.region.height - EDGE_MARGIN, pos.y))
+  }
+}
+
 // --- Local node positions (mutable copies) ---
 const nodePositions = ref({})
 const movedNodes = ref({})
@@ -23,7 +33,7 @@ const movedLinks = ref({})
 watch(() => props.nodes, (nodes) => {
   const positions = {}
   for (const node of nodes) {
-    positions[node.id] = { x: node.x, y: node.y }
+    positions[node.id] = clampToRegion({ x: node.x, y: node.y })
   }
   nodePositions.value = positions
   movedNodes.value = {}
@@ -36,7 +46,8 @@ watch(() => props.nodes, (nodes) => {
       const connNode = getQuestNode(connId)
       if (!connNode || connNode.region === node.region) continue
       const linkId = `link-${node.id}`
-      const pos = node.regionLinkPosition || { x: node.x + 60, y: node.y }
+      const rawPos = node.regionLinkPosition || { x: node.x + 60, y: node.y }
+      const pos = clampToRegion(rawPos)
       positions[linkId] = { x: pos.x, y: pos.y, sourceNodeId: node.id }
     }
   }
@@ -140,12 +151,13 @@ function saveLayout() {
   if (!hasChanges.value) return
   const positions = {}
   for (const nodeId of Object.keys(movedNodes.value)) {
-    positions[nodeId] = nodePositions.value[nodeId]
+    positions[nodeId] = clampToRegion(nodePositions.value[nodeId])
   }
   const linkPosPayload = {}
   for (const linkId of Object.keys(movedLinks.value)) {
     const link = linkPositions.value[linkId]
-    linkPosPayload[link.sourceNodeId] = { x: link.x, y: link.y }
+    const clamped = clampToRegion({ x: link.x, y: link.y })
+    linkPosPayload[link.sourceNodeId] = clamped
   }
   if (Object.keys(positions).length > 0) {
     emit('save-positions', positions)
@@ -159,13 +171,16 @@ function saveLayout() {
 
 // --- Image generation ---
 function buildDefaultPrompt() {
-  const nodeNames = props.nodes.map(n => n.name).join(', ')
-  return `A totally textless image of ${props.region.name}. Ariel view. Remove all text from the image. Distinct areas that have no label, like ${nodeNames}. NEVER ADD TEXT TO THE IMAGE. No people. No monsters. No animals. Dark Fantasy. Pixel Art.`
+  const nodeDescriptions = props.nodes.map(n => 'a ' + n.name.toLowerCase())
+  const nodeList = nodeDescriptions.length > 1
+    ? nodeDescriptions.slice(0, -1).join(', ') + ', and ' + nodeDescriptions.at(-1)
+    : nodeDescriptions[0] || ''
+  return `No text. ${props.region.name}. Ariel view. Distinct areas that have no label that look like ${nodeList}. NEVER ADD TEXT TO THE IMAGE. No people. No monsters. No animals. Dark Fantasy. Pixel Art.`
 }
 
 const prompt = ref('')
-const generateWidth = ref(800)
-const generateHeight = ref(500)
+const generateWidth = ref(600)
+const generateHeight = ref(1000)
 const generating = ref(false)
 const generationError = ref(null)
 const generationStatus = ref(null)
@@ -177,14 +192,6 @@ watch(() => props.region, (region) => {
     generatedDataUrl.value = null
     generationError.value = null
     generating.value = false
-    // Default size from region dimensions, snapped to preferred sizes
-    if (region.width === region.height) {
-      generateWidth.value = 800
-      generateHeight.value = 800
-    } else {
-      generateWidth.value = 800
-      generateHeight.value = 500
-    }
   }
 }, { immediate: true })
 
@@ -284,16 +291,7 @@ function getLinkStyle(linkId) {
     <div class="editor-top-bar">
       <button class="btn btn-secondary" @click="emit('back')">Back</button>
       <h2 class="editor-title">{{ region.name }}</h2>
-      <div class="region-size-toggle">
-        <button
-          :class="['size-btn', { active: region.width === 800 && region.height === 500 }]"
-          @click="emit('resize-region', { width: 800, height: 500 })"
-        >800x500</button>
-        <button
-          :class="['size-btn', { active: region.width === 800 && region.height === 800 }]"
-          @click="emit('resize-region', { width: 800, height: 800 })"
-        >800x800</button>
-      </div>
+      <div class="region-size-label">600x1000</div>
       <button
         class="btn btn-success"
         :disabled="!hasChanges"
@@ -390,19 +388,6 @@ function getLinkStyle(linkId) {
         :disabled="generating"
       />
 
-      <div class="size-picker">
-        <label class="prompt-label">Size</label>
-        <div class="size-options">
-          <label :class="['size-option', { active: generateWidth === 800 && generateHeight === 500 }]">
-            <input type="radio" name="mapSize" :checked="generateWidth === 800 && generateHeight === 500" @change="generateWidth = 800; generateHeight = 500" :disabled="generating" />
-            800x500
-          </label>
-          <label :class="['size-option', { active: generateWidth === 800 && generateHeight === 800 }]">
-            <input type="radio" name="mapSize" :checked="generateWidth === 800 && generateHeight === 800" @change="generateWidth = 800; generateHeight = 800" :disabled="generating" />
-            800x800
-          </label>
-        </div>
-      </div>
 
       <button
         class="btn btn-primary"
@@ -463,31 +448,12 @@ function getLinkStyle(linkId) {
   color: #f3f4f6;
 }
 
-.region-size-toggle {
-  display: flex;
-  gap: 4px;
-}
-
-.size-btn {
-  padding: 4px 10px;
+.region-size-label {
   font-size: 12px;
-  font-weight: 600;
+  color: #9ca3af;
+  padding: 4px 10px;
   border: 1px solid #374151;
   border-radius: 4px;
-  background: transparent;
-  color: #9ca3af;
-  cursor: pointer;
-}
-
-.size-btn.active {
-  border-color: #3b82f6;
-  color: #f3f4f6;
-  background: rgba(59, 130, 246, 0.15);
-}
-
-.size-btn:hover:not(.active) {
-  border-color: #4b5563;
-  color: #d1d5db;
 }
 
 /* --- Map Canvas --- */
@@ -635,38 +601,6 @@ function getLinkStyle(linkId) {
   opacity: 0.5;
 }
 
-.size-picker {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.size-options {
-  display: flex;
-  gap: 12px;
-}
-
-.size-option {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  color: #9ca3af;
-  cursor: pointer;
-  padding: 4px 10px;
-  border-radius: 4px;
-  border: 1px solid #374151;
-}
-
-.size-option.active {
-  color: #f3f4f6;
-  border-color: #3b82f6;
-  background: rgba(59, 130, 246, 0.1);
-}
-
-.size-option input {
-  display: none;
-}
 
 .btn {
   padding: 8px 16px;
