@@ -124,6 +124,22 @@ function formatTargetType(skill) {
   >
     <Transition name="panel">
       <div v-if="isOpen" class="skill-panel">
+        <!-- Floating tooltip (outside skills-column to avoid clip-path) -->
+        <Transition name="tooltip">
+          <div v-if="hoveredSkill" class="skill-tooltip">
+            <h3 class="tooltip-title" :style="{ color: classColor }">
+              {{ hoveredSkill.name }}
+            </h3>
+            <p class="tooltip-cost">{{ formatCost(hoveredSkill) }}</p>
+            <p class="tooltip-desc">
+              {{ hoveredSkill.fullDescription || 'No description available.' }}
+            </p>
+            <span v-if="formatTargetType(hoveredSkill)" class="target-tag">
+              {{ formatTargetType(hoveredSkill) }}
+            </span>
+          </div>
+        </Transition>
+
         <!-- Skills Column (full width) -->
         <div class="skills-column">
           <!-- Resource indicator -->
@@ -137,43 +153,24 @@ function formatTargetType(skill) {
             </span>
           </div>
 
-          <!-- Skill grid with floating tooltip -->
-          <div class="skills-grid-container">
-            <!-- Floating tooltip (above buttons) -->
-            <Transition name="tooltip">
-              <div v-if="hoveredSkill" class="skill-tooltip">
-                <h3 class="tooltip-title" :style="{ color: classColor }">
-                  {{ hoveredSkill.name }}
-                </h3>
-                <p class="tooltip-cost">{{ formatCost(hoveredSkill) }}</p>
-                <p class="tooltip-desc">
-                  {{ hoveredSkill.fullDescription || 'No description available.' }}
-                </p>
-                <span v-if="formatTargetType(hoveredSkill)" class="target-tag">
-                  {{ formatTargetType(hoveredSkill) }}
-                </span>
-              </div>
-            </Transition>
-
-            <!-- Skill grid -->
-            <div class="skills-grid">
-              <button
-                v-for="(skill, index) in skills"
-                :key="skill.name"
-                :class="['skill-btn', {
-                  disabled: skill.disabled,
-                  hovered: hoveredIndex === index
-                }]"
-                :disabled="skill.disabled"
-                @mouseenter="handleSkillEnter(skill, index, $event)"
-                @mouseleave="handleSkillLeave"
-                @touchstart.passive="handleSkillEnter(skill, index, $event)"
-                @click="handleSkillSelect(index)"
-              >
-                <span class="skill-name">{{ skill.name }}</span>
-                <span v-if="getSkillCostNumber(skill)" class="skill-cost-badge">{{ getSkillCostNumber(skill) }}</span>
-              </button>
-            </div>
+          <!-- Skill grid -->
+          <div class="skills-grid">
+            <button
+              v-for="(skill, index) in skills"
+              :key="skill.name"
+              :class="['skill-btn', {
+                disabled: skill.disabled,
+                hovered: hoveredIndex === index
+              }]"
+              :disabled="skill.disabled"
+              @mouseenter="handleSkillEnter(skill, index, $event)"
+              @mouseleave="handleSkillLeave"
+              @touchstart.passive="handleSkillEnter(skill, index, $event)"
+              @click="handleSkillSelect(index)"
+            >
+              <span class="skill-name">{{ skill.name }}</span>
+              <span v-if="getSkillCostNumber(skill)" class="skill-cost-badge">{{ getSkillCostNumber(skill) }}</span>
+            </button>
           </div>
         </div>
       </div>
@@ -223,6 +220,7 @@ function formatTargetType(skill) {
 .skill-panel {
   position: relative;
   display: flex;
+  flex-direction: column;
   pointer-events: auto;
 }
 
@@ -282,33 +280,22 @@ function formatTargetType(skill) {
   font-variant-numeric: tabular-nums;
 }
 
-/* Skills grid container with tooltip */
-.skills-grid-container {
-  position: relative;
-}
-
-/* Floating tooltip (absolutely positioned above grid) */
+/* Floating tooltip (above skills-column, not clipped) */
 .skill-tooltip {
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  right: 0;
-  margin-bottom: 8px;
   background: #1f2937;
   border: 1px solid #374151;
   border-left: 3px solid var(--class-color);
   padding: 12px;
-  z-index: 10;
+  margin-bottom: 8px;
 }
 
 .tooltip-enter-active,
 .tooltip-leave-active {
-  transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), max-height 0.15s ease;
 }
 
 .tooltip-enter-from,
 .tooltip-leave-to {
-  transform: translateY(8px);
   opacity: 0;
 }
 
