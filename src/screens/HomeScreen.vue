@@ -224,6 +224,7 @@ const hasParty = computed(() => {
   flex-direction: column;
   justify-content: center;
   min-height: 200px;
+  padding-top: 48px;
 }
 
 .party-container {
