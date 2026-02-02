@@ -153,6 +153,7 @@ const hasParty = computed(() => {
   background-color: #0f172a;
   background-size: cover;
   background-position: center;
+  image-rendering: pixelated;
 }
 
 .bg-vignette {
