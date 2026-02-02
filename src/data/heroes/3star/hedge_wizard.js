@@ -14,7 +14,12 @@ export const hedge_wizard = {
       skillUnlockLevel: 1,
       targetType: 'enemy',
       effects: [
-        { type: EffectType.DEF_DOWN, target: 'enemy', duration: 4, value: 10 }
+        {
+          type: EffectType.DEF_DOWN,
+          target: 'enemy',
+          duration: 4,
+          value: 10
+        }
       ]
     },
     {
@@ -25,7 +30,12 @@ export const hedge_wizard = {
       targetType: 'self',
       noDamage: true,
       effects: [
-        { type: EffectType.THORNS, target: 'self', duration: 4, value: 50 }
+        {
+          type: EffectType.THORNS,
+          target: 'self',
+          duration: 4,
+          value: 50
+        }
       ]
     },
     {
@@ -36,7 +46,12 @@ export const hedge_wizard = {
       targetType: 'enemy',
       damageMultiplier: 0.9,
       effects: [
-        { type: EffectType.STUN, target: 'enemy', duration: 1, chance: 50 }
+        {
+          type: EffectType.STUN,
+          target: 'enemy',
+          duration: 1,
+          chance: 50
+        }
       ]
     },
     {
@@ -47,8 +62,18 @@ export const hedge_wizard = {
       targetType: 'enemy',
       noDamage: true,
       effects: [
-        { type: EffectType.SPD_DOWN, target: 'enemy', duration: 3, value: 3 },
-        { type: EffectType.POISON, target: 'enemy', duration: 3, atkPercent: 20 }
+        {
+          type: EffectType.SPD_DOWN,
+          target: 'enemy',
+          duration: 3,
+          value: 3
+        },
+        {
+          type: EffectType.POISON,
+          target: 'enemy',
+          duration: 3,
+          atkPercent: 20
+        }
       ]
     },
     {
@@ -61,5 +86,7 @@ export const hedge_wizard = {
       bonusDamagePerDebuff: 30,
       consumeDebuffs: true
     }
-  ]
+  ],
+  epithet: 'The Thorn Conjurer',
+  introQuote: 'Proper wizards use wands. I use what works.'
 }

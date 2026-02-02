@@ -135,53 +135,96 @@ const rarityClass = computed(() => {
 
 <style scoped>
 .hero-battle-info {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  background: #1f2937;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  border: 2px solid transparent;
-  min-width: 60px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  border: 1px solid #374151;
+  min-width: 64px;
   user-select: none;
 }
 
+/* Noise texture for Dorf grittiness */
+.hero-battle-info::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
 .hero-battle-info.sm {
-  padding: 6px 8px;
+  padding: 6px 10px;
   gap: 3px;
   min-width: 80px;
 }
 
 .hero-battle-info:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
 }
 
+/* Active hero - much bolder treatment */
 .hero-battle-info.active {
   border-color: #fbbf24;
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+  box-shadow:
+    0 0 12px rgba(251, 191, 36, 0.5),
+    inset 0 1px 0 rgba(251, 191, 36, 0.15);
+  transform: scale(1.05);
+  z-index: 10;
 }
 
 .hero-battle-info.dead {
-  filter: grayscale(60%) brightness(0.7);
-  opacity: 0.5;
-  border-color: #991b1b;
-  box-shadow: inset 0 0 8px rgba(127, 29, 29, 0.4);
+  filter: grayscale(60%) brightness(0.6);
+  opacity: 0.4;
+  border-color: #7f1d1d;
+  box-shadow: inset 0 0 10px rgba(127, 29, 29, 0.5);
 }
 
 .hero-battle-info.dead:hover {
   transform: none;
-  box-shadow: inset 0 0 8px rgba(127, 29, 29, 0.4);
+  box-shadow: inset 0 0 10px rgba(127, 29, 29, 0.5);
 }
 
-/* Rarity left border accent */
-.rarity-1 { border-left: 2px solid #9ca3af; }
-.rarity-2 { border-left: 2px solid #22c55e; }
-.rarity-3 { border-left: 2px solid #3b82f6; }
-.rarity-4 { border-left: 2px solid #a855f7; }
-.rarity-5 { border-left: 2px solid #f59e0b; }
+/* Rarity left border accent - thicker, more visible */
+.rarity-1 {
+  border-left: 3px solid #6b7280;
+}
+.rarity-2 {
+  border-left: 3px solid #22c55e;
+}
+.rarity-3 {
+  border-left: 3px solid #3b82f6;
+}
+.rarity-4 {
+  border-left: 3px solid #a855f7;
+  box-shadow: inset 0 0 8px rgba(168, 85, 247, 0.1);
+}
+.rarity-5 {
+  border-left: 3px solid #f59e0b;
+  box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.15);
+}
+
+/* Override box-shadow when active (rarity glow + active glow) */
+.rarity-4.active {
+  box-shadow:
+    0 0 12px rgba(251, 191, 36, 0.5),
+    inset 0 0 8px rgba(168, 85, 247, 0.15),
+    inset 0 1px 0 rgba(251, 191, 36, 0.15);
+}
+.rarity-5.active {
+  box-shadow:
+    0 0 14px rgba(251, 191, 36, 0.6),
+    inset 0 0 10px rgba(245, 158, 11, 0.2),
+    inset 0 1px 0 rgba(251, 191, 36, 0.2);
+}
 
 /* Hit Effects - same as HeroCard */
 .hero-battle-info.hit-damage {

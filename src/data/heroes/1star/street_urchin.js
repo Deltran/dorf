@@ -22,7 +22,12 @@ export const street_urchin = {
       targetType: 'enemy',
       damagePercent: 150,
       effects: [
-        { type: EffectType.DEF_DOWN, target: 'self', duration: 2, value: 15 }
+        {
+          type: EffectType.DEF_DOWN,
+          target: 'self',
+          duration: 2,
+          value: 15
+        }
       ]
     },
     {
@@ -32,10 +37,10 @@ export const street_urchin = {
       targetType: 'self',
       noDamage: true,
       conditionalSelfBuff: {
-        default: { type: EffectType.ATK_UP, duration: 2, value: 20 },
+        default: { type: 'atk_up', duration: 2, value: 20 },
         conditional: {
           condition: { stat: 'hpPercent', below: 50 },
-          effect: { type: EffectType.ATK_UP, duration: 3, value: 30 }
+          effect: { type: 'atk_up', duration: 3, value: 30 }
         }
       }
     },
@@ -46,8 +51,15 @@ export const street_urchin = {
       targetType: 'enemy',
       damagePercent: 120,
       effects: [
-        { type: EffectType.UNTARGETABLE, target: 'self', duration: 2, value: 0 }
+        {
+          type: EffectType.UNTARGETABLE,
+          target: 'self',
+          duration: 2,
+          value: 0
+        }
       ]
     }
-  ]
+  ],
+  epithet: 'Street Urchin',
+  introQuote: "Rather take what's mine than let you hurt me."
 }

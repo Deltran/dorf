@@ -114,5 +114,7 @@ export const fortuna_inversus = {
       debuffBonusPercent: 200,
       extendDebuffs: 1
     }
-  ]
+  ],
+  epithet: 'Lady of Upturned Fates',
+  introQuote: "Fortune's wheel spins both ways, darling. Best hold on."
 }

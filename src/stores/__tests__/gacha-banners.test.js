@@ -51,9 +51,23 @@ describe('gacha banner support', () => {
     expect(saved.selectedBannerId).toBe('flames_of_war')
   })
 
-  it('restores selectedBannerId from loadState', () => {
-    store.loadState({ selectedBannerId: 'natures_call' })
-    expect(store.selectedBannerId).toBe('natures_call')
+  it('restores selectedBannerId from loadState if banner is active', () => {
+    // Standard is always active (permanent)
+    store.loadState({ selectedBannerId: 'standard' })
+    expect(store.selectedBannerId).toBe('standard')
+  })
+
+  it('falls back to standard if saved banner is no longer active', () => {
+    // musical_mayhem is only active in January, so unless it's January,
+    // this should fall back to standard
+    const now = new Date()
+    const isJanuary = now.getMonth() === 0
+    store.loadState({ selectedBannerId: 'musical_mayhem' })
+    if (isJanuary) {
+      expect(store.selectedBannerId).toBe('musical_mayhem')
+    } else {
+      expect(store.selectedBannerId).toBe('standard')
+    }
   })
 })
 

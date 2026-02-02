@@ -4,11 +4,16 @@ import { EffectType } from '../data/statusEffects.js'
 // Valid class IDs from classes.js
 const validClassIds = Object.keys(classes)
 
+// Classes that use MP (no resourceType means they use standard MP)
+const classesUsingMp = Object.entries(classes)
+  .filter(([, c]) => !c.resourceType)
+  .map(([id]) => id)
+
 // All valid effect types from statusEffects.js
 const validEffectTypes = Object.values(EffectType)
 
 // Valid skill target types
-const validTargetTypes = ['enemy', 'ally', 'self', 'all_enemies', 'all_allies', 'random_enemies']
+const validTargetTypes = ['enemy', 'ally', 'self', 'all_enemies', 'all_allies', 'random_enemies', 'dead_ally']
 
 // Valid effect target types (used within effects)
 const validEffectTargets = ['enemy', 'ally', 'self', 'all_enemies', 'all_allies']
@@ -17,14 +22,31 @@ const validEffectTargets = ['enemy', 'ally', 'self', 'all_enemies', 'all_allies'
 const validSkillUnlockLevels = [1, 3, 6, 12]
 
 // Valid finale target types
-const validFinaleTargets = ['all_allies', 'all_enemies']
+const validFinaleTargets = ['all_allies', 'all_enemies', 'dynamic']
 
-// Known finale effect types (custom types not in EffectType)
-// These are special-purpose effects handled by battle.js finale processing
-const knownFinaleEffectTypes = [
-  'resource_grant',     // Restore MP/Valor/Focus/Rage to allies
-  'heal',               // Heal based on ATK percent
-  'suffering_crescendo' // Cacophon's unique scaling buff
+// Known custom effect types (not in EffectType enum)
+// These are special-purpose effects handled by battle.js
+const knownCustomEffectTypes = [
+  // Finale effects
+  'resource_grant',           // Restore MP/Valor/Focus/Rage to allies
+  'heal',                     // Heal based on ATK percent
+  'damage',                   // Instant damage in finales
+  'suffering_crescendo',      // Cacophon's unique scaling buff
+  'consume_excess_rage',      // Vraxx's finale - consume Rage from Berserkers
+  // Skill effects
+  'conditional_resource_or_buff', // Grant resource to specific class, buff to others
+  'rage_grant',               // Instant Rage grant to Berserkers
+  'fortune_teller'            // Bones McCready's dice-based random buff per turn
+]
+
+// Custom effect types that don't require duration (instant/one-time effects)
+const durationExemptCustomTypes = [
+  'resource_grant',
+  'heal',
+  'damage',
+  'consume_excess_rage',
+  'conditional_resource_or_buff',
+  'rage_grant'
 ]
 
 /**
@@ -53,10 +75,10 @@ export function validateEffect(effect, prefix = '', options = {}) {
 
   if (!effect.type) {
     errors.push('type is required')
-  } else if (!allowCustomTypes && !validEffectTypes.includes(effect.type)) {
+  } else if (!allowCustomTypes && !validEffectTypes.includes(effect.type) && !knownCustomEffectTypes.includes(effect.type)) {
     errors.push('type must be a valid EffectType')
-  } else if (allowCustomTypes && !validEffectTypes.includes(effect.type) && !knownFinaleEffectTypes.includes(effect.type)) {
-    // For finales, allow both standard EffectTypes and known finale effect types
+  } else if (allowCustomTypes && !validEffectTypes.includes(effect.type) && !knownCustomEffectTypes.includes(effect.type)) {
+    // For finales, allow both standard EffectTypes and known custom effect types
     // But still require a non-empty string type
     if (typeof effect.type !== 'string' || effect.type.trim() === '') {
       errors.push('type must be a valid effect type')
@@ -64,8 +86,11 @@ export function validateEffect(effect, prefix = '', options = {}) {
   }
 
   // Duration can be a number or an object (e.g., { base: 2, perRarity: 1 })
-  // Some effects (like resource_grant, heal) don't need duration
-  const requiresDuration = !['resource_grant', 'heal'].includes(effect.type)
+  // Some effects don't need duration:
+  // - Instant/one-time effects (resource grants, heals, rage consumption)
+  // - SHIELD: lasts until broken, uses shieldPercentMaxHp or shieldHp instead
+  const durationExemptEffectTypes = [EffectType.SHIELD]
+  const requiresDuration = !durationExemptCustomTypes.includes(effect.type) && !durationExemptEffectTypes.includes(effect.type)
   if (requiresDuration) {
     if (effect.duration === undefined || effect.duration === null) {
       errors.push('duration is required (number or object)')
@@ -99,8 +124,11 @@ export function validateSkill(skill, index) {
     errors.push('skillUnlockLevel must be 1, 3, 6, or 12')
   }
 
-  if (!skill.targetType || !validTargetTypes.includes(skill.targetType)) {
-    errors.push('targetType must be a valid target type')
+  // Passive skills don't require targetType - they're automatic effects
+  if (!skill.isPassive) {
+    if (!skill.targetType || !validTargetTypes.includes(skill.targetType)) {
+      errors.push('targetType must be a valid target type')
+    }
   }
 
   // Validate effects if present
@@ -151,10 +179,13 @@ export function validateFinale(finale) {
     errors.push('description is required')
   }
 
-  if (!finale.target) {
-    errors.push('target is required')
-  } else if (!validFinaleTargets.includes(finale.target)) {
-    errors.push('target must be all_allies or all_enemies')
+  // Fortune swap finales don't use target - they affect both allies and enemies
+  if (!finale.isFortuneSwap) {
+    if (!finale.target) {
+      errors.push('target is required')
+    } else if (!validFinaleTargets.includes(finale.target)) {
+      errors.push('target must be all_allies or all_enemies')
+    }
   }
 
   // Validate effects if present (allow custom types for finales)
@@ -205,12 +236,20 @@ export function validateHero(hero) {
   if (!hero.baseStats) {
     errors.push('baseStats is required')
   } else {
-    const statFields = ['hp', 'atk', 'def', 'spd', 'mp']
-    statFields.forEach(stat => {
+    // All classes need hp, atk, def, spd
+    const coreStats = ['hp', 'atk', 'def', 'spd']
+    coreStats.forEach(stat => {
       if (typeof hero.baseStats[stat] !== 'number' || hero.baseStats[stat] <= 0) {
         errors.push(`baseStats.${stat} must be a positive number`)
       }
     })
+    // Only MP-using classes (paladin, mage, cleric, druid) require mp stat
+    const usesMp = classesUsingMp.includes(hero.classId)
+    if (usesMp) {
+      if (typeof hero.baseStats.mp !== 'number' || hero.baseStats.mp <= 0) {
+        errors.push('baseStats.mp must be a positive number')
+      }
+    }
   }
 
   // Skills validation

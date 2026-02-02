@@ -6,6 +6,8 @@ Notes for AI assistants working on this project.
 
 Dorf is a Vue 3 gacha hero battler with turn-based combat. See `README.md` for full documentation and `docs/plans/2026-01-14-dorf-design.md` for the original design document.
 
+**Platforms:** Web and mobile (Android via Capacitor). All features must work with both mouse and touch — no touch-only gestures.
+
 ## Hero Images
 
 Located in `src/assets/heroes/{hero_id}.png` (static) or `{hero_id}.gif` (animated). Not all heroes have images.

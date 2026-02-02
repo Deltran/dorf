@@ -2,18 +2,10 @@ import { EffectType } from '../../statusEffects.js'
 
 export const cacophon = {
   id: 'cacophon',
-  name: 'Cacophon, the Beautiful Disaster',
+  name: 'Cacophon',
   rarity: 5,
   classId: 'bard',
   baseStats: { hp: 95, atk: 25, def: 22, spd: 16, mp: 60 },
-  finale: {
-    name: "Suffering's Crescendo",
-    description: 'Convert accumulated ally suffering into power. +10% ATK/DEF to all allies, +1% per 150 HP lost (max +25% bonus).',
-    target: 'all_allies',
-    effects: [
-      { type: 'suffering_crescendo', baseBuff: 10, hpPerPercent: 150, maxBonus: 25, duration: 3 }
-    ]
-  },
   skills: [
     {
       name: 'Discordant Anthem',
@@ -23,7 +15,12 @@ export const cacophon = {
       allyHpCostPercent: 5,
       noDamage: true,
       effects: [
-        { type: EffectType.ATK_UP, target: 'all_allies', duration: 2, value: 25 }
+        {
+          type: EffectType.ATK_UP,
+          target: 'all_allies',
+          duration: 2,
+          value: 25
+        }
       ]
     },
     {
@@ -34,7 +31,12 @@ export const cacophon = {
       allyHpCostPercent: 5,
       noDamage: true,
       effects: [
-        { type: EffectType.VICIOUS, target: 'ally', duration: 2, bonusDamagePercent: 30 }
+        {
+          type: EffectType.VICIOUS,
+          target: 'ally',
+          duration: 2,
+          bonusDamagePercent: 30
+        }
       ]
     },
     {
@@ -45,7 +47,12 @@ export const cacophon = {
       allyHpCostPercent: 6,
       noDamage: true,
       effects: [
-        { type: EffectType.SHATTERED_TEMPO, target: 'ally', duration: 1, turnOrderPriority: 2 }
+        {
+          type: EffectType.SHATTERED_TEMPO,
+          target: 'ally',
+          duration: 1,
+          turnOrderPriority: 2
+        }
       ]
     },
     {
@@ -56,7 +63,12 @@ export const cacophon = {
       allyHpCostPercent: 6,
       noDamage: true,
       effects: [
-        { type: EffectType.ECHOING, target: 'ally', duration: 1, splashPercent: 50 }
+        {
+          type: EffectType.ECHOING,
+          target: 'ally',
+          duration: 1,
+          splashPercent: 50
+        }
       ]
     },
     {
@@ -67,7 +79,12 @@ export const cacophon = {
       allyHpCostPercent: 5,
       noDamage: true,
       effects: [
-        { type: EffectType.SHIELD, target: 'ally', duration: 2, shieldPercentMaxHp: 25 }
+        {
+          type: EffectType.SHIELD,
+          target: 'ally',
+          duration: 2,
+          shieldPercentMaxHp: 25
+        }
       ]
     }
   ],
@@ -78,12 +95,18 @@ export const cacophon = {
       {
         type: 'battle_start_debuff',
         target: 'all_allies',
-        apply: {
-          effectType: 'discordant_resonance',
-          damageBonus: 15,
-          healingPenalty: 30
-        }
+        apply: { effectType: 'discordant_resonance', damageBonus: 15, healingPenalty: 30 }
       }
     ]
-  }
+  },
+  finale: {
+    name: "Suffering's Crescendo",
+    description: 'Convert accumulated ally suffering into power. +10% ATK/DEF to all allies, +1% per 150 HP lost (max +25% bonus).',
+    target: 'all_allies',
+    effects: [
+      { type: 'suffering_crescendo', baseBuff: 10, hpPerPercent: 150, maxBonus: 25, duration: 3 }
+    ]
+  },
+  epithet: 'Beautiful Disaster',
+  introQuote: 'My genius is just misunderstood! Do you see it? DO YOU SEE IT?!'
 }

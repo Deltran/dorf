@@ -24,7 +24,12 @@ export const farm_hand = {
       noDamage: true,
       selfHealPercent: 10,
       effects: [
-        { type: EffectType.ATK_UP, target: 'self', duration: 2, value: 10 }
+        {
+          type: EffectType.ATK_UP,
+          target: 'self',
+          duration: 2,
+          value: 10
+        }
       ]
     },
     {
@@ -42,8 +47,15 @@ export const farm_hand = {
       rageCost: 65,
       targetType: 'all_enemies',
       effects: [
-        { type: EffectType.POISON, target: 'enemy', duration: 1, atkPercent: 10 }
+        {
+          type: EffectType.POISON,
+          target: 'enemy',
+          duration: 1,
+          atkPercent: 10
+        }
       ]
     }
-  ]
+  ],
+  epithet: 'Pitchfork and Fury',
+  introQuote: "Ain't much, but it's honest rage."
 }

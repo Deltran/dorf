@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLociStore, useExplorationsStore, BattleState } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import EnemyCard from '../components/EnemyCard.vue'
@@ -122,9 +122,18 @@ const detailSheetHero = ref(null) // For HeroDetailSheet
 const lastClickedHero = ref(null) // Track for double-click detection
 const genusLociRewards = ref(null) // For Genus Loci victory rewards
 const combatLogExpanded = ref(false)
+const combatLogScrollRef = ref(null)
 
 function toggleCombatLog() {
   combatLogExpanded.value = !combatLogExpanded.value
+  // Scroll to bottom when opening so user sees latest entries
+  if (combatLogExpanded.value) {
+    nextTick(() => {
+      if (combatLogScrollRef.value) {
+        combatLogScrollRef.value.scrollTop = combatLogScrollRef.value.scrollHeight
+      }
+    })
+  }
 }
 
 // Computed to check if this is a Genus Loci battle
@@ -1414,20 +1423,38 @@ function getStatChange(hero, stat) {
       </div>
     </section>
 
-    <!-- Battle Log -->
-    <section class="battle-log" :class="{ expanded: combatLogExpanded }" @click="toggleCombatLog">
-      <div class="log-entries">
-        <p v-if="!combatLogExpanded && battleStore.battleLog.length > 0">
-          {{ battleStore.battleLog[battleStore.battleLog.length - 1].message }}
-        </p>
-        <template v-else>
-          <p v-for="(entry, index) in battleStore.battleLog.slice(-15)" :key="index">
-            {{ entry.message }}
-          </p>
-        </template>
-      </div>
-      <div class="log-expand-hint">{{ combatLogExpanded ? 'tap to collapse' : 'tap for history' }}</div>
-    </section>
+    <!-- Combat Log - Collapsed (pinned to bottom) -->
+    <div
+      v-if="battleStore.battleLog.length > 0 && !combatLogExpanded"
+      class="combat-log-bar"
+      @click="toggleCombatLog"
+    >
+      <span class="log-last-message">{{ battleStore.battleLog[battleStore.battleLog.length - 1].message }}</span>
+      <span class="log-tap-hint">📜</span>
+    </div>
+
+    <!-- Combat Log - Expanded Overlay -->
+    <Teleport to="body">
+      <Transition name="log-overlay">
+        <div v-if="combatLogExpanded" class="combat-log-overlay" @click.self="toggleCombatLog">
+          <div class="combat-log-panel">
+            <div class="combat-log-header">
+              <h3>Battle Log</h3>
+              <button class="log-close-btn" @click="toggleCombatLog">✕</button>
+            </div>
+            <div ref="combatLogScrollRef" class="combat-log-scroll">
+              <p
+                v-for="(entry, index) in battleStore.battleLog"
+                :key="index"
+                :class="{ latest: index === battleStore.battleLog.length - 1 }"
+              >
+                {{ entry.message }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
 
     <!-- Victory Modal -->
     <div v-if="showVictoryModal" class="modal-overlay">
@@ -1778,6 +1805,7 @@ function getStatChange(hero, stat) {
   min-height: 100vh;
   padding: 16px;
   padding-top: calc(32px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); /* Space for fixed combat log bar */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1832,19 +1860,21 @@ function getStatChange(hero, stat) {
 /* Current unit styling */
 .turn-order-entry.current .portrait-wrapper {
   border-color: #fbbf24;
-  transform: scale(1.1);
-  box-shadow: 0 0 8px rgba(251, 191, 36, 0.5);
+  border-width: 3px;
+  transform: scale(1.15);
+  box-shadow: 0 0 12px rgba(251, 191, 36, 0.6);
 }
 
 .turn-order-entry.current::before {
   content: '';
   position: absolute;
-  left: -2px;
+  left: -4px;
   top: 50%;
   transform: translateY(-50%);
-  width: 36px;
-  height: 32px;
-  background: rgba(251, 191, 36, 0.2);
+  width: 40px;
+  height: 36px;
+  background: linear-gradient(90deg, rgba(251, 191, 36, 0.3) 0%, rgba(251, 191, 36, 0.1) 100%);
+  border-radius: 4px;
   border-radius: 16px;
   z-index: -1;
 }
@@ -1904,25 +1934,30 @@ function getStatChange(hero, stat) {
 .node-info {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .node-name {
-  font-weight: 600;
-  color: #f3f4f6;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #ffffff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
 }
 
 .battle-progress {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #9ca3af;
+  font-weight: 500;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .round-info {
-  padding: 4px 10px;
-  border-radius: 6px;
-  color: #d1d5db;
-  font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  color: #e5e7eb;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
@@ -2129,49 +2164,142 @@ function getStatChange(hero, stat) {
   50% { background-color: rgba(168, 85, 247, 0.3); }
 }
 
-.battle-log {
-  background: #1f2937;
-  border-radius: 8px;
-  padding: 12px;
+/* Combat Log - Collapsed Bar (pinned to bottom) */
+.combat-log-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(to top, #111827 0%, rgba(17, 24, 39, 0.95) 100%);
+  padding: 8px 16px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   cursor: pointer;
-  max-height: 32px;
+  z-index: 30;
+  border-top: 1px solid #374151;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.log-last-message {
+  font-size: 0.8rem;
+  color: #d1d5db;
+  flex: 1;
+  white-space: nowrap;
   overflow: hidden;
-  transition: max-height 0.2s ease;
+  text-overflow: ellipsis;
 }
 
-.battle-log.expanded {
-  max-height: 200px;
-  overflow-y: auto;
+.log-tap-hint {
+  font-size: 0.9rem;
+  opacity: 0.6;
 }
 
-.log-entries {
+/* Combat Log - Expanded Overlay */
+.combat-log-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 100;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: flex-start;
+  padding: calc(32px + env(safe-area-inset-top, 0px)) 16px 16px;
 }
 
-.log-entries p {
+.combat-log-panel {
+  background: #1f2937;
+  border-radius: 8px;
+  border: 1px solid #374151;
+  max-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.combat-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #374151;
+  flex-shrink: 0;
+}
+
+.combat-log-header h3 {
   margin: 0;
-  font-size: 0.85rem;
-  color: #9ca3af;
-}
-
-.log-entries p:last-child {
+  font-size: 1rem;
+  font-weight: 600;
   color: #f3f4f6;
 }
 
-.log-expand-hint {
-  font-size: 0.65rem;
-  color: #6b7280;
-  text-align: center;
-  padding-top: 4px;
+.log-close-btn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.log-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f3f4f6;
+}
+
+.combat-log-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.combat-log-scroll p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  line-height: 1.4;
+}
+
+.combat-log-scroll p.latest {
+  color: #f3f4f6;
+  font-weight: 500;
+}
+
+/* Log overlay transitions */
+.log-overlay-enter-active,
+.log-overlay-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.log-overlay-enter-active .combat-log-panel,
+.log-overlay-leave-active .combat-log-panel {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.log-overlay-enter-from,
+.log-overlay-leave-to {
+  opacity: 0;
+}
+
+.log-overlay-enter-from .combat-log-panel,
+.log-overlay-leave-to .combat-log-panel {
+  transform: translateY(-20px);
+  opacity: 0;
 }
 
 .hero-area {
   display: flex;
   justify-content: center;
-  gap: 4px;
-  padding: 0 4px;
+  gap: 8px;
+  padding: 0 12px;
   width: 100%;
   box-sizing: border-box;
   flex-wrap: nowrap;
@@ -2182,7 +2310,7 @@ function getStatChange(hero, stat) {
 
 .hero-wrapper {
   flex: 1;
-  max-width: 24%;
+  max-width: 23%;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -2192,11 +2320,17 @@ function getStatChange(hero, stat) {
 }
 
 .hero-wrapper.active {
-  transform: translateY(-12px);
+  transform: translateY(-14px);
+  z-index: 5;
 }
 
 .hero-wrapper.active .hero-image-container {
   aspect-ratio: 100 / 85; /* Show more of hero when active */
+}
+
+/* Active hero sprite gets subtle golden underglow */
+.hero-wrapper.active .hero-image {
+  filter: drop-shadow(0 4px 8px rgba(251, 191, 36, 0.3));
 }
 
 .hero-image-container {
@@ -2263,7 +2397,19 @@ function getStatChange(hero, stat) {
 
 .action-area {
   position: relative;
-  padding: 0 16px;
+  padding: 4px 12px 0 12px;
+  margin-top: -4px; /* Tighter coupling with hero area */
+}
+
+/* Subtle separator line that connects to the hero info panels */
+.action-area::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12px;
+  right: 12px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #374151 15%, #374151 85%, transparent 100%);
 }
 
 .action-prompt {
@@ -2283,13 +2429,15 @@ function getStatChange(hero, stat) {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 14px;
-  background: #111827;
-  border-left: 3px solid #374151;
+  padding: 14px 16px;
+  background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+  border-left: 3px solid #4b5563;
   border-top: 1px solid #374151;
   border-bottom: 1px solid #374151;
-  color: #6b7280;
-  font-size: 0.9rem;
+  color: #9ca3af;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .modal-overlay {
@@ -3463,6 +3611,12 @@ function getStatChange(hero, stat) {
   }
   .level-arrow {
     animation: none;
+  }
+  .log-overlay-enter-active,
+  .log-overlay-leave-active,
+  .log-overlay-enter-active .combat-log-panel,
+  .log-overlay-leave-active .combat-log-panel {
+    transition: none;
   }
 }
 </style>

@@ -8,6 +8,9 @@ import EmberParticles from '../components/EmberParticles.vue'
 import SummonInfoSheet from '../components/SummonInfoSheet.vue'
 import SummonRevealCard from '../components/SummonRevealCard.vue'
 import summoningBg from '../assets/backgrounds/summoning.png'
+import altarSurfaceImg from '../assets/gacha/alter_surface.png'
+import summonBackgroundImg from '../assets/gacha/summon_background.png'
+import bannerFrameImg from '../assets/gacha/banner_frame.png'
 import { getBannerAvailabilityText, getBannerImageUrl, getBlackMarketBanners } from '../data/banners.js'
 
 const emit = defineEmits(['navigate'])
@@ -599,6 +602,13 @@ function handleTenPull() {
     <!-- Dark vignette background -->
     <div class="bg-vignette" :class="{ 'vignette-corrupted': isBlackMarketView }"></div>
 
+    <!-- Atmospheric summon background -->
+    <div
+      class="summon-background"
+      :class="{ 'bg-corrupted': isBlackMarketView }"
+      :style="{ backgroundImage: `url(${summonBackgroundImg})` }"
+    ></div>
+
     <!-- Ritual animation elements -->
     <div v-if="ritualActive" class="ritual-overlay">
       <!-- Floating gem from header to altar -->
@@ -638,17 +648,21 @@ function handleTenPull() {
 
       <!-- Banner Section -->
       <section class="banner-section">
-        <div class="banner-frame" :class="{ 'frame-corrupted': isBlackMarketView }" @touchstart="handleBannerTouchStart" @touchend="handleBannerTouchEnd">
-          <div
-            class="banner-image"
-            :style="displayBannerImageUrl ? { backgroundImage: `url(${displayBannerImageUrl})` } : {}"
-          >
-            <div class="banner-inner-shadow"></div>
-          </div>
+        <div class="banner-frame-wrapper">
+          <img :src="bannerFrameImg" alt="" class="banner-frame-bg" />
+          <div class="banner-frame" :class="{ 'frame-corrupted': isBlackMarketView }" @touchstart="handleBannerTouchStart" @touchend="handleBannerTouchEnd">
+            <div
+              class="banner-image"
+              :style="displayBannerImageUrl ? { backgroundImage: `url(${displayBannerImageUrl})` } : {}"
+            >
+              <div class="banner-inner-shadow"></div>
+            </div>
+          <!-- Navigation arrows -->
           <!-- Navigation arrows -->
           <div class="banner-nav" v-if="displayBannerCount > 1">
             <button class="banner-arrow banner-arrow-left" :class="{ 'arrow-corrupted': isBlackMarketView }" @click="handlePrevBanner">&#9668;</button>
             <button class="banner-arrow banner-arrow-right" :class="{ 'arrow-corrupted': isBlackMarketView }" @click="handleNextBanner">&#9658;</button>
+          </div>
           </div>
         </div>
 
@@ -664,6 +678,8 @@ function handleTenPull() {
       <!-- Altar Section with Embers -->
       <section class="altar-section">
         <div class="altar-surface" :class="{ 'altar-corrupted': isBlackMarketView }">
+          <img :src="altarSurfaceImg" alt="" class="altar-image" />
+          <div class="flame-flicker" :class="{ 'flame-corrupted': isBlackMarketView }"></div>
           <EmberParticles :count="16" :palette="isBlackMarketView ? 'corrupt' : 'warm'" intensity="medium" />
         </div>
       </section>
@@ -856,6 +872,28 @@ function handleTenPull() {
   z-index: 0;
 }
 
+/* ===== Atmospheric Summon Background ===== */
+.summon-background {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  background-size: contain;
+  background-position: center top;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
+.summon-background.bg-corrupted {
+  filter: hue-rotate(80deg) saturate(0.7);
+  opacity: 0.5;
+}
+
 /* ===== Header ===== */
 .gacha-header {
   display: flex;
@@ -922,18 +960,31 @@ function handleTenPull() {
   margin-bottom: 12px;
 }
 
-.banner-frame {
+.banner-frame-wrapper {
   position: relative;
   width: 100%;
-  max-width: 320px;
+  max-width: 360px;
+}
+
+.banner-frame-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.banner-frame {
+  position: relative;
+  z-index: 1;
+  width: calc(100% - 40px);
+  margin: 20px auto;
   aspect-ratio: 16/9;
   background: #1a1a1a;
-  border-radius: 8px;
-  padding: 12px;
-  box-shadow:
-    inset 0 2px 4px rgba(0,0,0,0.5),
-    0 4px 8px rgba(0,0,0,0.3),
-    0 0 0 2px #2a2520;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .banner-image {
@@ -942,6 +993,7 @@ function handleTenPull() {
   background-size: cover;
   background-position: center;
   background-color: #111;
+  position: relative;
   border-radius: 4px;
   position: relative;
   overflow: hidden;
@@ -1020,26 +1072,100 @@ function handleTenPull() {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100px;
+  min-height: 120px;
 }
 
 .altar-surface {
   position: relative;
-  width: 100%;
-  max-width: 400px;
-  height: 80px;
-  background: linear-gradient(
-    to top,
-    #1a1816 0%,
-    #221f1c 50%,
-    #1a1816 100%
-  );
-  border-radius: 8px;
-  border: 1px solid #2a2520;
-  box-shadow:
-    0 0 20px rgba(255, 176, 32, 0.1),
-    inset 0 -4px 8px rgba(0,0,0,0.3);
+  width: 300px;
+  height: 185px;
+  border-radius: 4px;
   overflow: hidden;
+}
+
+.altar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Flame flicker overlay - covers top 45px where candles are */
+.flame-flicker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 45px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 176, 32, 0.18) 20%,
+    rgba(255, 120, 32, 0.1) 60%,
+    transparent 100%
+  );
+  pointer-events: none;
+  animation: flameFlicker 0.8s ease-in-out infinite alternate;
+}
+
+.flame-flicker::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 30% 80% at 25% 20%,
+    rgba(255, 200, 100, 0.2) 0%,
+    transparent 70%
+  );
+  animation: flameFlicker 0.6s ease-in-out 0.2s infinite alternate;
+}
+
+.flame-flicker::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    ellipse 30% 80% at 75% 20%,
+    rgba(255, 200, 100, 0.2) 0%,
+    transparent 70%
+  );
+  animation: flameFlicker 0.7s ease-in-out 0.1s infinite alternate;
+}
+
+@keyframes flameFlicker {
+  0% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Corrupted flame (green glow for Black Market) */
+.flame-flicker.flame-corrupted {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(64, 255, 96, 0.15) 20%,
+    rgba(32, 200, 64, 0.08) 60%,
+    transparent 100%
+  );
+}
+
+.flame-flicker.flame-corrupted::before {
+  background: radial-gradient(
+    ellipse 30% 80% at 25% 20%,
+    rgba(100, 255, 130, 0.15) 0%,
+    transparent 70%
+  );
+}
+
+.flame-flicker.flame-corrupted::after {
+  background: radial-gradient(
+    ellipse 30% 80% at 75% 20%,
+    rgba(100, 255, 130, 0.15) 0%,
+    transparent 70%
+  );
 }
 
 /* ===== Pull Buttons ===== */
@@ -1212,11 +1338,11 @@ function handleTenPull() {
 /* Corrupted banner frame */
 .banner-frame.frame-corrupted {
   background: #0f1a0f;
-  box-shadow:
-    inset 0 2px 4px rgba(0,0,0,0.6),
-    0 4px 8px rgba(0,0,0,0.4),
-    0 0 0 2px #1a3020,
-    0 0 15px rgba(64, 255, 96, 0.15);
+}
+
+.banner-frame.frame-corrupted + .banner-frame-bg,
+.banner-frame-wrapper:has(.frame-corrupted) .banner-frame-bg {
+  filter: hue-rotate(80deg) saturate(0.7);
 }
 
 /* Corrupted navigation arrows */
@@ -1244,18 +1370,19 @@ function handleTenPull() {
 }
 
 /* Corrupted altar surface */
-.altar-surface.altar-corrupted {
-  background: linear-gradient(
-    to top,
-    #0a1a0a 0%,
-    #102010 50%,
-    #0a1a0a 100%
-  );
-  border-color: #1a3020;
+.altar-surface.altar-corrupted .altar-image {
+  filter: hue-rotate(80deg) saturate(0.8);
+}
+
+.altar-surface.altar-corrupted::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 40, 0, 0.3);
+  pointer-events: none;
   box-shadow:
     0 0 20px rgba(64, 255, 96, 0.15),
-    0 0 30px rgba(255, 32, 32, 0.1),
-    inset 0 -4px 8px rgba(0,0,0,0.4);
+    0 0 30px rgba(255, 32, 32, 0.1);
 }
 
 /* Corrupted pull buttons */

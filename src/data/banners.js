@@ -85,7 +85,7 @@ export const banners = [
     name: 'Musical Mayhem',
     description: 'A cacophony of bardic talent! Featuring Cacophon and musical heroes.',
     permanent: false,
-    monthlySchedule: { month: 2 },
+    monthlySchedule: { month: 1 },
     heroPool: {
       5: ['cacophon'],
       4: ['chroma', 'lady_moonwhisper'],
@@ -99,7 +99,7 @@ export const banners = [
     name: 'Voices of Change',
     description: 'Heroes who stood firm against injustice. Featuring Rosara the Unmoved and allies.',
     permanent: false,
-    monthlySchedule: { month: 1 },
+    monthlySchedule: { month: 2 },
     heroPool: {
       5: ['rosara_the_unmoved'],
       4: ['zina_the_desperate', 'sir_gallan'],
@@ -223,6 +223,7 @@ function isMonthlyBanner(banner) {
  * - Permanent banners are always active
  * - Exactly one rotating banner is active at a time (10-day cycle)
  * - Date-range banners are active during their specified window
+ * - Monthly banners are active during their designated month
  *
  * @returns {Array} Active banner objects
  */
@@ -243,6 +244,9 @@ export function getActiveBanners() {
     if (b.permanent) return true
     if (isDateRangeBanner(b)) {
       return isDateInRange(month, day, b.startMonth, b.startDay, b.endMonth, b.endDay)
+    }
+    if (isMonthlyBanner(b)) {
+      return b.monthlySchedule.month === month
     }
     return b.id === activeRotating.id
   })
@@ -313,8 +317,35 @@ export function getBannerAvailabilityText(banner) {
     return `${startMonth} ${banner.startDay} – ${endMonth} ${banner.endDay}`
   }
 
+  // Monthly banner (Black Market)
+  if (isMonthlyBanner(banner)) {
+    // Vault banner - daily rotation in Black Market
+    if (banner.blackMarketSlot === 'vault') {
+      return 'Today only!'
+    }
+
+    const now = new Date()
+    const currentMonth = now.getMonth() + 1
+    const currentDay = now.getDate()
+    const bannerMonth = banner.monthlySchedule.month
+
+    if (bannerMonth === currentMonth) {
+      // Calculate days remaining in the month
+      const lastDay = new Date(now.getFullYear(), currentMonth, 0).getDate()
+      const daysRemaining = lastDay - currentDay
+
+      if (daysRemaining <= 0) return 'Last day!'
+      if (daysRemaining === 1) return '1 day remaining'
+      if (daysRemaining <= 7) return `${daysRemaining} days remaining`
+      return `Available through ${MONTH_NAMES[bannerMonth - 1]}`
+    }
+
+    // Not current month - show which month it's for
+    return `${MONTH_NAMES[bannerMonth - 1]} only`
+  }
+
   // Rotating banner
-  const rotatingBanners = banners.filter(b => !b.permanent && !isDateRangeBanner(b))
+  const rotatingBanners = banners.filter(b => !b.permanent && !isDateRangeBanner(b) && !isMonthlyBanner(b))
   const cycleLength = ROTATION_CHUNK_DAYS * rotatingBanners.length
   const dayOfYear = getDayOfYear()
   const cyclePosition = (dayOfYear - 1) % cycleLength

@@ -25,7 +25,12 @@ export const ember_witch = {
       targetType: 'self',
       noDamage: true,
       effects: [
-        { type: EffectType.FLAME_SHIELD, target: 'self', duration: 3, burnDuration: 2 }
+        {
+          type: EffectType.FLAME_SHIELD,
+          target: 'self',
+          duration: 3,
+          burnDuration: 2
+        }
       ]
     },
     {
@@ -36,7 +41,12 @@ export const ember_witch = {
       targetType: 'enemy',
       noDamage: true,
       effects: [
-        { type: EffectType.BURN, target: 'enemy', duration: 3, atkPercent: 50 }
+        {
+          type: EffectType.BURN,
+          target: 'enemy',
+          duration: 3,
+          atkPercent: 50
+        }
       ]
     },
     {
@@ -57,5 +67,7 @@ export const ember_witch = {
       consumeBurns: true,
       consumeBurnAtkBonus: 10
     }
-  ]
+  ],
+  epithet: 'Flame-Touched Prodigy',
+  introQuote: "Fire doesn't ask permission. Neither do I."
 }

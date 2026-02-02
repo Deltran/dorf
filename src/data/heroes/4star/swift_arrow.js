@@ -21,7 +21,12 @@ export const swift_arrow = {
       targetType: 'enemy',
       noDamage: true,
       effects: [
-        { type: EffectType.MARKED, target: 'enemy', duration: 3, value: 20 }
+        {
+          type: EffectType.MARKED,
+          target: 'enemy',
+          duration: 3,
+          value: 20
+        }
       ]
     },
     {
@@ -45,5 +50,7 @@ export const swift_arrow = {
       multiHit: 5,
       prioritizeMarked: true
     }
-  ]
+  ],
+  epithet: 'Elven Sharpshooter',
+  introQuote: "Can't talk here. I need to focus."
 }

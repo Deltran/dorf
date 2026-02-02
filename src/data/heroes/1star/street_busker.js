@@ -55,5 +55,7 @@ export const street_busker = {
         { type: EffectType.SPD_DOWN, target: 'enemy', duration: 2, value: 20 }
       ]
     }
-  ]
+  ],
+  epithet: 'The Off-Key Nuisance',
+  introQuote: "They don't pay me to stop. They pay me to leave."
 }

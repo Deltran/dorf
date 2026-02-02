@@ -6,11 +6,6 @@ export const onibaba = {
   rarity: 5,
   classId: 'druid',
   baseStats: { hp: 115, atk: 30, def: 28, spd: 11, mp: 70 },
-  passive: {
-    name: 'Hungry Ghost',
-    description: 'When Onibaba deals damage, heal for 15% of damage dealt',
-    lifestealOnDamage: 15
-  },
   skills: [
     {
       name: 'Soul Siphon',
@@ -40,7 +35,7 @@ export const onibaba = {
     },
     {
       name: 'Spirit Ward',
-      description: 'Grant an ally a shield equal to 20% of Onibaba\'s max HP. Ally is immune to debuffs while shielded.',
+      description: "Grant an ally a shield equal to 20% of Onibaba's max HP. Ally is immune to debuffs while shielded.",
       mpCost: 25,
       skillUnlockLevel: 3,
       targetType: 'ally',
@@ -86,22 +81,17 @@ export const onibaba = {
           value: 25
         }
       ],
-      grantLifesteal: {
-        value: 20,
-        duration: 3
-      }
+      grantLifesteal: { value: 20, duration: 3 }
     }
   ],
   leaderSkill: {
     name: "Grandmother's Vigil",
     description: 'When an ally drops below 30% HP, Onibaba automatically uses Soul Siphon on the lowest HP enemy (once per ally per battle).',
     effects: [
-      {
-        type: 'ally_low_hp_auto_attack',
-        hpThreshold: 30,
-        autoSkill: 'Soul Siphon',
-        oncePerAlly: true
-      }
+      { type: 'ally_low_hp_auto_attack', hpThreshold: 30, autoSkill: 'Soul Siphon', oncePerAlly: true }
     ]
-  }
+  },
+  passive: { name: 'Hungry Ghost', description: 'When Onibaba deals damage, heal for 15% of damage dealt', lifestealOnDamage: 15 },
+  epithet: 'The Hungry Grandmother',
+  introQuote: "Eat, child. You'll need your strength... for what comes next."
 }

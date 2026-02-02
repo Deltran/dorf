@@ -6,22 +6,18 @@ export const wandering_bard = {
   rarity: 3,
   classId: 'bard',
   baseStats: { hp: 75, atk: 20, def: 20, spd: 15, mp: 70 },
-  finale: {
-    name: 'Standing Ovation',
-    description: 'Provide MP, Valor, or Focus to all allies and heal for 15% ATK.',
-    target: 'all_allies',
-    effects: [
-      { type: 'resource_grant', focusGrant: true, valorAmount: 10, mpAmount: 15, verseAmount: 1 },
-      { type: 'heal', value: 15 }
-    ]
-  },
   skills: [
     {
       name: 'Inspiring Song',
       description: 'Increase all allies ATK by 15% for 2 turns',
       targetType: 'all_allies',
       effects: [
-        { type: EffectType.ATK_UP, target: 'all_allies', duration: 2, value: 15 }
+        {
+          type: EffectType.ATK_UP,
+          target: 'all_allies',
+          duration: 2,
+          value: 15
+        }
       ]
     },
     {
@@ -44,7 +40,12 @@ export const wandering_bard = {
       skillUnlockLevel: 6,
       targetType: 'all_allies',
       effects: [
-        { type: EffectType.DEF_UP, target: 'all_allies', duration: 2, value: 20 }
+        {
+          type: EffectType.DEF_UP,
+          target: 'all_allies',
+          duration: 2,
+          value: 20
+        }
       ]
     },
     {
@@ -55,5 +56,16 @@ export const wandering_bard = {
       noDamage: true,
       extendBuffs: 1
     }
-  ]
+  ],
+  finale: {
+    name: 'Standing Ovation',
+    description: 'Provide MP, Valor, or Focus to all allies and heal for 15% ATK.',
+    target: 'all_allies',
+    effects: [
+      { type: 'resource_grant', focusGrant: true, valorAmount: 10, mpAmount: 15, verseAmount: 1 },
+      { type: 'heal', value: 15 }
+    ]
+  },
+  epithet: 'The Charming Vagabond',
+  introQuote: "Every town's got a story. I just help them sing it."
 }

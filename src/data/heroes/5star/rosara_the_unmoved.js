@@ -2,20 +2,10 @@ import { EffectType } from '../../statusEffects.js'
 
 export const rosara_the_unmoved = {
   id: 'rosara_the_unmoved',
-  name: 'Rosara the Unmoved',
+  name: 'Rosara',
   rarity: 5,
   classId: 'knight',
   baseStats: { hp: 130, atk: 25, def: 38, spd: 8 },
-
-  // Passive that modifies basic attack damage
-  basicAttackModifier: {
-    name: 'Quiet Defiance',
-    description: 'Basic attacks deal 80% damage. If attacked last round, deal 120% instead.',
-    skillUnlockLevel: 1,
-    baseDamagePercent: 80,
-    ifAttackedDamagePercent: 120
-  },
-
   skills: [
     {
       name: 'Quiet Defiance',
@@ -73,7 +63,10 @@ export const rosara_the_unmoved = {
       skillUnlockLevel: 6,
       isPassive: true,
       passiveType: 'controlImmunity',
-      immuneTo: [EffectType.STUN, EffectType.SLEEP],
+      immuneTo: [
+        'stun',
+        'sleep'
+      ],
       onImmunityTrigger: { valorGain: 10 }
     },
     {
@@ -97,13 +90,20 @@ export const rosara_the_unmoved = {
       onDeathDuringEffect: {
         target: 'all_allies',
         effects: [
-          { type: EffectType.ATK_UP, duration: 3, value: { base: 20, at75: 25, at100: 30 } },
-          { type: EffectType.DEF_UP, duration: 3, value: { base: 20, at75: 25, at100: 30 } }
+          {
+            type: 'atk_up',
+            duration: 3,
+            value: { base: 20, at75: 25, at100: 30 }
+          },
+          {
+            type: 'def_up',
+            duration: 3,
+            value: { base: 20, at75: 25, at100: 30 }
+          }
         ]
       }
     }
   ],
-
   leaderSkill: {
     name: 'The First to Stand',
     description: 'At battle start, the lowest HP% ally gains Taunt and +25% DEF for turn 1. Rosara takes 30% of damage dealt to that ally during round 1.',
@@ -118,5 +118,8 @@ export const rosara_the_unmoved = {
         damageShareDuration: 1
       }
     ]
-  }
+  },
+  basicAttackModifier: { name: 'Quiet Defiance', description: 'Basic attacks deal 80% damage. If attacked last round, deal 120% instead.', skillUnlockLevel: 1, baseDamagePercent: 80, ifAttackedDamagePercent: 120 },
+  epithet: 'Unmoved and Unbroken',
+  introQuote: 'Resistance requires steadfast dedication and courage.'
 }

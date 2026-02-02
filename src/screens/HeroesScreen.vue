@@ -925,6 +925,7 @@ function getEffectTypeName(type) {
           />
           <div class="header-info">
             <h3>{{ selectedHero.template.name }}</h3>
+            <p v-if="selectedHero.template.epithet" class="hero-epithet">{{ selectedHero.template.epithet }}</p>
             <StarRating :rating="getStarLevel(selectedHero)" :animate="starAnimating" />
             <div v-if="selectedHero.starLevel > selectedHero.template.rarity" class="origin-badge">
               {{ selectedHero.template.rarity }}★ origin
@@ -1711,6 +1712,13 @@ function getEffectTypeName(type) {
   color: #f3f4f6;
   margin: 0;
   font-size: 1.2rem;
+}
+
+.hero-epithet {
+  color: #9ca3af;
+  font-size: 0.85rem;
+  margin: 0;
+  font-style: italic;
 }
 
 .close-detail {

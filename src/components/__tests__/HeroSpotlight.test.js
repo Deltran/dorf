@@ -70,14 +70,14 @@ describe('HeroSpotlight', () => {
     expect(wrapper.emitted('dismiss')).toBeTruthy()
   })
 
-  it('applies rarity-5 class for legendary heroes', () => {
+  it('applies rarity class to root element', () => {
     const wrapper = mount(HeroSpotlight, {
       props: { hero: mockHero, visible: true }
     })
-    expect(wrapper.find('.spotlight-content').classes()).toContain('rarity-5')
+    expect(wrapper.find('.hero-spotlight').classes()).toContain('rarity-5')
   })
 
-  it('applies rarity-3 class for rare heroes', () => {
+  it('applies correct rarity class for 3-star heroes', () => {
     const rareHero = {
       ...mockHero,
       template: { ...mockHero.template, rarity: 3 }
@@ -85,57 +85,69 @@ describe('HeroSpotlight', () => {
     const wrapper = mount(HeroSpotlight, {
       props: { hero: rareHero, visible: true }
     })
-    expect(wrapper.find('.spotlight-content').classes()).toContain('rarity-3')
+    expect(wrapper.find('.hero-spotlight').classes()).toContain('rarity-3')
   })
 
-  it('renders starfield background', () => {
+  it('applies correct rarity class for 2-star heroes', () => {
+    const uncommonHero = {
+      ...mockHero,
+      template: { ...mockHero.template, rarity: 2 }
+    }
     const wrapper = mount(HeroSpotlight, {
-      props: { hero: mockHero, visible: true }
+      props: { hero: uncommonHero, visible: true }
     })
-    expect(wrapper.find('.starfield').exists()).toBe(true)
+    expect(wrapper.find('.hero-spotlight').classes()).toContain('rarity-2')
   })
 
-  it('renders hero image container with glow', () => {
+  it('renders ember field for 3+ star heroes', () => {
+    const rareHero = {
+      ...mockHero,
+      template: { ...mockHero.template, rarity: 3 }
+    }
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: rareHero, visible: true }
+    })
+    expect(wrapper.find('.ember-field').exists()).toBe(true)
+  })
+
+  it('does not render ember field for 1-2 star heroes', () => {
+    const commonHero = {
+      ...mockHero,
+      template: { ...mockHero.template, rarity: 2 }
+    }
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: commonHero, visible: true }
+    })
+    expect(wrapper.find('.ember-field').exists()).toBe(false)
+  })
+
+  it('renders hero image container with rim light', () => {
     const wrapper = mount(HeroSpotlight, {
       props: { hero: mockHero, visible: true }
     })
     expect(wrapper.find('.hero-image-container').exists()).toBe(true)
-    expect(wrapper.find('.hero-glow').exists()).toBe(true)
+    expect(wrapper.find('.rim-light').exists()).toBe(true)
   })
 
-  it('has entrance animation class on hero image', () => {
-    const wrapper = mount(HeroSpotlight, {
-      props: { hero: mockHero, visible: true }
-    })
-    expect(wrapper.find('.hero-image-container').classes()).toContain('animate-entrance')
-  })
-
-  it('has slam animation class on hero name', () => {
-    const wrapper = mount(HeroSpotlight, {
-      props: { hero: mockHero, visible: true }
-    })
-    expect(wrapper.find('.hero-name').classes()).toContain('animate-slam')
-  })
-
-  it('applies screen-shake class for 5-star heroes', () => {
-    const wrapper = mount(HeroSpotlight, {
-      props: { hero: mockHero, visible: true }
-    })
-    expect(wrapper.find('.hero-spotlight').classes()).toContain('shake-5star')
-  })
-
-  it('does not apply screen-shake for lower rarity', () => {
-    const rareHero = {
+  it('renders spotlight beam for all rarities', () => {
+    const commonHero = {
       ...mockHero,
-      template: { ...mockHero.template, rarity: 3 }
+      template: { ...mockHero.template, rarity: 1 }
     }
     const wrapper = mount(HeroSpotlight, {
-      props: { hero: rareHero, visible: true }
+      props: { hero: commonHero, visible: true }
     })
-    expect(wrapper.find('.hero-spotlight').classes()).not.toContain('shake-5star')
+    expect(wrapper.find('.spotlight-beam').exists()).toBe(true)
   })
 
-  it('applies enhanced-4star class for 4-star heroes', () => {
+  it('renders light shaft only for 5-star heroes', () => {
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: mockHero, visible: true }
+    })
+    expect(wrapper.find('.light-shaft').exists()).toBe(true)
+  })
+
+  it('does not render light shaft for 4-star heroes', () => {
     const epicHero = {
       ...mockHero,
       template: { ...mockHero.template, rarity: 4 }
@@ -143,18 +155,7 @@ describe('HeroSpotlight', () => {
     const wrapper = mount(HeroSpotlight, {
       props: { hero: epicHero, visible: true }
     })
-    expect(wrapper.find('.spotlight-content').classes()).toContain('enhanced-4star')
-  })
-
-  it('does not apply enhanced-4star for 3-star', () => {
-    const rareHero = {
-      ...mockHero,
-      template: { ...mockHero.template, rarity: 3 }
-    }
-    const wrapper = mount(HeroSpotlight, {
-      props: { hero: rareHero, visible: true }
-    })
-    expect(wrapper.find('.spotlight-content').classes()).not.toContain('enhanced-4star')
+    expect(wrapper.find('.light-shaft').exists()).toBe(false)
   })
 
   it('applies exiting class when dismissing', async () => {
@@ -163,5 +164,113 @@ describe('HeroSpotlight', () => {
     })
     await wrapper.find('.hero-spotlight').trigger('click')
     expect(wrapper.find('.hero-spotlight').classes()).toContain('exiting')
+  })
+
+  it('renders continue button', () => {
+    const wrapper = mount(HeroSpotlight, {
+      props: { hero: mockHero, visible: true }
+    })
+    expect(wrapper.find('.tap-hint').text()).toBe('Continue')
+  })
+
+  describe('Animation triggering', () => {
+    it('applies animating class after mount and frame', async () => {
+      const wrapper = mount(HeroSpotlight, {
+        props: { hero: mockHero, visible: true }
+      })
+
+      // Initially should NOT have animating class (before RAF fires)
+      expect(wrapper.find('.hero-spotlight').classes()).not.toContain('animating')
+
+      // Advance through nextTick + requestAnimationFrame
+      await vi.runAllTimersAsync()
+      await wrapper.vm.$nextTick()
+
+      // Now should have animating class
+      expect(wrapper.find('.hero-spotlight').classes()).toContain('animating')
+    })
+
+    it('applies animating class for 1-star heroes', async () => {
+      const commonHero = {
+        ...mockHero,
+        template: { ...mockHero.template, rarity: 1 }
+      }
+      const wrapper = mount(HeroSpotlight, {
+        props: { hero: commonHero, visible: true }
+      })
+
+      await vi.runAllTimersAsync()
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('.hero-spotlight').classes()).toContain('animating')
+    })
+
+    it('applies animating class for 2-star heroes', async () => {
+      const uncommonHero = {
+        ...mockHero,
+        template: { ...mockHero.template, rarity: 2 }
+      }
+      const wrapper = mount(HeroSpotlight, {
+        props: { hero: uncommonHero, visible: true }
+      })
+
+      await vi.runAllTimersAsync()
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('.hero-spotlight').classes()).toContain('animating')
+    })
+
+    it('resets and reapplies animating class when hero changes', async () => {
+      const wrapper = mount(HeroSpotlight, {
+        props: { hero: mockHero, visible: true }
+      })
+
+      // Initial animation
+      await vi.runAllTimersAsync()
+      await wrapper.vm.$nextTick()
+      expect(wrapper.find('.hero-spotlight').classes()).toContain('animating')
+
+      // Change hero
+      const newHero = {
+        ...mockHero,
+        instance: { instanceId: 'new-hero-id' },
+        template: { ...mockHero.template, name: 'New Hero' }
+      }
+      await wrapper.setProps({ hero: newHero })
+
+      // Should reset animating (briefly false)
+      // Then re-apply after RAF
+      await vi.runAllTimersAsync()
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('.hero-spotlight').classes()).toContain('animating')
+    })
+
+    it('animation works when component mounts with hero already set (first pull scenario)', async () => {
+      // This simulates the exact scenario: component mounts fresh with hero data
+      // This is what happens on first pull - no prior mount, hero is set immediately
+      const firstPullHero = {
+        instance: { instanceId: 'first-pull-123' },
+        template: {
+          id: 'militia_soldier',
+          name: 'Militia Soldier',
+          rarity: 2,
+          epithet: null,
+          introQuote: null
+        }
+      }
+
+      const wrapper = mount(HeroSpotlight, {
+        props: { hero: firstPullHero, visible: true }
+      })
+
+      // Advance all timers and ticks
+      await vi.runAllTimersAsync()
+      await wrapper.vm.$nextTick()
+
+      // MUST have animating class
+      expect(wrapper.find('.hero-spotlight').classes()).toContain('animating')
+      expect(wrapper.find('.hero-spotlight').classes()).toContain('rarity-2')
+    })
   })
 })

@@ -23,9 +23,17 @@ export const the_grateful_dead = {
       valorRequired: 15,
       targetType: 'self',
       noDamage: true,
-      cleanseSelf: ['stun', 'sleep', 'heal_block'],
+      cleanseSelf: [
+        'stun',
+        'sleep',
+        'heal_block'
+      ],
       effects: [
-        { type: EffectType.RIPOSTE, target: 'self', duration: 2 }
+        {
+          type: EffectType.RIPOSTE,
+          target: 'self',
+          duration: 2
+        }
       ]
     },
     {
@@ -36,7 +44,11 @@ export const the_grateful_dead = {
       targetType: 'ally',
       noDamage: true,
       effects: [
-        { type: EffectType.SHIELD, target: 'ally', shieldPercentMaxHp: 30 }
+        {
+          type: EffectType.SHIELD,
+          target: 'ally',
+          shieldPercentMaxHp: 30
+        }
       ]
     },
     {
@@ -47,12 +59,12 @@ export const the_grateful_dead = {
       consumesAllValor: true,
       targetType: 'all_enemies',
       damagePercent: 60,
-      bonusDamagePerValor: 1.0,
+      bonusDamagePerValor: 1,
       maxBonusDamage: 100,
       healSelfPercent: 50,
       at100Valor: {
         effects: [
-          { type: EffectType.DEF_DOWN, target: 'enemy', duration: 2, value: 20 }
+          { type: 'def_down', target: 'enemy', duration: 2, value: 20 }
         ]
       }
     },
@@ -69,5 +81,7 @@ export const the_grateful_dead = {
         { valor: 100, deathPrevention: true, oncePerBattle: true }
       ]
     }
-  ]
+  ],
+  epithet: 'Courtly Corpse',
+  introQuote: "Ah, splendid! New companions. Do pardon the smell - persistent cold, I'm afraid."
 }

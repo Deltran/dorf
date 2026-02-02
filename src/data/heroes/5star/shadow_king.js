@@ -5,8 +5,6 @@ export const shadow_king = {
   name: 'The Shadow King',
   rarity: 5,
   classId: 'berserker',
-  epithet: 'Lord of the Endless Night',
-  introQuote: 'Kneel before the darkness.',
   baseStats: { hp: 110, atk: 55, def: 25, spd: 18 },
   skills: [
     {
@@ -24,8 +22,18 @@ export const shadow_king = {
       targetType: 'self',
       skillUnlockLevel: 1,
       effects: [
-        { type: EffectType.ATK_UP, target: 'self', duration: 3, value: 30 },
-        { type: EffectType.POISON, target: 'self', duration: 3, atkPercent: 15 }
+        {
+          type: EffectType.ATK_UP,
+          target: 'self',
+          duration: 3,
+          value: 30
+        },
+        {
+          type: EffectType.POISON,
+          target: 'self',
+          duration: 3,
+          atkPercent: 15
+        }
       ]
     },
     {
@@ -44,7 +52,12 @@ export const shadow_king = {
       targetType: 'self',
       skillUnlockLevel: 6,
       effects: [
-        { type: EffectType.THORNS, target: 'self', duration: 3, value: 100 }
+        {
+          type: EffectType.THORNS,
+          target: 'self',
+          duration: 3,
+          value: 100
+        }
       ]
     },
     {
@@ -66,12 +79,10 @@ export const shadow_king = {
         type: 'timed',
         triggerRound: 1,
         target: 'all_allies',
-        apply: {
-          effectType: 'atk_up',
-          duration: 2,
-          value: 25
-        }
+        apply: { effectType: 'atk_up', duration: 2, value: 25 }
       }
     ]
-  }
+  },
+  epithet: 'Avatar of the Endless Night',
+  introQuote: 'Kneel before the darkness, mortal.'
 }

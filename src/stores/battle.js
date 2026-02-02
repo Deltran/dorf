@@ -4792,19 +4792,18 @@ export const useBattleStore = defineStore('battle', () => {
     // Apply ATK_UP and DEF_UP to all living heroes
     for (const hero of heroes) {
       if (hero.currentHp > 0) {
-        // Add ATK_UP
-        hero.statusEffects.push({
-          type: EffectType.ATK_UP,
+        // Use applyEffect to properly create effects with definitions
+        applyEffect(hero, EffectType.ATK_UP, {
           duration,
           value: totalBuff,
-          sourceId: 'cacophon_finale'
+          sourceId: 'cacophon_finale',
+          fromAllySkill: true
         })
-        // Add DEF_UP
-        hero.statusEffects.push({
-          type: EffectType.DEF_UP,
+        applyEffect(hero, EffectType.DEF_UP, {
           duration,
           value: totalBuff,
-          sourceId: 'cacophon_finale'
+          sourceId: 'cacophon_finale',
+          fromAllySkill: true
         })
       }
     }

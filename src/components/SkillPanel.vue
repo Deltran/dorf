@@ -182,21 +182,10 @@ function formatTargetType(skill) {
 </template>
 
 <style scoped>
-/* Noise texture as data URI */
-.skill-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  opacity: 0.03;
-  pointer-events: none;
-  border-radius: inherit;
-}
-
 .skill-panel-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.7);
   z-index: 40;
 }
 
@@ -225,6 +214,8 @@ function formatTargetType(skill) {
   display: flex;
   flex-direction: column;
   pointer-events: auto;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .panel-enter-active,
@@ -241,107 +232,143 @@ function formatTargetType(skill) {
 /* Skills Column (full width) */
 .skills-column {
   width: 100%;
-  background: #111827;
-  border-left: 3px solid var(--class-color);
+  background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+  border-left: 4px solid var(--class-color);
   border-top: 1px solid #374151;
   border-bottom: 1px solid #374151;
   border-right: 1px solid #374151;
-  clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%, 0 16px);
+  clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
   position: relative;
-  padding: 12px;
+  padding: 14px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
 }
 
-/* Chamfered corner effect */
+/* Noise texture for gritty Dorf feel */
+.skills-column::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+/* Chamfered corner with class-colored accent */
 .skills-column::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
-  width: 16px;
-  height: 16px;
-  background: linear-gradient(135deg, transparent 50%, #111827 50%);
-  border-top: 1px solid #374151;
-  transform: rotate(0deg);
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(135deg, var(--class-color) 0%, var(--class-color) 50%, transparent 50%);
+  opacity: 0.4;
 }
 
+/* Resource indicator - more integrated, badge-like */
 .resource-line {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding-bottom: 8px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid #374151;
+  gap: 8px;
+  padding: 6px 12px;
+  margin-bottom: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 2px solid var(--class-color);
+  border-radius: 4px;
   font-size: 0.85rem;
 }
 
-.resource-name {
-  color: #d1d5db;
-  font-weight: 500;
+.resource-icon {
+  font-size: 1rem;
 }
 
-.resource-icon {
-  font-size: 0.9rem;
+.resource-name {
+  color: #e5e7eb;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
 }
 
 .resource-value {
-  color: #9ca3af;
+  color: var(--class-color);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  font-size: 0.9rem;
 }
 
 /* Floating tooltip (above skills-column, not clipped) */
 .skill-tooltip {
-  background: #1f2937;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
   border: 1px solid #374151;
-  border-left: 3px solid var(--class-color);
-  padding: 12px;
+  border-left: 4px solid var(--class-color);
+  padding: 14px;
   margin-bottom: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  position: relative;
+}
+
+/* Tooltip noise texture */
+.skill-tooltip::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  pointer-events: none;
 }
 
 .tooltip-enter-active,
 .tooltip-leave-active {
-  transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), max-height 0.15s ease;
+  transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s ease;
 }
 
 .tooltip-enter-from,
 .tooltip-leave-to {
   opacity: 0;
+  transform: translateY(4px);
 }
 
 .tooltip-title {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.05rem;
+  font-weight: 700;
   margin: 0 0 4px 0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .tooltip-cost {
   font-size: 0.8rem;
   color: #9ca3af;
-  margin: 0 0 8px 0;
+  margin: 0 0 10px 0;
+  font-weight: 500;
 }
 
 .tooltip-desc {
   font-size: 0.85rem;
-  color: #9ca3af;
-  line-height: 1.4;
-  margin: 0 0 8px 0;
+  color: #d1d5db;
+  line-height: 1.5;
+  margin: 0 0 10px 0;
 }
 
 .target-tag {
   display: inline-block;
-  font-size: 0.7rem;
-  color: #6b7280;
+  font-size: 0.65rem;
+  color: var(--class-color);
   background: rgba(255, 255, 255, 0.05);
-  padding: 2px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 3px 8px;
   border-radius: 2px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  font-weight: 600;
 }
 
 /* 2-column skill grid */
 .skills-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 
 .skill-btn {
@@ -350,33 +377,62 @@ function formatTargetType(skill) {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 56px;
-  padding: 16px 12px;
-  background: rgba(55, 65, 81, 0.3);
-  border: 1px solid #374151;
+  min-height: 58px;
+  padding: 14px 10px;
+  background: linear-gradient(180deg, rgba(55, 65, 81, 0.4) 0%, rgba(31, 41, 55, 0.6) 100%);
+  border: 1px solid #4b5563;
+  border-bottom: 2px solid #374151;
   border-radius: 4px;
   color: #f3f4f6;
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.1s ease, border-color 0.1s ease, transform 0.1s ease;
+  transition: all 0.12s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Subtle class-colored top edge on skill buttons */
+.skill-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--class-color);
+  opacity: 0.3;
+  border-radius: 4px 4px 0 0;
 }
 
 .skill-btn:hover:not(.disabled),
 .skill-btn.hovered:not(.disabled) {
-  background: rgba(55, 65, 81, 0.5);
+  background: linear-gradient(180deg, rgba(75, 85, 99, 0.5) 0%, rgba(55, 65, 81, 0.7) 100%);
   border-color: var(--class-color);
-  transform: scale(1.02);
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.skill-btn:hover:not(.disabled)::before,
+.skill-btn.hovered:not(.disabled)::before {
+  opacity: 0.7;
 }
 
 .skill-btn:active:not(.disabled) {
-  transform: scale(0.98);
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .skill-btn.disabled {
   cursor: not-allowed;
-  opacity: 0.5;
+  opacity: 0.4;
+  filter: grayscale(30%);
+}
+
+.skill-btn.disabled::before {
+  opacity: 0.1;
 }
 
 .skill-btn.disabled .skill-name {
@@ -386,18 +442,20 @@ function formatTargetType(skill) {
 
 .skill-btn .skill-name {
   line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .skill-cost-badge {
   position: absolute;
   top: 4px;
   right: 4px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #9ca3af;
-  background: rgba(17, 24, 39, 0.9);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--class-color);
+  background: rgba(0, 0, 0, 0.6);
   padding: 2px 6px;
-  border-radius: 4px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Reduced motion */
@@ -420,6 +478,11 @@ function formatTargetType(skill) {
 
   .skill-btn {
     transition: none;
+  }
+
+  .skill-btn:hover:not(.disabled),
+  .skill-btn.hovered:not(.disabled) {
+    transform: none;
   }
 }
 </style>

@@ -6,15 +6,6 @@ export const matsuda = {
   rarity: 3,
   classId: 'berserker',
   baseStats: { hp: 95, atk: 38, def: 18, spd: 14 },
-
-  passive: {
-    name: 'Bushido',
-    description: 'Gain 1% ATK per 2% HP missing (max +50%). When healed, gain Reluctance stack (-10% healing, max 5 stacks).',
-    atkPerMissingHpPercent: 0.5, // 1% ATK per 2% missing = 0.5% per 1% missing
-    maxAtkBonus: 50,
-    onHealed: { type: EffectType.RELUCTANCE, stacks: 1 }
-  },
-
   skills: [
     {
       name: 'Desperate Strike',
@@ -42,7 +33,12 @@ export const matsuda = {
       targetType: 'self',
       noDamage: true,
       effects: [
-        { type: EffectType.ATK_UP, target: 'self', duration: 2, value: 25 }
+        {
+          type: EffectType.ATK_UP,
+          target: 'self',
+          duration: 2,
+          value: 25
+        }
       ]
     },
     {
@@ -51,13 +47,8 @@ export const matsuda = {
       rageCost: 40,
       skillUnlockLevel: 6,
       targetType: 'enemy',
-      conditionalDamage: {
-        hpBelow50: 180,
-        hpBelow25: 220
-      },
-      conditionalEvasion: {
-        hpBelow25: 30
-      }
+      conditionalDamage: { hpBelow50: 180, hpBelow25: 220 },
+      conditionalEvasion: { hpBelow25: 30 }
     },
     {
       name: 'Glorious End',
@@ -68,10 +59,16 @@ export const matsuda = {
       targetType: 'all_enemies',
       damagePercent: 180,
       bonusDamagePerMissingHpPercent: 1,
-      onKill: {
-        healPercent: 20,
-        bypassReluctance: true
-      }
+      onKill: { healPercent: 20, bypassReluctance: true }
     }
-  ]
+  ],
+  passive: {
+    name: 'Bushido',
+    description: 'Gain 1% ATK per 2% HP missing (max +50%). When healed, gain Reluctance stack (-10% healing, max 5 stacks).',
+    atkPerMissingHpPercent: 0.5,
+    maxAtkBonus: 50,
+    onHealed: { type: 'reluctance', stacks: 1 }
+  },
+  epithet: 'Blade Without a Lord',
+  introQuote: "Honor died with my master. All that's left is the sword."
 }

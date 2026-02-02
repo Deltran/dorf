@@ -6,19 +6,6 @@ export const korrath_hollow_ear = {
   rarity: 5,
   classId: 'ranger',
   baseStats: { hp: 95, atk: 48, def: 20, spd: 22 },
-  leaderSkill: {
-    name: 'Blood Remembers',
-    description: 'On round 2, all allies gain +20% ATK and +15% SPD for 3 turns',
-    effects: [{
-      type: 'timed',
-      triggerRound: 2,
-      target: 'all_allies',
-      apply: [
-        { effectType: 'atk_up', duration: 3, value: 20 },
-        { effectType: 'spd_up', duration: 3, value: 15 }
-      ]
-    }]
-  },
   skills: [
     {
       name: 'Whisper Shot',
@@ -35,7 +22,12 @@ export const korrath_hollow_ear = {
       targetType: 'enemy',
       noDamage: true,
       effects: [
-        { type: EffectType.MARKED, target: 'enemy', duration: 3, value: 25 }
+        {
+          type: EffectType.MARKED,
+          target: 'enemy',
+          duration: 3,
+          value: 25
+        }
       ]
     },
     {
@@ -64,5 +56,22 @@ export const korrath_hollow_ear = {
       ignoreDef: 75,
       onKill: { resetTurnOrder: true }
     }
-  ]
+  ],
+  leaderSkill: {
+    name: 'Blood Remembers',
+    description: 'On round 2, all allies gain +20% ATK and +15% SPD for 3 turns',
+    effects: [
+      {
+        type: 'timed',
+        triggerRound: 2,
+        target: 'all_allies',
+        apply: [
+          { effectType: 'atk_up', duration: 3, value: 20 },
+          { effectType: 'spd_up', duration: 3, value: 15 }
+        ]
+      }
+    ]
+  },
+  epithet: 'Eyes of the Stormwind Peaks',
+  introQuote: 'The wardrums of the spirits still lingers here.'
 }

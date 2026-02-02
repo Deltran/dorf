@@ -107,12 +107,22 @@ describe('getActiveBanners', () => {
     expect(active.some(b => b.id === 'standard')).toBe(true)
   })
 
-  it('always includes exactly one rotating banner', () => {
+  it('always includes exactly one rotating banner plus any active monthly banner', () => {
     vi.useFakeTimers()
-    vi.setSystemTime(new Date(2026, 5, 15))
+    vi.setSystemTime(new Date(2026, 5, 15)) // June 15 - drums_of_old_blood is active
     const active = getActiveBanners()
-    expect(active).toHaveLength(2)
-    expect(active.filter(b => !b.permanent)).toHaveLength(1)
+    // Should have: 1 permanent + 1 rotating + 1 monthly (June)
+    expect(active).toHaveLength(3)
+    expect(active.filter(b => b.permanent)).toHaveLength(1)
+    expect(active.filter(b => b.monthlySchedule)).toHaveLength(1)
+    expect(active.some(b => b.id === 'drums_of_old_blood')).toBe(true)
+  })
+
+  it('includes civil_rights (Voices of Change) banner during February', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date(2026, 1, 15)) // February 15
+    const active = getActiveBanners()
+    expect(active.some(b => b.id === 'civil_rights')).toBe(true)
   })
 
   it('shows Shields of Valor on day 1 (Jan 1)', () => {
@@ -202,16 +212,16 @@ describe('getBannerAvailabilityText', () => {
 })
 
 describe('getMonthlyBanner', () => {
-  it('returns civil_rights banner for January', () => {
+  it('returns musical_mayhem banner for January', () => {
     const result = getMonthlyBanner(2026, 1)
     expect(result).toBeDefined()
-    expect(result.id).toBe('civil_rights')
+    expect(result.id).toBe('musical_mayhem')
   })
 
-  it('returns musical_mayhem banner for February', () => {
+  it('returns civil_rights banner for February', () => {
     const result = getMonthlyBanner(2026, 2)
     expect(result).toBeDefined()
-    expect(result.id).toBe('musical_mayhem')
+    expect(result.id).toBe('civil_rights')
   })
 
   it('returns undefined for months without a scheduled banner', () => {
@@ -227,7 +237,7 @@ describe('getMonthlyBanner', () => {
   it('handles month wraparound to next year', () => {
     const result = getMonthlyBanner(2025, 13) // Should wrap to January
     expect(result).toBeDefined()
-    expect(result.id).toBe('civil_rights')
+    expect(result.id).toBe('musical_mayhem')
   })
 })
 
@@ -236,22 +246,24 @@ describe('getBlackMarketBanners', () => {
     vi.useRealTimers()
   })
 
-  it('returns musical_mayhem banner as next month during January', () => {
+  it('returns civil_rights banner as next month during January', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 0, 15)) // January 2026
     const result = getBlackMarketBanners()
-    expect(result.some(b => b.id === 'musical_mayhem')).toBe(true)
-    const musicalMayhem = result.find(b => b.id === 'musical_mayhem')
-    expect(musicalMayhem.blackMarketSlot).toBe('next')
+    // January: last=December (none), next=February (civil_rights)
+    expect(result.some(b => b.id === 'civil_rights')).toBe(true)
+    const civilRights = result.find(b => b.id === 'civil_rights')
+    expect(civilRights.blackMarketSlot).toBe('next')
   })
 
-  it('returns musical_mayhem banner as last month during March', () => {
+  it('returns civil_rights banner as last month during March', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2026, 2, 15)) // March 2026
     const result = getBlackMarketBanners()
-    expect(result.some(b => b.id === 'musical_mayhem')).toBe(true)
-    const musicalMayhem = result.find(b => b.id === 'musical_mayhem')
-    expect(musicalMayhem.blackMarketSlot).toBe('last')
+    // March: last=February (civil_rights), next=April (golden_showers)
+    expect(result.some(b => b.id === 'civil_rights')).toBe(true)
+    const civilRights = result.find(b => b.id === 'civil_rights')
+    expect(civilRights.blackMarketSlot).toBe('last')
   })
 
   it('filters out undefined slots', () => {

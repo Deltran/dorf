@@ -6,6 +6,9 @@ import StarRating from './StarRating.vue'
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
 const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
 
+// Import card back
+import cardBackImg from '../assets/gacha/card_back.png'
+
 function getHeroImageUrl(heroId) {
   // Check for GIF first (higher priority)
   const gifPath = `../assets/heroes/${heroId}.gif`
@@ -73,22 +76,30 @@ function handleClick() {
     :style="cardStyle"
     @click="handleClick"
   >
-    <div class="card-portrait">
-      <img
-        v-if="heroImageUrl"
-        :src="heroImageUrl"
-        :alt="template?.name"
-        class="hero-image"
-      />
-      <div v-else class="no-image">
-        <span class="placeholder-icon">?</span>
-      </div>
+    <!-- Card back (visible before reveal) -->
+    <div class="card-back" v-if="!revealed">
+      <img :src="cardBackImg" alt="" class="card-back-image" />
     </div>
 
-    <div class="card-info">
-      <div class="hero-name">{{ template?.name || 'Unknown' }}</div>
-      <StarRating :rating="rarity" size="sm" />
-    </div>
+    <!-- Card front (visible after reveal) -->
+    <template v-if="revealed">
+      <div class="card-portrait">
+        <img
+          v-if="heroImageUrl"
+          :src="heroImageUrl"
+          :alt="template?.name"
+          class="hero-image"
+        />
+        <div v-else class="no-image">
+          <span class="placeholder-icon">?</span>
+        </div>
+      </div>
+
+      <div class="card-info">
+        <div class="hero-name">{{ template?.name || 'Unknown' }}</div>
+        <StarRating :rating="rarity" size="sm" />
+      </div>
+    </template>
   </div>
 </template>
 
@@ -96,78 +107,96 @@ function handleClick() {
 .summon-reveal-card {
   width: 100px;
   max-width: 120px;
+  min-height: 130px;
   background: #1f2937;
   border-radius: 8px;
   padding: 8px;
   cursor: pointer;
   user-select: none;
-  opacity: 0;
-  transform: translateY(-100px);
-  border: 2px solid transparent;
+  opacity: 1;
+  border: 2px solid #374151;
   transition: box-shadow 0.2s ease;
 }
 
-/* Revealed state - fly in animation */
-.summon-reveal-card.revealed {
-  animation: flyIn 0.3s ease-out forwards;
+/* Card back - mysterious appearance before reveal */
+.card-back {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  min-height: 110px;
 }
 
-@keyframes flyIn {
+.card-back-image {
+  width: 100%;
+  height: auto;
+  max-height: 110px;
+  object-fit: contain;
+  border-radius: 4px;
+  animation: cardBackPulse 2s ease-in-out infinite;
+}
+
+@keyframes cardBackPulse {
+  0%, 100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.15);
+  }
+}
+
+/* Revealed state - flip animation */
+.summon-reveal-card.revealed {
+  animation: cardFlip 0.4s ease-out forwards;
+}
+
+@keyframes cardFlip {
   0% {
-    opacity: 0;
-    transform: translateY(-100px);
+    transform: rotateY(0deg) scale(1);
   }
-  70% {
-    opacity: 1;
-    transform: translateY(5px);
-  }
-  85% {
-    transform: translateY(-2px);
+  50% {
+    transform: rotateY(90deg) scale(1.05);
   }
   100% {
-    opacity: 1;
-    transform: translateY(0);
+    transform: rotateY(0deg) scale(1);
   }
 }
 
 /* Impact shake for high rarity */
 .rarity-4.revealed,
 .rarity-5.revealed {
-  animation: flyInImpact 0.4s ease-out forwards;
+  animation: cardFlipImpact 0.5s ease-out forwards;
 }
 
-@keyframes flyInImpact {
+@keyframes cardFlipImpact {
   0% {
-    opacity: 0;
-    transform: translateY(-100px);
+    transform: rotateY(0deg) scale(1);
+  }
+  40% {
+    transform: rotateY(90deg) scale(1.1);
   }
   60% {
-    opacity: 1;
-    transform: translateY(8px);
+    transform: rotateY(0deg) scale(1.05);
   }
-  70% {
-    transform: translateY(-4px) rotate(-1deg);
+  75% {
+    transform: rotate(-2deg) scale(1.02);
   }
-  80% {
-    transform: translateY(2px) rotate(1deg);
-  }
-  90% {
-    transform: translateY(-1px);
+  85% {
+    transform: rotate(1deg) scale(1);
   }
   100% {
-    opacity: 1;
-    transform: translateY(0) rotate(0);
+    transform: rotate(0deg) scale(1);
   }
 }
 
 /* New hero pulsing glow - only when revealed */
 .summon-reveal-card.new-hero.revealed {
-  animation: flyIn 0.3s ease-out forwards, pulseGlow 1.5s ease-in-out 0.3s infinite;
+  animation: cardFlip 0.4s ease-out forwards, pulseGlow 1.5s ease-in-out 0.4s infinite;
 }
 
 .rarity-4.new-hero.revealed,
 .rarity-5.new-hero.revealed {
-  animation: flyInImpact 0.4s ease-out forwards, pulseGlow 1.5s ease-in-out 0.4s infinite;
+  animation: cardFlipImpact 0.5s ease-out forwards, pulseGlow 1.5s ease-in-out 0.5s infinite;
 }
 
 @keyframes pulseGlow {

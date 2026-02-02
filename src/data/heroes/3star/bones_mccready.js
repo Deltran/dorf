@@ -77,5 +77,7 @@ export const bones_mccready = {
         { min: 15, max: 18, healPercent: 120, applyRegen: true }
       ]
     }
-  ]
+  ],
+  epithet: "Fortune's Fool",
+  introQuote: "Luck ain't random, friend. You just gotta know how to roll."
 }

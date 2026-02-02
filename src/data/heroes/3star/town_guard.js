@@ -5,8 +5,6 @@ export const town_guard = {
   name: 'Kensin',
   rarity: 3,
   classId: 'knight',
-  epithet: 'Keeper of the Gate',
-  introQuote: 'Halt! State your business.',
   baseStats: { hp: 110, atk: 22, def: 35, spd: 8 },
   skills: [
     {
@@ -18,8 +16,18 @@ export const town_guard = {
       noDamage: true,
       defensive: true,
       effects: [
-        { type: EffectType.TAUNT, target: 'self', duration: { base: 2, at50: 3 } },
-        { type: EffectType.DAMAGE_REDUCTION, target: 'self', duration: { base: 2, at50: 3 }, value: 15, valorThreshold: 75 }
+        {
+          type: EffectType.TAUNT,
+          target: 'self',
+          duration: { base: 2, at50: 3 }
+        },
+        {
+          type: EffectType.DAMAGE_REDUCTION,
+          target: 'self',
+          duration: { base: 2, at50: 3 },
+          value: 15,
+          valorThreshold: 75
+        }
       ]
     },
     {
@@ -38,8 +46,21 @@ export const town_guard = {
       skillUnlockLevel: 3,
       noDamage: true,
       defensive: true,
-      cleanse: { types: ['atk', 'def'], at100Types: ['atk', 'def', 'spd'] },
-      healFromStat: { stat: 'def', percent: { base: 10, at75: 15 } }
+      cleanse: {
+        types: [
+          'atk',
+          'def'
+        ],
+        at100Types: [
+          'atk',
+          'def',
+          'spd'
+        ]
+      },
+      healFromStat: {
+        stat: 'def',
+        percent: { base: 10, at75: 15 }
+      }
     },
     {
       name: 'Riposte',
@@ -50,7 +71,13 @@ export const town_guard = {
       noDamage: true,
       defensive: true,
       effects: [
-        { type: EffectType.RIPOSTE, target: 'self', duration: { base: 2, at75: 3 }, value: { base: 80, at50: 100 }, noDefCheck: true }
+        {
+          type: EffectType.RIPOSTE,
+          target: 'self',
+          duration: { base: 2, at75: 3 },
+          value: { base: 80, at50: 100 },
+          noDefCheck: true
+        }
       ]
     },
     {
@@ -63,8 +90,15 @@ export const town_guard = {
       baseDamage: 50,
       damagePerValor: 2,
       effects: [
-        { type: EffectType.DEF_DOWN, target: 'enemy', duration: 2, value: 20 }
+        {
+          type: EffectType.DEF_DOWN,
+          target: 'enemy',
+          duration: 2,
+          value: 20
+        }
       ]
     }
-  ]
+  ],
+  epithet: 'Keeper of the Gate',
+  introQuote: 'Halt! State your business.'
 }

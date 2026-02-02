@@ -15,7 +15,12 @@ export const militia_soldier = {
       skillUnlockLevel: 1,
       damage: { base: 70, at50: 85, at100: 100 },
       effects: [
-        { type: EffectType.SPD_UP, target: 'self', duration: 2, value: { base: 2, at25: 3, at75: 4, at100: 5 } }
+        {
+          type: EffectType.SPD_UP,
+          target: 'self',
+          duration: 2,
+          value: { base: 2, at25: 3, at75: 4, at100: 5 }
+        }
       ]
     },
     {
@@ -35,8 +40,15 @@ export const militia_soldier = {
       skillUnlockLevel: 6,
       damage: { base: 100, at75: 115 },
       effects: [
-        { type: EffectType.SPD_DOWN, target: 'enemy', duration: { base: 2, at100: 3 }, value: { base: 5, at100: 6 } }
+        {
+          type: EffectType.SPD_DOWN,
+          target: 'enemy',
+          duration: { base: 2, at100: 3 },
+          value: { base: 5, at100: 6 }
+        }
       ]
     }
-  ]
+  ],
+  epithet: 'First Through the Gate',
+  introQuote: "Someone's gotta be at the front. Might as well be me."
 }

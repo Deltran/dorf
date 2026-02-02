@@ -2,11 +2,10 @@ import { EffectType } from '../../statusEffects.js'
 
 export const vashek_the_unrelenting = {
   id: 'vashek_the_unrelenting',
-  name: 'Vashek the Unrelenting',
+  name: 'Vashek',
   rarity: 3,
   classId: 'knight',
   baseStats: { hp: 110, atk: 22, def: 28, spd: 10 },
-
   skills: [
     {
       name: 'Hold the Line',
@@ -66,11 +65,7 @@ export const vashek_the_unrelenting = {
       skillUnlockLevel: 6,
       isPassive: true,
       passiveType: 'allySaveOnce',
-      saveAllyOnDeath: {
-        vashekMinHpPercent: 50,
-        damageSharePercent: 50,
-        oncePerBattle: true
-      }
+      saveAllyOnDeath: { vashekMinHpPercent: 50, damageSharePercent: 50, oncePerBattle: true }
     },
     {
       name: 'Shoulder to Shoulder',
@@ -94,5 +89,7 @@ export const vashek_the_unrelenting = {
         }
       ]
     }
-  ]
+  ],
+  epithet: 'Unrelenting Defender',
+  introQuote: "Don't wait for the enemy to set up their strategy. Push forward, comrades!"
 }

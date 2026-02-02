@@ -6,11 +6,6 @@ export const shinobi_jin = {
   rarity: 4,
   classId: 'ranger',
   baseStats: { hp: 85, atk: 40, def: 18, spd: 22, mp: 55 },
-  passive: {
-    name: 'Kage no Mai',
-    description: 'After using any skill, gain 10% Evasion for 1 turn (stacks to 30%)',
-    onSkillUse: { type: EffectType.EVASION, value: 10, duration: 1, maxStacks: 30 }
-  },
   skills: [
     {
       name: 'Kunai',
@@ -19,7 +14,12 @@ export const shinobi_jin = {
       targetType: 'enemy',
       damagePercent: 70,
       effects: [
-        { type: EffectType.POISON, target: 'enemy', duration: 2, atkPercent: 20 }
+        {
+          type: EffectType.POISON,
+          target: 'enemy',
+          duration: 2,
+          atkPercent: 20
+        }
       ],
       ifMarked: { extendDuration: 1 }
     },
@@ -30,9 +30,14 @@ export const shinobi_jin = {
       targetType: 'enemy',
       noDamage: true,
       effects: [
-        { type: EffectType.MARKED, target: 'enemy', duration: 3, value: 15 }
+        {
+          type: EffectType.MARKED,
+          target: 'enemy',
+          duration: 3,
+          value: 15
+        }
       ],
-      onKill: { type: EffectType.STEALTH, target: 'self', duration: 1 }
+      onKill: { type: 'stealth', target: 'self', duration: 1 }
     },
     {
       name: 'Kusari Fundo',
@@ -66,9 +71,25 @@ export const shinobi_jin = {
       focusCost: 50,
       cooldown: 5,
       effects: [
-        { type: EffectType.EVASION, target: 'all_allies', duration: 2, value: 40 },
-        { type: EffectType.STEALTH, target: 'self', duration: 2 }
+        {
+          type: EffectType.EVASION,
+          target: 'all_allies',
+          duration: 2,
+          value: 40
+        },
+        {
+          type: EffectType.STEALTH,
+          target: 'self',
+          duration: 2
+        }
       ]
     }
-  ]
+  ],
+  passive: {
+    name: 'Kage no Mai',
+    description: 'After using any skill, gain 10% Evasion for 1 turn (stacks to 30%)',
+    onSkillUse: { type: 'evasion', value: 10, duration: 1, maxStacks: 30 }
+  },
+  epithet: 'Shadow Without a Master',
+  introQuote: 'You saw me because I allowed it.'
 }

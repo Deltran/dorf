@@ -5,8 +5,6 @@ export const aurora_the_dawn = {
   name: 'Aurora the Dawn',
   rarity: 5,
   classId: 'paladin',
-  epithet: 'The Dawn',
-  introQuote: 'Light breaks even the longest darkness.',
   baseStats: { hp: 140, atk: 28, def: 30, spd: 12, mp: 60 },
   skills: [
     {
@@ -26,7 +24,12 @@ export const aurora_the_dawn = {
       targetType: 'ally',
       noDamage: true,
       effects: [
-        { type: EffectType.GUARDIAN_LINK, target: 'ally', duration: 3, redirectPercent: 40 }
+        {
+          type: EffectType.GUARDIAN_LINK,
+          target: 'ally',
+          duration: 3,
+          redirectPercent: 40
+        }
       ]
     },
     {
@@ -37,7 +40,12 @@ export const aurora_the_dawn = {
       targetType: 'ally',
       noDamage: true,
       effects: [
-        { type: EffectType.DAMAGE_REDUCTION, target: 'ally', duration: 3, value: 25 }
+        {
+          type: EffectType.DAMAGE_REDUCTION,
+          target: 'ally',
+          duration: 3,
+          value: 25
+        }
       ]
     },
     {
@@ -48,7 +56,11 @@ export const aurora_the_dawn = {
       targetType: 'self',
       noDamage: true,
       effects: [
-        { type: EffectType.DAMAGE_STORE, target: 'self', duration: 2 }
+        {
+          type: EffectType.DAMAGE_STORE,
+          target: 'self',
+          duration: 2
+        }
       ]
     },
     {
@@ -59,7 +71,13 @@ export const aurora_the_dawn = {
       targetType: 'self',
       noDamage: true,
       effects: [
-        { type: EffectType.DIVINE_SACRIFICE, target: 'self', duration: 2, damageReduction: 50, healPerTurn: 15 }
+        {
+          type: EffectType.DIVINE_SACRIFICE,
+          target: 'self',
+          duration: 2,
+          damageReduction: 50,
+          healPerTurn: 15
+        }
       ]
     }
   ],
@@ -71,8 +89,12 @@ export const aurora_the_dawn = {
         type: 'passive',
         stat: 'def',
         value: 15,
-        condition: { classId: { not: 'knight' } }
+        condition: {
+          classId: { not: 'knight' }
+        }
       }
     ]
-  }
+  },
+  epithet: 'The Dawn',
+  introQuote: 'Light breaks even the longest darkness.'
 }

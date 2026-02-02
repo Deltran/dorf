@@ -329,7 +329,15 @@ export const useGachaStore = defineStore('gacha', () => {
     if (savedState.pullsSince4Star !== undefined) pullsSince4Star.value = savedState.pullsSince4Star
     if (savedState.pullsSince5Star !== undefined) pullsSince5Star.value = savedState.pullsSince5Star
     if (savedState.totalPulls !== undefined) totalPulls.value = savedState.totalPulls
-    if (savedState.selectedBannerId !== undefined) selectedBannerId.value = savedState.selectedBannerId
+    if (savedState.selectedBannerId !== undefined) {
+      // Validate that saved banner is still active, fall back to standard if not
+      const active = getActiveBanners()
+      if (active.some(b => b.id === savedState.selectedBannerId)) {
+        selectedBannerId.value = savedState.selectedBannerId
+      } else {
+        selectedBannerId.value = 'standard'
+      }
+    }
     if (savedState.blackMarketPullsSince4Star !== undefined)
       blackMarketPullsSince4Star.value = savedState.blackMarketPullsSince4Star
     if (savedState.blackMarketPullsSince5Star !== undefined)

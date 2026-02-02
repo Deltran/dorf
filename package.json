@@ -11,6 +11,8 @@
     "cap:sync": "npm run build && npx cap sync",
     "cap:open": "npx cap open android",
     "cap:run": "npx cap run android",
+    "build:apk": "npm run cap:sync && cd android && ./gradlew assembleDebug",
+    "build:apk:upload": "npm run build:apk && rclone copyto android/app/build/outputs/apk/debug/app-debug.apk \"gdrive:Dorf/builds/dorf.apk\" && rclone copyto android/app/build/outputs/apk/debug/app-debug.apk \"gdrive:Dorf/builds/dorf-$(date +%Y%m%d-%H%M).apk\"",
     "generate-assets": "node --import ./scripts/lib/register-loader.js scripts/generate-assets.js"
   },
   "dependencies": {

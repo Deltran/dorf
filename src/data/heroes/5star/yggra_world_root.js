@@ -5,8 +5,6 @@ export const yggra_world_root = {
   name: 'Yggra, the World Root',
   rarity: 5,
   classId: 'druid',
-  epithet: 'The World Root',
-  introQuote: 'All things return to the earth.',
   baseStats: { hp: 120, atk: 28, def: 35, spd: 10, mp: 75 },
   skills: [
     {
@@ -25,7 +23,12 @@ export const yggra_world_root = {
       targetType: 'enemy',
       noDamage: true,
       effects: [
-        { type: EffectType.POISON, target: 'enemy', duration: 2, atkPercent: 50 }
+        {
+          type: EffectType.POISON,
+          target: 'enemy',
+          duration: 2,
+          atkPercent: 50
+        }
       ]
     },
     {
@@ -35,7 +38,12 @@ export const yggra_world_root = {
       skillUnlockLevel: 3,
       targetType: 'ally',
       effects: [
-        { type: EffectType.THORNS, target: 'ally', duration: 3, value: 50 }
+        {
+          type: EffectType.THORNS,
+          target: 'ally',
+          duration: 3,
+          value: 50
+        }
       ]
     },
     {
@@ -55,7 +63,12 @@ export const yggra_world_root = {
       targetType: 'all_allies',
       noDamage: true,
       effects: [
-        { type: EffectType.DEATH_PREVENTION, target: 'all_allies', duration: 2, healOnTrigger: 50 }
+        {
+          type: EffectType.DEATH_PREVENTION,
+          target: 'all_allies',
+          duration: 2,
+          healOnTrigger: 50
+        }
       ]
     }
   ],
@@ -63,11 +76,9 @@ export const yggra_world_root = {
     name: 'Ancient Awakening',
     description: 'All allies regenerate 3% of their max HP at the start of each round',
     effects: [
-      {
-        type: 'passive_regen',
-        target: 'all_allies',
-        percentMaxHp: 3
-      }
+      { type: 'passive_regen', target: 'all_allies', percentMaxHp: 3 }
     ]
-  }
+  },
+  epithet: 'The World Root',
+  introQuote: 'All things return to the earth.'
 }

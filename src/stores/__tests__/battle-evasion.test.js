@@ -24,8 +24,8 @@ describe('battle store - evasion effect', () => {
       expect(effectDefinitions[EffectType.EVASION].isEvasion).toBe(true)
     })
 
-    it('should be stackable', () => {
-      expect(effectDefinitions[EffectType.EVASION].stackable).toBe(true)
+    it('should not be stackable (re-cast refreshes instead of duplicating)', () => {
+      expect(effectDefinitions[EffectType.EVASION].stackable).toBe(false)
     })
   })
 

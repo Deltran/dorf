@@ -20,10 +20,7 @@ export const apprentice_mage = {
       mpCost: 16,
       skillUnlockLevel: 3,
       targetType: 'enemy',
-      chainBounce: {
-        maxBounces: 2,
-        bounceMultiplier: 50
-      }
+      chainBounce: { maxBounces: 2, bounceMultiplier: 50 }
     },
     {
       name: 'Jolt',
@@ -32,7 +29,11 @@ export const apprentice_mage = {
       skillUnlockLevel: 6,
       targetType: 'enemy',
       effects: [
-        { type: EffectType.STUN, target: 'enemy', duration: 1 }
+        {
+          type: EffectType.STUN,
+          target: 'enemy',
+          duration: 1
+        }
       ]
     },
     {
@@ -42,5 +43,7 @@ export const apprentice_mage = {
       skillUnlockLevel: 12,
       targetType: 'all_enemies'
     }
-  ]
+  ],
+  epithet: 'The Eager Spark',
+  introQuote: "Master says I lack focus. I say lightning doesn't focus either."
 }

@@ -2,11 +2,10 @@ import { EffectType } from '../../statusEffects.js'
 
 export const zina_the_desperate = {
   id: 'zina_the_desperate',
-  name: 'Zina the Desperate',
+  name: 'Zina',
   rarity: 4,
   classId: 'alchemist',
   baseStats: { hp: 75, atk: 38, def: 15, spd: 16, mp: 60 },
-
   skills: [
     {
       name: 'Tainted Tonic',
@@ -17,7 +16,12 @@ export const zina_the_desperate = {
       damagePercent: 90,
       usesVolatility: true,
       effects: [
-        { type: EffectType.POISON, target: 'enemy', duration: 2, atkPercent: 35 }
+        {
+          type: EffectType.POISON,
+          target: 'enemy',
+          duration: 2,
+          atkPercent: 35
+        }
       ]
     },
     {
@@ -30,7 +34,12 @@ export const zina_the_desperate = {
       usesVolatility: true,
       selfDamagePercentMaxHp: 15,
       effects: [
-        { type: EffectType.POISON, target: 'all_enemies', duration: 3, atkPercent: 45 }
+        {
+          type: EffectType.POISON,
+          target: 'all_enemies',
+          duration: 3,
+          atkPercent: 45
+        }
       ]
     },
     {
@@ -42,8 +51,8 @@ export const zina_the_desperate = {
       triggerBelowHpPercent: 30,
       oncePerBattle: true,
       triggerEffects: [
-        { type: EffectType.ATK_UP, target: 'self', duration: 2, value: 40 },
-        { type: EffectType.SPD_UP, target: 'self', duration: 2, value: 30 }
+        { type: 'atk_up', target: 'self', duration: 2, value: 40 },
+        { type: 'spd_up', target: 'self', duration: 2, value: 30 }
       ]
     },
     {
@@ -54,11 +63,7 @@ export const zina_the_desperate = {
       targetType: 'enemy',
       damagePercent: 175,
       usesVolatility: true,
-      conditionalAtLowHp: {
-        hpThreshold: 30,
-        ignoresDef: true,
-        cannotMiss: true
-      }
+      conditionalAtLowHp: { hpThreshold: 30, ignoresDef: true, cannotMiss: true }
     },
     {
       name: 'Last Breath',
@@ -69,9 +74,11 @@ export const zina_the_desperate = {
       onDeath: {
         damage: { damagePercent: 175, targetType: 'random_enemy' },
         effects: [
-          { type: EffectType.POISON, target: 'all_enemies', duration: 3, atkPercent: 50 }
+          { type: 'poison', target: 'all_enemies', duration: 3, atkPercent: 50 }
         ]
       }
     }
-  ]
+  ],
+  epithet: 'Desperate Saboteur ',
+  introQuote: 'And THIS one is practically tasteless mixed into a stew...'
 }

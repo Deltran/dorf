@@ -24,7 +24,13 @@ export const beggar_monk = {
       targetType: 'enemy',
       noDamage: true,
       effects: [
-        { type: EffectType.ATK_DOWN, target: 'enemy', duration: 2, value: 10, desperationBonus: 15 }
+        {
+          type: EffectType.ATK_DOWN,
+          target: 'enemy',
+          duration: 2,
+          value: 10,
+          desperationBonus: 15
+        }
       ]
     },
     {
@@ -35,7 +41,13 @@ export const beggar_monk = {
       targetType: 'enemy',
       noDamage: true,
       effects: [
-        { type: EffectType.DEF_DOWN, target: 'enemy', duration: 3, value: 10, desperationBonus: 15 }
+        {
+          type: EffectType.DEF_DOWN,
+          target: 'enemy',
+          duration: 3,
+          value: 10,
+          desperationBonus: 15
+        }
       ]
     },
     {
@@ -47,8 +59,16 @@ export const beggar_monk = {
       healPercent: 25,
       desperationHealBonus: 50,
       effects: [
-        { type: EffectType.ATK_DOWN, target: 'all_enemies', duration: 2, value: 10, desperationBonus: 15 }
+        {
+          type: EffectType.ATK_DOWN,
+          target: 'all_enemies',
+          duration: 2,
+          value: 10,
+          desperationBonus: 15
+        }
       ]
     }
-  ]
+  ],
+  epithet: 'Wise Pauper',
+  introQuote: 'You just need to see enough, young one, to understand.'
 }

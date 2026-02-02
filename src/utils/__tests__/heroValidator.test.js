@@ -30,7 +30,7 @@ describe('heroValidator', () => {
 
     it('exports targetTypes for skills', () => {
       expect(DROPDOWN_OPTIONS.targetTypes).toEqual([
-        'enemy', 'ally', 'self', 'all_enemies', 'all_allies', 'random_enemies'
+        'enemy', 'ally', 'self', 'all_enemies', 'all_allies', 'random_enemies', 'dead_ally'
       ])
     })
 
@@ -172,9 +172,17 @@ describe('heroValidator', () => {
         expect(validateHero(hero)).toContain('baseStats.spd must be a positive number')
       })
 
-      it('requires mp to be positive number', () => {
-        const hero = { ...validHero, baseStats: { ...validHero.baseStats, mp: 0 } }
-        expect(validateHero(hero)).toContain('baseStats.mp must be a positive number')
+      it('requires mp to be positive number for MP-using classes', () => {
+        // Knight uses Valor, not MP - test with mage instead
+        const mageHero = { ...validHero, classId: 'mage', baseStats: { ...validHero.baseStats, mp: 0 } }
+        expect(validateHero(mageHero)).toContain('baseStats.mp must be a positive number')
+      })
+
+      it('does not require mp for classes with custom resource types', () => {
+        // Knight uses Valor (resourceType), not MP
+        const knightHero = { ...validHero, classId: 'knight', baseStats: { hp: 100, atk: 20, def: 15, spd: 10 } }
+        const errors = validateHero(knightHero)
+        expect(errors).not.toContain('baseStats.mp must be a positive number')
       })
     })
 
@@ -356,14 +364,38 @@ describe('heroValidator', () => {
       expect(validateFinale(finale)).toContain('description is required')
     })
 
-    it('requires target', () => {
+    it('requires target for standard finales', () => {
       const finale = { ...validFinale, target: undefined }
       expect(validateFinale(finale)).toContain('target is required')
     })
 
-    it('requires valid target', () => {
+    it('requires valid target for standard finales', () => {
       const finale = { ...validFinale, target: 'invalid' }
       expect(validateFinale(finale)).toContain('target must be all_allies or all_enemies')
+    })
+
+    it('does not require target for fortune swap finales', () => {
+      const fortuneSwapFinale = {
+        name: 'Wheel of Reversal',
+        description: 'Swap buffs and debuffs',
+        isFortuneSwap: true,
+        swapPairs: {}
+      }
+      const errors = validateFinale(fortuneSwapFinale)
+      expect(errors).not.toContain('target is required')
+    })
+
+    it('allows dynamic target for conditional finales', () => {
+      const dynamicFinale = {
+        name: 'Thunderclap Crescendo',
+        description: 'Affects both teams based on conditions',
+        target: 'dynamic',
+        effects: [
+          { type: 'consume_excess_rage', rageThreshold: 50 }
+        ]
+      }
+      const errors = validateFinale(dynamicFinale)
+      expect(errors).not.toContain('target must be all_allies or all_enemies')
     })
 
     it('allows custom effect types in finales', () => {
@@ -423,6 +455,36 @@ describe('heroValidator', () => {
     it('validates Chroma successfully (bard with standard EffectType finale)', async () => {
       const { chroma } = await import('../../data/heroes/4star/chroma.js')
       const errors = validateHero(chroma)
+      expect(errors).toEqual([])
+    })
+
+    it('validates Fortuna Inversus successfully (bard with fortune swap finale)', async () => {
+      const { fortuna_inversus } = await import('../../data/heroes/5star/fortuna_inversus.js')
+      const errors = validateHero(fortuna_inversus)
+      expect(errors).toEqual([])
+    })
+
+    it('validates Lady Moonwhisper successfully (cleric with dead_ally revive skill)', async () => {
+      const { lady_moonwhisper } = await import('../../data/heroes/4star/lady_moonwhisper.js')
+      const errors = validateHero(lady_moonwhisper)
+      expect(errors).toEqual([])
+    })
+
+    it('validates Vraxx Thunderskin successfully (bard with custom rage effects)', async () => {
+      const { vraxx_thunderskin } = await import('../../data/heroes/4star/vraxx_thunderskin.js')
+      const errors = validateHero(vraxx_thunderskin)
+      expect(errors).toEqual([])
+    })
+
+    it('validates Bones McCready successfully (druid with dice-based effects)', async () => {
+      const { bones_mccready } = await import('../../data/heroes/3star/bones_mccready.js')
+      const errors = validateHero(bones_mccready)
+      expect(errors).toEqual([])
+    })
+
+    it('validates Penny Whistler successfully (bard with damage finale effect)', async () => {
+      const { street_busker } = await import('../../data/heroes/1star/street_busker.js')
+      const errors = validateHero(street_busker)
       expect(errors).toEqual([])
     })
   })

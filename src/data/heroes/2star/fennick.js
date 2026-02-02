@@ -5,7 +5,6 @@ export const fennick = {
   name: 'Fennick',
   rarity: 2,
   classId: 'ranger',
-  role: 'tank',
   baseStats: { hp: 80, atk: 16, def: 8, spd: 16, mp: 30 },
   skills: [
     {
@@ -15,8 +14,17 @@ export const fennick = {
       targetType: 'self',
       noDamage: true,
       effects: [
-        { type: EffectType.TAUNT, target: 'self', duration: 2 },
-        { type: EffectType.EVASION, target: 'self', duration: 2, value: 30 }
+        {
+          type: EffectType.TAUNT,
+          target: 'self',
+          duration: 2
+        },
+        {
+          type: EffectType.EVASION,
+          target: 'self',
+          duration: 2,
+          value: 30
+        }
       ]
     },
     {
@@ -26,7 +34,12 @@ export const fennick = {
       damagePercent: 90,
       targetType: 'enemy',
       effects: [
-        { type: EffectType.THORNS, target: 'self', duration: 2, value: 30 }
+        {
+          type: EffectType.THORNS,
+          target: 'self',
+          duration: 2,
+          value: 30
+        }
       ]
     },
     {
@@ -36,8 +49,18 @@ export const fennick = {
       targetType: 'self',
       noDamage: true,
       effects: [
-        { type: EffectType.EVASION, target: 'self', duration: 3, value: 20 },
-        { type: EffectType.SPD_UP, target: 'self', duration: 3, value: 3 }
+        {
+          type: EffectType.EVASION,
+          target: 'self',
+          duration: 3,
+          value: 20
+        },
+        {
+          type: EffectType.SPD_UP,
+          target: 'self',
+          duration: 3,
+          value: 3
+        }
       ]
     },
     {
@@ -47,8 +70,15 @@ export const fennick = {
       damagePercent: 100,
       targetType: 'enemy',
       effects: [
-        { type: EffectType.STUN, target: 'enemy', duration: 1 }
+        {
+          type: EffectType.STUN,
+          target: 'enemy',
+          duration: 1
+        }
       ]
     }
-  ]
+  ],
+  role: 'tank',
+  epithet: 'The Untouchable Runt',
+  introQuote: "Go ahead. Swing. I'll wait."
 }

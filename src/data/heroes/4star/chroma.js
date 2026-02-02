@@ -2,18 +2,10 @@ import { EffectType } from '../../statusEffects.js'
 
 export const chroma = {
   id: 'chroma',
-  name: 'Chroma, the Curious',
+  name: 'Chroma',
   rarity: 4,
   classId: 'bard',
   baseStats: { hp: 82, atk: 22, def: 18, spd: 17, mp: 60 },
-  finale: {
-    name: 'The Dazzling',
-    description: 'Apply Blind (30% miss chance) to all enemies for 1 turn.',
-    target: 'all_enemies',
-    effects: [
-      { type: EffectType.BLIND, target: 'all_enemies', duration: 1, value: 30 }
-    ]
-  },
   skills: [
     {
       name: 'Ink Flare',
@@ -22,7 +14,12 @@ export const chroma = {
       targetType: 'enemy',
       noDamage: true,
       effects: [
-        { type: EffectType.BLIND, target: 'enemy', duration: 1, value: 50 }
+        {
+          type: EffectType.BLIND,
+          target: 'enemy',
+          duration: 1,
+          value: 50
+        }
       ]
     },
     {
@@ -40,7 +37,11 @@ export const chroma = {
       targetType: 'ally',
       noDamage: true,
       effects: [
-        { type: EffectType.TAUNT, target: 'ally', duration: 1 }
+        {
+          type: EffectType.TAUNT,
+          target: 'ally',
+          duration: 1
+        }
       ]
     },
     {
@@ -50,7 +51,12 @@ export const chroma = {
       targetType: 'self',
       noDamage: true,
       effects: [
-        { type: EffectType.EVASION, target: 'self', duration: 2, value: 75 }
+        {
+          type: EffectType.EVASION,
+          target: 'self',
+          duration: 2,
+          value: 75
+        }
       ]
     },
     {
@@ -60,8 +66,23 @@ export const chroma = {
       targetType: 'ally',
       noDamage: true,
       effects: [
-        { type: EffectType.EVASION, target: 'ally', duration: 2, value: 50 }
+        {
+          type: EffectType.EVASION,
+          target: 'ally',
+          duration: 2,
+          value: 50
+        }
       ]
     }
-  ]
+  ],
+  finale: {
+    name: 'The Dazzling',
+    description: 'Apply Blind (30% miss chance) to all enemies for 1 turn.',
+    target: 'all_enemies',
+    effects: [
+      { type: 'blind', target: 'all_enemies', duration: 1, value: 30 }
+    ]
+  },
+  epithet: 'Curious Musician',
+  introQuote: "Every color has a sound, you know. Most people just don't listen."
 }

@@ -1,18 +1,9 @@
-import { EffectType } from '../../statusEffects'
-
 export const copper_jack = {
   id: 'copper_jack',
   name: 'Copper Jack',
   rarity: 4,
   classId: 'berserker',
   baseStats: { hp: 95, atk: 45, def: 20, spd: 14 },
-
-  hasCoinFlip: true,
-  coinFlipEffects: {
-    heads: { damageMultiplier: 2.5, firstHitOnly: true },
-    tails: { selfDamagePercent: 15, rageGain: 25 }
-  },
-
   skills: [
     {
       name: 'Weighted Toss',
@@ -67,5 +58,12 @@ export const copper_jack = {
       atkPerTails: 5,
       atkDuration: 3
     }
-  ]
+  ],
+  hasCoinFlip: true,
+  coinFlipEffects: {
+    heads: { damageMultiplier: 2.5, firstHitOnly: true },
+    tails: { selfDamagePercent: 15, rageGain: 25 }
+  },
+  epithet: 'The Lucky Bastard',
+  introQuote: 'Heads I win, tails you lose. House rules.'
 }

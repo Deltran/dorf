@@ -79,5 +79,7 @@ export const vraxx_thunderskin = {
         { type: 'rage_grant', classCondition: 'berserker', amount: 25 }
       ]
     }
-  ]
+  ],
+  epithet: 'Heartbeat of the Warband',
+  introQuote: "When the drums stop, so does hope. I don't stop."
 }

@@ -108,35 +108,43 @@ const heroCardStyle = computed(() => {
 }
 
 .hero-name {
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #f3f4f6;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.6);
 }
 
 .skills-btn {
-  padding: 10px 20px;
-  background: #374151;
-  border: none;
-  border-left: 2px solid var(--class-color);
-  color: #f3f4f6;
-  font-size: 0.9rem;
-  font-weight: 600;
+  padding: 12px 24px;
+  background: linear-gradient(180deg, #4b5563 0%, #374151 100%);
+  border: 1px solid #4b5563;
+  border-left: 3px solid var(--class-color);
+  border-radius: 0 4px 4px 0;
+  color: #ffffff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   cursor: pointer;
-  transition: background 0.1s ease;
+  transition: all 0.12s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .skills-btn:hover:not(:disabled) {
-  background: #4b5563;
+  background: linear-gradient(180deg, #6b7280 0%, #4b5563 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.3);
 }
 
 .skills-btn:active:not(:disabled) {
-  background: #1f2937;
+  background: linear-gradient(180deg, #374151 0%, #1f2937 100%);
+  transform: translateY(0);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .skills-btn.disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  filter: grayscale(30%);
 }
 </style>

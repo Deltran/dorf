@@ -86,7 +86,7 @@ export const EffectType = {
 export const effectDefinitions = {
   [EffectType.ATK_UP]: {
     name: 'ATK Up',
-    icon: '⚔️↑',
+    icon: '⚔️',
     color: '#ef4444',
     isBuff: true,
     stat: 'atk',
@@ -94,7 +94,7 @@ export const effectDefinitions = {
   },
   [EffectType.ATK_DOWN]: {
     name: 'ATK Down',
-    icon: '⚔️↓',
+    icon: '⚔️',
     color: '#6b7280',
     isBuff: false,
     stat: 'atk',
@@ -102,7 +102,7 @@ export const effectDefinitions = {
   },
   [EffectType.DEF_UP]: {
     name: 'DEF Up',
-    icon: '🛡️↑',
+    icon: '🛡️',
     color: '#3b82f6',
     isBuff: true,
     stat: 'def',
@@ -110,7 +110,7 @@ export const effectDefinitions = {
   },
   [EffectType.DEF_DOWN]: {
     name: 'DEF Down',
-    icon: '🛡️↓',
+    icon: '🛡️',
     color: '#6b7280',
     isBuff: false,
     stat: 'def',
@@ -118,7 +118,7 @@ export const effectDefinitions = {
   },
   [EffectType.SPD_UP]: {
     name: 'SPD Up',
-    icon: '💨↑',
+    icon: '💨',
     color: '#22c55e',
     isBuff: true,
     stat: 'spd',
@@ -126,7 +126,7 @@ export const effectDefinitions = {
   },
   [EffectType.SPD_DOWN]: {
     name: 'SPD Down',
-    icon: '💨↓',
+    icon: '💨',
     color: '#6b7280',
     isBuff: false,
     stat: 'spd',
@@ -226,7 +226,7 @@ export const effectDefinitions = {
     color: '#a78bfa',
     isBuff: true,
     isEvasion: true,
-    stackable: true
+    stackable: false
   },
   [EffectType.GUARDING]: {
     name: 'Guarding',

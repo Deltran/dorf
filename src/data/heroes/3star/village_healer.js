@@ -22,7 +22,12 @@ export const village_healer = {
       targetType: 'ally',
       noDamage: true,
       effects: [
-        { type: EffectType.REGEN, target: 'ally', duration: 3, atkPercent: 25 }
+        {
+          type: EffectType.REGEN,
+          target: 'ally',
+          duration: 3,
+          atkPercent: 25
+        }
       ]
     },
     {
@@ -33,7 +38,12 @@ export const village_healer = {
       targetType: 'ally',
       noDamage: true,
       effects: [
-        { type: EffectType.MP_REGEN, target: 'ally', duration: 3, value: 5 }
+        {
+          type: EffectType.MP_REGEN,
+          target: 'ally',
+          duration: 3,
+          value: 5
+        }
       ]
     },
     {
@@ -43,7 +53,12 @@ export const village_healer = {
       skillUnlockLevel: 6,
       targetType: 'ally',
       effects: [
-        { type: EffectType.ATK_UP, target: 'ally', duration: 2, value: 15 }
+        {
+          type: EffectType.ATK_UP,
+          target: 'ally',
+          duration: 2,
+          value: 15
+        }
       ]
     },
     {
@@ -54,5 +69,7 @@ export const village_healer = {
       targetType: 'all_allies',
       wellFedEffect: { duration: 3, atkPercent: 100, threshold: 30 }
     }
-  ]
+  ],
+  epithet: 'Keeper of the Kettle',
+  introQuote: 'Sit down, dear. Tea first, then we talk about your troubles.'
 }

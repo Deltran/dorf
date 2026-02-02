@@ -66,5 +66,7 @@ export const lady_moonwhisper = {
         { type: EffectType.UNTARGETABLE, target: 'ally', duration: 1 }
       ]
     }
-  ]
+  ],
+  epithet: 'Voice of the Silver Veil',
+  introQuote: 'Her light reaches where the sun cannot. I carry it for Her.'
 }

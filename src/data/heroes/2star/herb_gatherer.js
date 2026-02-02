@@ -31,7 +31,12 @@ export const herb_gatherer = {
       targetType: 'ally',
       noDamage: true,
       effects: [
-        { type: EffectType.REGEN, target: 'ally', duration: 3, atkPercent: 45 }
+        {
+          type: EffectType.REGEN,
+          target: 'ally',
+          duration: 3,
+          atkPercent: 45
+        }
       ]
     },
     {
@@ -43,5 +48,7 @@ export const herb_gatherer = {
       mpRestore: 15,
       grantsFocus: true
     }
-  ]
+  ],
+  epithet: 'Root and Remedy',
+  introQuote: 'Nature provides. You just have to know where to look.'
 }

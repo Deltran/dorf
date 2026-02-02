@@ -26,7 +26,12 @@ export const torga_bloodbeat = {
       selfDamagePercentMaxHp: 15,
       rageGain: 30,
       effects: [
-        { type: EffectType.ATK_UP, target: 'self', duration: 2, value: 20 }
+        {
+          type: EffectType.ATK_UP,
+          target: 'self',
+          duration: 2,
+          value: 20
+        }
       ]
     },
     {
@@ -58,5 +63,7 @@ export const torga_bloodbeat = {
       damagePerRage: 2,
       onKill: { rageGain: 50 }
     }
-  ]
+  ],
+  epithet: 'The Rhythm of War',
+  introQuote: 'My warband fell silent. I carry their heartbeat now.'
 }

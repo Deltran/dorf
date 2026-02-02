@@ -69,6 +69,45 @@ Preview the production build locally:
 npm run preview
 ```
 
+### Android APK Build
+
+Build an Android APK for installing on your phone.
+
+#### Prerequisites
+
+- Java 21 (required by Capacitor 8)
+- Android SDK (install via Android Studio)
+
+#### WSL Setup (if using WSL with Windows Android Studio)
+
+Create `android/local.properties` with the WSL path to your Windows SDK:
+
+```properties
+sdk.dir=/mnt/c/Users/YOUR_USERNAME/AppData/Local/Android/Sdk
+```
+
+#### Build Commands
+
+Sync your latest code changes to the Android project, then build:
+
+```bash
+# Sync web assets to Android (run after any code changes)
+npm run cap:sync
+
+# Build the debug APK
+cd android && ./gradlew assembleDebug
+```
+
+Or as a single command:
+
+```bash
+npm run cap:sync && cd android && ./gradlew assembleDebug
+```
+
+The APK will be at: `android/app/build/outputs/apk/debug/app-debug.apk`
+
+Transfer this file to your phone and install it (enable "Install from unknown sources" in your phone's settings).
+
 ## Project Structure
 
 ```
