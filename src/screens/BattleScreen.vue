@@ -14,6 +14,9 @@ import VerseIndicator from '../components/VerseIndicator.vue'
 import EssenceBar from '../components/EssenceBar.vue'
 import SkillPanel from '../components/SkillPanel.vue'
 import ActionBar from '../components/ActionBar.vue'
+import HeroBattleInfo from '../components/HeroBattleInfo.vue'
+import StatusOverlay from '../components/StatusOverlay.vue'
+import HeroDetailSheet from '../components/HeroDetailSheet.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode, getAllQuestNodes } from '../data/quests/index.js'
 import { getHeroTemplate } from '../data/heroes/index.js'
@@ -117,6 +120,11 @@ const shardDropDisplay = ref(null) // For displaying shard drops in victory
 const inspectedHero = ref(null) // For hero stats popup
 const lastClickedHero = ref(null) // Track for double-click detection
 const genusLociRewards = ref(null) // For Genus Loci victory rewards
+const combatLogExpanded = ref(false)
+
+function toggleCombatLog() {
+  combatLogExpanded.value = !combatLogExpanded.value
+}
 
 // Computed to check if this is a Genus Loci battle
 const isGenusLociBattle = computed(() => battleStore.battleType === 'genusLoci')
@@ -913,6 +921,19 @@ function getEnemyImageSize(enemy) {
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 
 const battleBackgroundUrl = computed(() => {
+  // For Genus Loci battles, find the quest node that hosts this boss
+  if (props.genusLociContext?.genusLociId || battleStore.genusLociMeta?.genusLociId) {
+    const genusLociId = props.genusLociContext?.genusLociId || battleStore.genusLociMeta?.genusLociId
+    const questNode = getAllQuestNodes().find(n => n.genusLociId === genusLociId)
+    if (questNode) {
+      const imagePath = `../assets/battle_backgrounds/${questNode.id}.png`
+      if (battleBackgrounds[imagePath]) {
+        return battleBackgrounds[imagePath]
+      }
+    }
+  }
+
+  // For regular quest battles
   const nodeId = currentNode.value?.id || questsStore.lastVisitedNode
   if (nodeId) {
     const imagePath = `../assets/battle_backgrounds/${nodeId}.png`
@@ -1385,12 +1406,18 @@ function getStatChange(hero, stat) {
     </section>
 
     <!-- Battle Log -->
-    <section class="battle-log">
+    <section class="battle-log" :class="{ expanded: combatLogExpanded }" @click="toggleCombatLog">
       <div class="log-entries">
-        <p v-for="(entry, index) in battleStore.battleLog.slice(-5)" :key="index">
-          {{ entry.message }}
+        <p v-if="!combatLogExpanded && battleStore.battleLog.length > 0">
+          {{ battleStore.battleLog[battleStore.battleLog.length - 1].message }}
         </p>
+        <template v-else>
+          <p v-for="(entry, index) in battleStore.battleLog.slice(-15)" :key="index">
+            {{ entry.message }}
+          </p>
+        </template>
       </div>
+      <div class="log-expand-hint">{{ combatLogExpanded ? 'tap to collapse' : 'tap for history' }}</div>
     </section>
 
     <!-- Victory Modal -->
@@ -2127,8 +2154,14 @@ function getStatChange(hero, stat) {
   background: #1f2937;
   border-radius: 8px;
   padding: 12px;
-  min-height: 80px;
-  max-height: 100px;
+  cursor: pointer;
+  max-height: 32px;
+  overflow: hidden;
+  transition: max-height 0.2s ease;
+}
+
+.battle-log.expanded {
+  max-height: 200px;
   overflow-y: auto;
 }
 
@@ -2146,6 +2179,13 @@ function getStatChange(hero, stat) {
 
 .log-entries p:last-child {
   color: #f3f4f6;
+}
+
+.log-expand-hint {
+  font-size: 0.65rem;
+  color: #6b7280;
+  text-align: center;
+  padding-top: 4px;
 }
 
 .hero-area {
