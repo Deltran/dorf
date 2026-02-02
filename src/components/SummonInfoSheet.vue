@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import StarRating from './StarRating.vue'
 
@@ -24,6 +24,34 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+// Pity tooltip state
+const showPityTooltip = ref(false)
+const pityTooltipRef = ref(null)
+const pityHelpButtonRef = ref(null)
+
+function togglePityTooltip() {
+  showPityTooltip.value = !showPityTooltip.value
+}
+
+function handleOutsideClick(e) {
+  if (!showPityTooltip.value) return
+
+  const tooltip = pityTooltipRef.value
+  const button = pityHelpButtonRef.value
+
+  if (tooltip && !tooltip.contains(e.target) && button && !button.contains(e.target)) {
+    showPityTooltip.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleOutsideClick, true)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleOutsideClick, true)
+})
 
 // Touch handling for swipe-to-close
 const touchStartY = ref(0)
@@ -183,7 +211,43 @@ const rates = [
 
         <!-- Pity Section -->
         <section class="pity-section">
-          <h3 class="section-title">Pity Progress</h3>
+          <div class="section-header">
+            <h3 class="section-title">Pity Progress</h3>
+            <button
+              ref="pityHelpButtonRef"
+              class="pity-help-button"
+              @click.stop="togglePityTooltip"
+              aria-label="What is pity?"
+            >?</button>
+          </div>
+
+          <!-- Pity Tooltip -->
+          <div
+            v-if="showPityTooltip"
+            ref="pityTooltipRef"
+            class="pity-tooltip"
+            @click.stop
+          >
+            <div class="tooltip-header">What is Pity?</div>
+            <p class="tooltip-text">
+              Pity ensures you get rare heroes even with bad luck.
+            </p>
+            <ul class="tooltip-list">
+              <li>
+                <span class="tooltip-highlight pity-4-color">4-Star Pity:</span>
+                Every {{ pityInfo.FOUR_STAR_PITY }} pulls without a 4-star or better hero guarantees one.
+              </li>
+              <li v-if="bannerType === 'normal'">
+                <span class="tooltip-highlight pity-5-soft-color">5-Star Soft Pity:</span>
+                After {{ pityInfo.SOFT_PITY_START }} pulls, legendary drop rate starts increasing.
+              </li>
+              <li>
+                <span class="tooltip-highlight pity-5-hard-color">5-Star Hard Pity:</span>
+                At {{ pityInfo.HARD_PITY }} pulls, your next pull is guaranteed legendary.
+              </li>
+            </ul>
+          </div>
+
           <div class="pity-grid">
             <div
               v-for="pity in pityDisplay"
@@ -373,6 +437,111 @@ const rates = [
 .pity-section {
   padding-bottom: 16px;
   border-bottom: 1px solid #2a2a2a;
+  position: relative;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.section-header .section-title {
+  margin: 0;
+}
+
+.pity-help-button {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1px solid #4a4a4a;
+  color: #6b6b6b;
+  font-size: 0.7rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.pity-help-button:hover {
+  border-color: #6b6b6b;
+  color: #9ca3af;
+}
+
+.pity-tooltip {
+  position: absolute;
+  top: 32px;
+  left: 0;
+  right: 0;
+  background: #252525;
+  border: 1px solid #3a3a3a;
+  border-radius: 10px;
+  padding: 14px 16px;
+  z-index: 10;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  animation: tooltipFadeIn 0.2s ease-out;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltip-header {
+  color: #e5e5e5;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.tooltip-text {
+  color: #9ca3af;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 0 0 10px;
+}
+
+.tooltip-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tooltip-list li {
+  color: #9ca3af;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.tooltip-highlight {
+  font-weight: 600;
+}
+
+.tooltip-highlight.pity-4-color {
+  color: #c084fc;
+}
+
+.tooltip-highlight.pity-5-soft-color {
+  color: #fbbf24;
+}
+
+.tooltip-highlight.pity-5-hard-color {
+  color: #f87171;
 }
 
 .pity-grid {

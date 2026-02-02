@@ -428,4 +428,141 @@ describe('SummonInfoSheet', () => {
       expect(sheet.classes()).toContain('visible')
     })
   })
+
+  describe('Pity Explanation Tooltip', () => {
+    it('renders the pity help button', () => {
+      const wrapper = mount(SummonInfoSheet, {
+        props: {
+          visible: true,
+          banner: mockBanner,
+          pityInfo: mockNormalPityInfo,
+          bannerType: 'normal'
+        }
+      })
+
+      const helpButton = wrapper.find('.pity-help-button')
+      expect(helpButton.exists()).toBe(true)
+      expect(helpButton.text()).toBe('?')
+    })
+
+    it('shows tooltip on click', async () => {
+      const wrapper = mount(SummonInfoSheet, {
+        props: {
+          visible: true,
+          banner: mockBanner,
+          pityInfo: mockNormalPityInfo,
+          bannerType: 'normal'
+        }
+      })
+
+      // Initially tooltip should not be visible
+      expect(wrapper.find('.pity-tooltip').exists()).toBe(false)
+
+      // Click the help button
+      await wrapper.find('.pity-help-button').trigger('click')
+
+      // Tooltip should now be visible
+      expect(wrapper.find('.pity-tooltip').exists()).toBe(true)
+    })
+
+    it('displays pity explanation content in tooltip', async () => {
+      const wrapper = mount(SummonInfoSheet, {
+        props: {
+          visible: true,
+          banner: mockBanner,
+          pityInfo: mockNormalPityInfo,
+          bannerType: 'normal'
+        }
+      })
+
+      await wrapper.find('.pity-help-button').trigger('click')
+
+      const tooltip = wrapper.find('.pity-tooltip')
+      expect(tooltip.text()).toContain('What is Pity?')
+      expect(tooltip.text()).toContain('Pity ensures you get rare heroes even with bad luck')
+      expect(tooltip.text()).toContain('4-Star Pity')
+      expect(tooltip.text()).toContain('5-Star Soft Pity')
+      expect(tooltip.text()).toContain('5-Star Hard Pity')
+    })
+
+    it('displays correct pity values from pityInfo prop', async () => {
+      const wrapper = mount(SummonInfoSheet, {
+        props: {
+          visible: true,
+          banner: mockBanner,
+          pityInfo: mockNormalPityInfo,
+          bannerType: 'normal'
+        }
+      })
+
+      await wrapper.find('.pity-help-button').trigger('click')
+
+      const tooltip = wrapper.find('.pity-tooltip')
+      expect(tooltip.text()).toContain('10') // FOUR_STAR_PITY
+      expect(tooltip.text()).toContain('50') // SOFT_PITY_START
+      expect(tooltip.text()).toContain('90') // HARD_PITY
+    })
+
+    it('hides soft pity explanation for Black Market banner', async () => {
+      const wrapper = mount(SummonInfoSheet, {
+        props: {
+          visible: true,
+          banner: mockBanner,
+          pityInfo: mockBlackMarketPityInfo,
+          bannerType: 'blackMarket'
+        }
+      })
+
+      await wrapper.find('.pity-help-button').trigger('click')
+
+      const tooltip = wrapper.find('.pity-tooltip')
+      expect(tooltip.text()).toContain('4-Star Pity')
+      expect(tooltip.text()).toContain('5-Star Hard Pity')
+      expect(tooltip.text()).not.toContain('5-Star Soft Pity')
+    })
+
+    it('toggles tooltip off when clicking help button again', async () => {
+      const wrapper = mount(SummonInfoSheet, {
+        props: {
+          visible: true,
+          banner: mockBanner,
+          pityInfo: mockNormalPityInfo,
+          bannerType: 'normal'
+        }
+      })
+
+      // Click to open
+      await wrapper.find('.pity-help-button').trigger('click')
+      expect(wrapper.find('.pity-tooltip').exists()).toBe(true)
+
+      // Click again to close
+      await wrapper.find('.pity-help-button').trigger('click')
+      expect(wrapper.find('.pity-tooltip').exists()).toBe(false)
+    })
+
+    it('closes tooltip when clicking outside', async () => {
+      const wrapper = mount(SummonInfoSheet, {
+        props: {
+          visible: true,
+          banner: mockBanner,
+          pityInfo: mockNormalPityInfo,
+          bannerType: 'normal'
+        },
+        attachTo: document.body
+      })
+
+      // Open tooltip
+      await wrapper.find('.pity-help-button').trigger('click')
+      expect(wrapper.find('.pity-tooltip').exists()).toBe(true)
+
+      // Simulate click outside (on the sheet body, not tooltip or button)
+      const clickEvent = new Event('click', { bubbles: true })
+      document.body.dispatchEvent(clickEvent)
+      await wrapper.vm.$nextTick()
+
+      expect(wrapper.find('.pity-tooltip').exists()).toBe(false)
+
+      wrapper.unmount()
+    })
+  })
 })
