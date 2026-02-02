@@ -1775,6 +1775,7 @@ function getStatChange(hero, stat) {
 .battle-screen {
   min-height: 100vh;
   padding: 16px;
+  padding-top: calc(32px + env(safe-area-inset-top, 0px));
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1789,7 +1790,7 @@ function getStatChange(hero, stat) {
 .turn-order-strip {
   position: absolute;
   left: 8px;
-  top: 44px; /* Below the battle header */
+  top: calc(44px + env(safe-area-inset-top, 0px)); /* Below the battle header, accounting for safe area */
   width: 36px;
   display: flex;
   flex-direction: column;
