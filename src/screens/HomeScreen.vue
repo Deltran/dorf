@@ -179,49 +179,40 @@ const hasParty = computed(() => {
   color: #f59e0b;
 }
 
-.gem-display {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #1e293b;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #334155;
-}
-
-.gem-icon {
-  font-size: 1rem;
-}
-
-.gem-count {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #60a5fa;
-}
-
 .currency-row {
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
 }
 
+.gem-display,
 .gold-display {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: #1e293b;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #334155;
+  gap: 4px;
 }
 
+.gem-icon,
 .gold-icon {
+  font-size: 0.9rem;
+}
+
+.gem-count,
+.gold-count {
   font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.gem-count {
+  color: #7dd3fc;
 }
 
 .gold-count {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #f59e0b;
+  color: #fcd34d;
 }
 
 /* ===== Party Preview - THE CENTERPIECE ===== */
