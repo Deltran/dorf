@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, toRef } from 'vue'
 import { Teleport } from 'vue'
 import StatBar from './StatBar.vue'
+import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 
 const props = defineProps({
   enemy: {
@@ -15,10 +16,21 @@ const props = defineProps({
   isKnown: {
     type: Boolean,
     default: false
+  },
+  inCombat: {
+    type: Boolean,
+    default: false
   }
 })
 
 const emit = defineEmits(['close'])
+
+const drawerRef = ref(null)
+useSwipeToDismiss({
+  elementRef: drawerRef,
+  isOpen: toRef(props, 'isOpen'),
+  onClose: () => emit('close')
+})
 
 const template = computed(() => props.enemy?.template)
 
@@ -93,7 +105,7 @@ function getEffectDescription(effect) {
 
     <!-- Drawer -->
     <Transition name="slide-up">
-      <div v-if="isOpen && enemy" class="sheet-drawer">
+      <div v-if="isOpen && enemy" ref="drawerRef" class="sheet-drawer">
         <!-- Handle bar for closing -->
         <div class="sheet-handle" @click="emit('close')">
           <div class="handle-bar"></div>
@@ -186,7 +198,7 @@ function getEffectDescription(effect) {
           </div>
         </div>
 
-        <div v-else class="sheet-section no-effects">
+        <div v-else-if="inCombat" class="sheet-section no-effects">
           No active status effects
         </div>
       </div>

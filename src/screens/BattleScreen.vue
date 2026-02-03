@@ -216,6 +216,11 @@ const isCurrentHeroBard = computed(() => {
   return currentHero.value?.class?.resourceType === 'verse'
 })
 
+// Check if current hero is an alchemist (uses Essence)
+const isCurrentHeroAlchemist = computed(() => {
+  return currentHero.value?.class?.resourceType === 'essence'
+})
+
 // Check if inspected hero is a ranger (uses Focus)
 const isInspectedHeroRanger = computed(() => {
   return inspectedHero.value?.class?.resourceType === 'focus'
@@ -263,6 +268,12 @@ function getSkillDescription(skill) {
   if (isCurrentHeroBard.value && currentHero.value.lastSkillName === skill.name) {
     return 'Cannot repeat the same song!'
   }
+  if (isCurrentHeroAlchemist.value) {
+    const essenceCost = skill.essenceCost ?? 0
+    if ((currentHero.value.currentEssence || 0) < essenceCost) {
+      return `Requires ${essenceCost} Essence`
+    }
+  }
   return skill.description
 }
 
@@ -279,6 +290,9 @@ function getSkillCost(skill) {
   if (isCurrentHeroBard.value) {
     return null
   }
+  if (isCurrentHeroAlchemist.value) {
+    return skill.essenceCost || 0
+  }
   return skill.mpCost
 }
 
@@ -294,6 +308,9 @@ function getSkillCostLabel(skill) {
   }
   if (isCurrentHeroBard.value) {
     return null
+  }
+  if (isCurrentHeroAlchemist.value) {
+    return 'Essence'
   }
   return currentHero.value?.class?.resourceName
 }
@@ -337,6 +354,12 @@ function canUseSkill(skill) {
     // Can't repeat same skill consecutively
     if (currentHero.value.lastSkillName === skill.name) return false
     return true
+  }
+
+  // Alchemists check Essence cost
+  if (isCurrentHeroAlchemist.value) {
+    const essenceCost = skill.essenceCost ?? 0
+    return (currentHero.value.currentEssence || 0) >= essenceCost
   }
 
   return currentHero.value.currentMp >= skill.mpCost
@@ -1823,6 +1846,7 @@ function getStatChange(hero, stat) {
       :enemy="enemyDetailTarget"
       :isOpen="enemyDetailTarget !== null"
       :isKnown="isEnemyKnown"
+      :inCombat="true"
       @close="closeEnemyDetail"
     />
   </div>

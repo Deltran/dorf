@@ -9,6 +9,7 @@ import MapCanvas from '../components/MapCanvas.vue'
 import SuperRegionSelect from '../components/SuperRegionSelect.vue'
 import EnemyDetailSheet from '../components/EnemyDetailSheet.vue'
 import { useTooltip } from '../composables/useTooltip.js'
+import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 
 const { onPointerEnter, onPointerLeave } = useTooltip()
 
@@ -54,6 +55,29 @@ const selectedSuperRegion = ref(null)
 const showTokenResults = ref(false)
 const tokenResults = ref(null)
 const enemyDetailTarget = ref(null) // For EnemyDetailSheet (long-press)
+
+// Refs for swipe-to-dismiss bottom sheets
+const nodePreviewRef = ref(null)
+const tokenResultsRef = ref(null)
+
+// Swipe-to-dismiss for node preview
+const nodePreviewIsOpen = computed(() => selectedNode.value !== null)
+useSwipeToDismiss({
+  elementRef: nodePreviewRef,
+  isOpen: nodePreviewIsOpen,
+  onClose: () => { selectedNode.value = null }
+})
+
+// Swipe-to-dismiss for token results
+useSwipeToDismiss({
+  elementRef: tokenResultsRef,
+  isOpen: showTokenResults,
+  onClose: () => {
+    showTokenResults.value = false
+    tokenResults.value = null
+    selectedNode.value = null
+  }
+})
 
 // Long-press detection for enemy info sheet
 let enemyLongPressTimer = null
@@ -497,7 +521,7 @@ const totalCleared = computed(() => {
 
     <!-- Node Preview Modal -->
     <Transition name="slide-up">
-      <aside v-if="selectedNode" class="node-preview">
+      <aside v-if="selectedNode" ref="nodePreviewRef" class="node-preview">
         <div class="preview-handle"></div>
 
         <div class="preview-header">
@@ -777,7 +801,7 @@ const totalCleared = computed(() => {
       <div v-if="showTokenResults" class="token-results-backdrop" @click="closeTokenResults"></div>
     </Transition>
     <Transition name="slide-up">
-      <div v-if="showTokenResults && tokenResults" class="token-results-modal">
+      <div v-if="showTokenResults && tokenResults" ref="tokenResultsRef" class="token-results-modal">
         <div class="token-results-header">
           <h3>Token Rewards Collected</h3>
           <span class="token-node-name">{{ selectedNode?.name }}</span>

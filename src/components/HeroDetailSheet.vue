@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, toRef } from 'vue'
 import { Teleport } from 'vue'
 import StatBar from './StatBar.vue'
 import RageBar from './RageBar.vue'
@@ -9,6 +9,7 @@ import VerseIndicator from './VerseIndicator.vue'
 import EssenceBar from './EssenceBar.vue'
 import { getClass } from '../data/classes.js'
 import { getHeroTemplate } from '../data/heroes/index.js'
+import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 
 const props = defineProps({
   hero: {
@@ -22,6 +23,13 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+const drawerRef = ref(null)
+useSwipeToDismiss({
+  elementRef: drawerRef,
+  isOpen: toRef(props, 'isOpen'),
+  onClose: () => emit('close')
+})
 
 const template = computed(() => {
   if (!props.hero) return null
@@ -95,7 +103,7 @@ function getEffectDescription(effect) {
 
     <!-- Drawer -->
     <Transition name="slide-up">
-      <div v-if="isOpen && hero" class="sheet-drawer">
+      <div v-if="isOpen && hero" ref="drawerRef" class="sheet-drawer">
         <!-- Handle bar for closing -->
         <div class="sheet-handle" @click="emit('close')">
           <div class="handle-bar"></div>

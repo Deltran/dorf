@@ -1021,6 +1021,12 @@ export const useBattleStore = defineStore('battle', () => {
       return true
     }
 
+    // Alchemists check essence cost
+    if (isAlchemist(unit)) {
+      const essenceCost = unit.skill.essenceCost ?? 0
+      return (unit.currentEssence || 0) >= essenceCost
+    }
+
     // MP-based classes
     const mpCost = unit.skill.mpCost ?? 0
     return unit.currentMp >= mpCost

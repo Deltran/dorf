@@ -19,6 +19,7 @@ export const enemies = {
       name: 'Freezing Blast',
       description: 'Deal 120% ATK damage to all heroes and reduce SPD by 30% for 2 turns',
       cooldown: 5,
+      targetType: 'all_heroes',
       effects: [
         { type: EffectType.SPD_DOWN, target: 'hero', duration: 2, value: 30 }
       ]
@@ -55,7 +56,8 @@ export const enemies = {
     skill: {
       name: 'Earthquake',
       description: 'Deal 100% ATK damage to all heroes',
-      cooldown: 6
+      cooldown: 6,
+      targetType: 'all_heroes'
     }
   }
 }
