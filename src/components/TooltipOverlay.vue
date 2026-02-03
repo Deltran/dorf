@@ -28,13 +28,10 @@ onUnmounted(() => {
 })
 
 const style = computed(() => {
-  const padding = 12
   const viewportWidth = window.innerWidth
-  let left = tooltipState.x
-  // Clamp to viewport
-  left = Math.max(padding + 100, Math.min(viewportWidth - padding - 100, left))
+  // Center horizontally for wide tooltips
   return {
-    left: `${left}px`,
+    left: `${viewportWidth / 2}px`,
     top: `${tooltipState.y}px`
   }
 })
@@ -68,7 +65,8 @@ const style = computed(() => {
   border-radius: 8px;
   border: 1px solid #334155;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
-  max-width: 240px;
+  max-width: calc(100vw - 32px);
+  width: max-content;
   text-align: center;
   white-space: pre-line;
   pointer-events: auto;
