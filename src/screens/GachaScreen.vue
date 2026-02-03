@@ -142,9 +142,13 @@ function revealNextCard() {
     const timing = getRevealTiming(nextResult?.template?.rarity || 1)
     setTimeout(revealNextCard, timing)
   } else {
-    // All revealed - show summary grid
-    showSummaryGrid.value = true
-    revealSequenceActive.value = false
+    // All revealed - delay summary grid to let last card animation complete
+    const lastCardRarity = pullResults.value[pullResults.value.length - 1]?.template?.rarity || 1
+    const lastCardAnimDuration = lastCardRarity >= 4 ? 500 : 400
+    setTimeout(() => {
+      showSummaryGrid.value = true
+      revealSequenceActive.value = false
+    }, lastCardAnimDuration)
   }
 }
 
@@ -240,9 +244,13 @@ function onSpotlightDismiss() {
         const timing = getRevealTiming(nextResult?.template?.rarity || 1)
         setTimeout(revealNextCard, timing)
       } else {
-        // All revealed - show summary grid
-        showSummaryGrid.value = true
-        revealSequenceActive.value = false
+        // All revealed - delay summary grid to let last card animation complete
+        const lastCardRarity = pullResults.value[pullResults.value.length - 1]?.template?.rarity || 1
+        const lastCardAnimDuration = lastCardRarity >= 4 ? 500 : 400
+        setTimeout(() => {
+          showSummaryGrid.value = true
+          revealSequenceActive.value = false
+        }, lastCardAnimDuration)
       }
     }, 50)
     return
@@ -1510,6 +1518,14 @@ function handleTenPull() {
   z-index: 100;
   padding: 20px;
   cursor: pointer;
+  overflow-y: auto;
+}
+
+@media (max-width: 500px) {
+  .reveal-stage {
+    justify-content: flex-start;
+    padding-top: 60px;
+  }
 }
 
 .reveal-cards {
@@ -1531,9 +1547,10 @@ function handleTenPull() {
 
 @media (max-width: 500px) {
   .summary-grid {
-    grid-template-columns: repeat(5, 1fr);
-    gap: 6px;
-    padding: 12px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    padding: 16px;
+    max-width: 280px;
   }
 }
 

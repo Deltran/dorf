@@ -13,6 +13,7 @@ export const useQuestsStore = defineStore('quests', () => {
   const currentRun = ref(null) // { nodeId, battleIndex, partyState }
   const lastVisitedNode = ref(null) // Track last node for background display
   const lastVisitedRegion = ref(null) // Track last region for map navigation
+  const defeatedEnemyTypes = ref(new Set()) // Track which enemy types player has defeated
 
   // Getters
   const isNodeUnlocked = computed(() => {
@@ -332,12 +333,24 @@ export const useQuestsStore = defineStore('quests', () => {
     return { defeat: true }
   }
 
+  // Enemy discovery tracking
+  function recordDefeatedEnemy(templateId) {
+    if (templateId) {
+      defeatedEnemyTypes.value.add(templateId)
+    }
+  }
+
+  function hasDefeatedEnemy(templateId) {
+    return defeatedEnemyTypes.value.has(templateId)
+  }
+
   // Persistence
   function loadState(savedState) {
     if (savedState.unlockedNodes) unlockedNodes.value = savedState.unlockedNodes
     if (savedState.completedNodes) completedNodes.value = savedState.completedNodes
     if (savedState.lastVisitedNode) lastVisitedNode.value = savedState.lastVisitedNode
     if (savedState.lastVisitedRegion) lastVisitedRegion.value = savedState.lastVisitedRegion
+    if (savedState.defeatedEnemyTypes) defeatedEnemyTypes.value = new Set(savedState.defeatedEnemyTypes)
     // Don't restore currentRun - player should restart quests on reload
   }
 
@@ -346,7 +359,8 @@ export const useQuestsStore = defineStore('quests', () => {
       unlockedNodes: unlockedNodes.value,
       completedNodes: completedNodes.value,
       lastVisitedNode: lastVisitedNode.value,
-      lastVisitedRegion: lastVisitedRegion.value
+      lastVisitedRegion: lastVisitedRegion.value,
+      defeatedEnemyTypes: Array.from(defeatedEnemyTypes.value)
     }
   }
 
@@ -357,6 +371,7 @@ export const useQuestsStore = defineStore('quests', () => {
     currentRun,
     lastVisitedNode,
     lastVisitedRegion,
+    defeatedEnemyTypes,
     // Getters
     isNodeUnlocked,
     isNodeCompleted,
@@ -379,6 +394,8 @@ export const useQuestsStore = defineStore('quests', () => {
     collectWithToken,
     abandonRun,
     failRun,
+    recordDefeatedEnemy,
+    hasDefeatedEnemy,
     // Persistence
     loadState,
     saveState

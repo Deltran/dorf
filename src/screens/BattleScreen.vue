@@ -17,12 +17,14 @@ import ActionBar from '../components/ActionBar.vue'
 import HeroBattleInfo from '../components/HeroBattleInfo.vue'
 import StatusOverlay from '../components/StatusOverlay.vue'
 import HeroDetailSheet from '../components/HeroDetailSheet.vue'
+import EnemyDetailSheet from '../components/EnemyDetailSheet.vue'
 import { getItem } from '../data/items.js'
 import { getQuestNode, getAllQuestNodes } from '../data/quests/index.js'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import { useTipsStore } from '../stores/tips.js'
 import { useTooltip } from '../composables/useTooltip.js'
+import { useLongPress } from '../composables/useLongPress.js'
 
 const { onClick: showEffectTooltip } = useTooltip()
 
@@ -119,6 +121,7 @@ const victoryStep = ref(1) // 1 = rewards, 2 = xp/level ups
 const shardDropDisplay = ref(null) // For displaying shard drops in victory
 const inspectedHero = ref(null) // For hero stats popup (legacy, replaced by detailSheetHero)
 const detailSheetHero = ref(null) // For HeroDetailSheet
+const enemyDetailTarget = ref(null) // For EnemyDetailSheet (long-press)
 const lastClickedHero = ref(null) // Track for double-click detection
 const genusLociRewards = ref(null) // For Genus Loci victory rewards
 const combatLogExpanded = ref(false)
@@ -1194,6 +1197,51 @@ function closeHeroDetail() {
   detailSheetHero.value = null
 }
 
+function openEnemyDetail(enemy) {
+  enemyDetailTarget.value = enemy
+}
+
+function closeEnemyDetail() {
+  enemyDetailTarget.value = null
+}
+
+// Check if enemy type has been defeated before (for discovery system)
+const isEnemyKnown = computed(() => {
+  if (!enemyDetailTarget.value?.template?.id) return false
+  return questsStore.hasDefeatedEnemy(enemyDetailTarget.value.template.id)
+})
+
+// Long-press detection for enemy info sheet
+let enemyLongPressTimer = null
+let enemyLongPressTarget = null
+const LONG_PRESS_DURATION = 500
+
+function onEnemyTouchStart(enemy, event) {
+  enemyLongPressTarget = enemy
+  enemyLongPressTimer = setTimeout(() => {
+    if (enemyLongPressTarget === enemy) {
+      openEnemyDetail(enemy)
+    }
+    enemyLongPressTimer = null
+  }, LONG_PRESS_DURATION)
+}
+
+function onEnemyTouchEnd(event) {
+  if (enemyLongPressTimer) {
+    clearTimeout(enemyLongPressTimer)
+    enemyLongPressTimer = null
+  }
+  enemyLongPressTarget = null
+}
+
+function onEnemyTouchMove(event) {
+  // Cancel if finger moves too much
+  if (enemyLongPressTimer) {
+    clearTimeout(enemyLongPressTimer)
+    enemyLongPressTimer = null
+  }
+}
+
 function getHeroEffectiveStats(hero) {
   if (!hero) return null
   return {
@@ -1289,6 +1337,12 @@ function getStatChange(hero, stat) {
             getEnemyHitEffect(enemy.id) ? `hit-${getEnemyHitEffect(enemy.id)}` : ''
           ]"
           @click="selectEnemyTarget(enemy)"
+          @touchstart.passive="onEnemyTouchStart(enemy, $event)"
+          @touchend="onEnemyTouchEnd"
+          @touchmove="onEnemyTouchMove"
+          @mousedown="onEnemyTouchStart(enemy, $event)"
+          @mouseup="onEnemyTouchEnd"
+          @mouseleave="onEnemyTouchEnd"
         >
           <img
             :src="getEnemyImageUrl(enemy)"
@@ -1313,15 +1367,25 @@ function getStatChange(hero, stat) {
           </div>
         </div>
         <!-- Enemy without image (fallback to card) -->
-        <EnemyCard
+        <div
           v-else
-          :enemy="enemy"
-          :active="battleStore.currentUnit?.id === enemy.id"
-          :targetable="enemiesTargetable || (battleStore.isPlayerTurn && !battleStore.selectedAction)"
-          :selected="battleStore.selectedTarget?.id === enemy.id"
-          :hitEffect="getEnemyHitEffect(enemy.id)"
-          @click="selectEnemyTarget(enemy)"
-        />
+          class="enemy-card-wrapper"
+          @touchstart.passive="onEnemyTouchStart(enemy, $event)"
+          @touchend="onEnemyTouchEnd"
+          @touchmove="onEnemyTouchMove"
+          @mousedown="onEnemyTouchStart(enemy, $event)"
+          @mouseup="onEnemyTouchEnd"
+          @mouseleave="onEnemyTouchEnd"
+        >
+          <EnemyCard
+            :enemy="enemy"
+            :active="battleStore.currentUnit?.id === enemy.id"
+            :targetable="enemiesTargetable || (battleStore.isPlayerTurn && !battleStore.selectedAction)"
+            :selected="battleStore.selectedTarget?.id === enemy.id"
+            :hitEffect="getEnemyHitEffect(enemy.id)"
+            @click="selectEnemyTarget(enemy)"
+          />
+        </div>
         <DamageNumber
           v-for="dmg in damageNumbers.filter(d => d.targetType === 'enemy' && d.targetId === enemy.id)"
           :key="dmg.id"
@@ -1748,6 +1812,14 @@ function getStatChange(hero, stat) {
       :hero="detailSheetHero"
       :isOpen="detailSheetHero !== null"
       @close="closeHeroDetail"
+    />
+
+    <!-- Enemy Detail Sheet (uses Teleport to body) -->
+    <EnemyDetailSheet
+      :enemy="enemyDetailTarget"
+      :isOpen="enemyDetailTarget !== null"
+      :isKnown="isEnemyKnown"
+      @close="closeEnemyDetail"
     />
   </div>
 
