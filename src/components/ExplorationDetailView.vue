@@ -65,6 +65,7 @@ const rankColors = {
 const selectedHeroes = ref([])
 const showCancelConfirm = ref(false)
 const showEnhanceModal = ref(false)
+const isDeparting = ref(false)
 
 const enhanceInfo = computed(() => {
   return explorationsStore.canUpgradeExploration(props.nodeId)
@@ -318,11 +319,22 @@ function isHeroSelected(instanceId) {
 }
 
 function startExploration() {
-  const result = explorationsStore.startExploration(props.nodeId, selectedHeroes.value)
-  if (result.success) {
-    selectedHeroes.value = []
-    emit('started')
-  }
+  if (isDeparting.value) return
+
+  // Trigger departure animation
+  isDeparting.value = true
+
+  // Wait for animation to complete before actually starting
+  setTimeout(() => {
+    const result = explorationsStore.startExploration(props.nodeId, selectedHeroes.value)
+    if (result.success) {
+      selectedHeroes.value = []
+      isDeparting.value = false
+      emit('started')
+    } else {
+      isDeparting.value = false
+    }
+  }, 1800) // Animation duration
 }
 
 function confirmCancel() {
@@ -347,13 +359,19 @@ function cancelExploration() {
 
     <div class="detail-content">
       <!-- Exploration Banner with Heroes -->
-      <div class="exploration-banner" :style="backgroundUrl ? { backgroundImage: `url(${backgroundUrl})` } : {}">
+      <div
+        class="exploration-banner"
+        :class="{ departing: isDeparting }"
+        :style="backgroundUrl ? { backgroundImage: `url(${backgroundUrl})` } : {}"
+      >
         <div class="banner-overlay"></div>
+        <div class="departure-fog"></div>
         <div class="banner-heroes">
           <div
             v-for="(hero, index) in displayHeroes"
             :key="index"
-            :class="['banner-hero', `slot-${index}`, { empty: !hero }]"
+            :class="['banner-hero', `slot-${index}`, { empty: !hero, departing: isDeparting }]"
+            :style="isDeparting ? { '--depart-delay': `${index * 0.12}s` } : {}"
           >
             <img
               v-if="hero && getHeroImageUrl(hero.templateId)"
@@ -433,10 +451,11 @@ function cancelExploration() {
 
         <button
           class="start-button start-button-top"
-          :disabled="!canStart"
+          :class="{ departing: isDeparting }"
+          :disabled="!canStart || isDeparting"
           @click="startExploration"
         >
-          Start Exploration
+          {{ isDeparting ? 'Departing...' : 'Start Exploration' }}
         </button>
 
         <div class="hero-selection">
@@ -546,10 +565,11 @@ function cancelExploration() {
 
         <button
           class="start-button"
-          :disabled="!canStart"
+          :class="{ departing: isDeparting }"
+          :disabled="!canStart || isDeparting"
           @click="startExploration"
         >
-          Start Exploration
+          {{ isDeparting ? 'Departing...' : 'Start Exploration' }}
         </button>
 
         <button
@@ -728,6 +748,79 @@ h3 {
 .banner-hero.slot-4 {
   left: 90%;
   z-index: 1;
+}
+
+/* Departure Animation - March into the Unknown */
+.departure-fog {
+  position: absolute;
+  right: -20%;
+  top: 0;
+  bottom: 0;
+  width: 60%;
+  background: linear-gradient(
+    to left,
+    rgba(17, 24, 39, 1) 0%,
+    rgba(17, 24, 39, 0.95) 20%,
+    rgba(17, 24, 39, 0.7) 50%,
+    rgba(17, 24, 39, 0) 100%
+  );
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease, right 1.2s ease;
+  z-index: 10;
+}
+
+.exploration-banner.departing .departure-fog {
+  opacity: 1;
+  right: 0;
+}
+
+.banner-hero.departing {
+  animation: heroMarchOff 1.6s ease-in forwards;
+  animation-delay: var(--depart-delay, 0s);
+}
+
+@keyframes heroMarchOff {
+  0% {
+    transform: translateX(-50%);
+    opacity: 1;
+  }
+  15% {
+    /* Small anticipation - heroes shift slightly left before marching */
+    transform: translateX(calc(-50% - 8px));
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(-50% + 150%));
+    opacity: 0;
+  }
+}
+
+/* Darken the banner during departure */
+.exploration-banner.departing .banner-overlay {
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.6) 60%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+  transition: background 0.8s ease;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .banner-hero.departing {
+    animation: heroFadeOut 0.5s ease forwards;
+    animation-delay: var(--depart-delay, 0s);
+  }
+
+  @keyframes heroFadeOut {
+    to { opacity: 0; }
+  }
+
+  .departure-fog {
+    transition: opacity 0.3s ease;
+  }
 }
 
 .party-request {
@@ -935,6 +1028,11 @@ h3 {
 .start-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.start-button.departing {
+  opacity: 0.7;
+  background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
 }
 
 .cancel-button {
