@@ -1,15 +1,12 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useIntroStore } from '../stores/intro.js'
-import { useHeroesStore } from '../stores/heroes.js'
-import { getHeroTemplate } from '../data/heroes/index.js'
 import HeroSpotlight from '../components/HeroSpotlight.vue'
 import whisperingWoodsMap from '../assets/maps/whispering_woods.png'
 
 const emit = defineEmits(['startBattle', 'complete'])
 
 const introStore = useIntroStore()
-const heroesStore = useHeroesStore()
 
 const isTextAnimating = ref(false)
 
@@ -54,18 +51,13 @@ const isDefeatMessage = computed(() => introStore.currentStep === 'DEFEAT_MESSAG
 const showKensinSpotlight = computed(() => introStore.currentStep === 'HERO_SPOTLIGHT_KENSIN')
 const showFourStarSpotlight = computed(() => introStore.currentStep === 'HERO_SPOTLIGHT_4STAR')
 
-// Get Kensin hero data for spotlight
+// Get Kensin hero data for spotlight (created before spotlight step)
 const kensinHero = computed(() => {
   if (!showKensinSpotlight.value) return null
-  const kensin = heroesStore.collection.find(h => h.templateId === 'town_guard')
-  if (!kensin) return null
-  return {
-    template: getHeroTemplate('town_guard'),
-    instance: kensin
-  }
+  return introStore.starterHero
 })
 
-// Get gifted 4-star hero for spotlight
+// Get gifted 4-star hero for spotlight (created before spotlight step)
 const fourStarHero = computed(() => {
   if (!showFourStarSpotlight.value) return null
   return introStore.giftedHero
@@ -103,27 +95,8 @@ watch(() => introStore.currentStep, () => {
   })
 }, { immediate: true })
 
-// Gift heroes when reaching spotlight steps
-onMounted(() => {
-  // If starting fresh, the heroes haven't been created yet
-  // They get created when we advance to the spotlight steps
-})
-
-watch(() => introStore.currentStep, (newStep) => {
-  if (newStep === 'HERO_SPOTLIGHT_KENSIN') {
-    // Gift Kensin when reaching this step (if not already in collection)
-    const hasKensin = heroesStore.collection.some(h => h.templateId === 'town_guard')
-    if (!hasKensin) {
-      introStore.giftStarterHero()
-    }
-  }
-  if (newStep === 'HERO_SPOTLIGHT_4STAR') {
-    // Gift random 4-star when reaching this step (if not already gifted)
-    if (!introStore.giftedHero) {
-      introStore.giftRandomFourStar()
-    }
-  }
-})
+// Heroes are now created in advanceStep() before spotlight steps
+// No async watchers needed - heroes exist when spotlights render
 
 function handleContinue() {
   if (introStore.currentStep === 'VICTORY_OUTRO') {

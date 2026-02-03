@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useHeroesStore } from './heroes.js'
-import { getHeroTemplatesByRarity, getHeroTemplate } from '../data/heroes/index.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
+import { getBannerById } from '../data/banners.js'
 
 // Intro flow steps
 const STEPS = [
@@ -21,6 +22,7 @@ export const useIntroStore = defineStore('intro', () => {
   // State
   const currentStep = ref('NARRATIVE_1')
   const isIntroComplete = ref(false)
+  const starterHero = ref(null)
   const giftedHero = ref(null)
 
   // Actions
@@ -34,6 +36,16 @@ export const useIntroStore = defineStore('intro', () => {
       return
     }
 
+    // When advancing from NARRATIVE_3, create heroes BEFORE showing spotlights
+    if (currentStep.value === 'NARRATIVE_3') {
+      if (!starterHero.value) {
+        giftStarterHero()
+      }
+      if (!giftedHero.value) {
+        giftRandomFourStar()
+      }
+    }
+
     // Normal progression through narrative and reveal steps
     if (currentIndex >= 0 && currentIndex < STEPS.indexOf('BATTLE')) {
       currentStep.value = STEPS[currentIndex + 1]
@@ -44,15 +56,24 @@ export const useIntroStore = defineStore('intro', () => {
     const heroesStore = useHeroesStore()
     const kensin = heroesStore.addHero('town_guard')
     heroesStore.setPartySlot(0, kensin.instanceId)
-    return kensin
+
+    // Store reference for spotlight display
+    starterHero.value = {
+      template: getHeroTemplate('town_guard'),
+      instance: kensin
+    }
+
+    return starterHero.value
   }
 
   function giftRandomFourStar() {
     const heroesStore = useHeroesStore()
 
-    // Get all 4-star heroes and pick one at random
-    const fourStarHeroes = getHeroTemplatesByRarity(4)
-    const randomTemplate = fourStarHeroes[Math.floor(Math.random() * fourStarHeroes.length)]
+    // Get 4-star heroes from standard banner pool only
+    const standardBanner = getBannerById('standard')
+    const fourStarIds = standardBanner.heroPool[4]
+    const randomHeroId = fourStarIds[Math.floor(Math.random() * fourStarIds.length)]
+    const randomTemplate = getHeroTemplate(randomHeroId)
 
     // Add hero to collection
     const heroInstance = heroesStore.addHero(randomTemplate.id)
@@ -110,6 +131,7 @@ export const useIntroStore = defineStore('intro', () => {
     // State
     currentStep,
     isIntroComplete,
+    starterHero,
     giftedHero,
     // Actions
     advanceStep,

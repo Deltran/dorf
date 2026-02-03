@@ -49,6 +49,15 @@ describe('intro store', () => {
       expect(introStore.currentStep).toBe('HERO_SPOTLIGHT_KENSIN')
     })
 
+    it('creates both heroes when advancing from NARRATIVE_3', () => {
+      introStore.currentStep = 'NARRATIVE_3'
+      introStore.advanceStep()
+      // Both heroes should be created before spotlights
+      expect(introStore.starterHero).not.toBeNull()
+      expect(introStore.giftedHero).not.toBeNull()
+      expect(heroesStore.collection.length).toBe(2)
+    })
+
     it('advances from HERO_SPOTLIGHT_KENSIN to HERO_SPOTLIGHT_4STAR', () => {
       introStore.currentStep = 'HERO_SPOTLIGHT_KENSIN'
       introStore.advanceStep()
@@ -75,6 +84,12 @@ describe('intro store', () => {
       expect(kensin).toBeDefined()
     })
 
+    it('giftStarterHero stores the starterHero reference', () => {
+      introStore.giftStarterHero()
+      expect(introStore.starterHero).not.toBeNull()
+      expect(introStore.starterHero.template.id).toBe('town_guard')
+    })
+
     it('giftStarterHero adds Kensin to party slot 1', () => {
       introStore.giftStarterHero()
       const kensin = heroesStore.collection.find(h => h.templateId === 'town_guard')
@@ -94,6 +109,19 @@ describe('intro store', () => {
       introStore.giftRandomFourStar()
       expect(introStore.giftedHero).not.toBeNull()
       expect(introStore.giftedHero.template.rarity).toBe(4)
+    })
+
+    it('giftRandomFourStar only picks from standard banner pool', () => {
+      // Standard banner 4-stars: sir_gallan, ember_witch, lady_moonwhisper, swift_arrow
+      const standardFourStars = ['sir_gallan', 'ember_witch', 'lady_moonwhisper', 'swift_arrow']
+
+      // Run multiple times to check randomness stays within pool
+      for (let i = 0; i < 20; i++) {
+        setActivePinia(createPinia())
+        const store = useIntroStore()
+        store.giftRandomFourStar()
+        expect(standardFourStars).toContain(store.giftedHero.template.id)
+      }
     })
 
     it('giftRandomFourStar adds hero to party slot 2', () => {
