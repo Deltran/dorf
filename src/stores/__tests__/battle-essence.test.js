@@ -107,4 +107,43 @@ describe('battle store - Essence resource system', () => {
       expect(store.getVolatilitySelfDamage(hero)).toBe(5)
     })
   })
+
+  describe('Essence in battle flow (integration)', () => {
+    let heroesStore
+
+    beforeEach(async () => {
+      const { useHeroesStore } = await import('../heroes')
+      heroesStore = useHeroesStore()
+    })
+
+    it('initializes Essence when Alchemist enters battle via initBattle', () => {
+      // Add Zina (an Alchemist) to the party
+      const zina = heroesStore.addHero('zina_the_desperate')
+      heroesStore.setPartySlot(0, zina.instanceId)
+
+      // Start a battle
+      store.initBattle({}, ['goblin_scout'])
+
+      // Verify Essence was initialized
+      const battleZina = store.heroes.find(h => h.templateId === 'zina_the_desperate')
+      expect(battleZina).toBeDefined()
+      expect(battleZina.maxEssence).toBe(60) // Zina's MP stat
+      expect(battleZina.currentEssence).toBe(30) // 50% of maxEssence
+    })
+
+    it('does not initialize Essence for non-Alchemist heroes', () => {
+      // Add Aurora (a Paladin) to the party
+      const aurora = heroesStore.addHero('aurora_the_dawn')
+      heroesStore.setPartySlot(0, aurora.instanceId)
+
+      // Start a battle
+      store.initBattle({}, ['goblin_scout'])
+
+      // Verify Essence was NOT initialized
+      const battleAurora = store.heroes.find(h => h.templateId === 'aurora_the_dawn')
+      expect(battleAurora).toBeDefined()
+      expect(battleAurora.maxEssence).toBeUndefined()
+      expect(battleAurora.currentEssence).toBeUndefined()
+    })
+  })
 })

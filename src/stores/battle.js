@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useHeroesStore } from './heroes.js'
 import { useEquipmentStore } from './equipment.js'
+import { useQuestsStore } from './quests.js'
 import { getEnemyTemplate } from '../data/enemies/index.js'
 import { EffectType, createEffect, getEffectDefinition, effectDefinitions } from '../data/statusEffects.js'
 import { getClass } from '../data/classes.js'
@@ -1772,6 +1773,11 @@ export const useBattleStore = defineStore('battle', () => {
       if (unit.instanceId && heroes.value.includes(unit)) {
         processHeroDeathTrigger(unit)
       }
+      // Track defeated enemy types for bestiary/discovery
+      if (!unit.instanceId && enemies.value.includes(unit) && unit.template?.id) {
+        const questsStore = useQuestsStore()
+        questsStore.recordDefeatedEnemy(unit.template.id)
+      }
       if (unit.statusEffects?.length > 0) {
         unit.statusEffects = []
       }
@@ -2375,6 +2381,9 @@ export const useBattleStore = defineStore('battle', () => {
       // Initialize Heartbreak stacks for heroes with heartbreakPassive (e.g., Mara Thornheart)
       initializeHeartbreakStacks(battleHero)
 
+      // Initialize Essence for Alchemist heroes
+      initializeEssence(battleHero)
+
       heroes.value.push(battleHero)
     }
 
@@ -2502,6 +2511,9 @@ export const useBattleStore = defineStore('battle', () => {
 
           // Process equipment start-of-turn effects (mp_regen, hp_regen_percent, nature_regen)
           processEquipmentStartOfTurn(hero)
+
+          // Regenerate Essence for Alchemist heroes (+10 per turn)
+          regenerateEssence(hero)
 
           // Check for Bard Finale (auto-trigger at 3 verses)
           if (isBard(hero) && hero.currentVerses >= 3 && hero.template.finale) {
