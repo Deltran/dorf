@@ -2,16 +2,21 @@
 import questBg from '../assets/backgrounds/quests_bg.png'
 import genusLociBg from '../assets/backgrounds/genus_loci.png'
 import exploreBg from '../assets/backgrounds/explore_bg.png'
+import mapRoomBg from '../assets/backgrounds/map_room.png'
 
 const emit = defineEmits(['navigate'])
 </script>
 
 <template>
   <div class="map-room-screen">
-    <!-- Animated background -->
-    <div class="bg-layer bg-gradient"></div>
-    <div class="bg-layer bg-pattern"></div>
+    <!-- Dark vignette background -->
     <div class="bg-vignette"></div>
+
+    <!-- Atmospheric background image -->
+    <div
+      class="room-background"
+      :style="{ backgroundImage: `url(${mapRoomBg})` }"
+    ></div>
 
     <header class="screen-header">
       <button class="back-button" @click="emit('navigate', 'home')">
@@ -23,8 +28,9 @@ const emit = defineEmits(['navigate'])
     </header>
 
     <nav class="hub-nav">
+      <!-- Primary: Quests -->
       <button
-        class="nav-button quests-button"
+        class="nav-button nav-button-primary quests-button"
         :style="{ backgroundImage: `url(${questBg})` }"
         @click="emit('navigate', 'worldmap')"
       >
@@ -38,35 +44,34 @@ const emit = defineEmits(['navigate'])
         <div class="nav-arrow">›</div>
       </button>
 
-      <button
-        class="nav-button explorations-button"
-        :style="{ backgroundImage: `url(${exploreBg})` }"
-        @click="emit('navigate', 'explorations')"
-      >
-        <div class="nav-icon-wrapper explorations">
-          <span class="nav-icon">🧭</span>
-        </div>
-        <div class="nav-content">
-          <span class="nav-label">Explorations</span>
-          <span class="nav-hint">Send heroes on expeditions</span>
-        </div>
-        <div class="nav-arrow">›</div>
-      </button>
+      <!-- Secondary: Explorations & Genus Loci -->
+      <div class="secondary-nav">
+        <button
+          class="nav-button nav-button-secondary explorations-button"
+          :style="{ backgroundImage: `url(${exploreBg})` }"
+          @click="emit('navigate', 'explorations')"
+        >
+          <div class="nav-icon-wrapper explorations">
+            <span class="nav-icon">🧭</span>
+          </div>
+          <div class="nav-content">
+            <span class="nav-label">Explorations</span>
+          </div>
+        </button>
 
-      <button
-        class="nav-button genus-loci-button"
-        :style="{ backgroundImage: `url(${genusLociBg})` }"
-        @click="emit('navigate', 'genus-loci-list')"
-      >
-        <div class="nav-icon-wrapper genus-loci">
-          <span class="nav-icon">👹</span>
-        </div>
-        <div class="nav-content">
-          <span class="nav-label">Genus Loci</span>
-          <span class="nav-hint">Challenge powerful bosses</span>
-        </div>
-        <div class="nav-arrow">›</div>
-      </button>
+        <button
+          class="nav-button nav-button-secondary genus-loci-button"
+          :style="{ backgroundImage: `url(${genusLociBg})` }"
+          @click="emit('navigate', 'genus-loci-list')"
+        >
+          <div class="nav-icon-wrapper genus-loci">
+            <span class="nav-icon">👹</span>
+          </div>
+          <div class="nav-content">
+            <span class="nav-label">Genus Loci</span>
+          </div>
+        </button>
+      </div>
     </nav>
   </div>
 </template>
@@ -75,59 +80,42 @@ const emit = defineEmits(['navigate'])
 .map-room-screen {
   min-height: 100vh;
   padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
   display: flex;
   flex-direction: column;
   gap: 24px;
   position: relative;
   overflow: hidden;
+  background: linear-gradient(to bottom, #0a0a0a 0%, #111827 100%);
 }
 
-/* Animated Background */
-.bg-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.bg-gradient {
-  background: linear-gradient(
-    135deg,
-    #0f172a 0%,
-    #1e3a2f 25%,
-    #172554 50%,
-    #1e3a2f 75%,
-    #0f172a 100%
-  );
-  background-size: 400% 400%;
-  animation: gradientShift 20s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.bg-pattern {
-  opacity: 0.03;
-  background-image:
-    radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px),
-    radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-
+/* Dark vignette background */
 .bg-vignette {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
+}
+
+/* Atmospheric background image */
+.room-background {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
 }
 
 /* Header */
@@ -183,6 +171,11 @@ const emit = defineEmits(['navigate'])
   z-index: 1;
 }
 
+.secondary-nav {
+  display: flex;
+  gap: 12px;
+}
+
 .nav-button {
   display: flex;
   align-items: center;
@@ -198,25 +191,51 @@ const emit = defineEmits(['navigate'])
   overflow: hidden;
 }
 
-.nav-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-  transition: left 0.5s ease;
+/* Primary button - larger, more prominent */
+.nav-button-primary {
+  padding: 28px 24px;
 }
 
-.nav-button:hover::before {
-  left: 100%;
+.nav-button-primary .nav-icon-wrapper {
+  width: 56px;
+  height: 56px;
+}
+
+.nav-button-primary .nav-icon {
+  font-size: 1.8rem;
+}
+
+.nav-button-primary .nav-label {
+  font-size: 1.3rem;
+}
+
+/* Secondary buttons - compact, side-by-side */
+.nav-button-secondary {
+  flex: 1;
+  padding: 14px 16px;
+  gap: 12px;
+}
+
+.nav-button-secondary .nav-icon-wrapper {
+  width: 40px;
+  height: 40px;
+}
+
+.nav-button-secondary .nav-icon {
+  font-size: 1.2rem;
+}
+
+.nav-button-secondary .nav-label {
+  font-size: 0.95rem;
 }
 
 .nav-button:hover {
   border-color: #4b5563;
+  transform: translateX(4px);
+}
+
+.nav-button-primary:hover {
   transform: translateX(6px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .nav-icon-wrapper {
@@ -231,17 +250,14 @@ const emit = defineEmits(['navigate'])
 
 .nav-icon-wrapper.quests {
   background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .nav-icon-wrapper.explorations {
   background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
-  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.4);
 }
 
 .nav-icon-wrapper.genus-loci {
   background: linear-gradient(135deg, #6b21a8 0%, #9333ea 100%);
-  box-shadow: 0 4px 12px rgba(147, 51, 234, 0.4);
 }
 
 .nav-icon {
@@ -288,7 +304,7 @@ const emit = defineEmits(['navigate'])
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(5, 150, 105, 0.75) 0%, rgba(16, 185, 129, 0.6) 100%);
+  background: linear-gradient(90deg, rgba(5, 150, 105, 0.92) 0%, rgba(5, 150, 105, 0.7) 50%, rgba(5, 150, 105, 0.15) 100%);
   border-radius: 13px;
   z-index: 0;
 }
@@ -307,9 +323,6 @@ const emit = defineEmits(['navigate'])
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
-.nav-button.quests-button .nav-icon-wrapper {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.5);
-}
 
 .nav-button.quests-button .nav-arrow {
   color: rgba(255, 255, 255, 0.6);
@@ -322,7 +335,6 @@ const emit = defineEmits(['navigate'])
 
 .nav-button.quests-button:hover {
   border-color: #34d399;
-  box-shadow: 0 4px 25px rgba(16, 185, 129, 0.4);
 }
 
 /* Genus Loci button with background image */
@@ -336,7 +348,7 @@ const emit = defineEmits(['navigate'])
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(107, 33, 168, 0.75) 0%, rgba(147, 51, 234, 0.6) 100%);
+  background: linear-gradient(90deg, rgba(107, 33, 168, 0.92) 0%, rgba(107, 33, 168, 0.7) 50%, rgba(107, 33, 168, 0.15) 100%);
   border-radius: 13px;
   z-index: 0;
 }
@@ -355,9 +367,6 @@ const emit = defineEmits(['navigate'])
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
-.nav-button.genus-loci-button .nav-icon-wrapper {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(147, 51, 234, 0.5);
-}
 
 .nav-button.genus-loci-button .nav-arrow {
   color: rgba(255, 255, 255, 0.6);
@@ -370,7 +379,6 @@ const emit = defineEmits(['navigate'])
 
 .nav-button.genus-loci-button:hover {
   border-color: #a855f7;
-  box-shadow: 0 4px 25px rgba(147, 51, 234, 0.4);
 }
 
 /* Explorations button with background image */
@@ -384,7 +392,7 @@ const emit = defineEmits(['navigate'])
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(8, 145, 178, 0.75) 0%, rgba(6, 182, 212, 0.6) 100%);
+  background: linear-gradient(90deg, rgba(8, 145, 178, 0.92) 0%, rgba(8, 145, 178, 0.7) 50%, rgba(8, 145, 178, 0.15) 100%);
   border-radius: 13px;
   z-index: 0;
 }
@@ -403,9 +411,6 @@ const emit = defineEmits(['navigate'])
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
-.nav-button.explorations-button .nav-icon-wrapper {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(6, 182, 212, 0.5);
-}
 
 .nav-button.explorations-button .nav-arrow {
   color: rgba(255, 255, 255, 0.6);
@@ -418,6 +423,5 @@ const emit = defineEmits(['navigate'])
 
 .nav-button.explorations-button:hover {
   border-color: #22d3ee;
-  box-shadow: 0 4px 25px rgba(6, 182, 212, 0.4);
 }
 </style>

@@ -66,11 +66,6 @@ function navigateToHero(hero) {
 
 <template>
   <div class="shards-screen">
-    <!-- Animated background layers -->
-    <div class="bg-layer bg-gradient"></div>
-    <div class="bg-layer bg-shards"></div>
-    <div class="bg-vignette"></div>
-
     <header class="screen-header">
       <button class="back-btn" @click="emit('navigate', 'fellowship-hall')">
         <span class="back-arrow">‹</span>
@@ -187,66 +182,13 @@ function navigateToHero(hero) {
 .shards-screen {
   min-height: 100vh;
   padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
   display: flex;
   flex-direction: column;
   gap: 20px;
   position: relative;
   overflow: hidden;
-}
-
-/* ===== Animated Background ===== */
-.bg-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.bg-gradient {
-  background: linear-gradient(
-    135deg,
-    #1e1b4b 0%,
-    #312e81 25%,
-    #3b2f6b 50%,
-    #1e1b4b 75%,
-    #2e1065 100%
-  );
-  background-size: 400% 400%;
-  animation: gradientShift 20s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.bg-shards {
-  opacity: 0.04;
-  background-image:
-    linear-gradient(45deg, transparent 40%, rgba(168, 85, 247, 0.3) 45%, transparent 50%),
-    linear-gradient(-45deg, transparent 40%, rgba(168, 85, 247, 0.2) 45%, transparent 50%),
-    linear-gradient(135deg, transparent 40%, rgba(192, 132, 252, 0.2) 45%, transparent 50%);
-  background-size: 60px 60px, 80px 80px, 100px 100px;
-  animation: shardsDrift 15s linear infinite;
-}
-
-@keyframes shardsDrift {
-  0% { background-position: 0 0, 0 0, 0 0; }
-  100% { background-position: 60px 60px, -80px 80px, 100px -100px; }
-}
-
-.bg-vignette {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.5) 100%);
-  pointer-events: none;
-  z-index: -1;
+  background: #111827;
 }
 
 /* ===== Header ===== */

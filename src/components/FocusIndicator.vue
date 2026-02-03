@@ -34,6 +34,7 @@ defineProps({
   border-radius: 4px;
   background: #374151;
   transition: all 0.3s ease;
+  width: 100%;
 }
 
 .focus-indicator.sm {
@@ -44,6 +45,7 @@ defineProps({
 .focus-indicator.xs {
   padding: 2px 4px;
   gap: 0;
+  justify-content: center;
 }
 
 .focus-indicator.focused {

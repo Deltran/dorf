@@ -15,7 +15,7 @@ describe('Calisus (apprentice_mage)', () => {
     })
 
     it('should have correct base stats with MP', () => {
-      expect(apprentice_mage.baseStats).toEqual({ hp: 55, atk: 28, def: 10, spd: 11, mp: 50 })
+      expect(apprentice_mage.baseStats).toEqual({ hp: 55, atk: 33, def: 10, spd: 11, mp: 50 })
     })
   })
 

@@ -5,7 +5,7 @@ export const apprentice_mage = {
   name: 'Calisus',
   rarity: 2,
   classId: 'mage',
-  baseStats: { hp: 55, atk: 28, def: 10, spd: 11, mp: 50 },
+  baseStats: { hp: 55, atk: 33, def: 10, spd: 11, mp: 50 },
   skills: [
     {
       name: 'Spark',

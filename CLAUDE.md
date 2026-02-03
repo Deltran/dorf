@@ -8,6 +8,35 @@ Dorf is a Vue 3 gacha hero battler with turn-based combat. See `README.md` for f
 
 **Platforms:** Web and mobile (Android via Capacitor). All features must work with both mouse and touch — no touch-only gestures.
 
+## Safe Area Handling (Phone Status Bar)
+
+All screens must account for the phone's status bar and notch. CSS variables are defined globally in `App.vue`:
+
+```css
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+```
+
+**Required pattern for all screen containers:**
+```css
+.my-screen {
+  padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
+}
+```
+
+For screens with a separate header component:
+```css
+.screen-header {
+  padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
+}
+```
+
+The `viewport-fit=cover` meta tag in `index.html` enables safe-area-inset values.
+
 ## Hero Images
 
 Located in `src/assets/heroes/{hero_id}.png` (static) or `{hero_id}.gif` (animated). Not all heroes have images.

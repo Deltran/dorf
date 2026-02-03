@@ -1,13 +1,19 @@
 <script setup>
+import goodsBg from '../assets/backgrounds/goods_bg.png'
+
 const emit = defineEmits(['navigate'])
 </script>
 
 <template>
   <div class="goods-markets-screen">
-    <!-- Animated background -->
-    <div class="bg-layer bg-gradient"></div>
-    <div class="bg-layer bg-pattern"></div>
+    <!-- Dark vignette background -->
     <div class="bg-vignette"></div>
+
+    <!-- Atmospheric background image -->
+    <div
+      class="room-background"
+      :style="{ backgroundImage: `url(${goodsBg})` }"
+    ></div>
 
     <header class="screen-header">
       <button class="back-button" @click="emit('navigate', 'home')">
@@ -54,59 +60,42 @@ const emit = defineEmits(['navigate'])
 .goods-markets-screen {
   min-height: 100vh;
   padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
   display: flex;
   flex-direction: column;
   gap: 24px;
   position: relative;
   overflow: hidden;
+  background: linear-gradient(to bottom, #0a0a0a 0%, #111827 100%);
 }
 
-/* Animated Background */
-.bg-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.bg-gradient {
-  background: linear-gradient(
-    135deg,
-    #0f172a 0%,
-    #1e3a5f 25%,
-    #1e1b4b 50%,
-    #1e3a5f 75%,
-    #0f172a 100%
-  );
-  background-size: 400% 400%;
-  animation: gradientShift 20s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.bg-pattern {
-  opacity: 0.03;
-  background-image:
-    radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px),
-    radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-
+/* Dark vignette background */
 .bg-vignette {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
+}
+
+/* Atmospheric background image */
+.room-background {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
 }
 
 /* Header */
@@ -180,7 +169,6 @@ const emit = defineEmits(['navigate'])
 .option-card:hover {
   border-color: #4b5563;
   transform: translateX(6px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .option-icon-wrapper {
@@ -195,12 +183,10 @@ const emit = defineEmits(['navigate'])
 
 .option-icon-wrapper.inventory {
   background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .option-icon-wrapper.shops {
   background: linear-gradient(135deg, #854d0e 0%, #f59e0b 100%);
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
 }
 
 .option-icon {

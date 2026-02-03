@@ -3,16 +3,21 @@ import fellowshipHallBg from '../assets/backgrounds/fellowship_hall_bg.png'
 import partyBg from '../assets/backgrounds/party_bg.png'
 import fusionBg from '../assets/backgrounds/fusion.png'
 import shardsBg from '../assets/backgrounds/shards.png'
+import heroPrepBg from '../assets/backgrounds/hero_prep_bg.png'
 
 const emit = defineEmits(['navigate'])
 </script>
 
 <template>
   <div class="fellowship-hall-screen">
-    <!-- Animated background -->
-    <div class="bg-layer bg-gradient"></div>
-    <div class="bg-layer bg-pattern"></div>
+    <!-- Dark vignette background -->
     <div class="bg-vignette"></div>
+
+    <!-- Atmospheric background image -->
+    <div
+      class="room-background"
+      :style="{ backgroundImage: `url(${heroPrepBg})` }"
+    ></div>
 
     <header class="screen-header">
       <button class="back-button" @click="emit('navigate', 'home')">
@@ -24,8 +29,9 @@ const emit = defineEmits(['navigate'])
     </header>
 
     <nav class="hub-nav">
+      <!-- Primary: Heroes -->
       <button
-        class="nav-button heroes-button"
+        class="nav-button nav-button-primary heroes-button"
         :style="{ backgroundImage: `url(${fellowshipHallBg})` }"
         @click="emit('navigate', 'heroes')"
       >
@@ -39,38 +45,37 @@ const emit = defineEmits(['navigate'])
         <div class="nav-arrow">›</div>
       </button>
 
-      <button
-        class="nav-button party-button"
-        :style="{ backgroundImage: `url(${partyBg})` }"
-        @click="emit('navigate', 'party')"
-      >
-        <div class="nav-icon-wrapper party">
-          <span class="nav-icon">🛡️</span>
-        </div>
-        <div class="nav-content">
-          <span class="nav-label">Party</span>
-          <span class="nav-hint">Manage your team</span>
-        </div>
-        <div class="nav-arrow">›</div>
-      </button>
+      <!-- Secondary: Party, Fusion, Shards -->
+      <div class="secondary-nav">
+        <button
+          class="nav-button nav-button-secondary party-button"
+          :style="{ backgroundImage: `url(${partyBg})` }"
+          @click="emit('navigate', 'party')"
+        >
+          <div class="nav-icon-wrapper party">
+            <span class="nav-icon">🛡️</span>
+          </div>
+          <div class="nav-content">
+            <span class="nav-label">Party</span>
+          </div>
+        </button>
+
+        <button
+          class="nav-button nav-button-secondary fusion-button"
+          :style="{ backgroundImage: `url(${fusionBg})` }"
+          @click="emit('navigate', 'merge')"
+        >
+          <div class="nav-icon-wrapper fusion">
+            <span class="nav-icon">⭐</span>
+          </div>
+          <div class="nav-content">
+            <span class="nav-label">Fusion</span>
+          </div>
+        </button>
+      </div>
 
       <button
-        class="nav-button fusion-button"
-        :style="{ backgroundImage: `url(${fusionBg})` }"
-        @click="emit('navigate', 'merge')"
-      >
-        <div class="nav-icon-wrapper fusion">
-          <span class="nav-icon">⭐</span>
-        </div>
-        <div class="nav-content">
-          <span class="nav-label">Fusion</span>
-          <span class="nav-hint">Upgrade stars</span>
-        </div>
-        <div class="nav-arrow">›</div>
-      </button>
-
-      <button
-        class="nav-button shards-button"
+        class="nav-button nav-button-secondary shards-button"
         :style="{ backgroundImage: `url(${shardsBg})` }"
         @click="emit('navigate', 'shards')"
       >
@@ -91,59 +96,42 @@ const emit = defineEmits(['navigate'])
 .fellowship-hall-screen {
   min-height: 100vh;
   padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
   display: flex;
   flex-direction: column;
   gap: 24px;
   position: relative;
   overflow: hidden;
+  background: linear-gradient(to bottom, #0a0a0a 0%, #111827 100%);
 }
 
-/* Animated Background - same as other screens */
-.bg-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.bg-gradient {
-  background: linear-gradient(
-    135deg,
-    #0f172a 0%,
-    #1e1b4b 25%,
-    #7f1d1d 50%,
-    #1e1b4b 75%,
-    #0f172a 100%
-  );
-  background-size: 400% 400%;
-  animation: gradientShift 20s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.bg-pattern {
-  opacity: 0.03;
-  background-image:
-    radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px),
-    radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-
+/* Dark vignette background */
 .bg-vignette {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
   pointer-events: none;
-  z-index: -1;
+  z-index: 0;
+}
+
+/* Atmospheric background image */
+.room-background {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
 }
 
 /* Header */
@@ -199,6 +187,11 @@ const emit = defineEmits(['navigate'])
   z-index: 1;
 }
 
+.secondary-nav {
+  display: flex;
+  gap: 12px;
+}
+
 .nav-button {
   display: flex;
   align-items: center;
@@ -214,25 +207,51 @@ const emit = defineEmits(['navigate'])
   overflow: hidden;
 }
 
-.nav-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-  transition: left 0.5s ease;
+/* Primary button - larger, more prominent */
+.nav-button-primary {
+  padding: 28px 24px;
 }
 
-.nav-button:hover::before {
-  left: 100%;
+.nav-button-primary .nav-icon-wrapper {
+  width: 56px;
+  height: 56px;
+}
+
+.nav-button-primary .nav-icon {
+  font-size: 1.8rem;
+}
+
+.nav-button-primary .nav-label {
+  font-size: 1.3rem;
+}
+
+/* Secondary buttons - compact, side-by-side */
+.nav-button-secondary {
+  flex: 1;
+  padding: 14px 16px;
+  gap: 12px;
+}
+
+.nav-button-secondary .nav-icon-wrapper {
+  width: 40px;
+  height: 40px;
+}
+
+.nav-button-secondary .nav-icon {
+  font-size: 1.2rem;
+}
+
+.nav-button-secondary .nav-label {
+  font-size: 0.95rem;
 }
 
 .nav-button:hover {
   border-color: #4b5563;
+  transform: translateX(4px);
+}
+
+.nav-button-primary:hover {
   transform: translateX(6px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
 }
 
 .nav-icon-wrapper {
@@ -247,22 +266,18 @@ const emit = defineEmits(['navigate'])
 
 .nav-icon-wrapper.heroes {
   background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 .nav-icon-wrapper.party {
   background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 .nav-icon-wrapper.fusion {
   background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
 }
 
 .nav-icon-wrapper.shards {
   background: linear-gradient(135deg, #7c3aed 0%, #c026d3 100%);
-  box-shadow: 0 4px 12px rgba(192, 38, 211, 0.4);
 }
 
 .nav-icon {
@@ -309,7 +324,7 @@ const emit = defineEmits(['navigate'])
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.75) 0%, rgba(239, 68, 68, 0.6) 100%);
+  background: linear-gradient(90deg, rgba(220, 38, 38, 0.92) 0%, rgba(220, 38, 38, 0.7) 50%, rgba(220, 38, 38, 0.15) 100%);
   border-radius: 13px;
   z-index: 0;
 }
@@ -328,10 +343,6 @@ const emit = defineEmits(['navigate'])
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
-.nav-button.heroes-button .nav-icon-wrapper {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.5);
-}
-
 .nav-button.heroes-button .nav-arrow {
   color: rgba(255, 255, 255, 0.6);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -343,7 +354,6 @@ const emit = defineEmits(['navigate'])
 
 .nav-button.heroes-button:hover {
   border-color: #f87171;
-  box-shadow: 0 4px 25px rgba(239, 68, 68, 0.4);
 }
 
 /* Party button with background image */
@@ -357,7 +367,7 @@ const emit = defineEmits(['navigate'])
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(5, 150, 105, 0.75) 0%, rgba(16, 185, 129, 0.6) 100%);
+  background: linear-gradient(90deg, rgba(5, 150, 105, 0.92) 0%, rgba(5, 150, 105, 0.7) 50%, rgba(5, 150, 105, 0.15) 100%);
   border-radius: 13px;
   z-index: 0;
 }
@@ -371,27 +381,8 @@ const emit = defineEmits(['navigate'])
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-.nav-button.party-button .nav-hint {
-  color: #f3f4f6;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-}
-
-.nav-button.party-button .nav-icon-wrapper {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.5);
-}
-
-.nav-button.party-button .nav-arrow {
-  color: rgba(255, 255, 255, 0.6);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.nav-button.party-button:hover .nav-arrow {
-  color: rgba(255, 255, 255, 0.9);
-}
-
 .nav-button.party-button:hover {
   border-color: #34d399;
-  box-shadow: 0 4px 25px rgba(16, 185, 129, 0.4);
 }
 
 /* Fusion button with background image */
@@ -405,7 +396,7 @@ const emit = defineEmits(['navigate'])
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.75) 0%, rgba(251, 191, 36, 0.6) 100%);
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.92) 0%, rgba(245, 158, 11, 0.7) 50%, rgba(245, 158, 11, 0.15) 100%);
   border-radius: 13px;
   z-index: 0;
 }
@@ -419,27 +410,8 @@ const emit = defineEmits(['navigate'])
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-.nav-button.fusion-button .nav-hint {
-  color: #f3f4f6;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
-}
-
-.nav-button.fusion-button .nav-icon-wrapper {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(251, 191, 36, 0.5);
-}
-
-.nav-button.fusion-button .nav-arrow {
-  color: rgba(255, 255, 255, 0.6);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.nav-button.fusion-button:hover .nav-arrow {
-  color: rgba(255, 255, 255, 0.9);
-}
-
 .nav-button.fusion-button:hover {
   border-color: #fcd34d;
-  box-shadow: 0 4px 25px rgba(251, 191, 36, 0.4);
 }
 
 /* Shards button with background image */
@@ -453,7 +425,7 @@ const emit = defineEmits(['navigate'])
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(124, 58, 237, 0.75) 0%, rgba(192, 38, 211, 0.6) 100%);
+  background: linear-gradient(90deg, rgba(124, 58, 237, 0.92) 0%, rgba(124, 58, 237, 0.7) 50%, rgba(124, 58, 237, 0.15) 100%);
   border-radius: 13px;
   z-index: 0;
 }
@@ -472,10 +444,6 @@ const emit = defineEmits(['navigate'])
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
-.nav-button.shards-button .nav-icon-wrapper {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 20px rgba(168, 85, 247, 0.5);
-}
-
 .nav-button.shards-button .nav-arrow {
   color: rgba(255, 255, 255, 0.6);
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -487,6 +455,5 @@ const emit = defineEmits(['navigate'])
 
 .nav-button.shards-button:hover {
   border-color: #c084fc;
-  box-shadow: 0 4px 25px rgba(168, 85, 247, 0.4);
 }
 </style>

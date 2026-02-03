@@ -62,11 +62,6 @@ function toggleLeader(hero) {
 
 <template>
   <div class="party-screen">
-    <!-- Animated background -->
-    <div class="bg-layer bg-gradient"></div>
-    <div class="bg-layer bg-pattern"></div>
-    <div class="bg-vignette"></div>
-
     <header class="screen-header">
       <button class="back-button" @click="emit('navigate', 'fellowship-hall')">
         <span class="back-arrow">‹</span>
@@ -138,59 +133,13 @@ function toggleLeader(hero) {
 .party-screen {
   min-height: 100vh;
   padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
   display: flex;
   flex-direction: column;
   gap: 20px;
   position: relative;
   overflow: hidden;
-}
-
-/* Animated Background */
-.bg-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.bg-gradient {
-  background: linear-gradient(
-    135deg,
-    #0f172a 0%,
-    #1e1b4b 25%,
-    #064e3b 50%,
-    #1e1b4b 75%,
-    #0f172a 100%
-  );
-  background-size: 400% 400%;
-  animation: gradientShift 20s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.bg-pattern {
-  opacity: 0.03;
-  background-image:
-    radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px),
-    radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-
-.bg-vignette {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.4) 100%);
-  pointer-events: none;
-  z-index: -1;
+  background: #111827;
 }
 
 /* Header */

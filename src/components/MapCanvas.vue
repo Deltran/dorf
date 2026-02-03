@@ -94,9 +94,16 @@ const regionLinks = computed(() => {
   return links
 })
 
-// Convert logical coordinates to percentage
-function toPercent(value, max) {
-  return (value / max) * 100
+// Safe zone boundaries (percentages) to avoid header/edges - must match NodeMarker.vue
+const SAFE_ZONE = { top: 12, bottom: 92, left: 8, right: 92 }
+
+// Convert logical coordinates to safe zone percentage
+function toSafeX(x) {
+  return SAFE_ZONE.left + (x / logicalWidth.value) * (SAFE_ZONE.right - SAFE_ZONE.left)
+}
+
+function toSafeY(y) {
+  return SAFE_ZONE.top + (y / logicalHeight.value) * (SAFE_ZONE.bottom - SAFE_ZONE.top)
 }
 
 function selectNode(node) {
@@ -119,33 +126,33 @@ function navigateRegion(payload) {
       }"
     ></div>
 
-    <!-- SVG Layer for trails -->
+    <!-- SVG Layer for trails (uses percentage coordinates to match safe zone) -->
     <svg
       class="map-svg"
-      :viewBox="`0 0 ${logicalWidth} ${logicalHeight}`"
-      preserveAspectRatio="xMidYMid slice"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="none"
     >
       <!-- Dotted trail paths -->
       <g class="trails">
         <template v-for="trail in trails" :key="trail.id">
           <line
-            :x1="trail.from.x"
-            :y1="trail.from.y"
-            :x2="trail.to.x"
-            :y2="trail.to.y"
+            :x1="toSafeX(trail.from.x)"
+            :y1="toSafeY(trail.from.y)"
+            :x2="toSafeX(trail.to.x)"
+            :y2="toSafeY(trail.to.y)"
             :class="['trail-line', { faded: !trail.fullyVisible }]"
-            stroke-dasharray="8 8"
+            stroke-dasharray="2 2"
           />
         </template>
         <!-- Region link trails -->
         <template v-for="link in regionLinks" :key="link.id">
           <line
-            :x1="link.sourceNode.x"
-            :y1="link.sourceNode.y"
-            :x2="link.position.x"
-            :y2="link.position.y"
+            :x1="toSafeX(link.sourceNode.x)"
+            :y1="toSafeY(link.sourceNode.y)"
+            :x2="toSafeX(link.position.x)"
+            :y2="toSafeY(link.position.y)"
             class="trail-line region-link-trail"
-            stroke-dasharray="8 8"
+            stroke-dasharray="2 2"
           />
         </template>
       </g>
@@ -198,18 +205,18 @@ function navigateRegion(payload) {
 
 .trail-line {
   stroke: rgba(255, 255, 255, 0.5);
-  stroke-width: 3;
+  stroke-width: 0.5;
   stroke-linecap: round;
 }
 
 .trail-line.faded {
   stroke: rgba(255, 255, 255, 0.2);
-  stroke-dasharray: 6 10;
+  stroke-dasharray: 1 2;
 }
 
 .trail-line.region-link-trail {
   stroke: rgba(59, 130, 246, 0.5);
-  stroke-width: 3;
+  stroke-width: 0.5;
   stroke-linecap: round;
 }
 

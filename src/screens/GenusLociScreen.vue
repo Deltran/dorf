@@ -116,11 +116,6 @@ function goBack() {
 
 <template>
   <div class="genus-loci-screen">
-    <!-- Animated background layers -->
-    <div class="bg-layer bg-gradient"></div>
-    <div class="bg-layer bg-wisps"></div>
-    <div class="bg-vignette"></div>
-
     <header class="screen-header">
       <button class="back-button" @click="goBack">
         <span class="back-arrow">‹</span>
@@ -305,67 +300,13 @@ function goBack() {
 .genus-loci-screen {
   min-height: 100vh;
   padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
   display: flex;
   flex-direction: column;
   gap: 20px;
   position: relative;
   overflow: hidden;
-}
-
-/* ===== Animated Background ===== */
-.bg-layer {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.bg-gradient {
-  background: linear-gradient(
-    135deg,
-    #0f172a 0%,
-    #2a1f3d 25%,
-    #1e1b4b 50%,
-    #2a1f3d 75%,
-    #0f172a 100%
-  );
-  background-size: 400% 400%;
-  animation: gradientShift 20s ease infinite;
-}
-
-@keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-}
-
-.bg-wisps {
-  opacity: 0.04;
-  background-image:
-    radial-gradient(ellipse 100px 80px at 20% 30%, rgba(147, 51, 234, 0.4), transparent),
-    radial-gradient(ellipse 80px 60px at 70% 60%, rgba(168, 85, 247, 0.3), transparent),
-    radial-gradient(ellipse 120px 90px at 40% 80%, rgba(139, 92, 246, 0.3), transparent);
-  animation: wispsDrift 25s ease-in-out infinite;
-}
-
-@keyframes wispsDrift {
-  0%, 100% { transform: translateX(0) translateY(0); }
-  25% { transform: translateX(20px) translateY(-10px); }
-  50% { transform: translateX(-10px) translateY(15px); }
-  75% { transform: translateX(-20px) translateY(-5px); }
-}
-
-.bg-vignette {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0,0,0,0.5) 100%);
-  pointer-events: none;
-  z-index: -1;
+  background: #111827;
 }
 
 /* ===== Header ===== */

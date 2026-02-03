@@ -283,6 +283,7 @@ function confirmEnhance() {
   align-items: center;
   gap: 16px;
   padding: 20px;
+  padding-top: calc(20px + var(--safe-area-top));
   background: #1f2937;
 }
 

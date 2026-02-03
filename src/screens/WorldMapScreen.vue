@@ -79,25 +79,27 @@ let skipNextRegionReset = false
 
 // Restore last visited region on mount
 onMounted(() => {
-  const savedRegion = questsStore.lastVisitedRegion
-  if (savedRegion) {
-    const regionData = getRegion(savedRegion)
-    if (regionData) {
-      // Set flag to skip the watch reset
-      skipNextRegionReset = true
-      selectedSuperRegion.value = regionData.superRegion
-      // Don't auto-select region - show region list first
-    }
-  }
-
   // If navigated with a specific region (e.g. from inventory token)
   if (props.initialRegionName) {
     const targetRegion = regions.find(r => r.name === props.initialRegionName)
     if (targetRegion) {
+      skipNextRegionReset = true
       if (targetRegion.superRegion) {
         selectedSuperRegion.value = targetRegion.superRegion
       }
       selectedRegion.value = targetRegion.id
+    }
+    return
+  }
+
+  // Otherwise restore from lastVisitedRegion (e.g. returning from battle)
+  const savedRegion = questsStore.lastVisitedRegion
+  if (savedRegion) {
+    const regionData = getRegion(savedRegion)
+    if (regionData) {
+      skipNextRegionReset = true
+      selectedSuperRegion.value = regionData.superRegion
+      selectedRegion.value = savedRegion
     }
   }
 })
@@ -147,6 +149,29 @@ const regionProgress = computed(() => {
 // Get progress for a specific region (for region list)
 function getRegionProgress(regionId) {
   return questsStore.regionProgress[regionId] || { completed: 0, total: 0 }
+}
+
+// Determine the "next" region - first incomplete region by order
+const nextRegionId = computed(() => {
+  for (const region of filteredRegions.value) {
+    const progress = getRegionProgress(region.id)
+    if (progress.completed < progress.total) {
+      return region.id
+    }
+  }
+  return null
+})
+
+// Get region state for styling
+function getRegionState(regionId) {
+  const progress = getRegionProgress(regionId)
+  if (progress.completed >= progress.total && progress.total > 0) {
+    return 'completed'
+  }
+  if (regionId === nextRegionId.value) {
+    return 'next'
+  }
+  return 'in-progress'
 }
 
 function getRegionBackground(region) {
@@ -387,7 +412,7 @@ const totalCleared = computed(() => {
         <button
           v-for="region in filteredRegions"
           :key="region.id"
-          class="region-card"
+          :class="['region-card', `region-${getRegionState(region.id)}`]"
           @click="selectRegion(region.id)"
         >
           <div
@@ -400,9 +425,10 @@ const totalCleared = computed(() => {
             <span class="region-progress-text">
               {{ getRegionProgress(region.id).completed }}/{{ getRegionProgress(region.id).total }} cleared
             </span>
+            <span v-if="getRegionState(region.id) === 'next'" class="next-badge">Continue Journey</span>
           </div>
-          <div class="region-card-decoration">
-            <span class="compass-icon">🧭</span>
+          <div v-if="getRegionState(region.id) === 'completed'" class="region-card-decoration">
+            <span class="check-icon">✓</span>
           </div>
         </button>
       </div>
@@ -928,19 +954,23 @@ const totalCleared = computed(() => {
   inset: 0;
   background-color: #3d3522;
   background-size: cover;
-  background-position: center;
-  opacity: 0.25;
+  background-position: center right;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
 }
 
 .region-card-overlay {
   position: absolute;
   inset: 0;
+  /* Left-to-right gradient: solid for text legibility, fading to reveal art */
   background: linear-gradient(
-    135deg,
-    rgba(139, 119, 77, 0.85) 0%,
-    rgba(87, 75, 52, 0.9) 50%,
-    rgba(61, 53, 34, 0.95) 100%
+    90deg,
+    rgba(61, 53, 34, 0.95) 0%,
+    rgba(61, 53, 34, 0.85) 40%,
+    rgba(61, 53, 34, 0.4) 70%,
+    rgba(61, 53, 34, 0.2) 100%
   );
+  transition: background 0.3s ease;
 }
 
 .region-card-content {
@@ -974,11 +1004,65 @@ const totalCleared = computed(() => {
   top: 50%;
   transform: translateY(-50%);
   z-index: 1;
-  opacity: 0.4;
 }
 
-.compass-icon {
-  font-size: 2rem;
+.check-icon {
+  font-size: 1.5rem;
+  color: #22c55e;
+  text-shadow: 0 2px 8px rgba(34, 197, 94, 0.5);
+}
+
+/* Region State: Completed */
+.region-card.region-completed {
+  opacity: 0.7;
+}
+
+.region-card.region-completed .region-card-bg {
+  opacity: 0.3;
+  filter: grayscale(40%);
+}
+
+.region-card.region-completed .region-name {
+  color: rgba(245, 240, 225, 0.7);
+}
+
+/* Region State: Next (call to action) */
+.region-card.region-next {
+  border: 2px solid rgba(251, 191, 36, 0.5);
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.15);
+}
+
+.region-card.region-next .region-card-bg {
+  opacity: 0.7;
+}
+
+.region-card.region-next .region-card-overlay {
+  background: linear-gradient(
+    90deg,
+    rgba(61, 53, 34, 0.9) 0%,
+    rgba(61, 53, 34, 0.7) 40%,
+    rgba(61, 53, 34, 0.3) 70%,
+    rgba(61, 53, 34, 0.1) 100%
+  );
+}
+
+.next-badge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 3px 10px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #1a1a1a;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-style: normal;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Region State: In Progress (default, no special styling needed) */
+.region-card.region-in-progress {
+  /* Default state */
 }
 
 /* ========================================
@@ -1001,8 +1085,8 @@ const totalCleared = computed(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
-  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding: 8px 16px;
+  padding-top: calc(8px + env(safe-area-inset-top, 0px));
   pointer-events: none;
 }
 

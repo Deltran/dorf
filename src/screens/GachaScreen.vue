@@ -858,6 +858,7 @@ function handleTenPull() {
   overflow: hidden;
   background: linear-gradient(to bottom, #0a0a0a 0%, #121212 100%);
   padding: 16px;
+  padding-top: calc(16px + var(--safe-area-top));
 }
 
 /* ===== Dark Vignette Background ===== */
@@ -882,7 +883,7 @@ function handleTenPull() {
   max-width: 600px;
   height: 100%;
   background-size: contain;
-  background-position: center top;
+  background-position: center center;
   background-repeat: no-repeat;
   pointer-events: none;
   z-index: 0;

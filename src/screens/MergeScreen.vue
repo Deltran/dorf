@@ -183,6 +183,7 @@ function selectGroup(group) {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
+  padding-top: calc(16px + var(--safe-area-top));
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   border-bottom: 1px solid #374151;
 }

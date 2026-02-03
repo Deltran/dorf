@@ -15,7 +15,7 @@ describe('Farm Hand (Darl)', () => {
     })
 
     it('should have correct base stats (no MP for berserkers)', () => {
-      expect(farm_hand.baseStats).toEqual({ hp: 70, atk: 25, def: 12, spd: 8 })
+      expect(farm_hand.baseStats).toEqual({ hp: 70, atk: 30, def: 12, spd: 8 })
       expect(farm_hand.baseStats.mp).toBeUndefined()
     })
   })

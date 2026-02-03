@@ -18,11 +18,18 @@ const props = defineProps({
 
 const emit = defineEmits(['navigate'])
 
-// Position as percentage of logical coordinate space
-const markerStyle = computed(() => ({
-  left: `${(props.link.position.x / props.logicalWidth) * 100}%`,
-  top: `${(props.link.position.y / props.logicalHeight) * 100}%`
-}))
+// Safe zone boundaries (percentages) to avoid header/edges - must match NodeMarker.vue
+const SAFE_ZONE = { top: 12, bottom: 92, left: 8, right: 92 }
+
+// Position as percentage of logical coordinate space, mapped to safe zone
+const markerStyle = computed(() => {
+  const safeLeft = SAFE_ZONE.left + (props.link.position.x / props.logicalWidth) * (SAFE_ZONE.right - SAFE_ZONE.left)
+  const safeTop = SAFE_ZONE.top + (props.link.position.y / props.logicalHeight) * (SAFE_ZONE.bottom - SAFE_ZONE.top)
+  return {
+    left: `${safeLeft}%`,
+    top: `${safeTop}%`
+  }
+})
 </script>
 
 <template>

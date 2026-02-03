@@ -54,7 +54,8 @@ export const useQuestsStore = defineStore('quests', () => {
   const regionProgress = computed(() => {
     const progress = {}
     for (const region of regions) {
-      const regionNodes = getAllQuestNodes().filter(n => n.region === region.name)
+      // Exclude exploration nodes from progress count - they're optional side content
+      const regionNodes = getAllQuestNodes().filter(n => n.region === region.name && n.type !== 'exploration')
       const completed = regionNodes.filter(n => completedNodes.value.includes(n.id))
       progress[region.id] = {
         name: region.name,

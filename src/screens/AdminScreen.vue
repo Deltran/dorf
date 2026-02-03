@@ -119,6 +119,7 @@ function selectSection(item) {
   display: flex;
   min-height: 100vh;
   background: #111827;
+  padding-top: var(--safe-area-top);
 }
 
 .sidebar {

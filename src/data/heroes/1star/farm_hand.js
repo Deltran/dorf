@@ -5,7 +5,7 @@ export const farm_hand = {
   name: 'Darl',
   rarity: 1,
   classId: 'berserker',
-  baseStats: { hp: 70, atk: 25, def: 12, spd: 8 },
+  baseStats: { hp: 70, atk: 30, def: 12, spd: 8 },
   skills: [
     {
       name: 'Pitchfork Jabs',

@@ -1804,8 +1804,8 @@ function getStatChange(hero, stat) {
 .battle-screen {
   min-height: 100vh;
   padding: 16px;
-  padding-top: calc(32px + env(safe-area-inset-top, 0px));
-  padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px)); /* Space for fixed combat log bar */
+  padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); /* Space for fixed combat log bar */
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1820,7 +1820,7 @@ function getStatChange(hero, stat) {
 .turn-order-strip {
   position: absolute;
   left: 8px;
-  top: calc(44px + env(safe-area-inset-top, 0px)); /* Below the battle header, accounting for safe area */
+  top: 44px; /* Below the battle header */
   width: 36px;
   display: flex;
   flex-direction: column;
@@ -1965,11 +1965,13 @@ function getStatChange(hero, stat) {
   position: relative;
   display: flex;
   justify-content: center;
+  align-items: center;
   align-content: center;
   gap: 12px;
-  padding: 40px 20px 100px 20px;
+  padding: 40px 20px 20px 20px;
   flex-wrap: wrap;
-  height: 450px;
+  flex: 1;
+  min-height: 200px;
   border-radius: 12px;
   overflow: visible;
 }
@@ -2303,7 +2305,6 @@ function getStatChange(hero, stat) {
   width: 100%;
   box-sizing: border-box;
   flex-wrap: nowrap;
-  margin-top: -90px;
   position: relative;
   z-index: 2;
 }

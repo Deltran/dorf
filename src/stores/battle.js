@@ -3160,6 +3160,18 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
+          // Apply self-buff effects from enemy-targeting skills (e.g., Fennick's Counter-shot thorns)
+          if (skill.effects) {
+            for (const effect of skill.effects) {
+              if (effect.target === 'self' && shouldApplyEffect(effect, hero)) {
+                const effectDuration = resolveEffectDuration(effect, hero)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
+                applyEffect(hero, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
+                emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+              }
+            }
+          }
+
           // Handle conditionalEffects with Heartbreak threshold (Bitter Embrace)
           if (skill.conditionalEffects && skill.conditionalEffects.heartbreakThreshold && !targetEvaded) {
             const threshold = skill.conditionalEffects.heartbreakThreshold

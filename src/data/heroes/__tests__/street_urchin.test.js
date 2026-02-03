@@ -15,7 +15,7 @@ describe('Street Urchin (Salia)', () => {
     })
 
     it('should have correct base stats with MP', () => {
-      expect(street_urchin.baseStats).toEqual({ hp: 50, atk: 18, def: 8, spd: 14, mp: 30 })
+      expect(street_urchin.baseStats).toEqual({ hp: 50, atk: 23, def: 8, spd: 14, mp: 30 })
     })
   })
 

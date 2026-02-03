@@ -46,12 +46,19 @@ const nodeBackground = computed(() => {
   return battleBackgrounds[bgPath] || null
 })
 
-// Position as percentage of logical coordinate space
-const markerStyle = computed(() => ({
-  left: `${(props.node.x / props.logicalWidth) * 100}%`,
-  top: `${(props.node.y / props.logicalHeight) * 100}%`,
-  transform: `translate(-50%, -50%) scale(${props.isSelected ? 1.15 : 1})`
-}))
+// Safe zone boundaries (percentages) to avoid header/edges
+const SAFE_ZONE = { top: 12, bottom: 92, left: 8, right: 92 }
+
+// Position as percentage of logical coordinate space, mapped to safe zone
+const markerStyle = computed(() => {
+  const safeLeft = SAFE_ZONE.left + (props.node.x / props.logicalWidth) * (SAFE_ZONE.right - SAFE_ZONE.left)
+  const safeTop = SAFE_ZONE.top + (props.node.y / props.logicalHeight) * (SAFE_ZONE.bottom - SAFE_ZONE.top)
+  return {
+    left: `${safeLeft}%`,
+    top: `${safeTop}%`,
+    transform: `translate(-50%, -50%) scale(${props.isSelected ? 1.15 : 1})`
+  }
+})
 </script>
 
 <template>

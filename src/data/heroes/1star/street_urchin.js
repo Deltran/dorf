@@ -5,7 +5,7 @@ export const street_urchin = {
   name: 'Salia',
   rarity: 1,
   classId: 'ranger',
-  baseStats: { hp: 50, atk: 18, def: 8, spd: 14, mp: 30 },
+  baseStats: { hp: 50, atk: 23, def: 8, spd: 14, mp: 30 },
   skills: [
     {
       name: 'Quick Throw',

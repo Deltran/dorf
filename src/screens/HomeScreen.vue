@@ -144,6 +144,7 @@ const hasParty = computed(() => {
 .home-screen {
   min-height: 100vh;
   padding: 16px;
+  padding-top: calc(16px + var(--safe-area-top));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -222,9 +223,9 @@ const hasParty = computed(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-end;
   min-height: 200px;
-  padding-top: 48px;
+  padding-bottom: 16px;
 }
 
 .party-container {
@@ -237,8 +238,9 @@ const hasParty = computed(() => {
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 3px;
-  margin-bottom: 16px;
-  text-align: center;
+  margin-bottom: 40px;
+  text-align: left;
+  padding-left: 16px;
 }
 
 .party-grid {
@@ -247,31 +249,47 @@ const hasParty = computed(() => {
   gap: 12px;
   max-width: 520px;
   margin: 0 auto;
+  padding: 0 16px;
 }
 
 .party-slot {
   aspect-ratio: 1;
-  border-radius: 8px;
-  overflow: hidden;
   cursor: pointer;
   transition: transform 0.2s ease;
   position: relative;
+}
+
+/* Back row - heroes 1 and 3 (odd slots) raised up */
+.party-slot:nth-child(odd) {
+  transform: translateY(-24px);
+  z-index: 1;
+}
+
+/* Front row - heroes 2 and 4 (even slots) on top */
+.party-slot:nth-child(even) {
+  z-index: 2;
 }
 
 .party-slot:hover {
   transform: scale(1.05);
 }
 
+.party-slot:nth-child(odd):hover {
+  transform: translateY(-24px) scale(1.05);
+}
+
 .party-slot.filled {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  /* No box shadow on the container */
 }
 
 .hero-portrait {
-  width: 100%;
-  height: 100%;
+  width: 135%;
+  height: 135%;
   object-fit: cover;
   display: block;
   image-rendering: pixelated;
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.7));
+  margin: -17.5%;
 }
 
 .empty-slot {
