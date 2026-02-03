@@ -7,6 +7,7 @@ import { getEnemyTemplate } from '../data/enemies/index.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import MapCanvas from '../components/MapCanvas.vue'
 import SuperRegionSelect from '../components/SuperRegionSelect.vue'
+import EnemyDetailSheet from '../components/EnemyDetailSheet.vue'
 import { useTooltip } from '../composables/useTooltip.js'
 
 const { onPointerEnter, onPointerLeave } = useTooltip()
@@ -52,6 +53,40 @@ const selectedRegion = ref(null) // null = show region list, string = show map
 const selectedSuperRegion = ref(null)
 const showTokenResults = ref(false)
 const tokenResults = ref(null)
+const enemyDetailTarget = ref(null) // For EnemyDetailSheet (long-press)
+
+// Long-press detection for enemy info sheet
+let enemyLongPressTimer = null
+let enemyLongPressTarget = null
+const LONG_PRESS_DURATION = 500
+
+function onEnemyLongPressStart(enemy, event) {
+  enemyLongPressTarget = enemy
+  enemyLongPressTimer = setTimeout(() => {
+    if (enemyLongPressTarget === enemy) {
+      enemyDetailTarget.value = {
+        template: enemy,
+        currentHp: enemy.stats.hp,
+        maxHp: enemy.stats.hp,
+        stats: enemy.stats,
+        statusEffects: []
+      }
+    }
+    enemyLongPressTimer = null
+  }, LONG_PRESS_DURATION)
+}
+
+function onEnemyLongPressEnd() {
+  if (enemyLongPressTimer) {
+    clearTimeout(enemyLongPressTimer)
+    enemyLongPressTimer = null
+  }
+  enemyLongPressTarget = null
+}
+
+function closeEnemyDetail() {
+  enemyDetailTarget.value = null
+}
 
 // Combine regular unlocked nodes with unlocked exploration nodes
 const allUnlockedNodes = computed(() => {
@@ -669,6 +704,12 @@ const totalCleared = computed(() => {
                     class="enemy-portrait-wrap"
                     @pointerenter="onPointerEnter($event, `${enemy.name}\n❤️ ${enemy.stats.hp} HP`, 200)"
                     @pointerleave="onPointerLeave()"
+                    @touchstart.passive="onEnemyLongPressStart(enemy, $event)"
+                    @touchend="onEnemyLongPressEnd"
+                    @touchmove="onEnemyLongPressEnd"
+                    @mousedown="onEnemyLongPressStart(enemy, $event)"
+                    @mouseup="onEnemyLongPressEnd"
+                    @mouseleave="onEnemyLongPressEnd"
                   >
                     <img
                       v-if="getEnemyImageUrl(enemy.id)"
@@ -791,6 +832,14 @@ const totalCleared = computed(() => {
     <Transition name="fade">
       <div v-if="selectedNode" class="modal-backdrop" @click="clearSelection"></div>
     </Transition>
+
+    <!-- Enemy Detail Sheet (long-press on enemy portraits) -->
+    <EnemyDetailSheet
+      :enemy="enemyDetailTarget"
+      :isOpen="enemyDetailTarget !== null"
+      :isKnown="true"
+      @close="closeEnemyDetail"
+    />
   </div>
 </template>
 
@@ -1366,6 +1415,9 @@ const totalCleared = computed(() => {
   border: 2px solid #ef4444;
   cursor: pointer;
   transition: transform 0.15s ease;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .enemy-portrait-wrap:hover {
@@ -1378,6 +1430,7 @@ const totalCleared = computed(() => {
   height: 100%;
   object-fit: cover;
   object-position: center top;
+  pointer-events: none;
 }
 
 .enemy-portrait-fallback {
