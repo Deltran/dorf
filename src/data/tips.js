@@ -17,7 +17,11 @@ export const tips = {
   },
   combat_intro: {
     title: 'Combat Basics',
-    message: 'Choose a skill for the hero below, then select the monster you wish to attack. If you click a monster before you select a skill, the Basic Attack will be selected for you automatically. Click again to attack!'
+    message: 'Tap an enemy to perform a normal attack, or choose a skill from the action bar below first for more powerful abilities. Each hero has unique skills — experiment to find powerful combinations!'
+  },
+  enemy_details_intro: {
+    title: 'Know Your Enemy',
+    message: 'Hold tap on an enemy to see their status effects and abilities. Once you\'ve defeated an enemy type, you can view their full skill list!'
   },
   hero_inspect_intro: {
     title: 'Hero Details',

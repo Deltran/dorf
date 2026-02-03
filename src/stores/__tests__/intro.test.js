@@ -147,6 +147,18 @@ describe('intro store', () => {
       introStore.completeIntro()
       expect(introStore.currentStep).toBe('COMPLETE')
     })
+
+    it('completeIntro triggers summon attention animation', () => {
+      introStore.completeIntro()
+      expect(introStore.showSummonAttention).toBe(true)
+    })
+
+    it('clearSummonAttention clears the flag', () => {
+      introStore.completeIntro()
+      expect(introStore.showSummonAttention).toBe(true)
+      introStore.clearSummonAttention()
+      expect(introStore.showSummonAttention).toBe(false)
+    })
   })
 
   describe('victory and defeat handling', () => {

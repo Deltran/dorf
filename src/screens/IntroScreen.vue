@@ -329,7 +329,7 @@ function handleGoHome() {
 
 .joins-text {
   position: fixed;
-  bottom: 120px;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   font-size: 1rem;

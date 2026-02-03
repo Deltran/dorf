@@ -24,6 +24,7 @@ export const useIntroStore = defineStore('intro', () => {
   const isIntroComplete = ref(false)
   const starterHero = ref(null)
   const giftedHero = ref(null)
+  const showSummonAttention = ref(false) // Transient - triggers summon button animation on home
 
   // Actions
   function advanceStep() {
@@ -31,8 +32,7 @@ export const useIntroStore = defineStore('intro', () => {
 
     // Special case: VICTORY_OUTRO advances to COMPLETE and marks intro done
     if (currentStep.value === 'VICTORY_OUTRO') {
-      currentStep.value = 'COMPLETE'
-      isIntroComplete.value = true
+      completeIntro()
       return
     }
 
@@ -109,6 +109,11 @@ export const useIntroStore = defineStore('intro', () => {
   function completeIntro() {
     isIntroComplete.value = true
     currentStep.value = 'COMPLETE'
+    showSummonAttention.value = true
+  }
+
+  function clearSummonAttention() {
+    showSummonAttention.value = false
   }
 
   // Persistence
@@ -133,6 +138,7 @@ export const useIntroStore = defineStore('intro', () => {
     isIntroComplete,
     starterHero,
     giftedHero,
+    showSummonAttention,
     // Actions
     advanceStep,
     giftStarterHero,
@@ -142,6 +148,7 @@ export const useIntroStore = defineStore('intro', () => {
     retryBattle,
     goHome,
     completeIntro,
+    clearSummonAttention,
     // Persistence
     saveState,
     loadState

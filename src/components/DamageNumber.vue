@@ -26,7 +26,7 @@ onMounted(() => {
   setTimeout(() => {
     isVisible.value = false
     emit('complete')
-  }, 1000)
+  }, 1500)
 })
 
 const displayValue = props.type === 'miss' ? 'Miss!' : props.type === 'heal' ? `+${props.value}` : `-${props.value}`
@@ -45,7 +45,7 @@ const displayValue = props.type === 'miss' ? 'Miss!' : props.type === 'heal' ? `
 <style scoped>
 .damage-number {
   position: absolute;
-  top: 0;
+  top: 35%;
   left: 50%;
   transform: translateX(calc(-50% + var(--offset-x, 0px))) translateY(var(--offset-y, 0px));
   font-weight: 700;
@@ -54,7 +54,7 @@ const displayValue = props.type === 'miss' ? 'Miss!' : props.type === 'heal' ? `
   user-select: none;
   z-index: 100;
   text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
-  animation: floatUp 1s ease-out forwards;
+  animation: floatUp 1.5s ease-out forwards;
 }
 
 .damage-number.damage {

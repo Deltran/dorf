@@ -452,6 +452,8 @@ onMounted(() => {
     tipsStore.showTip('combat_intro')
   } else if (nodeId === 'forest_02') {
     tipsStore.showTip('hero_inspect_intro')
+  } else if (nodeId === 'forest_03') {
+    tipsStore.showTip('enemy_details_intro')
   }
 })
 
@@ -1521,7 +1523,7 @@ function getStatChange(hero, stat) {
     </Teleport>
 
     <!-- Victory Modal -->
-    <div v-if="showVictoryModal" class="modal-overlay">
+    <div v-if="showVictoryModal" class="modal-overlay victory-overlay">
       <div class="modal victory-modal" :class="{ 'genus-loci-victory': isGenusLociBattle }">
         <h2>Victory!</h2>
 
@@ -1575,21 +1577,15 @@ function getStatChange(hero, stat) {
           <div class="victory-steps-container">
             <!-- Step 1: Rewards -->
             <div :class="['victory-step', { active: victoryStep === 1 }]">
-              <div v-if="rewards" class="rewards-row">
-                <div class="reward-block reward-gems">
+              <div v-if="rewards" class="rewards-display">
+                <div class="reward-hero reward-gems">
                   <span class="reward-icon">💎</span>
                   <span class="reward-value">+{{ displayedGems }}</span>
                   <span class="reward-label">Gems</span>
                 </div>
-                <div class="reward-block reward-gold">
+                <div class="reward-secondary reward-gold">
                   <span class="reward-icon">🪙</span>
                   <span class="reward-value">+{{ displayedGold }}</span>
-                  <span class="reward-label">Gold</span>
-                </div>
-                <div class="reward-block reward-exp">
-                  <span class="reward-icon">⭐</span>
-                  <span class="reward-value">+{{ displayedExp }}</span>
-                  <span class="reward-label">EXP</span>
                 </div>
               </div>
 
@@ -1617,15 +1613,16 @@ function getStatChange(hero, stat) {
               </div>
 
               <button class="btn-next" @click="nextVictoryStep">
-                Party Results →
+                <span class="btn-next-text">See Your Heroes</span>
+                <span class="btn-next-icon">⚔️</span>
               </button>
             </div>
 
             <!-- Step 2: XP & Level Ups -->
             <div :class="['victory-step', { active: victoryStep === 2 }]">
               <div class="step-header-fancy">
-                <span class="step-header-icon">⚔️</span>
-                <span>Your Heroes Grew!</span>
+                <span class="step-header-icon">🔥</span>
+                <span>Battle-Hardened</span>
               </div>
               <div class="victory-party">
                 <div
@@ -1645,11 +1642,18 @@ function getStatChange(hero, stat) {
                       <span class="level-arrow">→</span>
                       <span class="new-level">Lv {{ heroLeveledUp(hero.instanceId).newLevel }}</span>
                     </div>
-                    <div v-else class="xp-progress-row">
+                    <div
+                      v-else
+                      class="xp-progress-row"
+                      :style="{ '--animation-delay': (index * 100 + 200) + 'ms' }"
+                    >
                       <div class="xp-progress-bar">
-                        <div class="xp-progress-fill" :style="{ width: getHeroExpPercent(hero) + '%' }"></div>
+                        <div
+                          class="xp-progress-fill"
+                          :style="{ '--target-width': getHeroExpPercent(hero) + '%' }"
+                        ></div>
                       </div>
-                      <span class="xp-progress-label">+{{ displayedExpPerHero }}</span>
+                      <span class="xp-progress-label">{{ getHeroExpPercent(hero) }}%</span>
                     </div>
                   </div>
                 </div>
@@ -2528,6 +2532,24 @@ function getStatChange(hero, stat) {
   animation: overlayFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Victory-specific overlay with dramatic entrance */
+.modal-overlay.victory-overlay {
+  background: rgba(0, 0, 0, 0);
+  animation: victoryOverlayFade 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes victoryOverlayFade {
+  0% {
+    background: rgba(255, 255, 255, 0.3);
+  }
+  30% {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  100% {
+    background: rgba(0, 0, 0, 0.85);
+  }
+}
+
 @keyframes overlayFade {
   from {
     opacity: 0;
@@ -2547,12 +2569,34 @@ function getStatChange(hero, stat) {
   animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Victory modal has delayed, more dramatic entrance */
+.modal.victory-modal {
+  opacity: 0;
+  animation: victoryModalEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+  z-index: 1; /* Above the burst */
+}
+
 @keyframes modalPop {
   from {
     opacity: 0;
     transform: scale(0.9) translateY(10px);
   }
   to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes victoryModalEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02) translateY(-5px);
+  }
+  100% {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
@@ -2587,27 +2631,99 @@ function getStatChange(hero, stat) {
   letter-spacing: 1px;
 }
 
-.btn-next,
+/* Forward navigation - exciting call to action */
+.btn-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  margin-top: auto;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+  color: #f3f4f6;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  opacity: 0;
+  animation: btnNextEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.7s forwards;
+}
+
+@keyframes btnNextEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.btn-next::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.15) 0%, rgba(251, 191, 36, 0) 60%);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.btn-next:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-next:hover::before {
+  opacity: 1;
+}
+
+.btn-next:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.btn-next-text {
+  position: relative;
+  z-index: 1;
+}
+
+.btn-next-icon {
+  font-size: 1.1rem;
+  position: relative;
+  z-index: 1;
+  transition: transform 0.2s ease;
+}
+
+.btn-next:hover .btn-next-icon {
+  transform: translateX(3px);
+}
+
+/* Back navigation - subtle, secondary */
 .btn-back {
   display: block;
   width: 100%;
-  padding: 12px;
+  padding: 10px;
   margin-top: auto;
   flex-shrink: 0;
-  border: 1px solid #4b5563;
-  border-radius: 8px;
+  border: none;
+  border-radius: 6px;
   background: transparent;
-  color: #9ca3af;
-  font-size: 0.9rem;
+  color: #6b7280;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.15s ease, background 0.15s ease;
 }
 
-.btn-next:hover,
 .btn-back:hover {
-  background: #374151;
-  color: #f3f4f6;
-  border-color: #6b7280;
+  background: rgba(255, 255, 255, 0.05);
+  color: #9ca3af;
 }
 
 .modal h2 {
@@ -2617,56 +2733,29 @@ function getStatChange(hero, stat) {
 
 .victory-modal h2 {
   color: #22c55e;
-  animation: victoryBurst 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  font-size: 2.4rem;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  animation: victoryTextEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
 }
 
-@keyframes victoryBurst {
+@keyframes victoryTextEntrance {
   0% {
     opacity: 0;
     transform: scale(0.7);
-    text-shadow: 0 0 0 transparent;
   }
-  50% {
+  60% {
     opacity: 1;
-    transform: scale(1.08);
-    text-shadow:
-      0 0 20px rgba(251, 191, 36, 0.8),
-      0 0 40px rgba(251, 191, 36, 0.4);
+    transform: scale(1.05);
   }
   100% {
     opacity: 1;
     transform: scale(1);
-    text-shadow:
-      0 0 8px rgba(34, 197, 94, 0.4),
-      0 0 16px rgba(34, 197, 94, 0.2);
   }
 }
 
 .victory-modal.genus-loci-victory h2 {
-  color: #9333ea;
-  animation: victoryBurstPurple 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes victoryBurstPurple {
-  0% {
-    opacity: 0;
-    transform: scale(0.7);
-    text-shadow: 0 0 0 transparent;
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.08);
-    text-shadow:
-      0 0 20px rgba(251, 191, 36, 0.8),
-      0 0 40px rgba(251, 191, 36, 0.4);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-    text-shadow:
-      0 0 8px rgba(147, 51, 234, 0.5),
-      0 0 16px rgba(147, 51, 234, 0.25);
-  }
+  color: #a855f7;
 }
 
 .genus-loci-complete {
@@ -2689,11 +2778,117 @@ function getStatChange(hero, stat) {
   margin-bottom: 24px;
 }
 
-/* Rewards - Bold trophy display */
+/* Rewards - Hierarchical display with gems as hero */
+.rewards-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Hero reward (gems) - premium treatment */
+.reward-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 32px;
+  border-radius: 12px;
+  position: relative;
+  opacity: 0;
+  animation: rewardHeroEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.1s forwards;
+}
+
+@keyframes rewardHeroEntrance {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.reward-hero .reward-icon {
+  font-size: 2.8rem;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.reward-hero .reward-value {
+  font-weight: 900;
+  font-size: 2.2rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.reward-hero .reward-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.7;
+  margin-top: 6px;
+}
+
+/* Gems - premium currency */
+.reward-hero.reward-gems {
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.25);
+}
+
+.reward-hero.reward-gems .reward-value {
+  color: #93c5fd;
+}
+
+/* Secondary reward (gold) - supporting role */
+.reward-secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  opacity: 0;
+  animation: rewardSecondaryEntrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
+}
+
+@keyframes rewardSecondaryEntrance {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reward-secondary .reward-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.reward-secondary .reward-value {
+  font-weight: 700;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Gold - muted amber, clearly secondary */
+.reward-secondary.reward-gold {
+  background: rgba(251, 191, 36, 0.1);
+}
+
+.reward-secondary.reward-gold .reward-value {
+  color: #d4a520;
+}
+
+/* Legacy support for genus loci centered row */
 .rewards-row {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  gap: 24px;
   margin-bottom: 20px;
 }
 
@@ -2702,58 +2897,49 @@ function getStatChange(hero, stat) {
 }
 
 .reward-block {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px 8px;
-  border-radius: 8px;
+  padding: 16px 24px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.03);
 }
 
-.reward-icon {
-  font-size: 1.8rem;
+.reward-block .reward-icon {
+  font-size: 2rem;
   line-height: 1;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
-.reward-value {
+.reward-block .reward-value {
   font-weight: 800;
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-variant-numeric: tabular-nums;
   line-height: 1.1;
 }
 
-.reward-label {
+.reward-block .reward-label {
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   opacity: 0.6;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 /* Gem rewards - blue */
-.reward-gems .reward-value {
+.reward-block.reward-gems .reward-value {
   color: #60a5fa;
 }
-.reward-gems {
+.reward-block.reward-gems {
   background: rgba(96, 165, 250, 0.08);
 }
 
 /* Gold rewards - amber */
-.reward-gold .reward-value {
+.reward-block.reward-gold .reward-value {
   color: #fbbf24;
 }
-.reward-gold {
+.reward-block.reward-gold {
   background: rgba(251, 191, 36, 0.08);
-}
-
-/* EXP rewards - green */
-.reward-exp .reward-value {
-  color: #4ade80;
-}
-.reward-exp {
-  background: rgba(74, 222, 128, 0.08);
 }
 
 .first-clear-badge {
@@ -2918,28 +3104,59 @@ function getStatChange(hero, stat) {
 .xp-progress-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
 .xp-progress-bar {
-  width: 50px;
-  height: 4px;
-  background: #374151;
-  border-radius: 2px;
+  width: 56px;
+  height: 6px;
+  background: #1f2937;
+  border-radius: 3px;
   overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 .xp-progress-fill {
   height: 100%;
-  background: #4ade80;
-  border-radius: 2px;
-  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 0;
+  background: linear-gradient(90deg, #22c55e 0%, #4ade80 50%, #86efac 100%);
+  border-radius: 3px;
+  position: relative;
+  animation: xpFillSweep 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: var(--animation-delay, 0ms);
+}
+
+@keyframes xpFillSweep {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: var(--target-width, 0%);
+  }
 }
 
 .xp-progress-label {
-  font-size: 0.65rem;
-  color: #4ade80;
+  font-size: 0.7rem;
+  color: #6b7280;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+  text-align: right;
+  opacity: 0;
+  animation: xpLabelFade 0.3s ease forwards;
+  animation-delay: calc(var(--animation-delay, 0ms) + 0.6s);
+}
+
+@keyframes xpLabelFade {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .modal-actions {
@@ -3649,7 +3866,15 @@ function getStatChange(hero, stat) {
     animation: none;
     opacity: 1;
   }
+  .modal-overlay.victory-overlay {
+    background: rgba(0, 0, 0, 0.85);
+  }
   .modal {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .modal.victory-modal {
     animation: none;
     opacity: 1;
     transform: none;
@@ -3659,14 +3884,6 @@ function getStatChange(hero, stat) {
     animation: none;
     opacity: 1;
     transform: none;
-    text-shadow:
-      0 0 8px rgba(34, 197, 94, 0.4),
-      0 0 16px rgba(34, 197, 94, 0.2);
-  }
-  .victory-modal.genus-loci-victory h2 {
-    text-shadow:
-      0 0 8px rgba(147, 51, 234, 0.5),
-      0 0 16px rgba(147, 51, 234, 0.25);
   }
   .victory-hero-card,
   .victory-hero-card.leveled-up {
@@ -3684,6 +3901,26 @@ function getStatChange(hero, stat) {
   }
   .level-arrow {
     animation: none;
+  }
+  .reward-hero,
+  .reward-secondary {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .btn-next {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .xp-progress-fill {
+    animation: none;
+    width: var(--target-width, 0%);
+  }
+  .xp-progress-label {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
   .log-overlay-enter-active,
   .log-overlay-leave-active,

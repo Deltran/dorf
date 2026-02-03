@@ -1,6 +1,6 @@
 <script setup>
-import { computed } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore } from '../stores'
+import { computed, ref, onMounted } from 'vue'
+import { useHeroesStore, useGachaStore, useQuestsStore, useIntroStore } from '../stores'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 
 const emit = defineEmits(['navigate'])
@@ -8,6 +8,24 @@ const emit = defineEmits(['navigate'])
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 const questsStore = useQuestsStore()
+const introStore = useIntroStore()
+
+// Attention animation for summon button after intro
+const summonAttention = ref(false)
+
+onMounted(() => {
+  if (introStore.showSummonAttention) {
+    // Small delay to let the page render first
+    setTimeout(() => {
+      summonAttention.value = true
+      introStore.clearSummonAttention()
+      // Clear animation class after it completes
+      setTimeout(() => {
+        summonAttention.value = false
+      }, 2000)
+    }, 300)
+  }
+})
 
 // Hero images (check for animated gif first, then static png)
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
@@ -98,6 +116,7 @@ const hasParty = computed(() => {
     <nav class="main-nav">
       <button
         class="summon-button"
+        :class="{ attention: summonAttention }"
         @click="emit('navigate', 'gacha')"
       >
         <span class="summon-label">Summon Heroes</span>
@@ -403,6 +422,40 @@ const hasParty = computed(() => {
   text-transform: uppercase;
   letter-spacing: 3px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* Attention animation after intro */
+.summon-button.attention {
+  animation: summonPulse 0.5s ease-in-out 3;
+}
+
+.summon-button.attention::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border: 2px solid #f59e0b;
+  border-radius: 6px;
+  animation: summonGlow 0.5s ease-in-out 3;
+}
+
+@keyframes summonPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes summonGlow {
+  0%, 100% {
+    opacity: 0;
+    box-shadow: 0 0 10px #f59e0b;
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 25px #f59e0b, 0 0 50px rgba(245, 158, 11, 0.5);
+  }
 }
 
 /* ===== Room Buttons ===== */

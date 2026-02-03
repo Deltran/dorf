@@ -262,8 +262,19 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
 // Intro flow handlers
 function handleIntroStartBattle() {
   isIntroBattle.value = true
-  // Set the first quest node for battle
-  questsStore.setCurrentNode('forest_01')
+
+  // Build party state for intro battle
+  const partyState = {}
+  for (const instanceId of heroesStore.party.filter(Boolean)) {
+    const stats = heroesStore.getHeroStats(instanceId)
+    partyState[instanceId] = {
+      currentHp: stats.hp,
+      currentMp: Math.floor(stats.mp * 0.3)
+    }
+  }
+
+  // Start the first quest run
+  questsStore.startRun('forest_01', partyState)
   currentScreen.value = 'battle'
 }
 
@@ -275,17 +286,17 @@ function handleIntroComplete() {
 // Handle battle results during intro
 function handleBattleNavigate(screen, param) {
   if (isIntroBattle.value) {
+    // BattleScreen navigates to 'worldmap' on victory, 'home' on defeat/exit
+    if (screen === 'worldmap') {
+      // Victory - show victory outro
+      introStore.handleVictory()
+      currentScreen.value = 'intro'
+      return
+    }
     if (screen === 'home') {
-      // Battle ended - check if victory or defeat
-      // The BattleScreen navigates to 'home' on exit
-      // We need to check the quest completion status
-      if (questsStore.completedNodes.includes('forest_01')) {
-        introStore.handleVictory()
-        currentScreen.value = 'intro'
-      } else {
-        introStore.handleDefeat()
-        currentScreen.value = 'intro'
-      }
+      // Defeat or early exit
+      introStore.handleDefeat()
+      currentScreen.value = 'intro'
       return
     }
   }
