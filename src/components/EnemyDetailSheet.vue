@@ -94,7 +94,7 @@ function getEffectDescription(effect) {
 
 <template>
   <Teleport to="body">
-    <!-- Backdrop -->
+    <!-- Backdrop - cool/hostile tint -->
     <Transition name="fade">
       <div
         v-if="isOpen && enemy"
@@ -106,6 +106,12 @@ function getEffectDescription(effect) {
     <!-- Drawer -->
     <Transition name="slide-up">
       <div v-if="isOpen && enemy" ref="drawerRef" class="sheet-drawer">
+        <!-- Danger accent bar at top - sharp red threat indicator -->
+        <div class="danger-accent"></div>
+
+        <!-- Diagonal hatching texture overlay -->
+        <div class="danger-texture"></div>
+
         <!-- Handle bar for closing -->
         <div class="sheet-handle" @click="emit('close')">
           <div class="handle-bar"></div>
@@ -119,7 +125,7 @@ function getEffectDescription(effect) {
         </div>
 
         <!-- HP Bar with numbers -->
-        <div class="sheet-section">
+        <div class="sheet-section section-hp">
           <div class="hp-display">
             <StatBar
               :current="enemy.currentHp || 0"
@@ -150,9 +156,9 @@ function getEffectDescription(effect) {
           </div>
         </div>
 
-        <!-- Skills -->
+        <!-- Skills - threatening presentation -->
         <div class="sheet-section skills-section">
-          <h3 class="section-title">Skills</h3>
+          <h3 class="section-title">Abilities</h3>
           <template v-if="isKnown">
             <div v-if="allSkills.length > 0" class="skills-list">
               <div v-for="skill in allSkills" :key="skill.name" class="skill-item">
@@ -213,7 +219,8 @@ function getEffectDescription(effect) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  /* Slightly red-tinted backdrop for threat */
+  background: rgba(20, 8, 8, 0.7);
   z-index: 1000;
 }
 
@@ -223,15 +230,57 @@ function getEffectDescription(effect) {
   left: 0;
   right: 0;
   max-height: 60vh;
-  background: #1f2937;
-  border-radius: 16px 16px 0 0;
+  /* Cool, desaturated hostile background */
+  background: #1a1a1f;
+  /* Sharper corners - more aggressive feel */
+  border-radius: 8px 8px 0 0;
   z-index: 1001;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0 16px 24px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 -4px 24px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(200, 50, 50, 0.1);
+}
+
+/* Sharp red danger accent at top */
+.danger-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    #8b1a1a 0%,
+    #dc2626 30%,
+    #ef4444 50%,
+    #dc2626 70%,
+    #8b1a1a 100%
+  );
+  border-radius: 8px 8px 0 0;
+}
+
+/* Subtle diagonal hatching texture - danger pattern */
+.danger-texture {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 8px,
+    #ff0000 8px,
+    #ff0000 9px
+  );
 }
 
 .sheet-handle {
+  position: relative;
   display: flex;
   justify-content: center;
   padding: 12px 0 8px;
@@ -241,7 +290,8 @@ function getEffectDescription(effect) {
 .handle-bar {
   width: 40px;
   height: 4px;
-  background: #4b5563;
+  /* Slightly red-tinted gray */
+  background: #4a4548;
   border-radius: 2px;
 }
 
@@ -256,12 +306,18 @@ function getEffectDescription(effect) {
 .enemy-name {
   font-size: 1.25rem;
   font-weight: 700;
+  /* Hostile red for enemy names */
   color: #f87171;
   margin: 0;
+  text-shadow: 0 0 20px rgba(248, 113, 113, 0.2);
 }
 
 .sheet-section {
   margin-bottom: 16px;
+}
+
+.section-hp {
+  margin-bottom: 20px;
 }
 
 .hp-display {
@@ -273,16 +329,18 @@ function getEffectDescription(effect) {
 .hp-numbers {
   text-align: center;
   font-size: 0.85rem;
-  color: #d1d5db;
+  color: #b0a8a8;
   font-weight: 600;
 }
 
 .stats-section {
   display: flex;
   justify-content: space-around;
-  background: #111827;
+  /* Cold dark background */
+  background: #121215;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(200, 50, 50, 0.08);
 }
 
 .stat-item {
@@ -295,30 +353,33 @@ function getEffectDescription(effect) {
 .stat-label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #5a5560;
   text-transform: uppercase;
 }
 
 .stat-value {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #f3f4f6;
+  color: #e8e0e0;
 }
 
 .stat-unknown {
-  color: #6b7280;
+  color: #5a5560;
 }
 
+/* Skills section - threatening presentation */
 .skills-section {
-  background: #111827;
+  /* Darker, more ominous background */
+  background: #0d0d10;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(220, 38, 38, 0.12);
 }
 
 .section-title {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: #8a8085;
   margin: 0 0 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -331,29 +392,32 @@ function getEffectDescription(effect) {
 }
 
 .skill-item {
-  padding: 8px;
-  background: #1f2937;
+  padding: 10px;
+  /* Red-tinted background for threat */
+  background: rgba(220, 38, 38, 0.08);
   border-radius: 6px;
-  border-left: 2px solid #f87171;
+  /* Full left border - more aggressive */
+  border-left: 3px solid #dc2626;
 }
 
 .skill-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #f3f4f6;
+  color: #f0e8e8;
   margin-bottom: 4px;
 }
 
 .skill-description {
   font-size: 0.8rem;
-  color: #9ca3af;
+  /* Slightly desaturated for hostility */
+  color: #a09898;
   line-height: 1.4;
 }
 
 .no-skills,
 .unknown-skills {
   text-align: center;
-  color: #6b7280;
+  color: #5a5560;
   font-size: 0.85rem;
   padding: 8px;
 }
@@ -364,9 +428,11 @@ function getEffectDescription(effect) {
 }
 
 .effects-section {
-  background: #111827;
+  background: #121215;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 6px;
+  margin-top: 20px;
+  border: 1px solid rgba(200, 50, 50, 0.08);
 }
 
 .effects-group {
@@ -378,7 +444,7 @@ function getEffectDescription(effect) {
 .effects-group + .effects-group {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #374151;
+  border-top: 1px solid #2a282d;
 }
 
 .effect-row {
@@ -406,22 +472,23 @@ function getEffectDescription(effect) {
 
 .effect-text {
   font-size: 0.8rem;
-  color: #d1d5db;
+  color: #c0b8b8;
 }
 
 .no-effects {
   text-align: center;
-  color: #6b7280;
+  color: #5a5560;
   font-size: 0.85rem;
   padding: 16px;
-  background: #111827;
-  border-radius: 8px;
+  background: #121215;
+  border-radius: 6px;
+  border: 1px solid rgba(200, 50, 50, 0.08);
 }
 
 /* Transitions */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease-out;
 }
 
 .fade-enter-from,
@@ -431,7 +498,7 @@ function getEffectDescription(effect) {
 
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .slide-up-enter-from,

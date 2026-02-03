@@ -828,6 +828,8 @@ function handleTenPull() {
               </div>
             </template>
           </div>
+        </div>
+        <div class="results-footer">
           <div class="results-counter">
             {{ revealedCount }} / {{ pullResults.length }}
           </div>
@@ -1690,16 +1692,23 @@ function handleTenPull() {
 
 .results-body {
   padding: 20px;
+  padding-bottom: 8px;
   overflow-y: auto;
   flex: 1;
+  min-height: 0; /* Allow flex shrinking for scroll */
 }
 
 .results-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
-  margin-bottom: 16px;
   min-height: 180px;
+}
+
+.results-footer {
+  flex-shrink: 0;
+  padding: 12px 20px 20px;
+  background: linear-gradient(to top, #0f0f0f 0%, transparent 100%);
 }
 
 .result-card-wrapper {
@@ -1743,7 +1752,7 @@ function handleTenPull() {
   text-align: center;
   color: #6b6b6b;
   font-size: 0.85rem;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .close-button {

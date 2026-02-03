@@ -1388,15 +1388,17 @@ function getEffectTypeName(type) {
 <style scoped>
 /* ===== Base Layout ===== */
 .heroes-screen {
-  min-height: 100vh;
+  height: 100vh;
   padding: 20px;
   padding-top: calc(20px + var(--safe-area-top));
+  padding-bottom: calc(20px + var(--safe-area-bottom));
   display: flex;
   flex-direction: column;
   gap: 20px;
   position: relative;
   overflow: hidden;
   background: #111827;
+  box-sizing: border-box;
 }
 
 /* ===== Header ===== */
@@ -1488,6 +1490,8 @@ function getEffectTypeName(type) {
 /* ===== Collection Section ===== */
 .collection-section {
   flex: 1;
+  min-height: 0; /* Allow flex item to shrink below content size */
+  overflow-y: auto;
   position: relative;
   z-index: 1;
 }

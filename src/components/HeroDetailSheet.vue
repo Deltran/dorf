@@ -11,6 +11,24 @@ import { getClass } from '../data/classes.js'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 
+// Hero image loading (portrait preferred, fallback to regular image)
+const heroPortraits = import.meta.glob('../assets/heroes/*_portrait.png', { eager: true, import: 'default' })
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
+
+function getHeroPortraitUrl(heroId) {
+  if (!heroId) return null
+  // Try portrait first
+  const portraitPath = `../assets/heroes/${heroId}_portrait.png`
+  if (heroPortraits[portraitPath]) return heroPortraits[portraitPath]
+  // Fallback to GIF
+  const gifPath = `../assets/heroes/${heroId}.gif`
+  if (heroGifs[gifPath]) return heroGifs[gifPath]
+  // Fallback to regular PNG
+  const pngPath = `../assets/heroes/${heroId}.png`
+  return heroImages[pngPath] || null
+}
+
 const props = defineProps({
   hero: {
     type: Object,
@@ -41,6 +59,37 @@ const heroClass = computed(() => {
   if (!props.hero) return null
   if (props.hero.class) return props.hero.class
   return getClass(template.value?.classId)
+})
+
+// Hero ID for image lookup
+const heroId = computed(() => {
+  return props.hero?.templateId || template.value?.id || null
+})
+
+// Hero portrait URL
+const heroPortraitUrl = computed(() => {
+  return getHeroPortraitUrl(heroId.value)
+})
+
+// Hero epithet (e.g., "The Dawn")
+const epithet = computed(() => {
+  return template.value?.epithet || null
+})
+
+// Get rarity from hero or template
+const rarity = computed(() => {
+  return props.hero?.rarity || template.value?.rarity || 1
+})
+
+// Rarity-based colors for the glow effect
+const rarityGlowColor = computed(() => {
+  switch (rarity.value) {
+    case 5: return '#f59e0b' // Legendary - gold
+    case 4: return '#a855f7' // Epic - purple
+    case 3: return '#3b82f6' // Rare - blue
+    case 2: return '#22c55e' // Uncommon - green
+    default: return '#9ca3af' // Common - gray
+  }
 })
 
 const isRangerHero = computed(() => heroClass.value?.resourceType === 'focus')
@@ -92,7 +141,7 @@ function getEffectDescription(effect) {
 
 <template>
   <Teleport to="body">
-    <!-- Backdrop -->
+    <!-- Backdrop - warm tint for allies -->
     <Transition name="fade">
       <div
         v-if="isOpen && hero"
@@ -103,16 +152,35 @@ function getEffectDescription(effect) {
 
     <!-- Drawer -->
     <Transition name="slide-up">
-      <div v-if="isOpen && hero" ref="drawerRef" class="sheet-drawer">
+      <div
+        v-if="isOpen && hero"
+        ref="drawerRef"
+        class="sheet-drawer"
+        :class="`rarity-${rarity}`"
+        :style="{ '--rarity-glow': rarityGlowColor }"
+      >
+        <!-- Ally accent bar at top -->
+        <div class="ally-accent"></div>
+
         <!-- Handle bar for closing -->
         <div class="sheet-handle" @click="emit('close')">
           <div class="handle-bar"></div>
         </div>
 
-        <!-- Hero header -->
+        <!-- Hero header with portrait -->
         <div class="sheet-header">
+          <!-- Portrait -->
+          <div v-if="heroPortraitUrl" class="hero-portrait-wrapper">
+            <img
+              :src="heroPortraitUrl"
+              :alt="template?.name"
+              class="hero-portrait"
+            />
+          </div>
+
           <div class="hero-info">
             <h2 class="hero-name">{{ template?.name || 'Unknown' }}</h2>
+            <div v-if="epithet" class="hero-epithet">{{ epithet }}</div>
             <div class="hero-meta">
               <span class="hero-class">{{ heroClass?.title || 'Unknown' }}</span>
               <span class="hero-level">Lv.{{ hero.level || 1 }}</span>
@@ -121,7 +189,7 @@ function getEffectDescription(effect) {
         </div>
 
         <!-- HP Bar -->
-        <div class="sheet-section">
+        <div class="sheet-section section-hp">
           <StatBar
             :current="hero.currentHp || 0"
             :max="hero.maxHp || 1"
@@ -132,7 +200,7 @@ function getEffectDescription(effect) {
         </div>
 
         <!-- Resource Bar (class-specific) -->
-        <div class="sheet-section">
+        <div class="sheet-section section-resource">
           <FocusIndicator
             v-if="isRangerHero"
             :hasFocus="hero.hasFocus"
@@ -233,7 +301,7 @@ function getEffectDescription(effect) {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(15, 12, 8, 0.65);
   z-index: 1000;
 }
 
@@ -243,15 +311,38 @@ function getEffectDescription(effect) {
   left: 0;
   right: 0;
   max-height: 60vh;
-  background: #1f2937;
+  /* Warm tinted background for ally feel */
+  background: #1f2520;
   border-radius: 16px 16px 0 0;
   z-index: 1001;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 0 16px 24px;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
+  box-shadow:
+    0 -4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 200, 100, 0.08);
+}
+
+/* Gold/amber accent bar at the very top - ally indicator */
+.ally-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    #c9a227 20%,
+    #e8c547 50%,
+    #c9a227 80%,
+    transparent 100%
+  );
+  border-radius: 16px 16px 0 0;
 }
 
 .sheet-handle {
+  position: relative;
   display: flex;
   justify-content: center;
   padding: 12px 0 8px;
@@ -261,40 +352,74 @@ function getEffectDescription(effect) {
 .handle-bar {
   width: 40px;
   height: 4px;
-  background: #4b5563;
+  background: #4a5244;
   border-radius: 2px;
 }
 
 .sheet-header {
-  margin-bottom: 16px;
+  position: relative;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* Hero portrait */
+.hero-portrait-wrapper {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #161a15;
+  border: 2px solid var(--rarity-glow, #9ca3af);
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.4);
+}
+
+.hero-portrait {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
 .hero-info {
-  text-align: center;
+  text-align: left;
+  flex: 1;
+  min-width: 0;
 }
 
 .hero-name {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #f3f4f6;
-  margin: 0 0 4px;
+  /* Warm off-white for ally names */
+  color: #f5f0e6;
+  margin: 0 0 2px;
+}
+
+.hero-epithet {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--rarity-glow, #9ca3af);
+  margin-bottom: 6px;
+  opacity: 0.9;
 }
 
 .hero-meta {
   display: flex;
-  justify-content: center;
   gap: 12px;
   font-size: 0.85rem;
-  color: #9ca3af;
+  color: #a8a090;
 }
 
 .hero-class {
-  color: #d1d5db;
+  color: #d4cfc0;
 }
 
 .hero-level {
-  color: #6b7280;
-  background: #374151;
+  color: #7a7568;
+  background: #2a2f28;
   padding: 2px 8px;
   border-radius: 4px;
 }
@@ -303,12 +428,23 @@ function getEffectDescription(effect) {
   margin-bottom: 16px;
 }
 
+/* Tighter spacing between HP and resource */
+.section-hp {
+  margin-bottom: 8px;
+}
+
+.section-resource {
+  margin-bottom: 20px;
+}
+
 .stats-section {
   display: flex;
   justify-content: space-around;
-  background: #111827;
+  /* Warm-tinted dark background */
+  background: #161a15;
   padding: 12px;
   border-radius: 8px;
+  border: 1px solid rgba(201, 162, 39, 0.08);
 }
 
 .stat-item {
@@ -321,26 +457,28 @@ function getEffectDescription(effect) {
 .stat-label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #6b7280;
+  color: #6b6960;
   text-transform: uppercase;
 }
 
 .stat-value {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #f3f4f6;
+  color: #f0ebe0;
 }
 
 .effects-section {
-  background: #111827;
+  background: #161a15;
   padding: 12px;
   border-radius: 8px;
+  margin-top: 24px;
+  border: 1px solid rgba(201, 162, 39, 0.08);
 }
 
 .section-title {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #9ca3af;
+  color: #9a958a;
   margin: 0 0 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -355,7 +493,7 @@ function getEffectDescription(effect) {
 .effects-group + .effects-group {
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid #374151;
+  border-top: 1px solid #2d322a;
 }
 
 .effect-row {
@@ -383,22 +521,24 @@ function getEffectDescription(effect) {
 
 .effect-text {
   font-size: 0.8rem;
-  color: #d1d5db;
+  color: #d4cfc0;
 }
 
 .no-effects {
   text-align: center;
-  color: #6b7280;
+  color: #6b6960;
   font-size: 0.85rem;
   padding: 16px;
-  background: #111827;
+  background: #161a15;
   border-radius: 8px;
+  margin-top: 24px;
+  border: 1px solid rgba(201, 162, 39, 0.08);
 }
 
 /* Transitions */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease-out;
 }
 
 .fade-enter-from,
@@ -408,7 +548,7 @@ function getEffectDescription(effect) {
 
 .slide-up-enter-active,
 .slide-up-leave-active {
-  transition: transform 0.3s ease;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .slide-up-enter-from,
