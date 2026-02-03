@@ -1,8 +1,8 @@
 const SAVE_KEY = 'dorf_save'
-const SAVE_VERSION = 8  // Bump version for equipment system
+const SAVE_VERSION = 9  // Bump version for intro system
 
 export function saveGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro } = stores
 
   const saveData = {
     version: SAVE_VERSION,
@@ -15,7 +15,8 @@ export function saveGame(stores) {
     genusLoci: genusLoci?.saveState() || { progress: {} },
     explorations: explorations?.saveState() || { activeExplorations: {}, completedHistory: [] },
     shops: shops?.saveState() || { purchases: {} },
-    equipment: equipment?.saveState() || { ownedEquipment: {}, equippedGear: {}, blacksmithUnlocked: false }
+    equipment: equipment?.saveState() || { ownedEquipment: {}, equippedGear: {}, blacksmithUnlocked: false },
+    intro: intro?.saveState() || { isIntroComplete: false }
   }
 
   try {
@@ -28,7 +29,7 @@ export function saveGame(stores) {
 }
 
 export function loadGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro } = stores
 
   try {
     const saved = localStorage.getItem(SAVE_KEY)
@@ -51,6 +52,7 @@ export function loadGame(stores) {
     if (saveData.explorations && explorations) explorations.loadState(saveData.explorations)
     if (saveData.shops && shops) shops.loadState(saveData.shops)
     if (saveData.equipment && equipment) equipment.loadState(saveData.equipment)
+    if (saveData.intro && intro) intro.loadState(saveData.intro)
 
     return true
   } catch (e) {

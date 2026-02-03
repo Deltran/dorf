@@ -1,11 +1,12 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore, useIntroStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
 import { getAllQuestNodes } from './data/quests/index.js'
 
 import HomeScreen from './screens/HomeScreen.vue'
+import IntroScreen from './screens/IntroScreen.vue'
 import GachaScreen from './screens/GachaScreen.vue'
 import HeroesScreen from './screens/HeroesScreen.vue'
 import WorldMapScreen from './screens/WorldMapScreen.vue'
@@ -37,6 +38,7 @@ const explorationsStore = useExplorationsStore()
 const tipsStore = useTipsStore()
 const shopsStore = useShopsStore()
 const equipmentStore = useEquipmentStore()
+const introStore = useIntroStore()
 
 const currentScreen = ref(
   import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_screen') || 'home') : 'home'
@@ -50,6 +52,7 @@ const selectedExplorationNodeId = ref(null)
 const currentCompletionPopup = ref(null)
 const placingHeroId = ref(null)
 const initialRegionName = ref(null)
+const isIntroBattle = ref(false)
 
 // Repair: sync genus loci victories with completedNodes
 // Older saves may have genus loci progress without the quest node marked complete
@@ -68,11 +71,12 @@ onMounted(() => {
   tipsStore.loadTips()
 
   if (hasData) {
-    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore })
+    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore, intro: introStore })
     repairGenusLociCompletions()
   } else {
-    // New player: give them a starter hero
-    initNewPlayer()
+    // New player: start the intro sequence
+    // Heroes are created during the intro flow, not here
+    currentScreen.value = 'intro'
   }
 
   // Check for any explorations that completed while offline
@@ -90,12 +94,6 @@ onMounted(() => {
     watch(currentScreen, (val) => sessionStorage.setItem('dorf_dev_screen', val))
   }
 })
-
-function initNewPlayer() {
-  // Give the player a guaranteed 3-star hero to start
-  heroesStore.addHero('town_guard')
-  heroesStore.autoFillParty()
-}
 
 // Auto-save when relevant state changes
 watch(
@@ -115,11 +113,12 @@ watch(
     shopsStore.purchases,
     equipmentStore.ownedEquipment,
     equipmentStore.equippedGear,
-    equipmentStore.blacksmithUnlocked
+    equipmentStore.blacksmithUnlocked,
+    introStore.isIntroComplete
   ],
   () => {
     if (isLoaded.value) {
-      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore })
+      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore, intro: introStore })
     }
   },
   { deep: true }
@@ -259,11 +258,49 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
 
   currentScreen.value = 'battle'
 }
+
+// Intro flow handlers
+function handleIntroStartBattle() {
+  isIntroBattle.value = true
+  // Set the first quest node for battle
+  questsStore.setCurrentNode('forest_01')
+  currentScreen.value = 'battle'
+}
+
+function handleIntroComplete() {
+  isIntroBattle.value = false
+  currentScreen.value = 'home'
+}
+
+// Handle battle results during intro
+function handleBattleNavigate(screen, param) {
+  if (isIntroBattle.value) {
+    if (screen === 'home') {
+      // Battle ended - check if victory or defeat
+      // The BattleScreen navigates to 'home' on exit
+      // We need to check the quest completion status
+      if (questsStore.completedNodes.includes('forest_01')) {
+        introStore.handleVictory()
+        currentScreen.value = 'intro'
+      } else {
+        introStore.handleDefeat()
+        currentScreen.value = 'intro'
+      }
+      return
+    }
+  }
+  navigate(screen, param)
+}
 </script>
 
 <template>
   <div :class="['app', { 'full-width': currentScreen === 'admin' }]">
     <template v-if="isLoaded">
+      <IntroScreen
+        v-if="currentScreen === 'intro'"
+        @startBattle="handleIntroStartBattle"
+        @complete="handleIntroComplete"
+      />
       <HomeScreen
         v-if="currentScreen === 'home'"
         @navigate="navigate"
@@ -305,7 +342,7 @@ function startGenusLociBattle({ genusLociId, powerLevel }) {
       <BattleScreen
         v-else-if="currentScreen === 'battle'"
         :genus-loci-context="genusLociBattleContext"
-        @navigate="navigate"
+        @navigate="handleBattleNavigate"
       />
       <GenusLociScreen
         v-else-if="currentScreen === 'genusLoci'"
