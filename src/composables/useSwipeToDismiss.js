@@ -11,6 +11,7 @@ import { ref, onMounted, onUnmounted, watch } from 'vue'
 export function useSwipeToDismiss({ elementRef, isOpen, onClose, threshold = 100 }) {
   const dragOffset = ref(0)
   const isDragging = ref(false)
+  const dismissing = ref(false)
 
   let startY = 0
   let currentY = 0
@@ -59,16 +60,14 @@ export function useSwipeToDismiss({ elementRef, isOpen, onClose, threshold = 100
 
     if (dragOffset.value > threshold) {
       // Dismiss - animate off screen then close
+      dismissing.value = true
       if (elementRef.value) {
         elementRef.value.style.transform = 'translateY(100%)'
       }
       setTimeout(() => {
         onClose()
-        // Reset after close
-        if (elementRef.value) {
-          elementRef.value.style.transform = ''
-          elementRef.value.style.transition = ''
-        }
+        // Don't reset styles — element is already off-screen and Vue's
+        // leave transition will handle removal
       }, 200)
     } else {
       // Snap back
@@ -102,9 +101,13 @@ export function useSwipeToDismiss({ elementRef, isOpen, onClose, threshold = 100
     el.removeEventListener('touchmove', handleTouchMove)
     el.removeEventListener('touchend', handleTouchEnd)
 
-    // Reset styles
-    el.style.transform = ''
-    el.style.transition = ''
+    // Skip style reset during swipe dismiss — element is already at
+    // translateY(100%) and Vue's leave transition handles removal
+    if (!dismissing.value) {
+      el.style.transform = ''
+      el.style.transition = ''
+    }
+    dismissing.value = false
   }
 
   // Watch for element changes (it may not exist initially due to v-if)

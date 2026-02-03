@@ -2,6 +2,7 @@
 import { computed, ref, onMounted } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore, useIntroStore } from '../stores'
 import defaultBg from '../assets/battle_backgrounds/default.png'
+import dorfLogo from '../assets/dorf-logo-1.png'
 
 const emit = defineEmits(['navigate'])
 
@@ -72,7 +73,7 @@ const hasParty = computed(() => {
   <div class="home-screen" :style="{ backgroundImage: `url(${partyBackgroundUrl})` }">
     <div class="bg-vignette"></div>
     <header class="home-header">
-      <h1 class="game-title">Dorf</h1>
+      <img :src="dorfLogo" alt="Dorf" class="game-logo" />
       <div class="currency-row">
         <div class="gem-display">
           <span class="gem-icon">💎</span>
@@ -192,11 +193,11 @@ const hasParty = computed(() => {
   z-index: 1;
 }
 
-.game-title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  margin: 0;
-  color: #f59e0b;
+.game-logo {
+  height: 5rem;
+  width: auto;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
 }
 
 .currency-row {

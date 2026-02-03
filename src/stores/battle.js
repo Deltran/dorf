@@ -2753,6 +2753,14 @@ export const useBattleStore = defineStore('battle', () => {
       } else if (isBard(hero)) {
         // Bards have no resource cost — skills are free
         // Repeat restriction is handled by BattleScreen canUseSkill
+      } else if (isAlchemist(hero)) {
+        const essenceCost = skill.essenceCost ?? 0
+        if ((hero.currentEssence || 0) < essenceCost) {
+          addLog(`Not enough ${hero.class.resourceName}!`)
+          state.value = BattleState.PLAYER_TURN
+          return
+        }
+        hero.currentEssence -= essenceCost
       } else {
         // Apply skill cost reduction from equipment
         const costReduction = getSkillCostReduction(hero.templateId)
@@ -2833,7 +2841,7 @@ export const useBattleStore = defineStore('battle', () => {
           const target = enemies.value.find(e => e.id === selectedTarget.value?.id)
           if (!target || target.currentHp <= 0) {
             addLog('Invalid target')
-            // Refund resource: Focus for rangers, Rage for berserkers, MP for others
+            // Refund resource: Focus for rangers, Rage for berserkers, Essence for alchemists, MP for others
             if (isRanger(hero)) {
               grantFocus(hero)
             } else if (isBerserker(hero)) {
@@ -2841,6 +2849,8 @@ export const useBattleStore = defineStore('battle', () => {
               if (typeof skill.rageCost === 'number') {
                 hero.currentRage += skill.rageCost
               }
+            } else if (isAlchemist(hero)) {
+              hero.currentEssence += skill.essenceCost ?? 0
             } else {
               hero.currentMp += skill.mpCost
             }
@@ -3281,7 +3291,7 @@ export const useBattleStore = defineStore('battle', () => {
           const target = heroes.value.find(h => h.instanceId === selectedTarget.value?.id)
           if (!target || target.currentHp <= 0) {
             addLog('Invalid target')
-            // Refund resource: Focus for rangers, Rage for berserkers, MP for others
+            // Refund resource: Focus for rangers, Rage for berserkers, Essence for alchemists, MP for others
             if (isRanger(hero)) {
               grantFocus(hero)
             } else if (isBerserker(hero)) {
@@ -3289,6 +3299,8 @@ export const useBattleStore = defineStore('battle', () => {
               if (typeof skill.rageCost === 'number') {
                 hero.currentRage += skill.rageCost
               }
+            } else if (isAlchemist(hero)) {
+              hero.currentEssence += skill.essenceCost ?? 0
             } else {
               hero.currentMp += skill.mpCost
             }
@@ -3591,8 +3603,12 @@ export const useBattleStore = defineStore('battle', () => {
           const target = heroes.value.find(h => h.instanceId === selectedTarget.value?.id)
           if (!target || target.currentHp > 0) {
             addLog('Invalid target - must target a fallen ally')
-            // Refund MP
-            hero.currentMp += skill.mpCost
+            // Refund resource
+            if (isAlchemist(hero)) {
+              hero.currentEssence += skill.essenceCost ?? 0
+            } else {
+              hero.currentMp += skill.mpCost
+            }
             state.value = BattleState.PLAYER_TURN
             return
           }
