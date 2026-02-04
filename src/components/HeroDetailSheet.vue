@@ -117,7 +117,8 @@ function getEffectDescription(effect) {
 
   // Add value info for stat modifiers
   if (effect.value && (def.stat || def.isDot || def.isHot)) {
-    desc += ` (${effect.value > 0 ? '+' : ''}${effect.value}%)`
+    const effectiveValue = effect.value * (effect.stacks || 1)
+    desc += ` (${effectiveValue > 0 ? '+' : ''}${effectiveValue}%)`
   }
 
   // Add shield HP for shields
