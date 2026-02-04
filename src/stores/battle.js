@@ -3086,8 +3086,21 @@ export const useBattleStore = defineStore('battle', () => {
             const lowHpCondition = skill.conditionalAtLowHp
             const heroHpPercent = (hero.currentHp / hero.maxHp) * 100
             const lowHpActive = lowHpCondition && heroHpPercent < lowHpCondition.hpThreshold
+            // Process bonusIfTargetHas modifiers (e.g., Swift Arrow's Precision Strike)
+            let bonusIgnoreDef = 0
+            let bonusDamagePercent = null
+            if (skill.bonusIfTargetHas) {
+              for (const bonus of skill.bonusIfTargetHas) {
+                if (hasEffect(target, bonus.effectType)) {
+                  if (bonus.ignoreDef) bonusIgnoreDef += bonus.ignoreDef
+                  if (bonus.damagePercent) bonusDamagePercent = bonus.damagePercent
+                }
+              }
+            }
+
             // Apply ignoreDef if present, or full ignore from conditionalAtLowHp
-            const defReduction = lowHpActive && lowHpCondition.ignoresDef ? 1 : (skill.ignoreDef ? (skill.ignoreDef / 100) : 0)
+            const baseDefReduction = lowHpActive && lowHpCondition.ignoresDef ? 1 : (skill.ignoreDef ? (skill.ignoreDef / 100) : 0)
+            const defReduction = Math.min(1, baseDefReduction + bonusIgnoreDef / 100)
             const reducedDef = effectiveDef * (1 - defReduction)
             const markedMultiplier = getMarkedDamageMultiplier(target)
             let damage
@@ -3135,7 +3148,7 @@ export const useBattleStore = defineStore('battle', () => {
               // Use explicit damagePercent if provided (for skills like Mara's)
               // Apply Volatility damage bonus for Alchemist skills
               const volatilityBonus = (skill.usesVolatility && isAlchemist(hero)) ? getVolatilityDamageBonus(hero) : 0
-              const multiplier = (skill.damagePercent + shardBonus + heartbreakBonusDamagePercent + volatilityBonus) / 100
+              const multiplier = ((bonusDamagePercent || skill.damagePercent) + shardBonus + heartbreakBonusDamagePercent + volatilityBonus) / 100
               damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
             } else {
               // Parse from description with Heartbreak bonus
