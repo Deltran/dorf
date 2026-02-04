@@ -12,7 +12,8 @@ export const apprentice_mage = {
       description: 'Deal 120% ATK damage to one enemy',
       mpCost: 10,
       skillUnlockLevel: 1,
-      targetType: 'enemy'
+      targetType: 'enemy',
+      damagePercent: 120
     },
     {
       name: 'Chain Lightning',
@@ -20,6 +21,7 @@ export const apprentice_mage = {
       mpCost: 16,
       skillUnlockLevel: 3,
       targetType: 'enemy',
+      damagePercent: 70,
       chainBounce: { maxBounces: 2, bounceMultiplier: 50 }
     },
     {
@@ -28,6 +30,7 @@ export const apprentice_mage = {
       mpCost: 18,
       skillUnlockLevel: 6,
       targetType: 'enemy',
+      damagePercent: 70,
       effects: [
         {
           type: EffectType.STUN,
@@ -41,7 +44,8 @@ export const apprentice_mage = {
       description: 'Deal 130% ATK damage to all enemies',
       mpCost: 26,
       skillUnlockLevel: 12,
-      targetType: 'all_enemies'
+      targetType: 'all_enemies',
+      damagePercent: 130
     }
   ],
   epithet: 'The Eager Spark',

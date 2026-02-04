@@ -12,7 +12,8 @@ export const herb_gatherer = {
       description: 'Heal one ally for 120% ATK',
       mpCost: 12,
       skillUnlockLevel: 1,
-      targetType: 'ally'
+      targetType: 'ally',
+      healPercent: 120
     },
     {
       name: 'Antidote',
@@ -45,6 +46,7 @@ export const herb_gatherer = {
       mpCost: 18,
       skillUnlockLevel: 12,
       targetType: 'ally',
+      healPercent: 150,
       mpRestore: 15,
       grantsFocus: true
     }

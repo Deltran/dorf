@@ -27,6 +27,10 @@ export const tips = {
     title: 'Hero Details',
     message: 'Double-click on a hero\'s combat card to get detailed information about their current stats and the different effects that are currently affecting them.'
   },
+  colosseum_unlock: {
+    title: 'The Colosseum',
+    message: 'The gates of the Colosseum are open! Fight through 50 bouts of increasingly deadly opponents to earn Laurels — a currency you can spend in the Colosseum Shop. Find it in the Maps section.'
+  },
   black_market_unlock: {
     title: 'A Whisper in the Dark',
     message: "Psst... looking for something special? I've got wares you won't find on the regular shelves. Come find me.",

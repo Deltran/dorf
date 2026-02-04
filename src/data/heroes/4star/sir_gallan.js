@@ -37,6 +37,7 @@ export const sir_gallan = {
       skillUnlockLevel: 1,
       valorRequired: 25,
       targetType: 'enemy',
+      damagePercent: 80,
       effects: [
         {
           type: EffectType.ATK_DOWN,
@@ -71,6 +72,7 @@ export const sir_gallan = {
       skillUnlockLevel: 6,
       valorRequired: 25,
       targetType: 'enemy',
+      damagePercent: 100,
       useStat: 'def',
       conditionalPreBuff: {
         condition: 'wasAttacked',

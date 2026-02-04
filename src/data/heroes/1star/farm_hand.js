@@ -13,6 +13,7 @@ export const farm_hand = {
       skillUnlockLevel: 1,
       rageCost: 25,
       targetType: 'random_enemies',
+      damagePercent: 40,
       hits: 3
     },
     {
@@ -38,6 +39,7 @@ export const farm_hand = {
       skillUnlockLevel: 6,
       rageCost: 35,
       targetType: 'enemy',
+      damagePercent: 30,
       multiHit: 4
     },
     {
@@ -46,6 +48,7 @@ export const farm_hand = {
       skillUnlockLevel: 12,
       rageCost: 65,
       targetType: 'all_enemies',
+      damagePercent: 110,
       effects: [
         {
           type: EffectType.POISON,

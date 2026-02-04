@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { validateHero } from '../../utils/heroValidator.js'
 import { serializeHero, parseHeroFile } from '../../utils/heroSerializer.js'
+import { useHeroesStore } from '../../stores/heroes.js'
 import HeroEditorBasicInfo from './HeroEditorBasicInfo.vue'
 import HeroEditorStats from './HeroEditorStats.vue'
 import HeroEditorSkills from './HeroEditorSkills.vue'
@@ -17,6 +18,32 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['back'])
+
+// Cheat tools
+const heroesStore = useHeroesStore()
+const addLevel = ref(1)
+const addMessage = ref('')
+
+function addToRoster() {
+  const level = parseInt(addLevel.value)
+  if (isNaN(level) || level < 1 || level > 250) return
+
+  const instance = heroesStore.addHero(props.heroId)
+  if (!instance) return
+
+  // Pump XP to reach target level
+  // XP per level = 100 * currentLevel, so we need the sum for levels 1 to (target-1)
+  if (level > 1) {
+    let totalXp = 0
+    for (let l = 1; l < level; l++) {
+      totalXp += 100 * l
+    }
+    heroesStore.addExp(instance.instanceId, totalXp)
+  }
+
+  addMessage.value = 'Added!'
+  setTimeout(() => { addMessage.value = '' }, 1500)
+}
 
 // State
 const hero = ref(null)
@@ -155,6 +182,29 @@ function goBack() {
         </button>
       </div>
     </header>
+
+    <!-- Cheat tools -->
+    <div class="cheat-bar">
+      <span class="cheat-label">Add to Roster</span>
+      <label class="level-input-group">
+        Lv
+        <input
+          v-model="addLevel"
+          type="number"
+          min="1"
+          max="250"
+          class="level-input"
+        />
+      </label>
+      <button
+        class="add-btn"
+        :disabled="isNaN(parseInt(addLevel)) || parseInt(addLevel) < 1 || parseInt(addLevel) > 250"
+        @click="addToRoster"
+      >
+        Add
+      </button>
+      <span v-if="addMessage" class="add-message">{{ addMessage }}</span>
+    </div>
 
     <!-- Loading state -->
     <div v-if="loading" class="loading-state">
@@ -425,5 +475,72 @@ function goBack() {
   flex: 1;
   padding: 16px;
   overflow: hidden;
+}
+
+.cheat-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: #1a1a2e;
+  border-bottom: 1px solid #374151;
+}
+
+.cheat-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.level-input-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.level-input {
+  width: 56px;
+  padding: 4px 6px;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  color: #f3f4f6;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.level-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.add-btn {
+  padding: 4px 12px;
+  background: #22c55e;
+  border: none;
+  border-radius: 4px;
+  color: #111827;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-btn:hover:not(:disabled) {
+  background: #16a34a;
+}
+
+.add-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.add-message {
+  font-size: 0.8rem;
+  color: #22c55e;
+  font-weight: 600;
 }
 </style>

@@ -12,7 +12,8 @@ export const village_healer = {
       description: 'Heal one ally for 120% ATK',
       mpCost: 15,
       skillUnlockLevel: 1,
-      targetType: 'ally'
+      targetType: 'ally',
+      healPercent: 120
     },
     {
       name: 'Cup of Tea',
@@ -52,6 +53,7 @@ export const village_healer = {
       mpCost: 18,
       skillUnlockLevel: 6,
       targetType: 'ally',
+      healPercent: 90,
       effects: [
         {
           type: EffectType.ATK_UP,
@@ -67,6 +69,7 @@ export const village_healer = {
       mpCost: 28,
       skillUnlockLevel: 12,
       targetType: 'all_allies',
+      healPercent: 80,
       wellFedEffect: { duration: 3, atkPercent: 100, threshold: 30 }
     }
   ],

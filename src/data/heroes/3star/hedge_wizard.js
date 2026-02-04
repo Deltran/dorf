@@ -13,6 +13,7 @@ export const hedge_wizard = {
       mpCost: 14,
       skillUnlockLevel: 1,
       targetType: 'enemy',
+      damagePercent: 100,
       effects: [
         {
           type: EffectType.DEF_DOWN,

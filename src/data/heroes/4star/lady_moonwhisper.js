@@ -13,6 +13,7 @@ export const lady_moonwhisper = {
       mpCost: 22,
       skillUnlockLevel: 1,
       targetType: 'ally',
+      healPercent: 150,
       effects: [
         { type: EffectType.DEF_UP, target: 'ally', duration: 2, value: 20 }
       ]

@@ -55,6 +55,7 @@ export const ember_witch = {
       mpCost: 22,
       skillUnlockLevel: 6,
       targetType: 'enemy',
+      damagePercent: 80,
       spreadBurn: true
     },
     {

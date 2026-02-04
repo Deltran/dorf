@@ -37,6 +37,7 @@ export const yggra_world_root = {
       mpCost: 18,
       skillUnlockLevel: 3,
       targetType: 'ally',
+      healPercent: 50,
       effects: [
         {
           type: EffectType.THORNS,

@@ -13,6 +13,7 @@ export const shadow_king = {
       rageCost: 50,
       targetType: 'enemy',
       skillUnlockLevel: 1,
+      damagePercent: 200,
       ignoreDef: 50
     },
     {

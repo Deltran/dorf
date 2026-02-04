@@ -4,6 +4,7 @@ import { getQuestNode, getAllQuestNodes, regions, superRegions, getRegionsBySupe
 import { useInventoryStore } from './inventory.js'
 import { useShardsStore } from './shards.js'
 import { useTipsStore } from './tips.js'
+import { useColosseumStore } from './colosseum.js'
 import { getTokenForRegion, getItem } from '../data/items.js'
 
 export const useQuestsStore = defineStore('quests', () => {
@@ -198,7 +199,7 @@ export const useQuestsStore = defineStore('quests', () => {
     // Check for exploration unlocks
     const explorationNodes = allNodes.filter(n => n.type === 'exploration')
     for (const explorationNode of explorationNodes) {
-      if (unlockedNodes.value.includes(explorationNode.unlockedBy)) {
+      if (completedNodes.value.includes(explorationNode.unlockedBy)) {
         tipsStore.showTip('explorations_intro')
         break
       }
@@ -210,6 +211,15 @@ export const useQuestsStore = defineStore('quests', () => {
       if (unlockedNodes.value.includes(glNode.id)) {
         tipsStore.showTip('genus_loci_intro')
         break
+      }
+    }
+
+    // Check for Colosseum unlock
+    if (node.unlocks === 'colosseum') {
+      const colosseumStore = useColosseumStore()
+      if (!colosseumStore.colosseumUnlocked) {
+        colosseumStore.unlockColosseum()
+        tipsStore.showTip('colosseum_unlock')
       }
     }
 
