@@ -67,7 +67,7 @@ export const nodes = {
     y: 358,
     battles: [
       { enemies: ['mountain_giant'] },
-      { enemies: ['harpy', 'harpy', 'harpy', 'harpy'] },
+      { enemies: ['nesting_roc', 'harpy', 'harpy'] },
       { enemies: ['mountain_giant', 'frost_elemental'] }
     ],
     connections: ['mountain_05'],
@@ -161,7 +161,7 @@ export const nodes = {
     y: 375,
     battles: [
       { enemies: ['mountain_giant', 'storm_elemental'] },
-      { enemies: ['frost_elemental', 'frost_elemental', 'thunder_hawk', 'thunder_hawk'] },
+      { enemies: ['nesting_roc', 'frost_elemental', 'thunder_hawk', 'thunder_hawk'] },
       { enemies: ['mountain_giant', 'storm_elemental', 'thunder_hawk'] }
     ],
     connections: ['mountain_04'],
