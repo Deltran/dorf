@@ -444,6 +444,31 @@ export const useBattleStore = defineStore('battle', () => {
     // Track whether this is a self-buff or ally-buff (for stat buff stacking)
     newEffect.fromAllySkill = fromAllySkill
 
+    // Counter-based stacking (maxStacks)
+    if (definition.maxStacks) {
+      const existingIndex = unit.statusEffects.findIndex(e => e.type === effectType)
+
+      if (existingIndex !== -1) {
+        unit.statusEffects = unit.statusEffects.map((effect, index) => {
+          if (index === existingIndex) {
+            return {
+              ...effect,
+              stacks: Math.min(effect.stacks + 1, definition.maxStacks),
+              duration: Math.max(effect.duration, duration)
+            }
+          }
+          return effect
+        })
+      } else {
+        newEffect.stacks = 1
+        unit.statusEffects = [...unit.statusEffects, newEffect]
+      }
+
+      const unitName = unit.template?.name || 'Unknown'
+      addLog(`${unitName} gains ${definition.name}!`)
+      return
+    }
+
     // For stat buffs/debuffs, self-applied and ally-applied can stack separately
     // Check if effect of same type AND same source type (self vs ally) exists
     const isStatEffect = definition.stat !== undefined
@@ -5448,6 +5473,7 @@ export const useBattleStore = defineStore('battle', () => {
     // Turn order (with SHATTERED_TEMPO priority support)
     calculateTurnOrder,
     // Effect helpers (for UI)
+    applyEffect,
     resolveEffectValue,
     getEffectiveStat,
     hasEffect,
