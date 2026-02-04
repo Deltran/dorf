@@ -34,118 +34,150 @@ describe('Swift Arrow', () => {
       expect(swift_arrow.skills).toHaveLength(5)
     })
 
-    describe('L1: Volley', () => {
-      const volley = () => swift_arrow.skills.find(s => s.name === 'Volley')
+    describe('L1: Quick Shot', () => {
+      const quickShot = () => swift_arrow.skills.find(s => s.name === 'Quick Shot')
 
       it('should exist and be unlocked at level 1', () => {
-        expect(volley()).toBeDefined()
-        expect(volley().skillUnlockLevel).toBe(1)
+        expect(quickShot()).toBeDefined()
+        expect(quickShot().skillUnlockLevel).toBe(1)
       })
 
       it('should not have MP or Focus cost (free skill)', () => {
-        expect(volley().mpCost).toBeFalsy()
-        expect(volley().focusCost).toBeFalsy()
-      })
-
-      it('should target random enemies', () => {
-        expect(volley().targetType).toBe('random_enemies')
-      })
-
-      it('should hit 3 times', () => {
-        expect(volley().multiHit).toBe(3)
-      })
-    })
-
-    describe("L1: Hunter's Mark", () => {
-      const huntersMark = () => swift_arrow.skills.find(s => s.name === "Hunter's Mark")
-
-      it('should exist and be unlocked at level 1', () => {
-        expect(huntersMark()).toBeDefined()
-        expect(huntersMark().skillUnlockLevel).toBe(1)
-      })
-
-      it('should not have MP or Focus cost (free skill)', () => {
-        expect(huntersMark().mpCost).toBeFalsy()
-        expect(huntersMark().focusCost).toBeFalsy()
-      })
-
-      it('should target enemy with no direct damage', () => {
-        expect(huntersMark().targetType).toBe('enemy')
-        expect(huntersMark().noDamage).toBe(true)
-      })
-
-      it('should apply MARKED for 3 turns with 20% damage increase', () => {
-        const markEffect = huntersMark().effects.find(e => e.type === EffectType.MARKED)
-        expect(markEffect).toBeDefined()
-        expect(markEffect.target).toBe('enemy')
-        expect(markEffect.duration).toBe(3)
-        expect(markEffect.value).toBe(20)
-      })
-    })
-
-    describe('L3: Barrage', () => {
-      const barrage = () => swift_arrow.skills.find(s => s.name === 'Barrage')
-
-      it('should exist and be unlocked at level 3', () => {
-        expect(barrage()).toBeDefined()
-        expect(barrage().skillUnlockLevel).toBe(3)
-      })
-
-      it('should not have MP or Focus cost (free skill)', () => {
-        expect(barrage().mpCost).toBeFalsy()
-        expect(barrage().focusCost).toBeFalsy()
-      })
-
-      it('should target all enemies', () => {
-        expect(barrage().targetType).toBe('all_enemies')
-      })
-    })
-
-    describe('L6: Piercing Shot', () => {
-      const piercingShot = () => swift_arrow.skills.find(s => s.name === 'Piercing Shot')
-
-      it('should exist and be unlocked at level 6', () => {
-        expect(piercingShot()).toBeDefined()
-        expect(piercingShot().skillUnlockLevel).toBe(6)
-      })
-
-      it('should not have MP or Focus cost (free skill)', () => {
-        expect(piercingShot().mpCost).toBeFalsy()
-        expect(piercingShot().focusCost).toBeFalsy()
+        expect(quickShot().mpCost).toBeFalsy()
+        expect(quickShot().focusCost).toBeFalsy()
       })
 
       it('should target a single enemy', () => {
-        expect(piercingShot().targetType).toBe('enemy')
+        expect(quickShot().targetType).toBe('enemy')
       })
 
-      it('should ignore 50% of target DEF', () => {
-        expect(piercingShot().ignoreDef).toBe(50)
+      it('should deal 90% ATK damage', () => {
+        expect(quickShot().damagePercent).toBe(90)
+      })
+
+      it('should apply SPD_DOWN for 2 turns', () => {
+        const spdDown = quickShot().effects.find(e => e.type === EffectType.SPD_DOWN)
+        expect(spdDown).toBeDefined()
+        expect(spdDown.target).toBe('enemy')
+        expect(spdDown.duration).toBe(2)
+        expect(spdDown.value).toBe(15)
       })
     })
 
-    describe('L12: Arrow Storm', () => {
-      const arrowStorm = () => swift_arrow.skills.find(s => s.name === 'Arrow Storm')
+    describe('L1: Pinning Volley', () => {
+      const pinningVolley = () => swift_arrow.skills.find(s => s.name === 'Pinning Volley')
 
-      it('should exist and be unlocked at level 12', () => {
-        expect(arrowStorm()).toBeDefined()
-        expect(arrowStorm().skillUnlockLevel).toBe(12)
+      it('should exist and be unlocked at level 1', () => {
+        expect(pinningVolley()).toBeDefined()
+        expect(pinningVolley().skillUnlockLevel).toBe(1)
       })
 
       it('should not have MP or Focus cost (free skill)', () => {
-        expect(arrowStorm().mpCost).toBeFalsy()
-        expect(arrowStorm().focusCost).toBeFalsy()
+        expect(pinningVolley().mpCost).toBeFalsy()
+        expect(pinningVolley().focusCost).toBeFalsy()
       })
 
-      it('should target random enemies', () => {
-        expect(arrowStorm().targetType).toBe('random_enemies')
+      it('should target all enemies', () => {
+        expect(pinningVolley().targetType).toBe('all_enemies')
       })
 
-      it('should hit 5 times', () => {
-        expect(arrowStorm().multiHit).toBe(5)
+      it('should deal 60% ATK damage', () => {
+        expect(pinningVolley().damagePercent).toBe(60)
       })
 
-      it('should prioritize marked enemies', () => {
-        expect(arrowStorm().prioritizeMarked).toBe(true)
+      it('should conditionally apply DEF_DOWN to debuffed enemies', () => {
+        expect(pinningVolley().conditionalEffects).toBeDefined()
+        const condEffect = pinningVolley().conditionalEffects[0]
+        expect(condEffect.condition).toBe('target_has_debuff')
+        expect(condEffect.type).toBe(EffectType.DEF_DOWN)
+        expect(condEffect.duration).toBe(2)
+        expect(condEffect.value).toBe(15)
+      })
+    })
+
+    describe('L3: Nimble Reposition', () => {
+      const nimbleReposition = () => swift_arrow.skills.find(s => s.name === 'Nimble Reposition')
+
+      it('should exist and be unlocked at level 3', () => {
+        expect(nimbleReposition()).toBeDefined()
+        expect(nimbleReposition().skillUnlockLevel).toBe(3)
+      })
+
+      it('should not have MP or Focus cost (free skill)', () => {
+        expect(nimbleReposition().mpCost).toBeFalsy()
+        expect(nimbleReposition().focusCost).toBeFalsy()
+      })
+
+      it('should target self with no damage', () => {
+        expect(nimbleReposition().targetType).toBe('self')
+        expect(nimbleReposition().noDamage).toBe(true)
+      })
+
+      it('should grant DEBUFF_IMMUNE for 1 turn', () => {
+        const debuffImmune = nimbleReposition().effects.find(e => e.type === EffectType.DEBUFF_IMMUNE)
+        expect(debuffImmune).toBeDefined()
+        expect(debuffImmune.duration).toBe(1)
+      })
+
+      it('should grant SPD_UP for 2 turns', () => {
+        const spdUp = nimbleReposition().effects.find(e => e.type === EffectType.SPD_UP)
+        expect(spdUp).toBeDefined()
+        expect(spdUp.value).toBe(20)
+        expect(spdUp.duration).toBe(2)
+      })
+    })
+
+    describe('L6: Precision Strike', () => {
+      const precisionStrike = () => swift_arrow.skills.find(s => s.name === 'Precision Strike')
+
+      it('should exist and be unlocked at level 6', () => {
+        expect(precisionStrike()).toBeDefined()
+        expect(precisionStrike().skillUnlockLevel).toBe(6)
+      })
+
+      it('should not have MP or Focus cost (free skill)', () => {
+        expect(precisionStrike().mpCost).toBeFalsy()
+        expect(precisionStrike().focusCost).toBeFalsy()
+      })
+
+      it('should target a single enemy', () => {
+        expect(precisionStrike().targetType).toBe('enemy')
+      })
+
+      it('should deal 140% base ATK damage', () => {
+        expect(precisionStrike().damagePercent).toBe(140)
+      })
+
+      it('should have bonus effects based on target debuffs', () => {
+        expect(precisionStrike().bonusIfTargetHas).toBeDefined()
+        expect(precisionStrike().bonusIfTargetHas).toHaveLength(2)
+      })
+    })
+
+    describe('L12: Flurry of Arrows', () => {
+      const flurryOfArrows = () => swift_arrow.skills.find(s => s.name === 'Flurry of Arrows')
+
+      it('should exist and be unlocked at level 12', () => {
+        expect(flurryOfArrows()).toBeDefined()
+        expect(flurryOfArrows().skillUnlockLevel).toBe(12)
+      })
+
+      it('should not have MP or Focus cost (free skill)', () => {
+        expect(flurryOfArrows().mpCost).toBeFalsy()
+        expect(flurryOfArrows().focusCost).toBeFalsy()
+      })
+
+      it('should target a single enemy', () => {
+        expect(flurryOfArrows().targetType).toBe('enemy')
+      })
+
+      it('should hit 3 times', () => {
+        expect(flurryOfArrows().multiHit).toBe(3)
+      })
+
+      it('should grant SWIFT_MOMENTUM on hit vs debuffed target', () => {
+        expect(flurryOfArrows().onHitDebuffedTarget).toBeDefined()
+        expect(flurryOfArrows().onHitDebuffedTarget.applyToSelf.type).toBe(EffectType.SWIFT_MOMENTUM)
       })
     })
   })

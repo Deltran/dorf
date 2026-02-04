@@ -8,50 +8,90 @@ export const swift_arrow = {
   baseStats: { hp: 90, atk: 42, def: 22, spd: 20, mp: 55 },
   skills: [
     {
-      name: 'Volley',
-      description: 'Deal 70% ATK damage three times to random enemies.',
-      skillUnlockLevel: 1,
-      targetType: 'random_enemies',
-      multiHit: 3
-    },
-    {
-      name: "Hunter's Mark",
-      description: 'Mark an enemy for 3 turns. Marked enemies take 20% increased damage from all sources.',
+      name: 'Quick Shot',
+      description: 'Deal 90% ATK damage to one enemy. Applies SPD Down for 2 turns.',
       skillUnlockLevel: 1,
       targetType: 'enemy',
+      damagePercent: 90,
+      effects: [
+        {
+          type: EffectType.SPD_DOWN,
+          target: 'enemy',
+          duration: 2,
+          value: 15
+        }
+      ]
+    },
+    {
+      name: 'Pinning Volley',
+      description: 'Deal 60% ATK damage to all enemies. Enemies already suffering a debuff also receive DEF Down for 2 turns.',
+      skillUnlockLevel: 1,
+      targetType: 'all_enemies',
+      damagePercent: 60,
+      conditionalEffects: [
+        {
+          condition: 'target_has_debuff',
+          type: EffectType.DEF_DOWN,
+          target: 'enemy',
+          duration: 2,
+          value: 15
+        }
+      ]
+    },
+    {
+      name: 'Nimble Reposition',
+      description: 'Become immune to debuffs for 1 turn and gain 20% SPD for 2 turns.',
+      skillUnlockLevel: 3,
+      targetType: 'self',
       noDamage: true,
       effects: [
         {
-          type: EffectType.MARKED,
-          target: 'enemy',
-          duration: 3,
+          type: EffectType.DEBUFF_IMMUNE,
+          target: 'self',
+          duration: 1
+        },
+        {
+          type: EffectType.SPD_UP,
+          target: 'self',
+          duration: 2,
           value: 20
         }
       ]
     },
     {
-      name: 'Barrage',
-      description: 'Deal 60% ATK damage to all enemies.',
-      skillUnlockLevel: 3,
-      targetType: 'all_enemies'
-    },
-    {
-      name: 'Piercing Shot',
-      description: 'Deal 180% ATK damage to one enemy. Ignores 50% of target DEF.',
+      name: 'Precision Strike',
+      description: 'Deal 140% ATK damage to one enemy. If target has DEF Down, ignore an additional 20% DEF. If target has SPD Down, deal 180% ATK instead.',
       skillUnlockLevel: 6,
       targetType: 'enemy',
-      ignoreDef: 50
+      damagePercent: 140,
+      bonusIfTargetHas: [
+        {
+          effectType: EffectType.DEF_DOWN,
+          ignoreDef: 20
+        },
+        {
+          effectType: EffectType.SPD_DOWN,
+          damagePercent: 180
+        }
+      ]
     },
     {
-      name: 'Arrow Storm',
-      description: 'Deal 50% ATK damage five times to random enemies. Marked enemies are targeted first.',
+      name: 'Flurry of Arrows',
+      description: 'Deal 55% ATK damage three times to one enemy. Each hit against a debuffed target grants a stack of Momentum (+5% SPD, max 6 stacks).',
       skillUnlockLevel: 12,
-      targetType: 'random_enemies',
-      multiHit: 5,
-      prioritizeMarked: true
+      targetType: 'enemy',
+      damagePercent: 55,
+      multiHit: 3,
+      onHitDebuffedTarget: {
+        applyToSelf: {
+          type: EffectType.SWIFT_MOMENTUM,
+          value: 5,
+          duration: 999
+        }
+      }
     }
   ],
-  epithet: 'Elven Sharpshooter',
+  epithet: 'The Skirmisher',
   introQuote: 'Can\'t talk here. I need to focus.',
   lore: 'Exiled from the Verdant Court for a transgression she refuses to name, Swift Arrow wanders the lowlands picking off threats that most people never see coming. She speaks little, eats less, and has never once missed a shot she intended to land.'
 }
