@@ -191,6 +191,7 @@ const availableSkills = computed(() => {
   if (!currentHero.value) return []
   const heroLevel = currentHero.value.level
   return heroSkills.value.filter(skill => {
+    if (skill.isPassive) return false
     const unlockLevel = skill.skillUnlockLevel ?? 1
     return heroLevel >= unlockLevel
   })
@@ -1294,7 +1295,7 @@ function getStatChange(hero, stat) {
     ></div>
 
     <!-- Enemy Area -->
-    <section class="enemy-area">
+    <section class="enemy-area" :class="{ 'crowded': battleStore.aliveEnemies.length > 4 }">
       <div class="battle-header-overlay">
         <div class="node-info">
           <span class="node-name">{{ currentNode?.name || (questsStore.lastVisitedNode ? getQuestNode(questsStore.lastVisitedNode)?.name : 'Battle') }}</span>
@@ -2074,6 +2075,14 @@ function getStatChange(hero, stat) {
   min-height: 200px;
   border-radius: 12px;
   overflow: visible;
+}
+
+.enemy-area.crowded {
+  gap: 8px;
+}
+
+.enemy-area.crowded .enemy-wrapper {
+  transform: scale(0.9);
 }
 
 /* Full-screen battle background */
