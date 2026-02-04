@@ -3065,6 +3065,22 @@ export const useBattleStore = defineStore('battle', () => {
               applyDamage(target, hitDamage, 'attack', hero)
               totalDamage += hitDamage
               emitCombatEffect(target.id, 'enemy', 'damage', hitDamage)
+
+              // Process onHitDebuffedTarget (e.g., Swift Arrow's Flurry of Arrows momentum stacking)
+              if (skill.onHitDebuffedTarget && target.currentHp > 0) {
+                const targetHasDebuff = (target.statusEffects || []).some(e => {
+                  const def = e.definition || getEffectDefinition(e.type)
+                  return def && !def.isBuff
+                })
+                if (targetHasDebuff && skill.onHitDebuffedTarget.applyToSelf) {
+                  const selfEffect = skill.onHitDebuffedTarget.applyToSelf
+                  applyEffect(hero, selfEffect.type, {
+                    duration: selfEffect.duration,
+                    value: selfEffect.value,
+                    sourceId: hero.instanceId
+                  })
+                }
+              }
             }
 
             // Process focus_on_crit for rangers

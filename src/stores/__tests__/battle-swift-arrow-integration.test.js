@@ -334,3 +334,185 @@ describe('Swift Arrow conditionalEffects (Pinning Volley)', () => {
     }
   })
 })
+
+describe('Swift Arrow onHitDebuffedTarget (Flurry of Arrows)', () => {
+  let battleStore
+
+  function createHero(overrides = {}) {
+    return {
+      instanceId: overrides.instanceId || 'swift_arrow_1',
+      templateId: 'swift_arrow',
+      template: {
+        name: 'Swift Arrow',
+        classId: 'ranger',
+        skills: [
+          { name: 'Quick Shot', targetType: 'enemy', damagePercent: 90 },
+          { name: 'Pinning Volley', targetType: 'all_enemies', damagePercent: 60 },
+          { name: 'Nimble Reposition', targetType: 'self', noDamage: true },
+          {
+            name: 'Precision Strike',
+            targetType: 'enemy',
+            damagePercent: 140,
+            bonusIfTargetHas: [
+              { effectType: EffectType.DEF_DOWN, ignoreDef: 20 },
+              { effectType: EffectType.SPD_DOWN, damagePercent: 180 }
+            ]
+          },
+          {
+            name: 'Flurry of Arrows',
+            description: 'Deal 55% ATK damage three times to one enemy.',
+            targetType: 'enemy',
+            damagePercent: 55,
+            multiHit: 3,
+            onHitDebuffedTarget: {
+              applyToSelf: {
+                type: EffectType.SWIFT_MOMENTUM,
+                value: 5,
+                duration: 999
+              }
+            }
+          }
+        ]
+      },
+      class: { resourceType: 'focus', resourceName: 'Focus' },
+      stats: { hp: 500, atk: 100, def: 50, spd: 20, mp: 55 },
+      currentHp: 500,
+      maxHp: 500,
+      currentMp: 55,
+      maxMp: 55,
+      hasFocus: true,
+      statusEffects: [],
+      level: 12,
+      leaderBonuses: {},
+      ...overrides
+    }
+  }
+
+  function createEnemy(overrides = {}) {
+    return {
+      id: overrides.id || 'enemy_1',
+      template: { name: overrides.name || 'Test Goblin' },
+      currentHp: overrides.currentHp || 1000,
+      maxHp: overrides.maxHp || 1000,
+      stats: { atk: 30, def: overrides.def ?? 50, spd: 5 },
+      statusEffects: [],
+      ...overrides
+    }
+  }
+
+  function setupBattle(heroOverrides = {}, enemyOverrides = {}) {
+    const hero = createHero(heroOverrides)
+    const enemy = createEnemy(enemyOverrides)
+
+    battleStore.heroes.push(hero)
+    battleStore.enemies.push(enemy)
+    battleStore.turnOrder.push({ type: 'hero', id: hero.instanceId })
+    battleStore.currentTurnIndex = 0
+    battleStore.state = BattleState.PLAYER_TURN
+
+    return { hero, enemy }
+  }
+
+  function executeFlurryOfArrows(enemyId) {
+    battleStore.selectAction('skill_4')
+    battleStore.selectTarget(enemyId, 'enemy')
+  }
+
+  beforeEach(() => {
+    setActivePinia(createPinia())
+    battleStore = useBattleStore()
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+  })
+
+  it('grants SWIFT_MOMENTUM stacks when hitting a debuffed target', () => {
+    const { hero, enemy } = setupBattle()
+
+    // Apply a debuff to enemy
+    battleStore.applyEffect(enemy, EffectType.SPD_DOWN, { duration: 5, value: 15 })
+
+    // Verify skill is Flurry of Arrows (skill index 4, multiHit: 3)
+    const skill = hero.template.skills[4]
+    expect(skill.name).toBe('Flurry of Arrows')
+    expect(skill.multiHit).toBe(3)
+
+    executeFlurryOfArrows(enemy.id)
+
+    // Hero should have 3 stacks of SWIFT_MOMENTUM (one per hit)
+    expect(battleStore.getStacks(hero, EffectType.SWIFT_MOMENTUM)).toBe(3)
+  })
+
+  it('does NOT grant SWIFT_MOMENTUM when target has no debuffs', () => {
+    const { hero, enemy } = setupBattle()
+
+    // No debuffs on enemy
+    const skill = hero.template.skills[4]
+    expect(skill.name).toBe('Flurry of Arrows')
+
+    executeFlurryOfArrows(enemy.id)
+
+    // Hero should have 0 stacks
+    expect(battleStore.getStacks(hero, EffectType.SWIFT_MOMENTUM)).toBe(0)
+  })
+
+  it('accumulates stacks across multiple Flurry uses', () => {
+    const { hero, enemy } = setupBattle()
+
+    // Apply a long-lasting debuff
+    battleStore.applyEffect(enemy, EffectType.SPD_DOWN, { duration: 10, value: 15 })
+
+    // First Flurry: 3 stacks
+    executeFlurryOfArrows(enemy.id)
+    expect(battleStore.getStacks(hero, EffectType.SWIFT_MOMENTUM)).toBe(3)
+
+    // Reset state for second use
+    battleStore.currentTurnIndex = 0
+    battleStore.state = BattleState.PLAYER_TURN
+    hero.hasFocus = true
+
+    // Second Flurry: 3 more = 6 stacks (maxStacks)
+    executeFlurryOfArrows(enemy.id)
+    expect(battleStore.getStacks(hero, EffectType.SWIFT_MOMENTUM)).toBe(6)
+  })
+
+  it('does not exceed maxStacks (6)', () => {
+    const { hero, enemy } = setupBattle()
+
+    battleStore.applyEffect(enemy, EffectType.SPD_DOWN, { duration: 20, value: 15 })
+
+    // First Flurry = 3 stacks
+    executeFlurryOfArrows(enemy.id)
+
+    // Reset for second
+    battleStore.currentTurnIndex = 0
+    battleStore.state = BattleState.PLAYER_TURN
+    hero.hasFocus = true
+
+    // Second Flurry = 6 stacks
+    executeFlurryOfArrows(enemy.id)
+
+    // Reset for third
+    battleStore.currentTurnIndex = 0
+    battleStore.state = BattleState.PLAYER_TURN
+    hero.hasFocus = true
+
+    // Third Flurry = still 6 (capped at maxStacks)
+    executeFlurryOfArrows(enemy.id)
+
+    expect(battleStore.getStacks(hero, EffectType.SWIFT_MOMENTUM)).toBe(6)
+  })
+
+  it('grants stacks per surviving hit (stops if target dies)', () => {
+    const { hero, enemy } = setupBattle()
+
+    // Apply debuff and reduce enemy HP to very low
+    battleStore.applyEffect(enemy, EffectType.SPD_DOWN, { duration: 5, value: 15 })
+    enemy.currentHp = 1
+
+    executeFlurryOfArrows(enemy.id)
+
+    // Enemy should be dead after first hit, so only 1 stack (or 0 if target dies before check)
+    // The important thing is stacks <= 1, not 3
+    const stacks = battleStore.getStacks(hero, EffectType.SWIFT_MOMENTUM)
+    expect(stacks).toBeLessThanOrEqual(1)
+  })
+})
