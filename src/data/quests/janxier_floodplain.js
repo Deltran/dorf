@@ -3,6 +3,7 @@ import janxierFloodplainMap from '../../assets/maps/janxier_floodplain.png'
 export const regionMeta = {
   id: 'janxier_floodplain',
   name: 'Janxier Floodplain',
+  description: 'A vast expanse of waterlogged marshland where the ground itself cannot be trusted. Swamp lurkers drag victims beneath the mud, and the croaking of giant frogs echoes ceaselessly across the flooded wastes.',
   superRegion: 'western_veros',
   startNode: 'flood_01',
   width: 600,
@@ -65,7 +66,7 @@ export const nodes = {
     battles: [
       { enemies: ['water_naga', 'water_naga'] },
       { enemies: ['water_naga', 'swamp_lurker', 'swamp_lurker'] },
-      { enemies: ['mud_elemental', 'water_naga', 'lake_serpent'] },
+      { enemies: ['bog_witch', 'water_naga', 'lake_serpent'] },
       { enemies: ['giant_crocodile', 'water_naga'] },
       { enemies: ['water_naga', 'water_naga', 'mud_elemental'] }
     ],
@@ -108,7 +109,7 @@ export const nodes = {
     x: 84,
     y: 459,
     battles: [
-      { enemies: ['mud_elemental', 'mud_elemental', 'mud_elemental'] },
+      { enemies: ['bog_witch', 'mud_elemental', 'mud_elemental'] },
       { enemies: ['lake_serpent', 'lake_serpent', 'lake_serpent', 'lake_serpent'] },
       { enemies: ['water_naga', 'mud_elemental', 'swamp_lurker'] },
       { enemies: ['giant_crocodile', 'mud_elemental'] },

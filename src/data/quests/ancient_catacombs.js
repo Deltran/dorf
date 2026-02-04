@@ -3,6 +3,7 @@ import ancientCatacombsMap from '../../assets/maps/ancient_catacombs.png'
 export const regionMeta = {
   id: 'ancient_catacombs',
   name: 'Ancient Catacombs',
+  description: 'Labyrinthine burial chambers stretching deep beneath the earth, where the interred refuse to stay buried. Mummies shamble through halls of bone, and tomb wraiths guard treasures that were never meant to be found.',
   superRegion: 'western_veros',
   startNode: 'cata_01',
   width: 600,
@@ -44,7 +45,7 @@ export const nodes = {
       { enemies: ['skeleton_warrior', 'skeleton_warrior', 'tomb_guardian'] },
       { enemies: ['mummy', 'mummy', 'skeleton_warrior'] },
       { enemies: ['tomb_wraith', 'tomb_wraith'] },
-      { enemies: ['dark_cultist', 'skeleton_warrior', 'skeleton_warrior', 'skeleton_warrior'] },
+      { enemies: ['bone_heap', 'skeleton_warrior', 'skeleton_warrior'] },
       { enemies: ['tomb_guardian', 'mummy', 'tomb_wraith'] }
     ],
     connections: ['cata_03'],
@@ -87,7 +88,7 @@ export const nodes = {
     battles: [
       { enemies: ['mummy', 'mummy', 'tomb_guardian'] },
       { enemies: ['tomb_guardian', 'tomb_guardian', 'skeleton_warrior'] },
-      { enemies: ['mummy', 'mummy', 'mummy', 'mummy'] },
+      { enemies: ['bone_heap', 'mummy', 'mummy'] },
       { enemies: ['necromancer', 'mummy', 'tomb_guardian'] },
       { enemies: ['tomb_guardian', 'tomb_guardian', 'mummy', 'mummy'] },
       { enemies: ['necromancer', 'tomb_guardian', 'tomb_guardian'] }
