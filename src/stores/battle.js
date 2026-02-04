@@ -374,10 +374,10 @@ export const useBattleStore = defineStore('battle', () => {
       const def = effect.definition
       if (def.stat === statName) {
         // value is percentage (e.g., 20 = 20%)
-        if (effect.type.includes('_up')) {
-          modifier += effect.value
-        } else if (effect.type.includes('_down')) {
-          modifier -= effect.value
+        if (effect.type.includes('_up') || (def.isBuff && !effect.type.includes('_down'))) {
+          modifier += effect.value * (effect.stacks || 1)
+        } else if (effect.type.includes('_down') || (def.isDebuff && !effect.type.includes('_up'))) {
+          modifier -= effect.value * (effect.stacks || 1)
         }
       }
     }
@@ -532,6 +532,12 @@ export const useBattleStore = defineStore('battle', () => {
   // Check if unit has a specific effect
   function hasEffect(unit, effectType) {
     return (unit.statusEffects || []).some(e => e.type === effectType)
+  }
+
+  // Get the current stack count for a counter-based stacking effect
+  function getStacks(unit, effectType) {
+    const effect = (unit.statusEffects || []).find(e => e.type === effectType)
+    return effect?.stacks || 0
   }
 
   // Check if death prevention should trigger and handle it
@@ -5477,6 +5483,7 @@ export const useBattleStore = defineStore('battle', () => {
     resolveEffectValue,
     getEffectiveStat,
     hasEffect,
+    getStacks,
     checkDeathPrevention,
     getMarkedDamageMultiplier,
     getViciousDamageMultiplier,

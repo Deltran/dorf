@@ -152,4 +152,82 @@ describe('counter-based stacking in applyEffect', () => {
       expect(momentum.stacks).toBe(1)
     })
   })
+
+  describe('getEffectiveStat with stacks', () => {
+    it('multiplies value by stacks for stat calculation', () => {
+      const unit = makeUnit()
+      for (let i = 0; i < 3; i++) {
+        battleStore.applyEffect(unit, EffectType.SWIFT_MOMENTUM, { duration: 999, value: 5 })
+      }
+      // Effective SPD = 20 * (1 + 15/100) = 23
+      const effectiveSpd = battleStore.getEffectiveStat(unit, 'spd')
+      expect(effectiveSpd).toBe(23)
+    })
+
+    it('1 stack applies value once', () => {
+      const unit = makeUnit()
+      battleStore.applyEffect(unit, EffectType.SWIFT_MOMENTUM, { duration: 999, value: 5 })
+      // Effective SPD = 20 * (1 + 5/100) = 21
+      const effectiveSpd = battleStore.getEffectiveStat(unit, 'spd')
+      expect(effectiveSpd).toBe(21)
+    })
+
+    it('maxStacks (6) applies full value', () => {
+      const unit = makeUnit()
+      for (let i = 0; i < 6; i++) {
+        battleStore.applyEffect(unit, EffectType.SWIFT_MOMENTUM, { duration: 999, value: 5 })
+      }
+      // Effective SPD = 20 * (1 + 30/100) = 26
+      const effectiveSpd = battleStore.getEffectiveStat(unit, 'spd')
+      expect(effectiveSpd).toBe(26)
+    })
+
+    it('non-stacked effects still work normally', () => {
+      const unit = makeUnit()
+      battleStore.applyEffect(unit, EffectType.SPD_UP, { duration: 2, value: 20 })
+      // Effective SPD = 20 * (1 + 20/100) = 24
+      const effectiveSpd = battleStore.getEffectiveStat(unit, 'spd')
+      expect(effectiveSpd).toBe(24)
+    })
+
+    it('stacked effect coexists with regular stat buffs', () => {
+      const unit = makeUnit()
+      battleStore.applyEffect(unit, EffectType.SPD_UP, { duration: 2, value: 20 })
+      for (let i = 0; i < 3; i++) {
+        battleStore.applyEffect(unit, EffectType.SWIFT_MOMENTUM, { duration: 999, value: 5 })
+      }
+      // Effective SPD = 20 * (1 + (20 + 15) / 100) = 20 * 1.35 = 27
+      const effectiveSpd = battleStore.getEffectiveStat(unit, 'spd')
+      expect(effectiveSpd).toBe(27)
+    })
+  })
+
+  describe('getStacks helper', () => {
+    it('returns 0 when unit has no effects', () => {
+      const unit = makeUnit()
+      expect(battleStore.getStacks(unit, EffectType.SWIFT_MOMENTUM)).toBe(0)
+    })
+
+    it('returns 0 for a non-stacked effect type', () => {
+      const unit = makeUnit()
+      battleStore.applyEffect(unit, EffectType.ATK_UP, { duration: 2, value: 20 })
+      expect(battleStore.getStacks(unit, EffectType.ATK_UP)).toBe(0)
+    })
+
+    it('returns current stack count', () => {
+      const unit = makeUnit()
+      battleStore.applyEffect(unit, EffectType.SWIFT_MOMENTUM, { duration: 999, value: 5 })
+      expect(battleStore.getStacks(unit, EffectType.SWIFT_MOMENTUM)).toBe(1)
+
+      battleStore.applyEffect(unit, EffectType.SWIFT_MOMENTUM, { duration: 999, value: 5 })
+      expect(battleStore.getStacks(unit, EffectType.SWIFT_MOMENTUM)).toBe(2)
+    })
+
+    it('returns 0 after effect is removed', () => {
+      const unit = makeUnit()
+      battleStore.applyEffect(unit, EffectType.SWIFT_MOMENTUM, { duration: 999, value: 5 })
+      unit.statusEffects = unit.statusEffects.filter(e => e.type !== EffectType.SWIFT_MOMENTUM)
+      expect(battleStore.getStacks(unit, EffectType.SWIFT_MOMENTUM)).toBe(0)
+    })
+  })
 })
