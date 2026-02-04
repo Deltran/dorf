@@ -79,7 +79,10 @@ export const EffectType = {
   FORTUNE_SWAPPED: 'fortune_swapped',
 
   // Deplorable Companions effects
-  DECOMPOSITION: 'decomposition'
+  DECOMPOSITION: 'decomposition',
+
+  // Stacking effects
+  SWIFT_MOMENTUM: 'swift_momentum'
 }
 
 // Effect definitions with display info and default behavior
@@ -411,6 +414,14 @@ export const effectDefinitions = {
     isBuff: true,
     isDecomposition: true,
     stackable: false
+  },
+  [EffectType.SWIFT_MOMENTUM]: {
+    name: 'Momentum',
+    icon: '🏹',
+    color: '#f59e0b',
+    isBuff: true,
+    stat: 'spd',
+    maxStacks: 6
   }
 }
 
