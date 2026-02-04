@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore, useIntroStore, useCodexStore } from './stores'
+import { useColosseumStore } from './stores/colosseum.js'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
 import { getAllQuestNodes } from './data/quests/index.js'
@@ -30,6 +31,7 @@ import FieldGuideArticleScreen from './screens/FieldGuideArticleScreen.vue'
 import CompendiumRosterScreen from './screens/CompendiumRosterScreen.vue'
 import CompendiumBestiaryScreen from './screens/CompendiumBestiaryScreen.vue'
 import CompendiumAtlasScreen from './screens/CompendiumAtlasScreen.vue'
+import ColosseumScreen from './screens/ColosseumScreen.vue'
 import ExplorationDetailView from './components/ExplorationDetailView.vue'
 import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
 import TipPopup from './components/TipPopup.vue'
@@ -47,6 +49,7 @@ const shopsStore = useShopsStore()
 const equipmentStore = useEquipmentStore()
 const introStore = useIntroStore()
 const codexStore = useCodexStore()
+const colosseumStore = useColosseumStore()
 
 const currentScreen = ref(
   import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_screen') || 'home') : 'home'
@@ -248,8 +251,17 @@ function handleExplorationCancelled() {
   selectedExplorationNodeId.value = null
 }
 
+const colosseumBattleContext = ref(null)
+
 function startBattle() {
   genusLociBattleContext.value = null
+  colosseumBattleContext.value = null
+  currentScreen.value = 'battle'
+}
+
+function startColosseumBattle(bout) {
+  genusLociBattleContext.value = null
+  colosseumBattleContext.value = { bout }
   currentScreen.value = 'battle'
 }
 
@@ -349,6 +361,11 @@ function handleBattleNavigate(screen, param) {
         v-else-if="currentScreen === 'genus-loci-list'"
         @navigate="navigate"
       />
+      <ColosseumScreen
+        v-else-if="currentScreen === 'colosseum'"
+        @navigate="navigate"
+        @startColosseumBattle="startColosseumBattle"
+      />
       <PartyScreen
         v-else-if="currentScreen === 'party'"
         :placing-hero-id="placingHeroId"
@@ -374,6 +391,7 @@ function handleBattleNavigate(screen, param) {
       <BattleScreen
         v-else-if="currentScreen === 'battle'"
         :genus-loci-context="genusLociBattleContext"
+        :colosseum-context="colosseumBattleContext"
         @navigate="handleBattleNavigate"
       />
       <GenusLociScreen

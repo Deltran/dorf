@@ -9,6 +9,7 @@ import { getClass } from '../data/classes.js'
 import { getGenusLoci } from '../data/genusLoci.js'
 import { getGenusLociAbilitiesForLevel } from '../data/genusLociAbilities.js'
 import { getEquipment } from '../data/equipment.js'
+import { getHeroTemplate } from '../data/heroes/index.js'
 
 // Battle states
 export const BattleState = {
@@ -5320,6 +5321,94 @@ export const useBattleStore = defineStore('battle', () => {
     return true
   }
 
+  // --- Colosseum: Hero-as-Enemy ---
+
+  const STAR_GROWTH_MULTIPLIERS = {
+    1: 1.00,
+    2: 1.10,
+    3: 1.20,
+    4: 1.35,
+    5: 1.50
+  }
+
+  const SHARD_TIER_BONUSES = {
+    0: 0,
+    1: 0.05,  // +5%
+    2: 0.10,  // +10%
+    3: 0.15   // +15%
+  }
+
+  function calculateColosseumStats(template, level, shardTier) {
+    const starLevel = template.rarity
+    const starMultiplier = STAR_GROWTH_MULTIPLIERS[starLevel] || 1
+    const baseLevelGrowth = 0.05
+    const levelMultiplier = 1 + (baseLevelGrowth * starMultiplier) * (level - 1)
+    const shardBonus = 1 + (SHARD_TIER_BONUSES[shardTier] || 0)
+
+    return {
+      hp: Math.floor(template.baseStats.hp * levelMultiplier * shardBonus),
+      atk: Math.floor(template.baseStats.atk * levelMultiplier * shardBonus),
+      def: Math.floor(template.baseStats.def * levelMultiplier * shardBonus),
+      spd: Math.floor(template.baseStats.spd * levelMultiplier * shardBonus),
+      mp: Math.floor((template.baseStats.mp || 0) * levelMultiplier * shardBonus)
+    }
+  }
+
+  function createColosseumEnemies(bout) {
+    return bout.heroes.map((heroDef, index) => {
+      const template = getHeroTemplate(heroDef.templateId)
+      if (!template) return null
+
+      const heroClass = getClass(template.classId)
+      const stats = calculateColosseumStats(template, heroDef.level, heroDef.shardTier)
+
+      // Build cooldowns
+      const cooldowns = {}
+      if (template.skills) {
+        for (const skill of template.skills) {
+          if (skill.cooldown) cooldowns[skill.name] = 0
+        }
+      }
+
+      // Resource initialization based on class
+      const resourceState = {}
+      if (heroClass?.resourceType === 'rage') {
+        resourceState.currentRage = 0
+      } else if (heroClass?.resourceType === 'focus') {
+        resourceState.hasFocus = true
+      } else if (heroClass?.resourceType === 'valor') {
+        resourceState.currentValor = 0
+      } else if (heroClass?.resourceType === 'verse') {
+        resourceState.currentVerses = 0
+        resourceState.lastSkillName = null
+      } else if (heroClass?.resourceType === 'essence') {
+        resourceState.currentEssence = Math.floor((stats.mp || 60) * 0.5)
+        resourceState.maxEssence = stats.mp || 60
+      } else {
+        // Standard MP classes
+        resourceState.currentMp = Math.floor(stats.mp * 0.3)
+        resourceState.maxMp = stats.mp
+      }
+
+      return {
+        id: `colosseum_${index}`,
+        templateId: heroDef.templateId,
+        classId: template.classId,
+        currentHp: stats.hp,
+        maxHp: stats.hp,
+        stats,
+        template,
+        class: heroClass,
+        currentCooldowns: cooldowns,
+        statusEffects: [],
+        isColosseumEnemy: true,
+        isLeader: bout.leader === heroDef.templateId,
+        level: heroDef.level,
+        ...resourceState
+      }
+    }).filter(Boolean)
+  }
+
   return {
     // State
     state,
@@ -5509,6 +5598,9 @@ export const useBattleStore = defineStore('battle', () => {
     applyHeal,
     getValidEnemyTargets,
     getValidAllyTargets,
-    getEffectiveStatWithPassives
+    getEffectiveStatWithPassives,
+    // Colosseum
+    createColosseumEnemies,
+    calculateColosseumStats
   }
 })

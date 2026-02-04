@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLociStore, useExplorationsStore, BattleState } from '../stores'
+import { useColosseumStore } from '../stores/colosseum.js'
 import HeroCard from '../components/HeroCard.vue'
 import EnemyCard from '../components/EnemyCard.vue'
 import DamageNumber from '../components/DamageNumber.vue'
@@ -81,6 +82,10 @@ const props = defineProps({
   genusLociContext: {
     type: Object,
     default: null
+  },
+  colosseumContext: {
+    type: Object,
+    default: null
   }
 })
 
@@ -93,6 +98,7 @@ const gachaStore = useGachaStore()
 const inventoryStore = useInventoryStore()
 const genusLociStore = useGenusLociStore()
 const explorationsStore = useExplorationsStore()
+const colosseumStore = useColosseumStore()
 const tipsStore = useTipsStore()
 
 const showVictoryModal = ref(false)
@@ -141,6 +147,10 @@ function toggleCombatLog() {
 
 // Computed to check if this is a Genus Loci battle
 const isGenusLociBattle = computed(() => battleStore.battleType === 'genusLoci')
+
+// Colosseum battle tracking
+const isColosseumBattle = computed(() => !!props.colosseumContext)
+const colosseumResult = ref(null) // { laurelsEarned, firstClear, newDailyIncome, boutNumber }
 
 const currentGenusLociName = computed(() => {
   if (!isGenusLociBattle.value || !battleStore.genusLociMeta) return ''
@@ -489,6 +499,12 @@ function startCurrentBattle() {
     return
   }
 
+  // Check if this is a Colosseum battle
+  if (props.colosseumContext) {
+    initColosseumBattle()
+    return
+  }
+
   // Normal quest battle
   const battle = questsStore.currentBattle
   if (!battle) {
@@ -498,6 +514,27 @@ function startCurrentBattle() {
 
   const partyState = questsStore.currentRun?.partyState || {}
   battleStore.initBattle(partyState, battle.enemies)
+}
+
+function initColosseumBattle() {
+  const { bout } = props.colosseumContext
+  const colosseumEnemies = battleStore.createColosseumEnemies(bout)
+
+  // Initialize party with full HP/MP reset
+  const partyState = {}
+  for (const instanceId of heroesStore.party.filter(Boolean)) {
+    const stats = heroesStore.getHeroStats(instanceId)
+    partyState[instanceId] = {
+      currentHp: stats.hp,
+      currentMp: Math.floor(stats.mp * 0.3)
+    }
+  }
+
+  // Use initBattle with empty enemy list, then inject colosseum enemies
+  battleStore.initBattle(partyState, [])
+  // Replace empty enemies with colosseum hero-enemies
+  battleStore.enemies.splice(0, battleStore.enemies.length, ...colosseumEnemies)
+  battleStore.calculateTurnOrder()
 }
 
 // Watch for battle end
@@ -513,6 +550,12 @@ function handleVictory() {
   // Handle Genus Loci victory separately
   if (isGenusLociBattle.value) {
     handleGenusLociVictory()
+    return
+  }
+
+  // Handle Colosseum victory
+  if (isColosseumBattle.value) {
+    handleColosseumVictory()
     return
   }
 
@@ -611,7 +654,7 @@ function animateRewards() {
 }
 
 function handleDefeat() {
-  if (!isGenusLociBattle.value) {
+  if (!isGenusLociBattle.value && !isColosseumBattle.value) {
     questsStore.failRun()
   }
 
@@ -847,6 +890,28 @@ function returnHome() {
   explorationsStore.checkCompletions()
   battleStore.endBattle()
   emit('navigate', 'home')
+}
+
+function returnToColosseum() {
+  defeatTimers.forEach(clearTimeout)
+  defeatTimers = []
+  defeatPhase.value = null
+  showVictoryModal.value = false
+  colosseumResult.value = null
+  battleStore.endBattle()
+  emit('navigate', 'colosseum')
+}
+
+function handleColosseumVictory() {
+  const bout = props.colosseumContext.bout
+  const result = colosseumStore.completeBout(bout.bout)
+  colosseumResult.value = {
+    boutNumber: bout.bout,
+    laurelsEarned: result.laurelsEarned,
+    firstClear: result.firstClear,
+    newDailyIncome: result.newDailyIncome || colosseumStore.getDailyIncome()
+  }
+  showVictoryModal.value = true
 }
 
 function replayStage() {
@@ -1591,6 +1656,31 @@ function getStatChange(hero, stat) {
           </div>
         </template>
 
+        <!-- Colosseum Victory -->
+        <template v-else-if="isColosseumBattle && colosseumResult">
+          <p class="node-complete colosseum-complete">
+            Bout {{ colosseumResult.boutNumber }} Won!
+            <span v-if="colosseumResult.firstClear" class="first-clear-badge">First Clear!</span>
+          </p>
+
+          <div v-if="colosseumResult.firstClear" class="rewards-row rewards-row-centered">
+            <div class="reward-block reward-laurels">
+              <span class="reward-icon">🏛️</span>
+              <span class="reward-value">+{{ colosseumResult.laurelsEarned }}</span>
+              <span class="reward-label">Laurels</span>
+            </div>
+          </div>
+
+          <div class="colosseum-income-info">
+            <span class="income-label">Daily Income:</span>
+            <span class="income-value">{{ colosseumResult.newDailyIncome }} 🏛️/day</span>
+          </div>
+
+          <div class="modal-actions">
+            <button class="btn-primary btn-full" @click="returnToColosseum">Continue</button>
+          </div>
+        </template>
+
         <!-- Normal Quest Victory -->
         <template v-else>
           <p class="node-complete">
@@ -1887,6 +1977,9 @@ function getStatChange(hero, stat) {
         <template v-if="isGenusLociBattle">
           {{ currentGenusLociName }} stands victorious.
         </template>
+        <template v-else-if="isColosseumBattle">
+          The arena claims another challenger.
+        </template>
         <template v-else>
           {{ defeatFlavorText }}
         </template>
@@ -1895,8 +1988,14 @@ function getStatChange(hero, stat) {
 
     <!-- Actions -->
     <div class="defeat-actions" :class="{ visible: defeatPhase === 'complete' }">
-      <button class="defeat-btn-primary" @click="returnToMap">Try Again</button>
-      <button class="defeat-btn-secondary" @click="returnHome">Home</button>
+      <template v-if="isColosseumBattle">
+        <button class="defeat-btn-primary" @click="returnToColosseum">Back to Colosseum</button>
+        <button class="defeat-btn-secondary" @click="returnHome">Home</button>
+      </template>
+      <template v-else>
+        <button class="defeat-btn-primary" @click="returnToMap">Try Again</button>
+        <button class="defeat-btn-secondary" @click="returnHome">Home</button>
+      </template>
     </div>
   </div>
 </template>
@@ -2809,6 +2908,54 @@ function getStatChange(hero, stat) {
 .node-complete {
   color: #9ca3af;
   margin-bottom: 24px;
+}
+
+.colosseum-complete {
+  color: #f59e0b;
+}
+
+.reward-laurels {
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.15) 0%, rgba(245, 158, 11, 0.15) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 12px;
+  padding: 16px 24px;
+}
+
+.reward-laurels .reward-icon {
+  font-size: 1.8rem;
+}
+
+.reward-laurels .reward-value {
+  color: #fbbf24;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.reward-laurels .reward-label {
+  color: #d97706;
+  font-size: 0.8rem;
+}
+
+.colosseum-income-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.income-label {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.income-value {
+  color: #fbbf24;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 /* Rewards - Hierarchical display with gems as hero */

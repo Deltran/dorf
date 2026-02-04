@@ -24,7 +24,7 @@ export const nodes = {
       { enemies: ['lake_serpent', 'lake_serpent'] },
       { enemies: ['dire_wolf', 'giant_frog', 'giant_frog'] }
     ],
-    connections: ['lake_02'],
+    connections: ['lake_02', 'lake_colosseum'],
     rewards: { gems: 90, gold: 220, exp: 170 },
     firstClearBonus: { gems: 55 },
     itemDrops: [
@@ -60,6 +60,20 @@ export const nodes = {
       { itemId: 'lake_tower_key', min: 1, max: 1, chance: 0.25 },
       { itemId: 'token_whispering_woods', min: 1, max: 1, chance: 0.1 }
     ]
+  },
+  lake_colosseum: {
+    id: 'lake_colosseum',
+    name: 'The Colosseum Gate',
+    region: 'Whisper Lake',
+    x: 200,
+    y: 450,
+    battles: [
+      { enemies: ['dire_wolf', 'dire_wolf', 'lake_serpent', 'lake_serpent'] }
+    ],
+    connections: [],
+    rewards: { gems: 100, gold: 500 },
+    firstClearBonus: { gems: 50 },
+    unlocks: 'colosseum'
   },
   lake_genus_loci: {
     id: 'lake_genus_loci',

@@ -1,10 +1,12 @@
 <script setup>
+import { useColosseumStore } from '../stores/colosseum.js'
 import questBg from '../assets/backgrounds/quests_bg.png'
 import genusLociBg from '../assets/backgrounds/genus_loci.png'
 import exploreBg from '../assets/backgrounds/explore_bg.png'
 import mapRoomBg from '../assets/backgrounds/map_room.png'
 
 const emit = defineEmits(['navigate'])
+const colosseumStore = useColosseumStore()
 </script>
 
 <template>
@@ -72,6 +74,22 @@ const emit = defineEmits(['navigate'])
           </div>
         </button>
       </div>
+
+      <!-- Colosseum (shown when unlocked) -->
+      <button
+        v-if="colosseumStore.colosseumUnlocked"
+        class="nav-button nav-button-secondary colosseum-button"
+        @click="emit('navigate', 'colosseum')"
+      >
+        <div class="nav-icon-wrapper colosseum">
+          <span class="nav-icon">🏛️</span>
+        </div>
+        <div class="nav-content">
+          <span class="nav-label">Colosseum</span>
+          <span class="nav-hint">PvP Gauntlet</span>
+        </div>
+        <div class="nav-arrow">›</div>
+      </button>
     </nav>
   </div>
 </template>
@@ -423,5 +441,24 @@ const emit = defineEmits(['navigate'])
 
 .nav-button.explorations-button:hover {
   border-color: #22d3ee;
+}
+
+/* Colosseum button */
+.nav-icon-wrapper.colosseum {
+  background: linear-gradient(135deg, #b45309 0%, #f59e0b 100%);
+}
+
+.nav-button.colosseum-button {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, rgba(180, 83, 9, 0.3) 0%, #0f172a 100%);
+}
+
+.nav-button.colosseum-button:hover {
+  border-color: #fbbf24;
+}
+
+.nav-button.colosseum-button .nav-hint {
+  color: #d97706;
+  font-size: 0.75rem;
 }
 </style>
