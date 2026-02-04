@@ -3323,6 +3323,26 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
+          // Process array-style conditionalEffects (e.g., target_has_debuff condition)
+          if (skill.conditionalEffects && Array.isArray(skill.conditionalEffects) && !targetEvaded && target.currentHp > 0) {
+            for (const condEffect of skill.conditionalEffects) {
+              if (condEffect.condition === 'target_has_debuff') {
+                const targetHasDebuff = (target.statusEffects || []).some(e => {
+                  const def = e.definition || getEffectDefinition(e.type)
+                  return def && !def.isBuff
+                })
+                if (targetHasDebuff) {
+                  applyEffect(target, condEffect.type, {
+                    duration: condEffect.duration,
+                    value: condEffect.value,
+                    sourceId: hero.instanceId
+                  })
+                  emitCombatEffect(target.id, 'enemy', 'debuff', 0)
+                }
+              }
+            }
+          }
+
           // Handle spreadBurn skill
           if (skill.spreadBurn && target.currentHp > 0) {
             const spreadCount = spreadBurnFromTarget(target, aliveEnemies.value, hero.instanceId)
@@ -3976,6 +3996,26 @@ export const useBattleStore = defineStore('battle', () => {
                   const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                   applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
                   emitCombatEffect(target.id, 'enemy', 'debuff', 0)
+                }
+              }
+            }
+
+            // Process conditionalEffects (e.g., Swift Arrow's Pinning Volley: apply DEF_DOWN if target has a debuff)
+            if (skill.conditionalEffects && Array.isArray(skill.conditionalEffects) && !aoeResult.evaded && target.currentHp > 0) {
+              for (const condEffect of skill.conditionalEffects) {
+                if (condEffect.condition === 'target_has_debuff') {
+                  const targetHasDebuff = (target.statusEffects || []).some(e => {
+                    const def = e.definition || getEffectDefinition(e.type)
+                    return def && !def.isBuff
+                  })
+                  if (targetHasDebuff) {
+                    applyEffect(target, condEffect.type, {
+                      duration: condEffect.duration,
+                      value: condEffect.value,
+                      sourceId: hero.instanceId
+                    })
+                    emitCombatEffect(target.id, 'enemy', 'debuff', 0)
+                  }
                 }
               }
             }
