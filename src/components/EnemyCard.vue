@@ -79,7 +79,8 @@ const statusEffects = computed(() => {
         :title="effect.duration > 99 ? effect.definition?.name : `${effect.definition?.name} (${effect.duration} turns)`"
       >
         <span class="effect-icon">{{ effect.definition?.icon }}</span>
-        <span v-if="effect.duration <= 99" class="effect-duration">{{ effect.duration }}</span>
+        <span v-if="effect.stacks" class="effect-stacks">{{ effect.stacks }}</span>
+        <span v-else-if="effect.duration <= 99" class="effect-duration">{{ effect.duration }}</span>
       </div>
     </div>
 
@@ -206,6 +207,12 @@ const statusEffects = computed(() => {
   color: #d1d5db;
   font-size: 0.65rem;
   font-weight: 600;
+}
+
+.effect-stacks {
+  color: #fbbf24;
+  font-size: 0.65rem;
+  font-weight: 700;
 }
 
 /* Hit Effects */

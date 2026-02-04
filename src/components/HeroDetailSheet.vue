@@ -110,6 +110,11 @@ function getEffectDescription(effect) {
 
   let desc = def.name
 
+  // Add stack count for counter-stacked effects
+  if (effect.stacks) {
+    desc += ` x${effect.stacks}`
+  }
+
   // Add value info for stat modifiers
   if (effect.value && (def.stat || def.isDot || def.isHot)) {
     desc += ` (${effect.value > 0 ? '+' : ''}${effect.value}%)`

@@ -196,15 +196,17 @@ const heroSkills = computed(() => {
   return []
 })
 
-// Filter to only unlocked skills based on hero level
+// Filter to only unlocked skills based on hero level, preserving original indices
 const availableSkills = computed(() => {
   if (!currentHero.value) return []
   const heroLevel = currentHero.value.level
-  return heroSkills.value.filter(skill => {
-    if (skill.isPassive) return false
-    const unlockLevel = skill.skillUnlockLevel ?? 1
-    return heroLevel >= unlockLevel
-  })
+  return heroSkills.value
+    .map((skill, originalIndex) => ({ skill, originalIndex }))
+    .filter(({ skill }) => {
+      if (skill.isPassive) return false
+      const unlockLevel = skill.skillUnlockLevel ?? 1
+      return heroLevel >= unlockLevel
+    })
 })
 
 // Check if current hero is a ranger (uses Focus)
@@ -378,14 +380,15 @@ function canUseSkill(skill) {
 
 // Prepare skills data for SkillPanel component
 const skillsForPanel = computed(() => {
-  return availableSkills.value.map((skill, index) => ({
+  return availableSkills.value.map(({ skill, originalIndex }) => ({
     name: skill.name,
     cost: getSkillCost(skill),
     costLabel: getSkillCostLabel(skill),
     disabled: !canUseSkill(skill),
     disabledReason: !canUseSkill(skill) ? getSkillDescription(skill) : null,
     fullDescription: skill.description,
-    targetType: skill.targetType || 'enemy'
+    targetType: skill.targetType || 'enemy',
+    originalIndex
   }))
 })
 
@@ -821,7 +824,9 @@ function closeSkillPanel() {
 }
 
 function handleSkillSelect(index) {
-  selectAction(`skill_${index}`)
+  const skillData = skillsForPanel.value[index]
+  const originalIndex = skillData?.originalIndex ?? index
+  selectAction(`skill_${originalIndex}`)
   closeSkillPanel()
 }
 
@@ -1914,8 +1919,8 @@ function getStatChange(hero, stat) {
               @click.stop="showEffectTooltip($event, getEffectTooltipText(effect))"
             >
               <span class="effect-icon">{{ effect.definition?.icon }}</span>
-              <span class="effect-name">{{ effect.definition?.name }}</span>
-              <span class="effect-duration">{{ effect.duration }} turns</span>
+              <span class="effect-name">{{ effect.definition?.name }}<span v-if="effect.stacks"> x{{ effect.stacks }}</span></span>
+              <span class="effect-duration">{{ effect.duration > 99 ? '' : `${effect.duration} turns` }}</span>
             </div>
           </div>
         </div>
