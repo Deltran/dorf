@@ -4283,6 +4283,80 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     if (skill) {
+      // Handle summon skills before normal skill processing
+      if (skill.summon) {
+        const aliveCount = enemies.value.filter(e => e.currentHp > 0).length
+
+        if (aliveCount < MAX_ENEMIES) {
+          // Room on field — perform summon
+          enemySkillActivation.value = { enemyId: enemy.id, skillName: skill.name }
+          currentEffectSource = `${enemy.template?.name || enemy.name}'s ${skill.name}`
+
+          const count = skill.summon.count || 1
+          for (let i = 0; i < count; i++) {
+            // Re-check cap each iteration
+            if (enemies.value.filter(e => e.currentHp > 0).length >= MAX_ENEMIES) break
+            summonEnemy(skill.summon.templateId)
+          }
+
+          // Apply self-targeted effects from the skill
+          if (skill.effects) {
+            for (const effect of skill.effects) {
+              if (effect.target === 'self') {
+                const effectiveAtk = getEffectiveStat(enemy, 'atk')
+                const effectValue = calculateEffectValue(effect, effectiveAtk)
+                applyEffect(enemy, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
+              }
+            }
+          }
+
+          // Set cooldown
+          enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+
+          processEndOfTurnEffects(enemy)
+          setTimeout(() => {
+            advanceTurnIndex()
+            startNextTurn()
+          }, 600)
+          return
+        } else if (skill.fallbackSkill) {
+          // Field is full — use fallback skill
+          enemySkillActivation.value = { enemyId: enemy.id, skillName: skill.fallbackSkill.name }
+          currentEffectSource = `${enemy.template?.name || enemy.name}'s ${skill.fallbackSkill.name}`
+
+          // Apply fallback skill effects
+          if (skill.fallbackSkill.effects) {
+            for (const effect of skill.fallbackSkill.effects) {
+              if (effect.target === 'self') {
+                const effectiveAtk = getEffectiveStat(enemy, 'atk')
+                const effectValue = calculateEffectValue(effect, effectiveAtk)
+                applyEffect(enemy, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
+              }
+            }
+          }
+
+          // Set cooldown on the ORIGINAL summon skill
+          enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+
+          processEndOfTurnEffects(enemy)
+          setTimeout(() => {
+            advanceTurnIndex()
+            startNextTurn()
+          }, 600)
+          return
+        } else {
+          // Field is full, no fallback — pass turn
+          addLog(`${enemy.template?.name || 'Enemy'} cannot summon — field is full.`)
+
+          processEndOfTurnEffects(enemy)
+          setTimeout(() => {
+            advanceTurnIndex()
+            startNextTurn()
+          }, 600)
+          return
+        }
+      }
+
       // Set effect source context for tooltip tracking
       currentEffectSource = `${enemy.template?.name || enemy.name}'s ${skill.name}`
       // Announce skill name for UI floating text
@@ -5397,6 +5471,8 @@ export const useBattleStore = defineStore('battle', () => {
     MAX_ENEMIES,
     // Summoning
     summonEnemy,
+    // Enemy turn execution (for testing)
+    executeEnemyTurn,
     // Oriental Fighters mechanics
     applyHeal,
     getValidEnemyTargets,
