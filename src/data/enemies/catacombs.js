@@ -4,6 +4,7 @@ export const enemies = {
   skeleton_warrior: {
     id: 'skeleton_warrior',
     name: 'Skeleton Warrior',
+    lore: 'Armed with corroded blades and bound by necromantic will, they fight with a tireless, mechanical fury.',
     stats: { hp: 120, atk: 44, def: 24, spd: 11 },
     skill: {
       name: 'Bone Cleave',
@@ -14,6 +15,7 @@ export const enemies = {
   mummy: {
     id: 'mummy',
     name: 'Mummy',
+    lore: 'Preserved in profane wrappings, it shambles forth reeking of myrrh and rot. Its curses cling like grave dust.',
     stats: { hp: 180, atk: 40, def: 30, spd: 6 },
     skill: {
       name: 'Cursed Wrappings',
@@ -28,6 +30,7 @@ export const enemies = {
   tomb_guardian: {
     id: 'tomb_guardian',
     name: 'Tomb Guardian',
+    lore: 'Entombed alongside their king to serve in death as in life, these armored sentinels guard treasures no mortal was meant to claim.',
     stats: { hp: 240, atk: 45, def: 38, spd: 7 },
     skill: {
       name: 'Ancient Defense',
@@ -41,6 +44,7 @@ export const enemies = {
   tomb_wraith: {
     id: 'tomb_wraith',
     name: 'Tomb Wraith',
+    lore: 'A shade of pure hunger that feeds on the living essence of intruders, growing stronger with every soul it drains.',
     stats: { hp: 140, atk: 52, def: 16, spd: 18 },
     skill: {
       name: 'Soul Drain',
@@ -52,6 +56,7 @@ export const enemies = {
   necromancer: {
     id: 'necromancer',
     name: 'Necromancer',
+    lore: 'They speak to the dead with the easy familiarity of old friends, mending shattered bones and stoking cold fury in the fallen.',
     stats: { hp: 130, atk: 48, def: 18, spd: 14 },
     skill: {
       name: 'Dark Ritual',
@@ -67,6 +72,7 @@ export const enemies = {
   lich_king: {
     id: 'lich_king',
     name: 'Lich King',
+    lore: 'He conquered death and found it wanting. Now he rules an empire of bone from a throne of frozen souls.',
     stats: { hp: 700, atk: 60, def: 40, spd: 12 },
     imageSize: 160,
     skills: [
@@ -86,5 +92,33 @@ export const enemies = {
         lifesteal: 100
       }
     ]
+  },
+  skeletal_shard: {
+    id: 'skeletal_shard',
+    name: 'Skeletal Shard',
+    lore: 'A jagged fragment of bone animated by residual necromancy, it lashes out with mindless, brittle aggression.',
+    stats: { hp: 60, atk: 38, def: 10, spd: 14 }
+  },
+  bone_heap: {
+    id: 'bone_heap',
+    name: 'Bone Heap',
+    lore: 'A mound of rattling remains that endlessly reassembles the dead into new soldiers. Destroy it or be buried in bones.',
+    stats: { hp: 220, atk: 8, def: 34, spd: 3 },
+    skill: {
+      name: 'Reassemble',
+      description: 'Assemble bones into a Skeletal Shard.',
+      cooldown: 3,
+      noDamage: true,
+      summon: { templateId: 'skeletal_shard', count: 1 },
+      effects: [],
+      fallbackSkill: {
+        name: 'Bone Armor',
+        description: 'Spikes of bone jut outward, dealing 80% damage to attackers for 2 turns.',
+        noDamage: true,
+        effects: [
+          { type: EffectType.THORNS, target: 'self', duration: 2, value: 80 }
+        ]
+      }
+    }
   }
 }
