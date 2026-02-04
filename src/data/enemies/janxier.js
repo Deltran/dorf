@@ -4,6 +4,7 @@ export const enemies = {
   swamp_lurker: {
     id: 'swamp_lurker',
     name: 'Swamp Lurker',
+    lore: 'It waits beneath the fetid water with infinite patience, striking from below with jaws that can snap a man in half.',
     stats: { hp: 120, atk: 46, def: 18, spd: 16 },
     skill: {
       name: 'Ambush Strike',
@@ -14,6 +15,7 @@ export const enemies = {
   mud_elemental: {
     id: 'mud_elemental',
     name: 'Mud Elemental',
+    lore: 'A shambling mass of muck and malice, it drags victims down into the bog with suffocating, grasping limbs.',
     stats: { hp: 180, atk: 38, def: 32, spd: 7 },
     skill: {
       name: 'Mire Grasp',
@@ -27,6 +29,7 @@ export const enemies = {
   water_naga: {
     id: 'water_naga',
     name: 'Water Naga',
+    lore: 'Beautiful and terrible, the naga whispers curses that sap strength and will before her fangs ever find flesh.',
     stats: { hp: 140, atk: 50, def: 20, spd: 15 },
     skill: {
       name: 'Tidal Curse',
@@ -40,6 +43,7 @@ export const enemies = {
   giant_crocodile: {
     id: 'giant_crocodile',
     name: 'Giant Crocodile',
+    lore: 'Older than memory and meaner than sin, its hide turns blades and its death roll has ended more heroes than any war.',
     stats: { hp: 200, atk: 55, def: 25, spd: 9 },
     skill: {
       name: 'Death Roll',
@@ -53,6 +57,7 @@ export const enemies = {
   hydra: {
     id: 'hydra',
     name: 'Hydra',
+    lore: 'Cut one head and two more rise, hissing and hungry. The swamp itself seems to feed its relentless regeneration.',
     stats: { hp: 650, atk: 55, def: 38, spd: 10 },
     imageSize: 160,
     skills: [
@@ -73,5 +78,39 @@ export const enemies = {
         ]
       }
     ]
+  },
+  mire_sprite: {
+    id: 'mire_sprite',
+    name: 'Mire Sprite',
+    stats: { hp: 50, atk: 35, def: 8, spd: 14 },
+    skill: {
+      name: 'Bog Grip',
+      description: 'Deal 110% ATK damage and reduce target SPD by 25% for 2 turns.',
+      cooldown: 3,
+      effects: [
+        { type: EffectType.SPD_DOWN, target: 'hero', duration: 2, value: 25 }
+      ]
+    }
+  },
+  bog_witch: {
+    id: 'bog_witch',
+    name: 'Bog Witch',
+    stats: { hp: 170, atk: 16, def: 24, spd: 10 },
+    skill: {
+      name: 'Conjure Mire',
+      description: 'Summon a Mire Sprite from the swamp.',
+      cooldown: 4,
+      noDamage: true,
+      summon: { templateId: 'mire_sprite', count: 1 },
+      effects: [],
+      fallbackSkill: {
+        name: 'Hex',
+        description: 'Curse a hero, reducing ATK by 25% for 2 turns.',
+        noDamage: true,
+        effects: [
+          { type: EffectType.ATK_DOWN, target: 'hero', duration: 2, value: 25 }
+        ]
+      }
+    }
   }
 }
