@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'forbidden_archives',
   name: 'Forbidden Archives',
+  description: 'A drowned library sealed away by Aquaria\'s rulers, containing knowledge too dangerous to destroy. Ink specters drift between waterlogged shelves, and archive constructs enforce silence with lethal force upon any who trespass.',
   superRegion: 'aquarias',
   startNode: 'archives_01',
   width: 600,

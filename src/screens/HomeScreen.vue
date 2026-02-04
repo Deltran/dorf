@@ -153,6 +153,16 @@ const hasParty = computed(() => {
           </div>
           <span class="room-label">Goods & Markets</span>
         </button>
+
+        <button
+          class="room-button"
+          @click="emit('navigate', 'codex')"
+        >
+          <div class="room-icon-wrapper codex">
+            <span class="room-icon">📖</span>
+          </div>
+          <span class="room-label">Codex</span>
+        </button>
       </div>
     </nav>
 
@@ -514,6 +524,10 @@ const hasParty = computed(() => {
 
 .room-icon-wrapper.store {
   background: #1e3a8a;
+}
+
+.room-icon-wrapper.codex {
+  background: #92400e;
 }
 
 .room-icon {

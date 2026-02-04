@@ -50,5 +50,6 @@ export const militia_soldier = {
     }
   ],
   epithet: 'First Through the Gate',
-  introQuote: "Someone's gotta be at the front. Might as well be me."
+  introQuote: 'Someone\'s gotta be at the front. Might as well be me.',
+  lore: 'Sorju volunteered for the gate guard because no one else would take the dawn shift. He\'s not brave by nature \u2014 he\'s just too stubborn to let fear make his decisions. First through the gate every time, not because he\'s fearless, but because someone has to be.'
 }

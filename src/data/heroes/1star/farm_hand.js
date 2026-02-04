@@ -57,5 +57,6 @@ export const farm_hand = {
     }
   ],
   epithet: 'Pitchfork and Fury',
-  introQuote: "Ain't much, but it's honest rage."
+  introQuote: 'Ain\'t much, but it\'s honest rage.',
+  lore: 'Darl\'s farm was trampled by a rampaging beast, his crops ruined, and his favorite goat eaten. He picked up his pitchfork and hasn\'t put it down since. He fights with the desperate fury of a man who has nothing left to lose except a deep, abiding grudge.'
 }

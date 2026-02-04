@@ -3,6 +3,7 @@ import summitMap from '../../assets/maps/the_summit.png'
 export const regionMeta = {
   id: 'the_summit',
   name: 'The Summit',
+  description: 'The highest point in Western Veros, where the air thins and the veil between worlds grows brittle. Wind spirits and ice wraiths guard the peak, drawn to a power that pulses from the ancient stones at the summit\'s crown.',
   superRegion: 'western_veros',
   startNode: 'summit_01',
   width: 600,

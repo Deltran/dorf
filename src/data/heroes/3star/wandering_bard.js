@@ -67,5 +67,6 @@ export const wandering_bard = {
     ]
   },
   epithet: 'The Charming Vagabond',
-  introQuote: "Every town's got a story. I just help them sing it."
+  introQuote: 'Every town\'s got a story. I just help them sing it.',
+  lore: 'Harl the Handsom \u2014 his spelling, not anyone else\'s \u2014 has been thrown out of more taverns than he can count and welcomed back to every single one. His songs are mediocre, his charm is undeniable, and his loyalty to his companions is the one thing about him that isn\'t exaggerated.'
 }

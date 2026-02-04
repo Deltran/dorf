@@ -93,5 +93,6 @@ export const onibaba = {
   },
   passive: { name: 'Hungry Ghost', description: 'When Onibaba deals damage, heal for 15% of damage dealt', lifestealOnDamage: 15 },
   epithet: 'The Hungry Grandmother',
-  introQuote: "Eat, child. You'll need your strength... for what comes next."
+  introQuote: 'Eat, child. You\'ll need your strength... for what comes next.',
+  lore: 'They say she was once a village healer who lost her children to famine. She wandered into the mountain mists and returned decades later, ancient and terrible, feeding on the life force of those she heals. Her love is genuine \u2014 it\'s the price that\'s monstrous.'
 }

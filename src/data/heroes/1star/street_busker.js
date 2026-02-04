@@ -57,5 +57,6 @@ export const street_busker = {
     }
   ],
   epithet: 'The Off-Key Nuisance',
-  introQuote: "They don't pay me to stop. They pay me to leave."
+  introQuote: 'They don\'t pay me to stop. They pay me to leave.',
+  lore: 'Penny Whistler has no formal training, no talent, and no shame. What she does have is a tin whistle that produces sounds so aggressively unpleasant they can stagger a charging boar. She calls it music. Everyone else calls it a war crime.'
 }

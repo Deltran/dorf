@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'outer_currents',
   name: 'Outer Currents',
+  description: 'Treacherous open waters patrolled by Aquarian enforcers and their trained sharks. The currents themselves are weaponized by mages who bend the tides, dragging intruders into ambush after ambush.',
   superRegion: 'aquarias',
   startNode: 'currents_01',
   width: 600,

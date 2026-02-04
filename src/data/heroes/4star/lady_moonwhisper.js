@@ -68,5 +68,6 @@ export const lady_moonwhisper = {
     }
   ],
   epithet: 'Voice of the Silver Veil',
-  introQuote: 'Her light reaches where the sun cannot. I carry it for Her.'
+  introQuote: 'Her light reaches where the sun cannot. I carry it for Her.',
+  lore: 'Lady Moonwhisper serves a goddess whose temple sank beneath a silver lake centuries ago. She receives her prayers as whispers in moonlight and her miracles as gentle veils of mist. The goddess has never spoken directly \u2014 and Moonwhisper has never doubted her.'
 }

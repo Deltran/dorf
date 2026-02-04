@@ -3,6 +3,7 @@ import eruptionVentMap from '../../assets/maps/eruption_vent.png'
 export const regionMeta = {
   id: 'eruption_vent',
   name: 'Eruption Vent',
+  description: 'A gaping wound in the earth where magma surges up from the deep. The air shimmers with heat distortion, and the basalt corridors are prowled by volcanic drakes and magma golems forged in the planet\'s fury.',
   superRegion: 'western_veros',
   startNode: 'eruption_vent_01',
   width: 600,

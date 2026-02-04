@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'the_abyssal_maw',
   name: 'The Abyssal Maw',
+  description: 'A yawning chasm that plunges into the ocean\'s deepest darkness, where sunlight has never reached. Abyssal lurkers and void anglers hunt in the crushing depths, and the maw itself seems to breathe with a hunger older than the sea.',
   superRegion: 'aquarias',
   startNode: 'abyss_01',
   width: 600,

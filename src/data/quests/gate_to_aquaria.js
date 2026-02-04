@@ -3,6 +3,7 @@
 export const regionMeta = {
   id: 'gate_to_aquaria',
   name: 'Gate to Aquaria',
+  description: 'A tidal cavern where the surface world meets the drowned kingdom below. Merfolk warriors guard the threshold with spear and sorcery, and coral golems stand as silent sentinels at the boundary between air and abyss.',
   superRegion: 'western_veros',
   startNode: 'aqua_01',
   width: 600,

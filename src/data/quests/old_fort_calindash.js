@@ -3,6 +3,7 @@ import oldFortCalindashMap from '../../assets/maps/old_fort_calindash.png'
 export const regionMeta = {
   id: 'old_fort_calindash',
   name: 'Old Fort Calindash',
+  description: 'A crumbling stronghold long abandoned by its garrison, now infested with bandits and the restless dead. Ghostly knights still patrol the battlements, and skeletal soldiers stand eternal watch in the courtyard below.',
   superRegion: 'western_veros',
   startNode: 'fort_01',
   width: 600,

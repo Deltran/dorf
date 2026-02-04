@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'coral_castle_halls',
   name: 'Coral Castle Halls',
+  description: 'The grand corridors of Aquaria\'s seat of power, where living coral grows into walls of breathtaking and terrible beauty. Coralsworn knights stand vigil beside the king\'s hounds, and the weight of deep-sea pressure presses in from every side.',
   superRegion: 'aquarias',
   startNode: 'castle_01',
   width: 600,

@@ -4436,6 +4436,19 @@ export const useBattleStore = defineStore('battle', () => {
         // Skills that don't deal damage (buffs, debuffs only)
         addLog(`${enemy.template.name} uses ${skill.name}!`)
 
+        // Heal all alive allies for % of their max HP
+        if (skill.healAllAllies) {
+          for (const ally of enemies.value.filter(e => e.currentHp > 0)) {
+            const healAmount = Math.floor(ally.maxHp * skill.healAllAllies / 100)
+            const actualHeal = Math.min(healAmount, ally.maxHp - ally.currentHp)
+            if (actualHeal > 0) {
+              ally.currentHp += actualHeal
+              emitCombatEffect(ally.id, 'enemy', 'heal', actualHeal)
+            }
+          }
+          addLog(`${enemy.template.name} heals all allies for ${skill.healAllAllies}% of max HP!`)
+        }
+
         // Apply skill effects
         if (skill.effects) {
           for (const effect of skill.effects) {

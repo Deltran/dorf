@@ -4,6 +4,7 @@ export const enemies = {
   pearl_guard: {
     id: 'pearl_guard',
     name: 'Pearl Guard',
+    lore: 'The elite gatekeepers of the merfolk aristocracy, sworn to die before the pearl gates fall. Most have kept that oath.',
     stats: { hp: 300, atk: 72, def: 42, spd: 14 },
     skill: {
       name: 'Ceremonial Strike',
@@ -16,6 +17,7 @@ export const enemies = {
   nobles_bodyguard: {
     id: 'nobles_bodyguard',
     name: "Noble's Bodyguard",
+    lore: 'Bred for loyalty and built for war, they throw themselves between their charge and danger without a heartbeat\'s hesitation.',
     stats: { hp: 380, atk: 60, def: 55, spd: 12 },
     skill: {
       name: 'Intercept',
@@ -30,6 +32,7 @@ export const enemies = {
   court_mage: {
     id: 'court_mage',
     name: 'Court Mage',
+    lore: 'Versed in the old tidal magics, they mend wounds with saltwater prayers and fortify allies with the ocean\'s blessing.',
     stats: { hp: 220, atk: 78, def: 28, spd: 16 },
     skill: {
       name: 'Tidal Blessing',
@@ -45,6 +48,7 @@ export const enemies = {
   gilded_construct: {
     id: 'gilded_construct',
     name: 'Gilded Construct',
+    lore: 'Plated in deep-sea gold and animated by forgotten rites, this towering automaton guards the wealth of a drowned dynasty.',
     stats: { hp: 350, atk: 68, def: 50, spd: 6 },
     skill: {
       name: 'Gilded Slam',

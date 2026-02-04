@@ -69,5 +69,6 @@ export const ember_witch = {
     }
   ],
   epithet: 'Flame-Touched Prodigy',
-  introQuote: "Fire doesn't ask permission. Neither do I."
+  introQuote: 'Fire doesn\'t ask permission. Neither do I.',
+  lore: 'Shasha burned down her mentor\'s tower at the age of twelve \u2014 an accident, she claims, though her grin suggests otherwise. Self-taught and reckless, she treats fire less as a weapon and more as a dear friend with poor impulse control.'
 }

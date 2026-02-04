@@ -70,5 +70,6 @@ export const beggar_monk = {
     }
   ],
   epithet: 'Wise Pauper',
-  introQuote: 'You just need to see enough, young one, to understand.'
+  introQuote: 'You just need to see enough, young one, to understand.',
+  lore: 'Vagrant Bil was once a scholar in a grand monastery before he gave away everything he owned to a family of refugees and walked out the door with nothing. He discovered that prayers spoken from the gutter carry more weight with the gods than those from gilded halls.'
 }

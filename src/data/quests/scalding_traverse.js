@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'scalding_traverse',
   name: 'Scalding Traverse',
+  description: 'A volcanic rift beneath the ocean floor where superheated water boils upward through fractured rock. Vent crawlers skitter across the scalding stone, and thermal elementals coalesce from the steam with murderous intent.',
   superRegion: 'aquarias',
   startNode: 'scalding_01',
   width: 600,

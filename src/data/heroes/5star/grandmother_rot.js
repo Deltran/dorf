@@ -75,5 +75,6 @@ export const grandmother_rot = {
     ]
   },
   epithet: 'The Compost Mother',
-  introQuote: 'Come now, dear. Everything blooms eventually... even you.'
+  introQuote: 'Come now, dear. Everything blooms eventually... even you.',
+  lore: 'Grandmother Rot tends the oldest garden in the world \u2014 a compost heap the size of a cathedral, where dead gods decompose into fertile soil. She speaks to fungi the way mothers speak to children, and her kindness smells faintly of the grave.'
 }

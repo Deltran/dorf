@@ -52,5 +52,6 @@ export const swift_arrow = {
     }
   ],
   epithet: 'Elven Sharpshooter',
-  introQuote: "Can't talk here. I need to focus."
+  introQuote: 'Can\'t talk here. I need to focus.',
+  lore: 'Exiled from the Verdant Court for a transgression she refuses to name, Swift Arrow wanders the lowlands picking off threats that most people never see coming. She speaks little, eats less, and has never once missed a shot she intended to land.'
 }

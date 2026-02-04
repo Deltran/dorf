@@ -4,6 +4,7 @@ export const enemies = {
   vent_crawler: {
     id: 'vent_crawler',
     name: 'Vent Crawler',
+    lore: 'Armored in heat-blackened chitin, it scuttles from volcanic vents with claws that sear flesh on contact.',
     stats: { hp: 380, atk: 92, def: 55, spd: 10 },
     skill: {
       name: 'Superheated Claws',
@@ -18,6 +19,7 @@ export const enemies = {
   magma_eel: {
     id: 'magma_eel',
     name: 'Magma Eel',
+    lore: 'It swims through molten rock as easily as water, leaving trails of fire that spread to anything already burning.',
     stats: { hp: 320, atk: 100, def: 35, spd: 20 },
     skill: {
       name: 'Searing Lunge',
@@ -30,6 +32,7 @@ export const enemies = {
   volcanic_polyp: {
     id: 'volcanic_polyp',
     name: 'Volcanic Polyp',
+    lore: 'A living colony of heat-gorged organisms that erupts in sympathy with the burning, punishing those already aflame.',
     stats: { hp: 280, atk: 80, def: 45, spd: 4 },
     skill: {
       name: 'Eruption',
@@ -44,6 +47,7 @@ export const enemies = {
   thermal_elemental: {
     id: 'thermal_elemental',
     name: 'Thermal Elemental',
+    lore: 'It feeds on the suffering of the burned, drawing sustenance from every searing wound to heal its own molten body.',
     stats: { hp: 400, atk: 95, def: 42, spd: 14 },
     skill: {
       name: 'Heat Absorption',

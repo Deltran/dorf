@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useGachaStore, useTipsStore, useHeroesStore } from '../stores'
+import { useGachaStore, useTipsStore, useHeroesStore, useCodexStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import HeroSpotlight from '../components/HeroSpotlight.vue'
 import StarRating from '../components/StarRating.vue'
@@ -18,6 +18,7 @@ const emit = defineEmits(['navigate'])
 const gachaStore = useGachaStore()
 const tipsStore = useTipsStore()
 const heroesStore = useHeroesStore()
+const codexStore = useCodexStore()
 
 const pullResults = ref([])
 const isAnimating = ref(false)
@@ -416,6 +417,7 @@ async function doSinglePull() {
 
   const result = gachaStore.singlePull()
   if (result) {
+    codexStore.unlockTopicsForHero(result.template)
     pullResults.value = [result]
     showResults.value = true
   }
@@ -437,6 +439,9 @@ async function doTenPull() {
 
   const results = gachaStore.tenPull()
   if (results) {
+    for (const r of results) {
+      codexStore.unlockTopicsForHero(r.template)
+    }
     pullResults.value = results
     // Use reveal stage for 10-pull
     showRevealStage.value = true
@@ -560,6 +565,7 @@ async function doBlackMarketSinglePull() {
 
   const result = gachaStore.blackMarketSinglePull(selectedBlackMarketBanner.value.id)
   if (result) {
+    codexStore.unlockTopicsForHero(result.template)
     pullResults.value = [result]
     showResults.value = true
   }
@@ -579,6 +585,9 @@ async function doBlackMarketTenPull() {
 
   const results = gachaStore.blackMarketTenPull(selectedBlackMarketBanner.value.id)
   if (results) {
+    for (const r of results) {
+      codexStore.unlockTopicsForHero(r.template)
+    }
     pullResults.value = results
     // Use reveal stage for 10-pull
     showRevealStage.value = true
@@ -1578,7 +1587,10 @@ function handleTenPull() {
 }
 
 .continue-button {
-  margin-top: 24px;
+  position: fixed;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
   padding: 16px 48px;
   background: linear-gradient(to bottom, #2a2520 0%, #1a1816 100%);
   border: 1px solid #3a3530;
@@ -1589,10 +1601,11 @@ function handleTenPull() {
   cursor: pointer;
   transition: all 0.3s ease;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  z-index: 10;
 }
 
 .continue-button:hover {
-  transform: translateY(-2px);
+  transform: translateX(-50%) translateY(-2px);
   border-color: #4b4540;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
 }

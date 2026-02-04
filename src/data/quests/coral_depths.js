@@ -3,6 +3,7 @@
 export const regionMeta = {
   id: 'coral_depths',
   name: 'Coral Depths',
+  description: 'Twisting coral tunnels plunge into the ocean floor, their vibrant colors masking lethal dangers. Moray eels strike from hidden crevices, and barnacle clusters cling to every surface, ready to shred the unwary.',
   superRegion: 'aquarias',
   startNode: 'coral_01',
   width: 600,

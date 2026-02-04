@@ -4,6 +4,7 @@ export const enemies = {
   prison_warden: {
     id: 'prison_warden',
     name: 'Prison Warden',
+    lore: 'Key-keeper of the drowned cells, this merciless jailer locks down threats with shackles forged from deep-sea iron.',
     stats: { hp: 260, atk: 48, def: 40, spd: 10 },
     skill: {
       name: 'Lockdown',
@@ -18,6 +19,7 @@ export const enemies = {
   chain_golem: {
     id: 'chain_golem',
     name: 'Chain Golem',
+    lore: 'Built from the chains of a thousand condemned, it moves with grinding menace, binding the living as it was bound.',
     stats: { hp: 320, atk: 44, def: 52, spd: 4 },
     skill: {
       name: 'Binding Chains',
@@ -33,6 +35,7 @@ export const enemies = {
   drowner: {
     id: 'drowner',
     name: 'Drowner',
+    lore: 'It holds its victims beneath the surface with patient, cold hands, waiting for the struggling to stop.',
     stats: { hp: 180, atk: 52, def: 25, spd: 14 },
     skill: {
       name: 'Held Under',
@@ -45,6 +48,7 @@ export const enemies = {
   taskmaster: {
     id: 'taskmaster',
     name: 'Taskmaster',
+    lore: 'Armed with a barbed lash and a talent for cruelty, the Taskmaster breaks spirits long before bodies give out.',
     stats: { hp: 200, atk: 50, def: 30, spd: 12 },
     skill: {
       name: 'Break Spirit',

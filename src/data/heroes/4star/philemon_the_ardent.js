@@ -97,5 +97,6 @@ export const philemon_the_ardent = {
     }
   ],
   epithet: 'Ardent Suitor',
-  introQuote: 'Let me be your shield and you sw-Whoa! Almost tripped there...'
+  introQuote: 'Let me be your shield and you sw-Whoa! Almost tripped there...',
+  lore: 'Philemon fell in love with a portrait of a hero in a history book and has been trying to live up to the image ever since. Earnest to the point of embarrassment and clumsy in everything except combat, he would sooner die than let harm reach someone he\'s sworn to protect.'
 }

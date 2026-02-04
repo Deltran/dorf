@@ -88,5 +88,6 @@ export const hedge_wizard = {
     }
   ],
   epithet: 'The Thorn Conjurer',
-  introQuote: 'Proper wizards use wands. I use what works.'
+  introQuote: 'Proper wizards use wands. I use what works.',
+  lore: 'Knarly Zeek learned magic from a swamp hag who paid him in beetle carapaces and bad advice. His spells smell like compost and look like mistakes, but they hit harder than anything taught in those prissy academies. He\'s never read a spellbook in his life and he\'s proud of it.'
 }

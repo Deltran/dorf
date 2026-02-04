@@ -3,6 +3,7 @@ import whisperLakeMap from '../../assets/maps/whisper_lake.png'
 export const regionMeta = {
   id: 'whisper_lake',
   name: 'Whisper Lake',
+  description: 'A cursed body of water where the drowned are said to speak from beneath the surface. Mist clings to the shoreline at all hours, and serpents glide through the shallows waiting for the unwary.',
   superRegion: 'western_veros',
   startNode: 'lake_01',
   width: 600,

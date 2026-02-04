@@ -3,6 +3,7 @@
 export const regionMeta = {
   id: 'underground_morass',
   name: 'Underground Morass',
+  description: 'A fetid subterranean swamp where fungal growths tower overhead and the darkness writhes with unseen life. Cave leeches drop from the ceiling without warning, and the shambling dead walk among colonies of luminous rot.',
   superRegion: 'western_veros',
   startNode: 'morass_01',
   width: 600,

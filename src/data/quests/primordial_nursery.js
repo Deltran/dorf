@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'primordial_nursery',
   name: 'Primordial Nursery',
+  description: 'A pulsing biological horror deep beneath the sea, where ancient creatures spawn in pools of viscous primordial ooze. Brood tenders guard their juvenile horrors with savage devotion, and egg clusters line the walls like pustules on diseased flesh.',
   superRegion: 'aquarias',
   startNode: 'nursery_01',
   width: 600,

@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'blackfin_den',
   name: 'Blackfin Den',
+  description: 'The hidden stronghold of Aquaria\'s most ruthless criminal syndicate, carved into a lightless undersea cave. Cutthroats and poisoners lurk behind every corner, and pit fights rage in the den\'s blood-soaked central arena.',
   superRegion: 'aquarias',
   startNode: 'blackfin_01',
   width: 600,

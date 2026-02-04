@@ -4,6 +4,7 @@ export const enemies = {
   throne_guardian: {
     id: 'throne_guardian',
     name: 'Throne Guardian',
+    lore: 'The last line of defense before the throne, it endures punishment that would shatter lesser constructs without yielding an inch.',
     stats: { hp: 480, atk: 75, def: 65, spd: 8 },
     skill: {
       name: 'Unbreaking Vigil',
@@ -19,6 +20,7 @@ export const enemies = {
   mind_touched_advisor: {
     id: 'mind_touched_advisor',
     name: 'Mind-Touched Advisor',
+    lore: 'Something from the abyss whispers through these courtiers now, unraveling the minds of any who stand against the crown.',
     stats: { hp: 280, atk: 85, def: 35, spd: 14 },
     skill: {
       name: 'Psychic Fray',
@@ -34,6 +36,7 @@ export const enemies = {
   fanatical_zealot: {
     id: 'fanatical_zealot',
     name: 'Fanatical Zealot',
+    lore: 'Driven mad by devotion, they throw themselves at the enemy in ecstatic fury, caring nothing for their own destruction.',
     stats: { hp: 300, atk: 105, def: 28, spd: 18 },
     skill: {
       name: 'Ecstatic Strike',
@@ -47,6 +50,7 @@ export const enemies = {
   the_corrupted: {
     id: 'the_corrupted',
     name: 'The Corrupted',
+    lore: 'Once noble warriors twisted beyond recognition, their dying curse lashes out at whoever delivers the killing blow.',
     stats: { hp: 350, atk: 90, def: 40, spd: 12 },
     skill: {
       name: 'Dying Curse',
@@ -65,6 +69,7 @@ export const enemies = {
   king_meridius: {
     id: 'king_meridius',
     name: 'King Meridius the Hollow',
+    lore: 'The puppet king, hollowed out by the abyss that controls his strings. His crown weighs heavy with borrowed power and borrowed madness.',
     stats: { hp: 2800, atk: 100, def: 55, spd: 15 },
     imageSize: 180,
     skills: [

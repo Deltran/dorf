@@ -3,6 +3,7 @@ import stormwindPeaksMap from '../../assets/maps/stormwind_peaks.png'
 export const regionMeta = {
   id: 'stormwind_peaks',
   name: 'Stormwind Peaks',
+  description: 'Jagged mountains where howling gales never cease and lightning splits the sky without warning. Harpies nest among the crags, and frost elementals patrol frozen passes that claim the unprepared.',
   superRegion: 'western_veros',
   startNode: 'mountain_01',
   width: 600,

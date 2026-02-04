@@ -116,5 +116,6 @@ export const fortuna_inversus = {
     }
   ],
   epithet: 'Lady of Upturned Fates',
-  introQuote: "Fortune's wheel spins both ways, darling. Best hold on."
+  introQuote: 'Fortune\'s wheel spins both ways, darling. Best hold on.',
+  lore: 'Born under an inverted star, Fortuna was a noblewoman who wagered her soul in a game of cards with a trickster god \u2014 and won. Now fate bends around her like light through a cracked prism, and every blessing she bestows carries the shadow of a curse.'
 }

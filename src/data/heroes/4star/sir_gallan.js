@@ -113,5 +113,6 @@ export const sir_gallan = {
     }
   ],
   epithet: 'Shield of the Realm',
-  introQuote: 'My blade stands ready.'
+  introQuote: 'My blade stands ready.',
+  lore: 'Sir Gallan is the last knight of the Order of the Unbroken Wall, a brotherhood sworn to protect a kingdom that no longer exists. He still patrols its borders out of duty, guarding ruins and ghosts with the same iron resolve he once offered a living throne.'
 }

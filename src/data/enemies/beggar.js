@@ -4,6 +4,7 @@ export const enemies = {
   plague_bearer: {
     id: 'plague_bearer',
     name: 'Plague Bearer',
+    lore: 'Rotting and riddled with disease, they shamble through the slums spreading sickness with every rattling breath.',
     stats: { hp: 240, atk: 58, def: 30, spd: 11 },
     skill: {
       name: 'Spreading Sickness',
@@ -18,6 +19,7 @@ export const enemies = {
   desperate_vagrant: {
     id: 'desperate_vagrant',
     name: 'Desperate Vagrant',
+    lore: 'Starving and cornered, they fight with the wild abandon of those who have nothing left to lose.',
     stats: { hp: 180, atk: 65, def: 22, spd: 15 },
     skill: {
       name: 'Nothing to Lose',
@@ -30,6 +32,7 @@ export const enemies = {
   slum_enforcer: {
     id: 'slum_enforcer',
     name: 'Slum Enforcer',
+    lore: 'The crime lords\' heavy hand, they collect debts in flesh and blood with fists wrapped in chain.',
     stats: { hp: 320, atk: 62, def: 40, spd: 8 },
     skill: {
       name: 'Shakedown',
@@ -42,6 +45,7 @@ export const enemies = {
   reef_rat_swarm: {
     id: 'reef_rat_swarm',
     name: 'Reef Rat Swarm',
+    lore: 'Hundreds of gnashing teeth moving as one writhing mass, they strip the plagued to bone in minutes.',
     stats: { hp: 160, atk: 50, def: 15, spd: 20 },
     skill: {
       name: 'Gnawing Frenzy',
@@ -55,6 +59,7 @@ export const enemies = {
   the_blightmother: {
     id: 'the_blightmother',
     name: 'The Blightmother',
+    lore: 'Queen of the plague quarter, she nurtures disease like a gardener tends roses, and her children are pestilence incarnate.',
     stats: { hp: 2000, atk: 78, def: 42, spd: 12 },
     imageSize: 160,
     skills: [

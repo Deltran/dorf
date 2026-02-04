@@ -4,6 +4,7 @@ export const enemies = {
   merfolk_warrior: {
     id: 'merfolk_warrior',
     name: 'Merfolk Warrior',
+    lore: 'Scaled and silent, they guard the drowned gates with coral-tipped tridents and the cold fury of the deep.',
     stats: { hp: 140, atk: 48, def: 24, spd: 14 },
     skill: {
       name: 'Trident Thrust',
@@ -14,6 +15,7 @@ export const enemies = {
   merfolk_mage: {
     id: 'merfolk_mage',
     name: 'Merfolk Mage',
+    lore: 'They weave the tides into weapons, drowning enemies in air with walls of crushing water summoned from nothing.',
     stats: { hp: 120, atk: 52, def: 18, spd: 16 },
     skill: {
       name: 'Tidal Wave',
@@ -28,6 +30,7 @@ export const enemies = {
   coral_golem: {
     id: 'coral_golem',
     name: 'Coral Golem',
+    lore: 'Centuries of reef growth shaped by merfolk sorcery into a lumbering enforcer. Its fists hit like breaking waves.',
     stats: { hp: 260, atk: 45, def: 40, spd: 6 },
     skill: {
       name: 'Reef Crush',
@@ -41,6 +44,7 @@ export const enemies = {
   abyssal_lurker: {
     id: 'abyssal_lurker',
     name: 'Abyssal Lurker',
+    lore: 'It rises from the crushing dark where no light reaches, dragging the terror of the deep with it.',
     stats: { hp: 170, atk: 55, def: 22, spd: 13 },
     skill: {
       name: 'Deep Terror',
@@ -54,6 +58,7 @@ export const enemies = {
   sea_serpent: {
     id: 'sea_serpent',
     name: 'Sea Serpent',
+    lore: 'Its coils can crush a galleon\'s hull. In these shallow waters, there is nowhere to flee its constricting embrace.',
     stats: { hp: 200, atk: 50, def: 26, spd: 15 },
     skill: {
       name: 'Crushing Coil',
@@ -67,6 +72,7 @@ export const enemies = {
   tide_priest: {
     id: 'tide_priest',
     name: 'Tide Priest',
+    lore: 'Devoted to the drowned gods, they chant in bubbling tongues and mend their warriors with blessings drawn from the ocean\'s heart.',
     stats: { hp: 140, atk: 46, def: 20, spd: 14 },
     skill: {
       name: 'Ocean\'s Blessing',
@@ -82,6 +88,7 @@ export const enemies = {
   kraken: {
     id: 'kraken',
     name: 'Kraken',
+    lore: 'The sea\'s oldest nightmare, it drags ships and heroes alike into the black depths with tentacles thick as ancient oaks.',
     stats: { hp: 800, atk: 62, def: 42, spd: 10 },
     imageSize: 180,
     skills: [

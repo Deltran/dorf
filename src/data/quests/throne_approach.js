@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'throne_approach',
   name: 'Throne Approach',
+  description: 'The final passage leading to the Coral Throne itself, thick with fanatical zealots and mind-touched advisors. Corruption seeps from the throne room ahead, twisting the guardians into something no longer entirely mortal.',
   superRegion: 'aquarias',
   startNode: 'throne_01',
   width: 600,

@@ -62,6 +62,16 @@ const selectedClassResource = computed(() => {
       />
     </div>
 
+    <div class="form-group">
+      <label for="hero-lore">Lore</label>
+      <textarea
+        id="hero-lore"
+        v-model="model.lore"
+        placeholder="A short lore blurb about the hero..."
+        rows="3"
+      />
+    </div>
+
     <div class="form-row">
       <div class="form-group">
         <label for="hero-rarity">Rarity</label>
@@ -125,7 +135,8 @@ label {
 }
 
 input,
-select {
+select,
+textarea {
   padding: 10px 12px;
   background: #374151;
   border: 1px solid #4b5563;
@@ -135,13 +146,20 @@ select {
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: none;
   border-color: #3b82f6;
 }
 
-input::placeholder {
+input::placeholder,
+textarea::placeholder {
   color: #6b7280;
+}
+
+textarea {
+  resize: vertical;
+  font-family: inherit;
 }
 
 .hint {

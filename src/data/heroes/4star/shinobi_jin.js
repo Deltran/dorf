@@ -91,5 +91,6 @@ export const shinobi_jin = {
     onSkillUse: { type: 'evasion', value: 10, duration: 1, maxStacks: 30 }
   },
   epithet: 'Shadow Without a Master',
-  introQuote: 'You saw me because I allowed it.'
+  introQuote: 'You saw me because I allowed it.',
+  lore: 'Jin\'s clan was destroyed in a single night by a rival school, and he alone survived by hiding beneath the floorboards while his family burned above. He has spent every day since perfecting the art of never being caught unaware again.'
 }

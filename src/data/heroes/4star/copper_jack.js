@@ -65,5 +65,6 @@ export const copper_jack = {
     tails: { selfDamagePercent: 15, rageGain: 25 }
   },
   epithet: 'The Lucky Bastard',
-  introQuote: 'Heads I win, tails you lose. House rules.'
+  introQuote: 'Heads I win, tails you lose. House rules.',
+  lore: 'Copper Jack won his cursed coin in a dockside card game against a one-eyed witch. The coin always comes back to him, no matter how far he throws it, and every flip feeds his rage like kindling. He\'s tried to lose it a hundred times. Lady Luck won\'t let him.'
 }

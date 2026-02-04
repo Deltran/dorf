@@ -79,5 +79,6 @@ export const bones_mccready = {
     }
   ],
   epithet: "Fortune's Fool",
-  introQuote: "Luck ain't random, friend. You just gotta know how to roll."
+  introQuote: 'Luck ain\'t random, friend. You just gotta know how to roll.',
+  lore: 'Bones McCready was a traveling gambler who stumbled into druidic magic after winning a set of enchanted dice from a forest spirit in a game of knucklebones. The dice are carved from the bones of a dead oracle, and they never quite roll what you expect \u2014 but Bones always makes it work.'
 }

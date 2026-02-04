@@ -61,5 +61,6 @@ export const street_urchin = {
     }
   ],
   epithet: 'Street Urchin',
-  introQuote: "Rather take what's mine than let you hurt me."
+  introQuote: 'Rather take what\'s mine than let you hurt me.',
+  lore: 'Salia has survived on the streets since she was six, picking pockets and outrunning city guards twice her size. She doesn\'t fight fair because no one ever fought fair with her. Every coin she steals and every blow she lands is proof that the world can\'t keep her down.'
 }

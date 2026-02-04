@@ -3,6 +3,7 @@ import echoingCavernsMap from '../../assets/maps/echoing_caverns.png'
 export const regionMeta = {
   id: 'echoing_caverns',
   name: 'Echoing Caverns',
+  description: 'Every footstep reverberates through these sprawling underground chambers, alerting the dark cultists and stone golems that dwell within. Bioluminescent fungi cast sickly light across walls slick with moisture and old blood.',
   superRegion: 'western_veros',
   startNode: 'cave_01',
   width: 600,
@@ -117,7 +118,7 @@ export const nodes = {
     y: 129,
     battles: [
       { enemies: ['cultist_ritualist', 'dark_cultist', 'dark_cultist'] },
-      { enemies: ['corrupted_golem', 'dark_caster'] },
+      { enemies: ['cult_warden', 'dark_caster'] },
       { enemies: ['cultist_ritualist', 'dark_caster', 'dark_cultist', 'dark_cultist'] }
     ],
     connections: ['cave_06', 'cave_07'],
@@ -141,8 +142,8 @@ export const nodes = {
     y: 355,
     battles: [
       { enemies: ['dark_caster', 'dark_caster', 'cultist_ritualist'] },
-      { enemies: ['cultist_ritualist', 'cultist_ritualist', 'dark_cultist', 'dark_cultist'] },
-      { enemies: ['dark_caster', 'dark_caster', 'cultist_ritualist', 'corrupted_golem'] }
+      { enemies: ['cult_warden', 'cultist_ritualist', 'dark_cultist', 'dark_cultist'] },
+      { enemies: ['dark_caster', 'dark_caster', 'cultist_ritualist', 'cult_warden'] }
     ],
     connections: ['cave_04'],
     rewards: { gems: 100, gold: 285, exp: 235 },
@@ -164,9 +165,9 @@ export const nodes = {
     x: 486,
     y: 589,
     battles: [
-      { enemies: ['corrupted_golem', 'corrupted_golem'] },
+      { enemies: ['rock_golem', 'cult_warden'] },
       { enemies: ['cave_troll', 'cultist_ritualist', 'dark_cultist'] },
-      { enemies: ['corrupted_golem', 'cave_troll', 'cultist_ritualist', 'dark_cultist'] }
+      { enemies: ['cult_warden', 'cave_troll', 'cultist_ritualist', 'dark_cultist'] }
     ],
     connections: ['cave_04'],
     rewards: { gems: 100, gold: 285, exp: 235 },

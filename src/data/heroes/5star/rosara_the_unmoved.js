@@ -121,5 +121,6 @@ export const rosara_the_unmoved = {
   },
   basicAttackModifier: { name: 'Quiet Defiance', description: 'Basic attacks deal 80% damage. If attacked last round, deal 120% instead.', skillUnlockLevel: 1, baseDamagePercent: 80, ifAttackedDamagePercent: 120 },
   epithet: 'Unmoved and Unbroken',
-  introQuote: 'Resistance requires steadfast dedication and courage.'
+  introQuote: 'Resistance requires steadfast dedication and courage.',
+  lore: 'Rosara has not left her throne in forty years. When invaders razed her kingdom, she refused to flee, and the earth itself rose to fortify her seat. Armies have broken against her silence. She does not fight \u2014 she simply does not move.'
 }

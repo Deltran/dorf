@@ -4,6 +4,7 @@ export const enemies = {
   giant_frog: {
     id: 'giant_frog',
     name: 'Giant Frog',
+    lore: 'Bloated and patient, it squats among the reeds until something warm comes close enough to snatch.',
     stats: { hp: 70, atk: 18, def: 8, spd: 11 },
     skill: {
       name: 'Tongue Lash',
@@ -14,6 +15,7 @@ export const enemies = {
   lake_serpent: {
     id: 'lake_serpent',
     name: 'Lake Serpent',
+    lore: 'It coils beneath the murky shallows, mistaken for driftwood until its jaws close around a wading leg.',
     stats: { hp: 85, atk: 24, def: 10, spd: 15 },
     skill: {
       name: 'Constrict',
@@ -27,6 +29,7 @@ export const enemies = {
   marsh_hag: {
     id: 'marsh_hag',
     name: 'Marsh Hag',
+    lore: 'She was human once, or claims to be. Now she trades in curses, and the marsh answers to her crooked will.',
     stats: { hp: 180, atk: 30, def: 14, spd: 10 },
     imageSize: 130,
     skills: [

@@ -96,5 +96,6 @@ export const aurora_the_dawn = {
     ]
   },
   epithet: 'The Dawn',
-  introQuote: 'Light breaks even the longest darkness.'
+  introQuote: 'Light breaks even the longest darkness.',
+  lore: 'Once a temple guardian in the holy city of Auriel, Aurora witnessed her order fall to shadow corruption. She alone survived, carrying the last ember of divine light \u2014 a burden that burns brighter with each darkness she confronts.'
 }

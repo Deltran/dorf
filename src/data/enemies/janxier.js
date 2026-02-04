@@ -82,6 +82,7 @@ export const enemies = {
   mire_sprite: {
     id: 'mire_sprite',
     name: 'Mire Sprite',
+    lore: 'Wretched little things conjured from stagnant water and spite, they cling to ankles and drag travelers into the bog.',
     stats: { hp: 50, atk: 35, def: 8, spd: 14 },
     skill: {
       name: 'Bog Grip',
@@ -95,6 +96,7 @@ export const enemies = {
   bog_witch: {
     id: 'bog_witch',
     name: 'Bog Witch',
+    lore: 'She pulls servants from the muck with crooked fingers, and when the swamp runs dry of minions, her hexes do the rest.',
     stats: { hp: 170, atk: 16, def: 24, spd: 10 },
     skill: {
       name: 'Conjure Mire',

@@ -81,5 +81,6 @@ export const vraxx_thunderskin = {
     }
   ],
   epithet: 'Heartbeat of the Warband',
-  introQuote: "When the drums stop, so does hope. I don't stop."
+  introQuote: 'When the drums stop, so does hope. I don\'t stop.',
+  lore: 'Vraxx is an orc war-drummer whose skin was struck by lightning during a siege, leaving branching scars that pulse with thunder when he plays. His rhythm drives berserkers into a killing frenzy and has turned more routs into victories than any general\'s strategy.'
 }

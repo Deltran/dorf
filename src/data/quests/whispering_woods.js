@@ -3,6 +3,7 @@ import whisperingWoodsMap from '../../assets/maps/whispering_woods.png'
 export const regionMeta = {
   id: 'whispering_woods',
   name: 'Whispering Woods',
+  description: 'Ancient trees whisper forgotten warnings to those who dare enter. The canopy is so thick that daylight barely reaches the forest floor, where goblin warbands and hungry wolves lurk in perpetual twilight.',
   superRegion: 'western_veros',
   startNode: 'forest_01',
   width: 600,

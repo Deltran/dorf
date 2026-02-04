@@ -100,5 +100,6 @@ export const town_guard = {
     }
   ],
   epithet: 'Keeper of the Gate',
-  introQuote: 'Halt! State your business.'
+  introQuote: 'Halt! State your business.',
+  lore: 'Kensin has guarded the same gate for nineteen years and has never once called in sick. He doesn\'t know fancy swordplay or noble oaths \u2014 he just knows that nothing gets past his post. The wall behind him has crumbled twice; he hasn\'t.'
 }

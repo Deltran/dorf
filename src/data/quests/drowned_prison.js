@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'drowned_prison',
   name: 'Drowned Prison',
+  description: 'A sunken penitentiary where Aquaria casts its condemned to rot beneath the waves. Chain golems drag prisoners through flooded cellblocks, and the wardens have long since become as cruel and waterlogged as the halls they patrol.',
   superRegion: 'aquarias',
   startNode: 'prison_01',
   width: 600,

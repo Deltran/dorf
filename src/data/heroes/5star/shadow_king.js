@@ -84,5 +84,6 @@ export const shadow_king = {
     ]
   },
   epithet: 'Avatar of the Endless Night',
-  introQuote: 'Kneel before the darkness, mortal.'
+  introQuote: 'Kneel before the darkness, mortal.',
+  lore: 'Before the void claimed him, he was a king of a forgotten realm whose name no tongue can speak. He fed his own shadow to a dying god and was devoured in return \u2014 yet what crawled out of that abyss wore a crown and remembered everything.'
 }

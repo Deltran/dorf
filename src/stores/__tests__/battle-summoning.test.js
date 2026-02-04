@@ -86,7 +86,7 @@ describe('battle store - Enemy Summoning', () => {
 
       const summoned = store.enemies.find(e => e.templateId === 'goblin_commander')
       expect(summoned.currentCooldowns).toBeDefined()
-      expect(summoned.currentCooldowns['Rally Troops']).toBe(0)
+      expect(summoned.currentCooldowns['Press Gang']).toBe(0)
       expect(summoned.currentCooldowns['Commanding Strike']).toBe(0)
     })
 

@@ -3,6 +3,7 @@ import hibernationDenMap from '../../assets/maps/hibernation_den.png'
 export const regionMeta = {
   id: 'hibernation_den',
   name: 'Hibernation Den',
+  description: 'A rank network of tunnels carved by troll claws into the mountainside. The stench of decay hangs heavy in the air, and the ground trembles with the snoring of something massive deeper within.',
   superRegion: 'western_veros',
   startNode: 'hibernation_01',
   width: 600,

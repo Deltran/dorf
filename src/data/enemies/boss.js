@@ -4,6 +4,7 @@ export const enemies = {
   goblin_chieftain: {
     id: 'goblin_chieftain',
     name: 'Goblin Chieftain',
+    lore: 'He wears a crown of rusted nails and rules through raw brutality. Every goblin in the wood answers to his snarl.',
     imageSize: 150,
     stats: { hp: 180, atk: 28, def: 18, spd: 10 },
     skills: [
@@ -26,6 +27,7 @@ export const enemies = {
   spider_queen: {
     id: 'spider_queen',
     name: 'Spider Queen',
+    lore: 'Her web spans the entire cavern, and every trembling strand leads back to her patient, hungry darkness.',
     stats: { hp: 220, atk: 38, def: 15, spd: 14 },
     skill: {
       name: 'Web Trap',
@@ -39,6 +41,7 @@ export const enemies = {
   shadow_dragon: {
     id: 'shadow_dragon',
     name: 'Shadow Dragon',
+    lore: 'It does not breathe fire but darkness itself, a cold so absolute it devours light and hope alike.',
     imageSize: 160,
     stats: { hp: 500, atk: 55, def: 40, spd: 12 },
     skill: {

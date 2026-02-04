@@ -175,7 +175,7 @@ export function serializeHero(hero) {
   lines.push(`export const ${hero.id} = {`)
 
   // Add properties in order
-  const propertyOrder = ['id', 'name', 'rarity', 'classId', 'baseStats', 'skills', 'leaderSkill', 'finale']
+  const propertyOrder = ['id', 'name', 'rarity', 'classId', 'baseStats', 'skills', 'leaderSkill', 'finale', 'epithet', 'introQuote', 'lore', 'actionBackground']
 
   for (const prop of propertyOrder) {
     if (hero[prop] === undefined) continue

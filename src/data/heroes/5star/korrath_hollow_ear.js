@@ -73,5 +73,6 @@ export const korrath_hollow_ear = {
     ]
   },
   epithet: 'Eyes of the Stormwind Peaks',
-  introQuote: 'The wardrums of the spirits still lingers here.'
+  introQuote: 'The wardrums of the spirits still lingers here.',
+  lore: 'Korrath lost his hearing in a thunderstrike atop the Stormwind Peaks and gained something worse \u2014 the ability to hear the dead. The spirits whisper where prey hides, where enemies falter, and when the last drumbeat of a life is about to sound.'
 }

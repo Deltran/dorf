@@ -277,7 +277,9 @@ const synergyMessages = computed(() => {
           </template>
         </div>
       </div>
+    </section>
 
+    <div class="party-actions">
       <button class="auto-fill-btn" @click="heroesStore.autoFillParty">
         <span class="btn-icon">✨</span>
         <span>Auto-Fill Party</span>
@@ -287,7 +289,7 @@ const synergyMessages = computed(() => {
         <span class="btn-icon">⚔️</span>
         <span>Manage Heroes</span>
       </button>
-    </section>
+    </div>
 
     <!-- Hero Picker Sheet -->
     <Teleport to="body">
@@ -346,12 +348,12 @@ const synergyMessages = computed(() => {
 <style scoped>
 .party-screen {
   height: 100vh;
-  padding: 20px;
-  padding-top: calc(20px + var(--safe-area-top));
-  padding-bottom: calc(20px + var(--safe-area-bottom));
+  padding: 16px;
+  padding-top: calc(16px + var(--safe-area-top));
+  padding-bottom: calc(12px + var(--safe-area-bottom));
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   position: relative;
   overflow: hidden;
   background: #111827;
@@ -573,7 +575,7 @@ const synergyMessages = computed(() => {
 .party-section {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
   position: relative;
   z-index: 1;
 }
@@ -581,19 +583,32 @@ const synergyMessages = computed(() => {
 .party-slots {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 16px;
+  grid-template-rows: 1fr 1fr;
+  gap: 12px;
+  height: 100%;
 }
 
 .party-slot {
   background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%);
   border: 1px solid #334155;
   border-radius: 14px;
-  padding: 12px;
-  min-height: 200px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Party Actions - pinned at bottom */
+.party-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: 12px;
+  position: relative;
+  z-index: 1;
 }
 
 .party-slot.filled {
@@ -603,6 +618,8 @@ const synergyMessages = computed(() => {
 .party-slot-content {
   position: relative;
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .leader-crown {
@@ -664,16 +681,17 @@ const synergyMessages = computed(() => {
 }
 
 .remove-btn {
-  margin-top: 10px;
-  padding: 8px 12px;
+  margin-top: 6px;
+  padding: 6px 10px;
   border: 1px solid #374151;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 500;
   background: transparent;
   color: #9ca3af;
   transition: all 0.15s ease-out;
+  flex-shrink: 0;
 }
 
 .remove-btn:hover {
@@ -689,7 +707,7 @@ const synergyMessages = computed(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 14px;
+  padding: 12px;
   background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
   border: 1px solid #4b5563;
   border-radius: 12px;
@@ -698,7 +716,7 @@ const synergyMessages = computed(() => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .auto-fill-btn:hover,

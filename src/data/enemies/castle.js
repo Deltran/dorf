@@ -4,6 +4,7 @@ export const enemies = {
   coralsworn_knight: {
     id: 'coralsworn_knight',
     name: 'Coralsworn Knight',
+    lore: 'Clad in living coral that grows thicker with each battle, these fanatics serve the throne with zealous, unquestioning violence.',
     stats: { hp: 340, atk: 80, def: 48, spd: 13 },
     skill: {
       name: 'Marked for Death',
@@ -18,6 +19,7 @@ export const enemies = {
   kings_hound: {
     id: 'kings_hound',
     name: "King's Hound",
+    lore: 'Monstrous war-beasts bred in the castle depths, they are unleashed on marked prey and do not stop until flesh is torn.',
     stats: { hp: 280, atk: 88, def: 32, spd: 22 },
     isBeast: true,
     skill: {
@@ -32,6 +34,7 @@ export const enemies = {
   castle_sentinel: {
     id: 'castle_sentinel',
     name: 'Castle Sentinel',
+    lore: 'Massive and immovable, it binds intruders in chains of living coral at the cost of its own mobility.',
     stats: { hp: 420, atk: 65, def: 60, spd: 5 },
     skill: {
       name: 'Coral Chains',
@@ -47,6 +50,7 @@ export const enemies = {
   royal_caster: {
     id: 'royal_caster',
     name: 'Royal Caster',
+    lore: 'Chosen from the brightest minds of the deep court, they amplify the king\'s will into devastating arcane mandates.',
     stats: { hp: 250, atk: 82, def: 30, spd: 15 },
     skill: {
       name: "King's Mandate",
@@ -62,6 +66,7 @@ export const enemies = {
   lord_coralhart: {
     id: 'lord_coralhart',
     name: 'Lord Coralhart',
+    lore: 'A warlord fused with the reef itself, he summons knights from the coral and fights harder with every fallen vassal.',
     stats: { hp: 2400, atk: 95, def: 60, spd: 14 },
     imageSize: 160,
     skills: [

@@ -84,5 +84,6 @@ export const chroma = {
     ]
   },
   epithet: 'Curious Musician',
-  introQuote: "Every color has a sound, you know. Most people just don't listen."
+  introQuote: 'Every color has a sound, you know. Most people just don\'t listen.',
+  lore: 'Chroma was born with synesthesia so intense it borders on sorcery \u2014 she literally sees sound as color and can weaponize the effect. Her melodies paint the air in blinding hues, and her enemies learn too late that beauty and danger are the same spectrum.'
 }

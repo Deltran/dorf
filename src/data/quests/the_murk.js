@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'the_murk',
   name: 'The Murk',
+  description: 'A lightless expanse of ocean where visibility drops to nothing and predators hunt by vibration alone. Blind anglers dangle their lures in the blackness, and murk stalkers move in silence through waters thick as ink.',
   superRegion: 'aquarias',
   startNode: 'murk_01',
   width: 600,

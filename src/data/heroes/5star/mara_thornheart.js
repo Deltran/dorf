@@ -102,5 +102,6 @@ export const mara_thornheart = {
     triggers: { allyBelowHalfHp: true, allyDeath: true, heavyDamagePercent: 15 }
   },
   epithet: 'Seething Fury',
-  introQuote: 'Scorned, exposed... but I will not die forgotten.'
+  introQuote: 'Scorned, exposed... but I will not die forgotten.',
+  lore: 'Mara was a war hero who returned home to find her name erased from every record and her lover wed to another. The betrayal took root in her chest like a thorned vine, and now every wound she suffers only feeds the garden of her fury.'
 }

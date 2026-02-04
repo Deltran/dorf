@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore, useIntroStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore, useIntroStore, useCodexStore } from './stores'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
 import { getAllQuestNodes } from './data/quests/index.js'
@@ -23,6 +23,13 @@ import GenusLociListScreen from './screens/GenusLociListScreen.vue'
 import PartyScreen from './screens/PartyScreen.vue'
 import GoodsAndMarketsScreen from './screens/GoodsAndMarketsScreen.vue'
 import ShopsScreen from './screens/ShopsScreen.vue'
+import CodexScreen from './screens/CodexScreen.vue'
+import CompendiumScreen from './screens/CompendiumScreen.vue'
+import FieldGuideScreen from './screens/FieldGuideScreen.vue'
+import FieldGuideArticleScreen from './screens/FieldGuideArticleScreen.vue'
+import CompendiumRosterScreen from './screens/CompendiumRosterScreen.vue'
+import CompendiumBestiaryScreen from './screens/CompendiumBestiaryScreen.vue'
+import CompendiumAtlasScreen from './screens/CompendiumAtlasScreen.vue'
 import ExplorationDetailView from './components/ExplorationDetailView.vue'
 import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
 import TipPopup from './components/TipPopup.vue'
@@ -39,6 +46,7 @@ const tipsStore = useTipsStore()
 const shopsStore = useShopsStore()
 const equipmentStore = useEquipmentStore()
 const introStore = useIntroStore()
+const codexStore = useCodexStore()
 
 const currentScreen = ref(
   import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_screen') || 'home') : 'home'
@@ -53,6 +61,7 @@ const currentCompletionPopup = ref(null)
 const placingHeroId = ref(null)
 const initialRegionName = ref(null)
 const isIntroBattle = ref(false)
+const selectedTopicId = ref(null)
 
 // Repair: sync genus loci victories with completedNodes
 // Older saves may have genus loci progress without the quest node marked complete
@@ -71,7 +80,8 @@ onMounted(() => {
   tipsStore.loadTips()
 
   if (hasData) {
-    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore, intro: introStore })
+    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore, intro: introStore, codex: codexStore })
+    codexStore.syncUnlocksFromCollection()
     repairGenusLociCompletions()
   } else {
     // New player: start the intro sequence
@@ -114,11 +124,13 @@ watch(
     equipmentStore.ownedEquipment,
     equipmentStore.equippedGear,
     equipmentStore.blacksmithUnlocked,
-    introStore.isIntroComplete
+    introStore.isIntroComplete,
+    codexStore.unlockedTopics,
+    codexStore.readEntries
   ],
   () => {
     if (isLoaded.value) {
-      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore, intro: introStore })
+      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore, intro: introStore, codex: codexStore })
     }
   },
   { deep: true }
@@ -197,12 +209,21 @@ function navigate(screen, param = null) {
     }
   } else if (screen === 'genusLoci') {
     selectedBossId.value = param
+    codexStore.unlockTopic('genus_loci')
   } else if (screen === 'exploration-detail') {
     selectedExplorationNodeId.value = param
   } else if (screen === 'party') {
     placingHeroId.value = param
   } else if (screen === 'worldmap') {
     initialRegionName.value = param
+  } else if (screen === 'field-guide-article') {
+    selectedTopicId.value = param
+  } else if (screen === 'shards') {
+    codexStore.unlockTopic('shards')
+  } else if (screen === 'merge') {
+    codexStore.unlockTopic('fusion')
+  } else if (screen === 'explorations') {
+    codexStore.unlockTopic('explorations')
   }
 }
 
@@ -395,6 +416,35 @@ function handleBattleNavigate(screen, param) {
       />
       <ShopsScreen
         v-else-if="currentScreen === 'shops'"
+        @navigate="navigate"
+      />
+      <CodexScreen
+        v-else-if="currentScreen === 'codex'"
+        @navigate="navigate"
+      />
+      <FieldGuideScreen
+        v-else-if="currentScreen === 'field-guide'"
+        @navigate="navigate"
+      />
+      <FieldGuideArticleScreen
+        v-else-if="currentScreen === 'field-guide-article'"
+        :topic-id="selectedTopicId"
+        @navigate="navigate"
+      />
+      <CompendiumScreen
+        v-else-if="currentScreen === 'compendium'"
+        @navigate="navigate"
+      />
+      <CompendiumRosterScreen
+        v-else-if="currentScreen === 'compendium-roster'"
+        @navigate="navigate"
+      />
+      <CompendiumBestiaryScreen
+        v-else-if="currentScreen === 'compendium-bestiary'"
+        @navigate="navigate"
+      />
+      <CompendiumAtlasScreen
+        v-else-if="currentScreen === 'compendium-atlas'"
         @navigate="navigate"
       />
 

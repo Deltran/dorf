@@ -4,6 +4,7 @@ export const enemies = {
   cave_crab: {
     id: 'cave_crab',
     name: 'Cave Crab',
+    lore: 'Its shell is harder than castle iron, encrusted with centuries of mineral growth. One claw-snap can shatter bone.',
     stats: { hp: 280, atk: 42, def: 45, spd: 5 },
     skill: {
       name: 'Shell Slam',
@@ -17,6 +18,7 @@ export const enemies = {
   moray_eel: {
     id: 'moray_eel',
     name: 'Moray Eel',
+    lore: 'It strikes from crevices with lightning speed, its double jaws locking onto flesh with rows of needle teeth.',
     stats: { hp: 160, atk: 58, def: 16, spd: 20 },
     skill: {
       name: 'Lunge',
@@ -27,6 +29,7 @@ export const enemies = {
   barnacle_cluster: {
     id: 'barnacle_cluster',
     name: 'Barnacle Cluster',
+    lore: 'A living colony of razor-edged shells that corrodes armor on contact, weakening defenses with caustic secretions.',
     stats: { hp: 140, atk: 40, def: 30, spd: 8 },
     skill: {
       name: 'Encrust',
@@ -41,6 +44,7 @@ export const enemies = {
   reef_warden: {
     id: 'reef_warden',
     name: 'Reef Warden',
+    lore: 'An ancient protector fused with the reef itself, it armors its allies in living coral and fights with the patience of stone.',
     stats: { hp: 200, atk: 44, def: 28, spd: 12 },
     skill: {
       name: 'Coral Armor',

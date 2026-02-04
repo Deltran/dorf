@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'beggars_reef',
   name: "Beggar's Reef",
+  description: 'A wretched shantytown built on jutting coral, where the desperate and diseased scrape out a living beyond Aquaria\'s laws. Plague bearers shuffle through the squalor, and reef rat swarms devour anything left unguarded.',
   superRegion: 'aquarias',
   startNode: 'beggar_01',
   width: 600,

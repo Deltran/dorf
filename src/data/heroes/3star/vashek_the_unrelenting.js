@@ -91,5 +91,6 @@ export const vashek_the_unrelenting = {
     }
   ],
   epithet: 'Unrelenting Defender',
-  introQuote: "Don't wait for the enemy to set up their strategy. Push forward, comrades!"
+  introQuote: 'Don\'t wait for the enemy to set up their strategy. Push forward, comrades!',
+  lore: 'Vashek deserted from an imperial army after his commanding officer ordered a retreat that left civilians behind. He took his shield, his oath, and twelve soldiers who believed in him. They call themselves the Unrelenting, and they answer to no crown but each other.'
 }

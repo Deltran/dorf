@@ -65,5 +65,6 @@ export const torga_bloodbeat = {
     }
   ],
   epithet: 'The Rhythm of War',
-  introQuote: 'My warband fell silent. I carry their heartbeat now.'
+  introQuote: 'My warband fell silent. I carry their heartbeat now.',
+  lore: 'Torga was the drummer of a warband that was ambushed in a mountain pass. She was the sole survivor, and she swore she\'d never let the rhythm die. She fights to the cadence of fallen comrades, each strike a drumbeat, each kill a verse in their unfinished song.'
 }

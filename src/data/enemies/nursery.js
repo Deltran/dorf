@@ -4,6 +4,7 @@ export const enemies = {
   juvenile_horror: {
     id: 'juvenile_horror',
     name: 'Juvenile Horror',
+    lore: 'Young, hungry, and vicious beyond their size, they swarm in frenzied packs when a sibling falls, feeding on rage.',
     stats: { hp: 200, atk: 88, def: 28, spd: 22 },
     skill: {
       name: 'Feeding Frenzy',
@@ -16,6 +17,7 @@ export const enemies = {
   brood_tender: {
     id: 'brood_tender',
     name: 'Brood Tender',
+    lore: 'Massive and maternal, it births nightmares from its own body and heals its young with a devotion that borders on obscene.',
     stats: { hp: 340, atk: 82, def: 45, spd: 10 },
     skill: {
       name: 'Nurture',
@@ -28,6 +30,7 @@ export const enemies = {
   egg_cluster: {
     id: 'egg_cluster',
     name: 'Egg Cluster',
+    lore: 'Pulsing and translucent, each sac holds a developing horror. Destroy them quickly or be overwhelmed by what hatches.',
     stats: { hp: 450, atk: 0, def: 60, spd: 0 },
     cannotAttack: true,
     skill: {
@@ -46,6 +49,7 @@ export const enemies = {
   the_matriarch: {
     id: 'the_matriarch',
     name: 'The Matriarch',
+    lore: 'The mother of all horrors in the nursery, her wrath is boundless when her children are harmed. Kill the brood and she only gets angrier.',
     stats: { hp: 480, atk: 98, def: 50, spd: 12 },
     imageSize: 140,
     skill: {

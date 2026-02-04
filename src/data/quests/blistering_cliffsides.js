@@ -3,6 +3,7 @@ import blisteringCliffsMap from '../../assets/maps/blistering_cliffsides.png'
 export const regionMeta = {
   id: 'blistering_cliffsides',
   name: 'Blistering Cliffsides',
+  description: 'Scorched rock faces radiate heat that can blister exposed skin within minutes. Rivers of molten slag wind between the cliffs, and fire elementals roam freely through the ash-choked passes.',
   superRegion: 'western_veros',
   startNode: 'cliffs_01',
   width: 600,

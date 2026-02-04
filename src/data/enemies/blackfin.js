@@ -4,6 +4,7 @@ export const enemies = {
   blackfin_cutthroat: {
     id: 'blackfin_cutthroat',
     name: 'Blackfin Cutthroat',
+    lore: 'They emerge from the shadows like bad debts, striking with poisoned blades before vanishing back into the dark.',
     stats: { hp: 260, atk: 75, def: 30, spd: 20 },
     startsStealthed: true,
     skill: {
@@ -17,6 +18,7 @@ export const enemies = {
   pit_fighter: {
     id: 'pit_fighter',
     name: 'Pit Fighter',
+    lore: 'Blood-sport gladiators who fight for the roaring crowd, growing stronger and more savage with every kill.',
     stats: { hp: 340, atk: 70, def: 38, spd: 14 },
     skill: {
       name: 'Crowd Pleaser',
@@ -29,6 +31,7 @@ export const enemies = {
   guild_poisoner: {
     id: 'guild_poisoner',
     name: 'Guild Poisoner',
+    lore: 'Assassins of the Blackfin underworld, their coated blades deliver a slow, stacking venom that eats away at the living.',
     stats: { hp: 220, atk: 65, def: 28, spd: 16 },
     skill: {
       name: 'Coated Blade',
@@ -43,6 +46,7 @@ export const enemies = {
   blackfin_fence: {
     id: 'blackfin_fence',
     name: 'Blackfin Fence',
+    lore: 'Part merchant, part crime boss, they deal in stolen goods and dirty favors, keeping their crew alive through sheer cunning.',
     stats: { hp: 280, atk: 60, def: 35, spd: 12 },
     skill: {
       name: 'Dirty Deal',

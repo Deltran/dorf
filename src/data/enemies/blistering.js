@@ -4,6 +4,7 @@ export const enemies = {
   fire_elemental: {
     id: 'fire_elemental',
     name: 'Fire Elemental',
+    lore: 'A writhing column of living flame, it feeds on anything combustible and regards adventurers as kindling.',
     stats: { hp: 110, atk: 45, def: 20, spd: 14 },
     skill: {
       name: 'Flame Burst',
@@ -17,6 +18,7 @@ export const enemies = {
   magma_golem: {
     id: 'magma_golem',
     name: 'Magma Golem',
+    lore: 'Molten rock given hateful purpose, its footsteps leave glowing craters and its fists crack stone like eggshell.',
     stats: { hp: 220, atk: 42, def: 35, spd: 5 },
     skill: {
       name: 'Molten Slam',
@@ -30,6 +32,7 @@ export const enemies = {
   ash_crawler: {
     id: 'ash_crawler',
     name: 'Ash Crawler',
+    lore: 'Skittering through the cinder fields in swarms, they leave nothing but scorched bone in their wake.',
     stats: { hp: 70, atk: 35, def: 12, spd: 20 },
     skill: {
       name: 'Ember Swarm',
@@ -41,6 +44,7 @@ export const enemies = {
   flame_salamander: {
     id: 'flame_salamander',
     name: 'Flame Salamander',
+    lore: 'It basks in lava pools, its scales white-hot. The air itself warps and shimmers around its searing body.',
     stats: { hp: 130, atk: 48, def: 22, spd: 13 },
     skill: {
       name: 'Searing Breath',
@@ -54,6 +58,7 @@ export const enemies = {
   volcanic_drake: {
     id: 'volcanic_drake',
     name: 'Volcanic Drake',
+    lore: 'Wreathed in smoke and cinder, this lesser dragon nests in the caldera and rains fire on anything that approaches.',
     stats: { hp: 280, atk: 52, def: 28, spd: 11 },
     skill: {
       name: 'Lava Breath',

@@ -4,6 +4,7 @@ export const enemies = {
   ruin_scavenger: {
     id: 'ruin_scavenger',
     name: 'Ruin Scavenger',
+    lore: 'Opportunistic predators that haunt sunken ruins, picking off the weakened with savage, darting strikes.',
     stats: { hp: 180, atk: 52, def: 20, spd: 22 },
     skill: {
       name: 'Opportunist',
@@ -16,6 +17,7 @@ export const enemies = {
   decay_jelly: {
     id: 'decay_jelly',
     name: 'Decay Jelly',
+    lore: 'A translucent mass of digestive acid that dissolves armor and flesh alike with patient, corrosive hunger.',
     stats: { hp: 150, atk: 45, def: 18, spd: 8 },
     skill: {
       name: 'Corrosive Touch',
@@ -30,6 +32,7 @@ export const enemies = {
   corroded_sentinel: {
     id: 'corroded_sentinel',
     name: 'Corroded Sentinel',
+    lore: 'Once a grand construct guarding the tidewall, salt and time have eaten it to ruin, but its duty endures.',
     stats: { hp: 320, atk: 48, def: 50, spd: 4 },
     skill: {
       name: 'Rusted Slam',
@@ -44,6 +47,7 @@ export const enemies = {
   tide_lurker: {
     id: 'tide_lurker',
     name: 'Tide Lurker',
+    lore: 'It lies motionless among the wreckage until prey steps close, then explodes into violence with devastating first strikes.',
     stats: { hp: 200, atk: 55, def: 22, spd: 18 },
     skill: {
       name: 'Ambush',

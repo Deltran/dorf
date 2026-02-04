@@ -71,5 +71,6 @@ export const village_healer = {
     }
   ],
   epithet: 'Keeper of the Kettle',
-  introQuote: 'Sit down, dear. Tea first, then we talk about your troubles.'
+  introQuote: 'Sit down, dear. Tea first, then we talk about your troubles.',
+  lore: 'Grandma Helga has buried three husbands, raised eleven children, and healed every ailment from plague to heartbreak with the same pot of tea. The village built a statue of her once, but she made them take it down \u2014 said it blocked her herb garden\'s sunlight.'
 }

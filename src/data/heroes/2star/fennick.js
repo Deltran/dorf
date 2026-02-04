@@ -80,5 +80,6 @@ export const fennick = {
   ],
   role: 'tank',
   epithet: 'The Untouchable Runt',
-  introQuote: "Go ahead. Swing. I'll wait."
+  introQuote: 'Go ahead. Swing. I\'ll wait.',
+  lore: 'Fennick is a half-feral fox-blooded runt who grew up dodging kicks in the back alleys of Thornwall. Too small to take a hit, too fast to catch, he turned cowardice into an art form and survival into a spite-fueled profession.'
 }

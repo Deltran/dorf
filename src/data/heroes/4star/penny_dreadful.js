@@ -81,5 +81,6 @@ export const penny_dreadful = {
     }
   ],
   epithet: 'The Tidy Terror',
-  introQuote: "Don't you worry, yah! Penny'll sort you out right proper!"
+  introQuote: 'Don\'t you worry, yah! Penny\'ll sort you out right proper!',
+  lore: 'Penny was a chambermaid in a lord\'s manor until she discovered the cleaning solutions she\'d been mixing could dissolve steel. Now she fights with the same cheerful efficiency she once applied to scrubbing floors, and her enemies are just another stubborn stain.'
 }

@@ -4,6 +4,7 @@ export const enemies = {
   harpy: {
     id: 'harpy',
     name: 'Harpy',
+    lore: 'Half-woman, half-raptor, and wholly vicious. Their talons can open a man from throat to navel in a single dive.',
     stats: { hp: 80, atk: 28, def: 12, spd: 18 },
     skill: {
       name: 'Diving Talon',
@@ -17,6 +18,7 @@ export const enemies = {
   frost_elemental: {
     id: 'frost_elemental',
     name: 'Frost Elemental',
+    lore: 'Born from the mountain\'s bitter cold, it moves with glacial patience and kills with a touch that freezes blood in the vein.',
     stats: { hp: 100, atk: 35, def: 25, spd: 10 },
     skill: {
       name: 'Glacial Grip',
@@ -31,6 +33,7 @@ export const enemies = {
   storm_elemental: {
     id: 'storm_elemental',
     name: 'Storm Elemental',
+    lore: 'A living thunderhead crackling with fury. It does not speak; it simply strikes, and the air smells of ozone and ruin.',
     stats: { hp: 90, atk: 38, def: 18, spd: 16 },
     skill: {
       name: 'Chain Lightning',
@@ -42,6 +45,7 @@ export const enemies = {
   thunder_hawk: {
     id: 'thunder_hawk',
     name: 'Thunder Hawk',
+    lore: 'Its wingspan blots out the sun. Lightning dances along its feathers as it plummets toward its prey.',
     stats: { hp: 70, atk: 35, def: 10, spd: 22 },
     skill: {
       name: 'Lightning Dive',
@@ -55,6 +59,7 @@ export const enemies = {
   mountain_giant: {
     id: 'mountain_giant',
     name: 'Mountain Giant',
+    lore: 'Ancient as the peaks themselves, it wakes only when trespassers disturb its stony slumber. By then, it is far too late to run.',
     stats: { hp: 300, atk: 45, def: 30, spd: 3 },
     skill: {
       name: 'Landslide',
@@ -68,11 +73,13 @@ export const enemies = {
   harpy_chick: {
     id: 'harpy_chick',
     name: 'Harpy Chick',
+    lore: 'All beak and fury, these fledglings peck and screech with a malice that promises worse things to come.',
     stats: { hp: 30, atk: 15, def: 3, spd: 16 }
   },
   nesting_roc: {
     id: 'nesting_roc',
     name: 'Nesting Roc',
+    lore: 'A mother roc is the most dangerous thing on the mountain. Threaten her brood and she\'ll bury you in stone.',
     stats: { hp: 120, atk: 15, def: 20, spd: 8 },
     skill: {
       name: 'Brood Call',

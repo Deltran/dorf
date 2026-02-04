@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'sunken_shipyard',
   name: 'Sunken Shipyard',
+  description: 'A graveyard of capsized vessels resting on the ocean floor, their hulls encrusted with barnacles and haunted by drowned sailors. Shipwreck sirens sing from the wreckage, luring the living to join the dead among the rotting timbers.',
   superRegion: 'aquarias',
   startNode: 'shipyard_01',
   width: 600,

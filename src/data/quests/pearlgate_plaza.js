@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'pearlgate_plaza',
   name: 'Pearlgate Plaza',
+  description: 'The opulent entrance to Aquaria\'s inner sanctum, where pearl-armored guards enforce the will of the coral throne. Gilded constructs patrol the plaza\'s gleaming arcades, and court mages watch from the shadows with cold suspicion.',
   superRegion: 'aquarias',
   startNode: 'pearlgate_01',
   width: 600,

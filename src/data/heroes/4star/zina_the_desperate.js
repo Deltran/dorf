@@ -80,5 +80,6 @@ export const zina_the_desperate = {
     }
   ],
   epithet: 'Desperate Saboteur ',
-  introQuote: 'And THIS one is practically tasteless mixed into a stew...'
+  introQuote: 'And THIS one is practically tasteless mixed into a stew...',
+  lore: 'Zina was a court alchemist who poisoned the wrong noble and has been running ever since. She brews her concoctions from whatever she can scavenge \u2014 gutter water, cave moss, her own blood when supplies run thin. Desperation, it turns out, is an excellent catalyst.'
 }

@@ -80,5 +80,6 @@ export const yggra_world_root = {
     ]
   },
   epithet: 'The World Root',
-  introQuote: 'All things return to the earth.'
+  introQuote: 'All things return to the earth.',
+  lore: 'Yggra is not a person but a consciousness \u2014 the dreaming will of the great world tree whose roots thread through every forest and field. She takes mortal shape only when the land itself bleeds, and her patience is as vast and merciless as the soil.'
 }

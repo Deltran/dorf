@@ -45,5 +45,6 @@ export const apprentice_mage = {
     }
   ],
   epithet: 'The Eager Spark',
-  introQuote: "Master says I lack focus. I say lightning doesn't focus either."
+  introQuote: 'Master says I lack focus. I say lightning doesn\'t focus either.',
+  lore: 'Calisus was expelled from the Academy of Arcane Sciences for "reckless enthusiasm" after accidentally electrifying the headmaster\'s chamber pot. He\'s raw talent with zero discipline, casting spells that work brilliantly about seventy percent of the time.'
 }

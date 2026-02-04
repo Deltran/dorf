@@ -4,6 +4,7 @@ export const enemies = {
   wreck_scavenger: {
     id: 'wreck_scavenger',
     name: 'Wreck Scavenger',
+    lore: 'Vultures of the drowned fleet, they strip the dead and the living alike, stealing power along with plunder.',
     stats: { hp: 220, atk: 62, def: 28, spd: 18 },
     skill: {
       name: 'Plunder',
@@ -16,6 +17,7 @@ export const enemies = {
   drowned_sailor: {
     id: 'drowned_sailor',
     name: 'Drowned Sailor',
+    lore: 'Dead men who went down with their ships, now haunting the wreckage with cold hands that choke the life from the living.',
     stats: { hp: 280, atk: 58, def: 35, spd: 10 },
     skill: {
       name: 'Ghostly Grasp',
@@ -30,6 +32,7 @@ export const enemies = {
   barnacle_titan: {
     id: 'barnacle_titan',
     name: 'Barnacle Titan',
+    lore: 'Encased in a shell of living rock and shell, this hulking brute reflects pain back at its attackers while barely flinching.',
     stats: { hp: 380, atk: 55, def: 55, spd: 5 },
     skill: {
       name: 'Encrusted Shell',
@@ -45,6 +48,7 @@ export const enemies = {
   shipwreck_siren: {
     id: 'shipwreck_siren',
     name: 'Shipwreck Siren',
+    lore: 'Her song is heartbreak made audible, turning allies against each other as she watches from the wreckage with black, gleaming eyes.',
     stats: { hp: 200, atk: 68, def: 22, spd: 16 },
     skill: {
       name: 'Luring Song',

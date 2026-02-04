@@ -4,6 +4,7 @@ export const enemies = {
   aquarian_enforcer: {
     id: 'aquarian_enforcer',
     name: 'Aquarian Enforcer',
+    lore: 'Elite soldiers of the sunken empire, they hunt marked trespassers with ruthless, coordinated precision.',
     stats: { hp: 240, atk: 58, def: 32, spd: 14 },
     skill: {
       name: 'Trident Thrust',
@@ -16,6 +17,7 @@ export const enemies = {
   current_mage: {
     id: 'current_mage',
     name: 'Current Mage',
+    lore: 'They bend the riptides to their will, marking enemies for death with sigils that make the sea itself turn hostile.',
     stats: { hp: 170, atk: 62, def: 20, spd: 16 },
     skill: {
       name: 'Riptide Mark',
@@ -30,6 +32,7 @@ export const enemies = {
   patrol_shark: {
     id: 'patrol_shark',
     name: 'Patrol Shark',
+    lore: 'Trained by the merfolk as living weapons, they patrol the currents in packs, driven to frenzy by the scent of blood.',
     stats: { hp: 260, atk: 65, def: 25, spd: 20 },
     skill: {
       name: 'Blood Frenzy',
@@ -42,6 +45,7 @@ export const enemies = {
   checkpoint_warden: {
     id: 'checkpoint_warden',
     name: 'Checkpoint Warden',
+    lore: 'Armored in barnacle-crusted plate, these wardens block every passage and rally their forces with booming war-horns.',
     stats: { hp: 300, atk: 50, def: 45, spd: 10 },
     skill: {
       name: 'Rally',
@@ -56,6 +60,7 @@ export const enemies = {
   commander_tideclaw: {
     id: 'commander_tideclaw',
     name: 'Commander Tideclaw',
+    lore: 'The merfolk empire\'s most feared marshal, whose tactical brilliance and crushing strength have broken a hundred surface incursions.',
     stats: { hp: 1800, atk: 85, def: 50, spd: 16 },
     imageSize: 160,
     skills: [

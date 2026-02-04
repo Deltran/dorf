@@ -4,6 +4,7 @@ export const enemies = {
   bandit_scout: {
     id: 'bandit_scout',
     name: 'Bandit Scout',
+    lore: 'Deserters and cutpurses who know every crumbling passage of the old fort. They strike fast and vanish into rubble.',
     stats: { hp: 100, atk: 42, def: 16, spd: 18 },
     skill: {
       name: 'Cheap Shot',
@@ -14,6 +15,7 @@ export const enemies = {
   bandit_brute: {
     id: 'bandit_brute',
     name: 'Bandit Brute',
+    lore: 'A wall of scarred muscle and stolen armor, he crushes opposition with a notched greatsword looted from a dead knight.',
     stats: { hp: 160, atk: 52, def: 24, spd: 8 },
     skill: {
       name: 'Crushing Blow',
@@ -27,6 +29,7 @@ export const enemies = {
   skeletal_soldier: {
     id: 'skeletal_soldier',
     name: 'Skeletal Soldier',
+    lore: 'The fort\'s original garrison, still marching their rounds centuries after the flesh rotted from their bones.',
     stats: { hp: 110, atk: 40, def: 22, spd: 12 },
     skill: {
       name: 'Bone Slash',
@@ -37,6 +40,7 @@ export const enemies = {
   ghostly_knight: {
     id: 'ghostly_knight',
     name: 'Ghostly Knight',
+    lore: 'Bound by an oath that outlasted death, this specter still defends a lord whose name has been lost to time.',
     stats: { hp: 150, atk: 48, def: 30, spd: 11 },
     skill: {
       name: 'Spectral Strike',
@@ -50,6 +54,7 @@ export const enemies = {
   deserter_captain: {
     id: 'deserter_captain',
     name: 'Deserter Captain',
+    lore: 'Once a decorated officer, now a warlord of thieves. His tactical mind makes this rabble far deadlier than it has any right to be.',
     stats: { hp: 200, atk: 50, def: 28, spd: 13 },
     skills: [
       {
@@ -71,6 +76,7 @@ export const enemies = {
   fort_specter: {
     id: 'fort_specter',
     name: 'Fort Specter',
+    lore: 'The wailing dead of the old garrison, their anguish echoes through the halls and drains the courage of the living.',
     stats: { hp: 130, atk: 45, def: 18, spd: 16 },
     skill: {
       name: 'Haunting Wail',

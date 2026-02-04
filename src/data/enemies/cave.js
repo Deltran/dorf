@@ -4,6 +4,7 @@ export const enemies = {
   cave_bat: {
     id: 'cave_bat',
     name: 'Cave Bat',
+    lore: 'They cling to the ceilings in writhing masses, descending in shrieking clouds when the torchlight disturbs them.',
     stats: { hp: 35, atk: 18, def: 3, spd: 20 },
     skill: {
       name: 'Sonic Screech',
@@ -14,6 +15,7 @@ export const enemies = {
   rock_golem: {
     id: 'rock_golem',
     name: 'Rock Golem',
+    lore: 'Carved by hands long since turned to dust, it still follows its last command: let nothing pass.',
     stats: { hp: 150, atk: 30, def: 35, spd: 4 },
     skill: {
       name: 'Boulder Smash',
@@ -24,6 +26,7 @@ export const enemies = {
   dark_cultist: {
     id: 'dark_cultist',
     name: 'Dark Cultist',
+    lore: 'Hollow-eyed and muttering, they traded their names for a scrap of forbidden power and haven\'t looked back since.',
     stats: { hp: 65, atk: 28, def: 10, spd: 11 },
     skill: {
       name: 'Shadow Bolt',
@@ -38,6 +41,7 @@ export const enemies = {
   dark_caster: {
     id: 'dark_caster',
     name: 'Dark Caster',
+    lore: 'Where cultists beg for power, casters seize it. The shadows coil around their fingers like obedient serpents.',
     stats: { hp: 55, atk: 32, def: 8, spd: 12 },
     skill: {
       name: 'Curse of Weakness',
@@ -51,6 +55,7 @@ export const enemies = {
   cave_troll: {
     id: 'cave_troll',
     name: 'Cave Troll',
+    lore: 'It fills the tunnel from wall to wall, all muscle and bad temper. The bones littering its den are not all animal.',
     stats: { hp: 200, atk: 35, def: 20, spd: 5 },
     skill: {
       name: 'Crushing Blow',
@@ -64,28 +69,29 @@ export const enemies = {
   cultist_ritualist: {
     id: 'cultist_ritualist',
     name: 'Cultist Ritualist',
+    lore: 'They carve sigils into their own flesh to channel dark blessings, healing the faithful at the cost of their dwindling sanity.',
     stats: { hp: 75, atk: 20, def: 12, spd: 10 },
     skill: {
       name: 'Dark Blessing',
-      description: 'Heal all allies for 30% of max HP and increase ATK by 20% for 2 turns',
+      description: 'Heal all allies for 20% of max HP',
       cooldown: 4,
       noDamage: true,
-      healAllAllies: 30,
-      effects: [
-        { type: EffectType.ATK_UP, target: 'all_allies', duration: 2, value: 20 }
-      ]
+      healAllAllies: 20,
+      effects: []
     }
   },
-  corrupted_golem: {
-    id: 'corrupted_golem',
-    name: 'Corrupted Golem',
-    stats: { hp: 180, atk: 35, def: 30, spd: 5 },
+  cult_warden: {
+    id: 'cult_warden',
+    name: 'Cult Warden',
+    lore: 'Wrapped in shadow-etched robes, they channel protective wards that drink the force from every blow aimed at the faithful.',
+    stats: { hp: 100, atk: 22, def: 20, spd: 8 },
     skill: {
-      name: 'Shadow Slam',
-      description: 'Deal 160% ATK damage and reduce target DEF by 30% for 2 turns',
+      name: 'Shadow Ward',
+      description: 'Reduce all allies damage taken by 25% for 2 turns',
       cooldown: 4,
+      noDamage: true,
       effects: [
-        { type: EffectType.DEF_DOWN, target: 'hero', duration: 2, value: 30 }
+        { type: EffectType.DAMAGE_REDUCTION, target: 'all_allies', duration: 2, value: 25 }
       ]
     }
   }

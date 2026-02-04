@@ -50,5 +50,6 @@ export const herb_gatherer = {
     }
   ],
   epithet: 'Root and Remedy',
-  introQuote: 'Nature provides. You just have to know where to look.'
+  introQuote: 'Nature provides. You just have to know where to look.',
+  lore: 'Bertan has spent more years in the forest than in any town, learning the language of roots and leaves from the earth itself. He\'s no warrior and makes no pretense of being one \u2014 but a well-timed poultice has saved more lives than most swords.'
 }

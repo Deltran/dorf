@@ -70,5 +70,6 @@ export const matsuda = {
     onHealed: { type: 'reluctance', stacks: 1 }
   },
   epithet: 'Blade Without a Lord',
-  introQuote: "Honor died with my master. All that's left is the sword."
+  introQuote: 'Honor died with my master. All that\'s left is the sword.',
+  lore: 'Matsuda served a lord who was assassinated by his own court, and the dishonor of failing to prevent it has followed him like a second shadow. He wanders now, taking the most dangerous contracts he can find, seeking either redemption or an end worthy of the blade he carries.'
 }

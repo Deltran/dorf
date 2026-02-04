@@ -108,5 +108,6 @@ export const cacophon = {
     ]
   },
   epithet: 'Beautiful Disaster',
-  introQuote: 'My genius is just misunderstood! Do you see it? DO YOU SEE IT?!'
+  introQuote: 'My genius is just misunderstood! Do you see it? DO YOU SEE IT?!',
+  lore: 'Expelled from three conservatories and banned from performing in eleven cities, Cacophon discovered that true power lies not in harmony but in discord. His compositions shatter eardrums and morale alike \u2014 and he considers the screaming a standing ovation.'
 }

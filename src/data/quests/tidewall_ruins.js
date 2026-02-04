@@ -1,6 +1,7 @@
 export const regionMeta = {
   id: 'tidewall_ruins',
   name: 'Tidewall Ruins',
+  description: 'The shattered remains of an ancient sea wall, now crumbling into the abyss. Corroded sentinels still guard passages that lead nowhere, and scavengers pick through the wreckage for anything the tides haven\'t already claimed.',
   superRegion: 'aquarias',
   startNode: 'tidewall_01',
   width: 600,

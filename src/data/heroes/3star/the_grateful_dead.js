@@ -83,5 +83,6 @@ export const the_grateful_dead = {
     }
   ],
   epithet: 'Courtly Corpse',
-  introQuote: "Ah, splendid! New companions. Do pardon the smell - persistent cold, I'm afraid."
+  introQuote: 'Ah, splendid! New companions. Do pardon the smell - persistent cold, I\'m afraid.',
+  lore: 'A knight who died defending a nameless village and simply refused to stop. He retains impeccable manners, a dry wit, and absolutely no pulse. He fights because honor demands it, and being dead is no excuse for poor conduct.'
 }
