@@ -22,10 +22,14 @@ export const BattleState = {
 }
 
 export const useBattleStore = defineStore('battle', () => {
+  // Constants
+  const MAX_ENEMIES = 6
+
   // State
   const state = ref(BattleState.IDLE)
   const heroes = ref([]) // { instanceId, ..., statusEffects: [] }
   const enemies = ref([]) // { id, ..., statusEffects: [] }
+  const nextEnemyId = ref(0)
   const turnOrder = ref([])
   const currentTurnIndex = ref(0)
   const roundNumber = ref(1)
@@ -1139,6 +1143,46 @@ export const useBattleStore = defineStore('battle', () => {
     return 0
   }
 
+  // ========== LOW HP TRIGGER PASSIVE (Cornered Animal) ==========
+
+  function getLowHpTriggerPassive(hero) {
+    const skills = hero.template?.skills
+    if (!skills) return null
+    const passive = skills.find(s => s.isPassive && s.passiveType === 'lowHpTrigger')
+    return passive || null
+  }
+
+  function processLowHpTrigger(hero, hpBefore) {
+    const passive = getLowHpTriggerPassive(hero)
+    if (!passive) return
+
+    // Check oncePerBattle flag
+    if (passive.oncePerBattle && hero.lowHpTriggerFired) return
+
+    const threshold = hero.maxHp * (passive.triggerBelowHpPercent / 100)
+
+    // Only trigger when HP crosses the threshold (was above, now below)
+    if (hpBefore <= threshold || hero.currentHp >= threshold) return
+
+    // Fire the trigger
+    if (passive.oncePerBattle) {
+      hero.lowHpTriggerFired = true
+    }
+
+    const heroName = hero.template?.name || 'Unknown'
+    addLog(`${heroName}'s ${passive.name} triggers!`)
+
+    for (const effect of passive.triggerEffects) {
+      applyEffect(hero, effect.type, {
+        duration: effect.duration,
+        value: effect.value,
+        sourceId: hero.instanceId
+      })
+    }
+
+    emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+  }
+
   // Check if an effect should be applied based on valorThreshold
   function shouldApplyEffect(effect, hero) {
     if (effect.valorThreshold === undefined) return true
@@ -1485,6 +1529,7 @@ export const useBattleStore = defineStore('battle', () => {
     if (damage <= 0) return 0
 
     // Check for EVASION effects (sum all additively, cap at 100%)
+    // 'attack_cannot_miss' source bypasses evasion (e.g., Death's Needle at low HP)
     const evasionEffects = (unit.statusEffects || []).filter(e => e.type === EffectType.EVASION)
     if (evasionEffects.length > 0 && source === 'attack') {
       const totalEvasion = evasionEffects.reduce((sum, e) => sum + (e.value || 0), 0)
@@ -1771,6 +1816,11 @@ export const useBattleStore = defineStore('battle', () => {
           emitCombatEffect(isHero ? unit.instanceId : unit.id, isHero ? 'hero' : 'enemy', 'heal', actualHeal)
         }
       }
+    }
+
+    // Check for lowHpTrigger passive (e.g., Cornered Animal)
+    if (actualDamage > 0 && unit.currentHp > 0 && unit.instanceId) {
+      processLowHpTrigger(unit, hpBeforeDamage)
     }
 
     // Clear all status effects on death
@@ -2430,6 +2480,9 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Set nextEnemyId to continue from existing enemies
+    nextEnemyId.value = enemies.value.length
+
     // Apply passive leader skill effects
     applyPassiveLeaderEffects()
 
@@ -2675,7 +2728,8 @@ export const useBattleStore = defineStore('battle', () => {
 
       const effectiveAtk = getEffectiveStat(hero, 'atk')
       const effectiveDef = getEffectiveStat(target, 'def')
-      const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
+      const basicDamagePercent = getBasicAttackDamagePercent(hero)
+      const damage = calculateDamage(effectiveAtk, basicDamagePercent / 100, effectiveDef)
       applyDamage(target, damage, 'attack', hero)
       addLog(`${hero.template.name} attacks ${target.template.name} for ${damage} damage!`)
       emitCombatEffect(target.id, 'enemy', 'damage', damage)
@@ -2996,8 +3050,12 @@ export const useBattleStore = defineStore('battle', () => {
           // Deal damage unless skill is effect-only
           else if (!skill.noDamage) {
             const effectiveDef = getEffectiveStat(target, 'def')
-            // Apply ignoreDef if present
-            const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
+            // Check conditionalAtLowHp (e.g., Death's Needle ignores DEF below 30% HP)
+            const lowHpCondition = skill.conditionalAtLowHp
+            const heroHpPercent = (hero.currentHp / hero.maxHp) * 100
+            const lowHpActive = lowHpCondition && heroHpPercent < lowHpCondition.hpThreshold
+            // Apply ignoreDef if present, or full ignore from conditionalAtLowHp
+            const defReduction = lowHpActive && lowHpCondition.ignoresDef ? 1 : (skill.ignoreDef ? (skill.ignoreDef / 100) : 0)
             const reducedDef = effectiveDef * (1 - defReduction)
             const markedMultiplier = getMarkedDamageMultiplier(target)
             let damage
@@ -3043,7 +3101,9 @@ export const useBattleStore = defineStore('battle', () => {
               damage = calculateDamageWithMarked(finalDamageStat, baseMultiplier, reducedDef, markedMultiplier)
             } else if (skill.damagePercent !== undefined) {
               // Use explicit damagePercent if provided (for skills like Mara's)
-              const multiplier = (skill.damagePercent + shardBonus + heartbreakBonusDamagePercent) / 100
+              // Apply Volatility damage bonus for Alchemist skills
+              const volatilityBonus = (skill.usesVolatility && isAlchemist(hero)) ? getVolatilityDamageBonus(hero) : 0
+              const multiplier = (skill.damagePercent + shardBonus + heartbreakBonusDamagePercent + volatilityBonus) / 100
               damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
             } else {
               // Parse from description with Heartbreak bonus
@@ -3064,7 +3124,8 @@ export const useBattleStore = defineStore('battle', () => {
             }
 
             const dmgResult = {}
-            applyDamage(target, damage, 'attack', hero, dmgResult)
+            const attackSource = (lowHpActive && lowHpCondition.cannotMiss) ? 'attack_cannot_miss' : 'attack'
+            applyDamage(target, damage, attackSource, hero, dmgResult)
             if (dmgResult.evaded) targetEvaded = true
             if (skill.bonusDamagePerDebuff && debuffCount > 0) {
               const debuffNote = skill.consumeDebuffs ? `${debuffCount} debuffs consumed` : `${debuffCount} debuffs`
@@ -3246,6 +3307,16 @@ export const useBattleStore = defineStore('battle', () => {
             hero.currentHp = Math.max(1, hero.currentHp - selfDamage)
             addLog(`${hero.template.name} takes ${selfDamage} self-damage!`)
             emitCombatEffect(hero.instanceId, 'hero', 'damage', selfDamage)
+          }
+
+          // Apply Volatility self-damage for Alchemists at Volatile tier
+          if (skill.usesVolatility && isAlchemist(hero) && hero.currentHp > 0) {
+            const volatilitySelfDmg = getVolatilitySelfDamage(hero)
+            if (volatilitySelfDmg > 0) {
+              hero.currentHp = Math.max(1, hero.currentHp - volatilitySelfDmg)
+              addLog(`${hero.template.name} takes ${volatilitySelfDmg} Volatility damage!`)
+              emitCombatEffect(hero.instanceId, 'hero', 'damage', volatilitySelfDmg)
+            }
           }
 
           // Handle chain bounce damage (e.g., Chain Lightning)
@@ -3822,33 +3893,40 @@ export const useBattleStore = defineStore('battle', () => {
           }
 
           // Use Valor-scaled damage, damagePercent, or parse from description (with shard and Heartbreak bonus)
-          const scaledDamage = getSkillDamage(skill, hero)
-          let multiplier
-          if (scaledDamage !== null) {
-            multiplier = (scaledDamage + shardBonus + heartbreakBonusDamagePercentAoe) / 100
-          } else if (skill.damagePercent !== undefined) {
-            multiplier = (skill.damagePercent + shardBonus + heartbreakBonusDamagePercentAoe) / 100
-          } else {
-            const baseMultiplier = parseSkillMultiplier(skill.description, shardBonus)
-            multiplier = baseMultiplier + heartbreakBonusDamagePercentAoe / 100
+          let multiplier = 0
+          if (!skill.noDamage) {
+            const scaledDamage = getSkillDamage(skill, hero)
+            if (scaledDamage !== null) {
+              multiplier = (scaledDamage + shardBonus + heartbreakBonusDamagePercentAoe) / 100
+            } else if (skill.damagePercent !== undefined) {
+              const volatilityBonusAoe = (skill.usesVolatility && isAlchemist(hero)) ? getVolatilityDamageBonus(hero) : 0
+              multiplier = (skill.damagePercent + shardBonus + heartbreakBonusDamagePercentAoe + volatilityBonusAoe) / 100
+            } else {
+              const baseMultiplier = parseSkillMultiplier(skill.description, shardBonus)
+              multiplier = baseMultiplier + heartbreakBonusDamagePercentAoe / 100
+            }
           }
           let totalDamage = 0
           let totalThornsDamage = 0
           let killedAny = false
           for (const target of targets) {
-            const effectiveDef = getEffectiveStat(target, 'def')
-            const markedMultiplier = getMarkedDamageMultiplier(target)
-            let damage = calculateDamageWithMarked(effectiveAtk, multiplier, effectiveDef, markedMultiplier)
-            // Apply crit and spell amp
-            damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
+            let damage = 0
             const aoeResult = {}
-            applyDamage(target, damage, 'attack', hero, aoeResult)
-            totalDamage += damage
-            emitCombatEffect(target.id, 'enemy', 'damage', damage)
+
+            if (!skill.noDamage) {
+              const effectiveDef = getEffectiveStat(target, 'def')
+              const markedMultiplier = getMarkedDamageMultiplier(target)
+              damage = calculateDamageWithMarked(effectiveAtk, multiplier, effectiveDef, markedMultiplier)
+              // Apply crit and spell amp
+              damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
+              applyDamage(target, damage, 'attack', hero, aoeResult)
+              totalDamage += damage
+              emitCombatEffect(target.id, 'enemy', 'damage', damage)
+            }
 
             if (skill.effects && !aoeResult.evaded) {
               for (const effect of skill.effects) {
-                if (effect.target === 'enemy' && shouldApplyEffect(effect, hero)) {
+                if ((effect.target === 'enemy' || effect.target === 'all_enemies') && shouldApplyEffect(effect, hero)) {
                   const effectDuration = resolveEffectDuration(effect, hero)
                   const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                   applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
@@ -3929,6 +4007,24 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
           addLog(`${hero.template.name} uses ${skill.name}, dealing ${totalDamage} total damage!`)
+
+          // Apply self-damage after AoE skill use (e.g., Tainted Feast)
+          if (skill.selfDamagePercentMaxHp && hero.currentHp > 0) {
+            const selfDamage = Math.floor(hero.maxHp * skill.selfDamagePercentMaxHp / 100)
+            hero.currentHp = Math.max(1, hero.currentHp - selfDamage)
+            addLog(`${hero.template.name} takes ${selfDamage} self-damage!`)
+            emitCombatEffect(hero.instanceId, 'hero', 'damage', selfDamage)
+          }
+
+          // Apply Volatility self-damage for Alchemists at Volatile tier (AoE skills)
+          if (skill.usesVolatility && isAlchemist(hero) && hero.currentHp > 0) {
+            const volatilitySelfDmg = getVolatilitySelfDamage(hero)
+            if (volatilitySelfDmg > 0) {
+              hero.currentHp = Math.max(1, hero.currentHp - volatilitySelfDmg)
+              addLog(`${hero.template.name} takes ${volatilitySelfDmg} Volatility damage!`)
+              emitCombatEffect(hero.instanceId, 'hero', 'damage', volatilitySelfDmg)
+            }
+          }
           break
         }
 
@@ -5079,6 +5175,45 @@ export const useBattleStore = defineStore('battle', () => {
     return result
   }
 
+  function summonEnemy(templateId) {
+    // Check alive enemy cap
+    if (enemies.value.filter(e => e.currentHp > 0).length >= MAX_ENEMIES) {
+      return false
+    }
+
+    // Get template
+    const template = getEnemyTemplate(templateId)
+    if (!template) {
+      return false
+    }
+
+    // Initialize cooldowns from template skills
+    const cooldowns = {}
+    if (template.skills) {
+      for (const skill of template.skills) {
+        cooldowns[skill.name] = skill.initialCooldown || 0
+      }
+    } else if (template.skill) {
+      cooldowns[template.skill.name] = template.skill.initialCooldown || 0
+    }
+
+    // Push new enemy
+    enemies.value.push({
+      id: `enemy_${nextEnemyId.value++}`,
+      templateId,
+      isSummoned: true,
+      currentHp: template.stats.hp,
+      maxHp: template.stats.hp,
+      stats: template.stats,
+      template,
+      currentCooldowns: cooldowns,
+      statusEffects: []
+    })
+
+    addLog(`${template.name} has been summoned!`)
+    return true
+  }
+
   return {
     // State
     state,
@@ -5153,6 +5288,9 @@ export const useBattleStore = defineStore('battle', () => {
     // Hero on-death triggers (for Zina's Last Breath)
     getHeroOnDeathPassive,
     processHeroDeathTrigger,
+    // Low HP trigger passive (for Zina's Cornered Animal)
+    getLowHpTriggerPassive,
+    processLowHpTrigger,
     // Valor helpers (for UI)
     isKnight,
     getValorTier,
@@ -5256,6 +5394,9 @@ export const useBattleStore = defineStore('battle', () => {
     // Constants
     BattleState,
     EffectType,
+    MAX_ENEMIES,
+    // Summoning
+    summonEnemy,
     // Oriental Fighters mechanics
     applyHeal,
     getValidEnemyTargets,
