@@ -4299,13 +4299,22 @@ export const useBattleStore = defineStore('battle', () => {
             summonEnemy(skill.summon.templateId)
           }
 
-          // Apply self-targeted effects from the skill
+          // Apply skill effects (same target handling as noDamage skills)
           if (skill.effects) {
             for (const effect of skill.effects) {
+              const effectValue = calculateEffectValue(effect, effectiveAtk)
               if (effect.target === 'self') {
-                const effectiveAtk = getEffectiveStat(enemy, 'atk')
-                const effectValue = calculateEffectValue(effect, effectiveAtk)
                 applyEffect(enemy, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
+                emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
+              } else if (effect.target === 'enemy' || effect.target === 'hero') {
+                applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
+                emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
+              } else if (effect.target === 'all_allies') {
+                for (const ally of enemies.value.filter(e => e.currentHp > 0)) {
+                  if (effect.excludeSelf && ally.id === enemy.id) continue
+                  applyEffect(ally, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
+                  emitCombatEffect(ally.id, 'enemy', 'buff', 0)
+                }
               }
             }
           }
@@ -4324,13 +4333,22 @@ export const useBattleStore = defineStore('battle', () => {
           enemySkillActivation.value = { enemyId: enemy.id, skillName: skill.fallbackSkill.name }
           currentEffectSource = `${enemy.template?.name || enemy.name}'s ${skill.fallbackSkill.name}`
 
-          // Apply fallback skill effects
+          // Apply fallback skill effects (same target handling as noDamage skills)
           if (skill.fallbackSkill.effects) {
             for (const effect of skill.fallbackSkill.effects) {
+              const effectValue = calculateEffectValue(effect, effectiveAtk)
               if (effect.target === 'self') {
-                const effectiveAtk = getEffectiveStat(enemy, 'atk')
-                const effectValue = calculateEffectValue(effect, effectiveAtk)
                 applyEffect(enemy, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
+                emitCombatEffect(enemy.id, 'enemy', 'buff', 0)
+              } else if (effect.target === 'enemy' || effect.target === 'hero') {
+                applyEffect(target, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
+                emitCombatEffect(target.instanceId, 'hero', 'debuff', 0)
+              } else if (effect.target === 'all_allies') {
+                for (const ally of enemies.value.filter(e => e.currentHp > 0)) {
+                  if (effect.excludeSelf && ally.id === enemy.id) continue
+                  applyEffect(ally, effect.type, { duration: effect.duration, value: effectValue, sourceId: enemy.id })
+                  emitCombatEffect(ally.id, 'enemy', 'buff', 0)
+                }
               }
             }
           }
@@ -4345,8 +4363,9 @@ export const useBattleStore = defineStore('battle', () => {
           }, 600)
           return
         } else {
-          // Field is full, no fallback — pass turn
+          // Field is full, no fallback — pass turn, put skill on cooldown
           addLog(`${enemy.template?.name || 'Enemy'} cannot summon — field is full.`)
+          enemy.currentCooldowns[skill.name] = skill.cooldown + 1
 
           processEndOfTurnEffects(enemy)
           setTimeout(() => {

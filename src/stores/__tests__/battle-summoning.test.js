@@ -370,6 +370,9 @@ describe('battle store - Enemy Summoning', () => {
 
       // No status effects applied (no fallback)
       expect(summoner.statusEffects.length).toBe(0)
+
+      // Cooldown should still be set so enemy doesn't waste consecutive turns
+      expect(summoner.currentCooldowns['Brood Call']).toBe(4) // cooldown 3 + 1
     })
 
     it('summons multiple enemies when count > 1', async () => {
