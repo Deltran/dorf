@@ -370,5 +370,46 @@ describe('heroes store - multiple parties', () => {
       // Active party should be 1
       expect(heroesStore.activePartyId).toBe(1)
     })
+
+    it('migrates heroes with missing exp and level fields', () => {
+      // Simulates corrupted or very old save data missing exp/level
+      const corruptedSaveState = {
+        collection: [
+          { instanceId: 'hero-1', templateId: 'town_guard', starLevel: 3 }, // Missing level and exp
+          { instanceId: 'hero-2', templateId: 'hedge_wizard', level: 5 },   // Missing exp only
+          { instanceId: 'hero-3', templateId: 'village_healer', level: 3, exp: NaN } // NaN exp from bug
+        ],
+        parties: [
+          { id: 1, name: 'Party 1', slots: ['hero-1', 'hero-2', 'hero-3', null], leader: null },
+          { id: 2, name: 'Party 2', slots: [null, null, null, null], leader: null },
+          { id: 3, name: 'Party 3', slots: [null, null, null, null], leader: null }
+        ],
+        activePartyId: 1
+      }
+
+      heroesStore.loadState(corruptedSaveState)
+
+      const hero1 = heroesStore.collection.find(h => h.instanceId === 'hero-1')
+      const hero2 = heroesStore.collection.find(h => h.instanceId === 'hero-2')
+      const hero3 = heroesStore.collection.find(h => h.instanceId === 'hero-3')
+
+      // Hero 1 should have default level and exp
+      expect(hero1.level).toBe(1)
+      expect(hero1.exp).toBe(0)
+
+      // Hero 2 should preserve level but get default exp
+      expect(hero2.level).toBe(5)
+      expect(hero2.exp).toBe(0)
+
+      // Hero 3 should have NaN exp fixed to 0
+      expect(hero3.level).toBe(3)
+      expect(hero3.exp).toBe(0)
+      expect(Number.isNaN(hero3.exp)).toBe(false)
+
+      // Verify XP can be added without NaN
+      heroesStore.addExp(hero1.instanceId, 50)
+      expect(hero1.exp).toBe(50)
+      expect(Number.isNaN(hero1.exp)).toBe(false)
+    })
   })
 })

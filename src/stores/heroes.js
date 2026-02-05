@@ -343,8 +343,11 @@ export const useHeroesStore = defineStore('heroes', () => {
       // Migration: add starLevel if missing (defaults to template rarity)
       // Migration: add shards/shardTier if missing (defaults to 0)
       // Migration: add explorationNodeId if missing (defaults to null)
+      // Migration: add exp/level if missing (defaults to 0/1)
       collection.value = savedState.collection.map(hero => ({
         ...hero,
+        level: hero.level ?? 1,
+        exp: (hero.exp ?? 0) || 0,  // Also handles NaN
         starLevel: hero.starLevel || getHeroTemplate(hero.templateId)?.rarity || 1,
         shards: hero.shards ?? 0,
         shardTier: hero.shardTier ?? 0,
