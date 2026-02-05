@@ -1,5 +1,5 @@
 const SAVE_KEY = 'dorf_save'
-const SAVE_VERSION = 9  // Bump version for intro system
+const SAVE_VERSION = 10  // Multi-party system
 
 export function saveGame(stores) {
   const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex } = stores

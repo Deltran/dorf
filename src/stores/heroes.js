@@ -351,15 +351,28 @@ export const useHeroesStore = defineStore('heroes', () => {
         explorationNodeId: hero.explorationNodeId ?? null
       }))
     }
-    if (savedState.party) party.value = savedState.party
-    if (savedState.partyLeader !== undefined) partyLeader.value = savedState.partyLeader
+
+    // New format: parties array
+    if (savedState.parties) {
+      parties.value = savedState.parties
+      activePartyId.value = savedState.activePartyId ?? 1
+    }
+    // Migration: old format with single party
+    else if (savedState.party) {
+      parties.value = [
+        { id: 1, name: 'Party 1', slots: savedState.party, leader: savedState.partyLeader ?? null },
+        { id: 2, name: 'Party 2', slots: [null, null, null, null], leader: null },
+        { id: 3, name: 'Party 3', slots: [null, null, null, null], leader: null }
+      ]
+      activePartyId.value = 1
+    }
   }
 
   function saveState() {
     return {
       collection: collection.value,
-      party: party.value,
-      partyLeader: partyLeader.value
+      parties: parties.value,
+      activePartyId: activePartyId.value
     }
   }
 

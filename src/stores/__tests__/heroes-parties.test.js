@@ -317,4 +317,58 @@ describe('heroes store - multiple parties', () => {
       expect(heroesStore.leaderHero.instanceId).toBe(hero1.instanceId)
     })
   })
+
+  describe('persistence', () => {
+    it('saveState includes parties and activePartyId', () => {
+      const hero = heroesStore.addHero('town_guard')
+      heroesStore.setPartySlot(0, hero.instanceId)
+      heroesStore.renameParty(1, 'Main Team')
+      heroesStore.setActiveParty(2)
+
+      const saved = heroesStore.saveState()
+
+      expect(saved.parties).toHaveLength(3)
+      expect(saved.parties[0].name).toBe('Main Team')
+      expect(saved.parties[0].slots[0]).toBe(hero.instanceId)
+      expect(saved.activePartyId).toBe(2)
+    })
+
+    it('loadState restores parties and activePartyId', () => {
+      const savedState = {
+        collection: [{ instanceId: 'hero-1', templateId: 'town_guard', level: 1, exp: 0, starLevel: 3 }],
+        parties: [
+          { id: 1, name: 'Boss Team', slots: ['hero-1', null, null, null], leader: 'hero-1' },
+          { id: 2, name: 'Party 2', slots: [null, null, null, null], leader: null },
+          { id: 3, name: 'Farm Team', slots: [null, null, null, null], leader: null }
+        ],
+        activePartyId: 1
+      }
+
+      heroesStore.loadState(savedState)
+
+      expect(heroesStore.parties[0].name).toBe('Boss Team')
+      expect(heroesStore.parties[2].name).toBe('Farm Team')
+      expect(heroesStore.party[0]).toBe('hero-1')
+      expect(heroesStore.partyLeader).toBe('hero-1')
+    })
+
+    it('migrates old single-party format to new multi-party format', () => {
+      const oldSavedState = {
+        collection: [{ instanceId: 'hero-1', templateId: 'town_guard', level: 5, exp: 100, starLevel: 3 }],
+        party: ['hero-1', null, null, null],
+        partyLeader: 'hero-1'
+      }
+
+      heroesStore.loadState(oldSavedState)
+
+      // Old party should be in Party 1
+      expect(heroesStore.parties[0].slots[0]).toBe('hero-1')
+      expect(heroesStore.parties[0].leader).toBe('hero-1')
+      // Other parties should be empty
+      expect(heroesStore.parties[1].slots.every(s => s === null)).toBe(true)
+      expect(heroesStore.parties[2].slots.every(s => s === null)).toBe(true)
+      // Active party should be 1
+      expect(heroesStore.activePartyId).toBe(1)
+    })
+  })
 })
