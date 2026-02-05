@@ -354,6 +354,13 @@ const synergyMessages = computed(() => {
                 :class="['hero-image', `rarity-glow-${slot.hero.template.rarity}`]"
                 @click="toggleLeader(slot.hero)"
               />
+              <div
+                v-else
+                :class="['hero-placeholder', `rarity-glow-${slot.hero.template.rarity}`]"
+                @click="toggleLeader(slot.hero)"
+              >
+                <span class="placeholder-icon">{{ getRoleIcon(slot.hero.template.classId) }}</span>
+              </div>
               <div class="hero-info">
                 <div class="hero-name">{{ slot.hero.template.name }}</div>
                 <div class="hero-meta">
@@ -815,6 +822,28 @@ const synergyMessages = computed(() => {
 
 .hero-image:hover {
   transform: scale(1.02);
+}
+
+/* Hero Placeholder (no image) */
+.hero-placeholder {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.9) 100%);
+}
+
+.hero-placeholder:hover {
+  transform: scale(1.02);
+}
+
+.placeholder-icon {
+  font-size: 3rem;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 /* Rarity Glow Effects */
