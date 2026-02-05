@@ -5,6 +5,7 @@ import ItemCard from '../components/ItemCard.vue'
 import StarRating from '../components/StarRating.vue'
 import { getEquipment, SLOT_ICONS } from '../data/equipment.js'
 import { getHeroTemplate } from '../data/heroes/index.js'
+import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 
 const emit = defineEmits(['navigate'])
 
@@ -14,6 +15,15 @@ const equipmentStore = useEquipmentStore()
 
 const selectedItem = ref(null)
 const sellCount = ref(1)
+const itemDetailRef = ref(null)
+
+// Swipe to dismiss
+const isItemDetailOpen = computed(() => !!selectedItem.value)
+useSwipeToDismiss({
+  elementRef: itemDetailRef,
+  isOpen: isItemDetailOpen,
+  onClose: () => { selectedItem.value = null }
+})
 
 // Regular inventory items
 const regularItems = computed(() => inventoryStore.itemList)
@@ -237,7 +247,7 @@ function getContextualAction(item) {
     ></div>
 
     <!-- Item Detail Panel -->
-    <aside v-if="selectedItem" :class="['item-detail', `rarity-${selectedItem.rarity}`]">
+    <aside v-if="selectedItem" ref="itemDetailRef" :class="['item-detail', `rarity-${selectedItem.rarity}`]">
       <div class="detail-header">
         <div class="header-info">
           <h3>{{ selectedItem.name }}</h3>

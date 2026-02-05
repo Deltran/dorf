@@ -1,7 +1,8 @@
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, toRef } from 'vue'
 import { useEquipmentStore } from '../stores/equipment.js'
 import { getEquipment, CLASS_SLOTS, SLOT_ICONS } from '../data/equipment.js'
+import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 
 const props = defineProps({
   visible: {
@@ -30,6 +31,14 @@ const props = defineProps({
 const emit = defineEmits(['close', 'equip', 'unequip'])
 
 const equipmentStore = useEquipmentStore()
+
+// Swipe to dismiss
+const drawerRef = ref(null)
+useSwipeToDismiss({
+  elementRef: drawerRef,
+  isOpen: toRef(props, 'visible'),
+  onClose: () => emit('close')
+})
 
 const rarityColors = {
   1: '#9ca3af',
@@ -156,7 +165,7 @@ function handleClose() {
 <template>
   <Teleport to="body">
     <div v-if="visible" class="modal-backdrop" @click="handleClose"></div>
-    <div v-if="visible" class="equipment-select-modal">
+    <div v-if="visible" ref="drawerRef" class="equipment-select-modal">
       <div class="modal-header">
         <span class="header-icon">{{ slotIcon }}</span>
         <h4>Select {{ slotLabel }}</h4>

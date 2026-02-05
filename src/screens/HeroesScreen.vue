@@ -12,6 +12,7 @@ import { getItem } from '../data/items.js'
 import { getRegionsBySuperRegion, getQuestNode } from '../data/quests/index.js'
 import { useTooltip } from '../composables/useTooltip.js'
 import { particleBurst, glowPulse } from '../composables/useParticleBurst.js'
+import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 
 const { onPointerEnter, onPointerLeave } = useTooltip()
 
@@ -59,6 +60,13 @@ const questsStore = useQuestsStore()
 const selectedHero = ref(null)
 const heroImageError = ref(false)
 const heroPortraitEl = ref(null)
+const heroDetailEl = ref(null)
+const isHeroDetailOpen = computed(() => !!selectedHero.value)
+useSwipeToDismiss({
+  elementRef: heroDetailEl,
+  isOpen: isHeroDetailOpen,
+  onClose: () => { selectedHero.value = null }
+})
 const starAnimating = ref(false)
 const rarityColors = {
   1: '#9ca3af', 2: '#22c55e', 3: '#3b82f6', 4: '#a855f7', 5: '#f59e0b'
@@ -528,6 +536,10 @@ function confirmMerge() {
 
   if (result.success) {
     closeMergeModal()
+    // Scroll to top so player can see the animation
+    if (heroDetailEl.value) {
+      heroDetailEl.value.scrollTop = 0
+    }
     // Refresh selected hero and merge info
     selectedHero.value = heroesStore.getHeroFull(selectedHero.value.instanceId)
     mergeInfo.value = heroesStore.canMergeHero(selectedHero.value.instanceId)
@@ -907,7 +919,7 @@ function getEffectTypeName(type) {
     ></div>
 
     <!-- Hero Detail Panel -->
-    <aside v-if="selectedHero" :class="['hero-detail', `rarity-${selectedHero.template.rarity}`]">
+    <aside v-if="selectedHero" ref="heroDetailEl" :class="['hero-detail', `rarity-${selectedHero.template.rarity}`]">
       <div class="detail-header">
         <div class="header-left">
           <img

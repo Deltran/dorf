@@ -1,7 +1,8 @@
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, toRef, onMounted, onUnmounted } from 'vue'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import StarRating from './StarRating.vue'
+import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 
 const props = defineProps({
   visible: {
@@ -24,6 +25,14 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+// Swipe to dismiss
+const drawerRef = ref(null)
+useSwipeToDismiss({
+  elementRef: drawerRef,
+  isOpen: toRef(props, 'visible'),
+  onClose: () => emit('close')
+})
 
 // Pity tooltip state
 const showPityTooltip = ref(false)
@@ -52,39 +61,6 @@ onMounted(() => {
 onUnmounted(() => {
   document.removeEventListener('click', handleOutsideClick, true)
 })
-
-// Touch handling for swipe-to-close
-const touchStartY = ref(0)
-const touchCurrentY = ref(0)
-const isDragging = ref(false)
-
-const SWIPE_THRESHOLD = 100 // pixels needed to trigger close
-
-function handleTouchStart(e) {
-  if (e.touches && e.touches.length > 0) {
-    touchStartY.value = e.touches[0].clientY
-    touchCurrentY.value = e.touches[0].clientY
-    isDragging.value = true
-  }
-}
-
-function handleTouchMove(e) {
-  if (isDragging.value && e.touches && e.touches.length > 0) {
-    touchCurrentY.value = e.touches[0].clientY
-  }
-}
-
-function handleTouchEnd() {
-  if (isDragging.value) {
-    const deltaY = touchCurrentY.value - touchStartY.value
-    if (deltaY > SWIPE_THRESHOLD) {
-      emit('close')
-    }
-    isDragging.value = false
-    touchStartY.value = 0
-    touchCurrentY.value = 0
-  }
-}
 
 function handleBackdropClick() {
   emit('close')
@@ -179,11 +155,9 @@ const rates = [
   <div v-if="visible" class="summon-info-sheet visible">
     <div class="sheet-backdrop" @click="handleBackdropClick"></div>
     <div
+      ref="drawerRef"
       class="sheet-content"
       @click.stop
-      @touchstart="handleTouchStart"
-      @touchmove="handleTouchMove"
-      @touchend="handleTouchEnd"
     >
       <div class="sheet-handle"></div>
 
