@@ -1805,6 +1805,17 @@ export const useBattleStore = defineStore('battle', () => {
       gainRage(unit, 10)
     }
 
+    // Gain valor when hit for colosseum knights
+    if (unit.isColosseumEnemy && unit.class?.resourceType === 'valor' && actualDamage > 0) {
+      unit.currentValor = Math.min(100, (unit.currentValor || 0) + 5)
+    }
+
+    // Lose focus when hit for colosseum rangers
+    if (unit.isColosseumEnemy && unit.class?.resourceType === 'focus' && actualDamage > 0) {
+      unit.hasFocus = false
+      unit.tookDamageSinceLastTurn = true
+    }
+
     // Track that this hero was attacked (for conditional skills like Defensive Footwork)
     if (unit.wasAttacked !== undefined) {
       unit.wasAttacked = true
@@ -2631,6 +2642,35 @@ export const useBattleStore = defineStore('battle', () => {
           // Regenerate essence for colosseum alchemist enemies
           if (enemy.isColosseumEnemy) {
             regenerateEssence(enemy)
+          }
+
+          // Passive valor gain for colosseum knights (+10 per turn, emulates protecting allies)
+          if (enemy.isColosseumEnemy && enemy.class?.resourceType === 'valor') {
+            enemy.currentValor = Math.min(100, (enemy.currentValor || 0) + 10)
+          }
+
+          // Focus recovery for colosseum rangers (regain if not hit since last turn)
+          if (enemy.isColosseumEnemy && enemy.class?.resourceType === 'focus') {
+            if (!enemy.tookDamageSinceLastTurn) {
+              enemy.hasFocus = true
+            }
+            enemy.tookDamageSinceLastTurn = false // Reset for next round
+          }
+
+          // Finale trigger for colosseum bards
+          if (enemy.isColosseumEnemy && enemy.class?.resourceType === 'verse' && enemy.currentVerses >= 3 && enemy.template.finale) {
+            // Execute finale (similar to how player bard finales work)
+            const finale = enemy.template.finale
+            addLog(`${enemy.template.name} performs ${finale.name}!`)
+
+            // Reset verses and lastSkillName
+            enemy.currentVerses = 0
+            enemy.lastSkillName = null
+
+            // TODO: If you want to fully implement finale damage/effects, you would need to:
+            // 1. Determine targets based on finale.target
+            // 2. Apply effects from finale.effects
+            // For now, the finale just resets verses and adds a log message
           }
 
           state.value = BattleState.ENEMY_TURN
@@ -4366,6 +4406,29 @@ export const useBattleStore = defineStore('battle', () => {
       if (s.essenceCost && enemy.currentEssence !== undefined) {
         if (enemy.currentEssence < s.essenceCost) return false
       }
+      // Check rage cost for colosseum berserkers
+      if (s.rageCost && enemy.currentRage !== undefined) {
+        if (s.rageCost !== 'all' && enemy.currentRage < s.rageCost) return false
+        if (s.rageCost === 'all' && enemy.currentRage === 0) return false
+      }
+      // Check valor requirement for colosseum knights
+      if (s.valorRequired !== undefined && enemy.currentValor !== undefined) {
+        if (enemy.currentValor < s.valorRequired) return false
+      }
+      // Check focus for colosseum rangers
+      if (enemy.class?.resourceType === 'focus' && !enemy.hasFocus) return false
+      // Bards can't repeat skills (unless 1-skill bard)
+      if (enemy.class?.resourceType === 'verse') {
+        const skillCount = enemy.template.skills?.length || 0
+        if (skillCount > 1 && s.name === enemy.lastSkillName) return false
+      }
+      // Filter out unusable skills for colosseum enemies
+      if (enemy.isColosseumEnemy) {
+        // No taunt (not implemented for enemies)
+        if (s.effects?.some(e => e.type === 'taunt')) return false
+        // No ally-targeting (AI has no allies)
+        if (s.targetType === 'ally' || s.targetType === 'all_allies') return false
+      }
       // Check HP-based use conditions
       if (s.useCondition === 'hp_below_50') {
         const hpPercent = (enemy.currentHp / enemy.maxHp) * 100
@@ -4396,6 +4459,24 @@ export const useBattleStore = defineStore('battle', () => {
       // Deduct essence cost for colosseum alchemists (do once before branching)
       if (skill.essenceCost && enemy.currentEssence !== undefined) {
         enemy.currentEssence -= skill.essenceCost
+      }
+
+      // Deduct rage cost for colosseum berserkers
+      if (skill.rageCost && enemy.currentRage !== undefined) {
+        if (skill.rageCost === 'all') {
+          enemy.currentRage = 0
+        } else {
+          enemy.currentRage -= skill.rageCost
+        }
+      }
+
+      // Gain verse for colosseum bards (only multi-skill bards)
+      if (enemy.isColosseumEnemy && enemy.class?.resourceType === 'verse') {
+        const skillCount = enemy.template.skills?.length || 0
+        if (skillCount > 1) {
+          enemy.currentVerses = Math.min(3, (enemy.currentVerses || 0) + 1)
+          enemy.lastSkillName = skill.name
+        }
       }
 
       // Handle summon skills before normal skill processing
@@ -4435,7 +4516,12 @@ export const useBattleStore = defineStore('battle', () => {
           }
 
           // Set cooldown
-          enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+          if (skill.cooldown) {
+            enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+          } else if (skill.mpCost && enemy.isColosseumEnemy) {
+            // Fake MP management with cooldowns for colosseum enemies
+            enemy.currentCooldowns[skill.name] = 3
+          }
 
           processEndOfTurnEffects(enemy)
           setTimeout(() => {
@@ -4469,7 +4555,12 @@ export const useBattleStore = defineStore('battle', () => {
           }
 
           // Set cooldown on the ORIGINAL summon skill
-          enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+          if (skill.cooldown) {
+            enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+          } else if (skill.mpCost && enemy.isColosseumEnemy) {
+            // Fake MP management with cooldowns for colosseum enemies
+            enemy.currentCooldowns[skill.name] = 3
+          }
 
           processEndOfTurnEffects(enemy)
           setTimeout(() => {
@@ -4480,7 +4571,12 @@ export const useBattleStore = defineStore('battle', () => {
         } else {
           // Field is full, no fallback — pass turn, put skill on cooldown
           addLog(`${enemy.template?.name || 'Enemy'} cannot summon — field is full.`)
-          enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+          if (skill.cooldown) {
+            enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+          } else if (skill.mpCost && enemy.isColosseumEnemy) {
+            // Fake MP management with cooldowns for colosseum enemies
+            enemy.currentCooldowns[skill.name] = 3
+          }
 
           processEndOfTurnEffects(enemy)
           setTimeout(() => {
@@ -4585,7 +4681,12 @@ export const useBattleStore = defineStore('battle', () => {
         }
 
         // noDamage skills don't attack heroes, so skip thorns check and end turn early
-        enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+        if (skill.cooldown) {
+          enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+        } else if (skill.mpCost && enemy.isColosseumEnemy) {
+          // Fake MP management with cooldowns for colosseum enemies
+          enemy.currentCooldowns[skill.name] = 3
+        }
         processEndOfTurnEffects(enemy)
         setTimeout(() => {
           advanceTurnIndex()
@@ -4642,7 +4743,12 @@ export const useBattleStore = defineStore('battle', () => {
         }
       }
 
-      enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+      if (skill.cooldown) {
+        enemy.currentCooldowns[skill.name] = skill.cooldown + 1
+      } else if (skill.mpCost && enemy.isColosseumEnemy) {
+        // Fake MP management with cooldowns for colosseum enemies
+        enemy.currentCooldowns[skill.name] = 3
+      }
     } else {
       const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
       const actualDamage = applyDamage(target, damage)
@@ -4686,6 +4792,11 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Check for flame shield effect on the target
     triggerFlameShield(target, enemy)
+
+    // Gain rage on attack for colosseum berserkers
+    if (enemy.isColosseumEnemy && isBerserker(enemy)) {
+      gainRage(enemy, 10)
+    }
 
     // Process end of turn effects for enemy
     processEndOfTurnEffects(enemy)
@@ -5490,6 +5601,7 @@ export const useBattleStore = defineStore('battle', () => {
         resourceState.currentRage = 0
       } else if (heroClass?.resourceType === 'focus') {
         resourceState.hasFocus = true
+        resourceState.tookDamageSinceLastTurn = false
       } else if (heroClass?.resourceType === 'valor') {
         resourceState.currentValor = 0
       } else if (heroClass?.resourceType === 'verse') {
