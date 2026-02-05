@@ -49,6 +49,47 @@ const genusLociStore = useGenusLociStore()
 const explorationsStore = useExplorationsStore()
 const gachaStore = useGachaStore()
 
+// Hero image loading
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
+
+function getHeroPortraitUrl(heroId) {
+  const gifPath = `../assets/heroes/${heroId}.gif`
+  if (heroGifs[gifPath]) return heroGifs[gifPath]
+  const pngPath = `../assets/heroes/${heroId}.png`
+  return heroImages[pngPath] || null
+}
+
+// Multi-party system
+const parties = computed(() => heroesStore.parties)
+const activePartyId = computed(() => heroesStore.activePartyId)
+const activeParty = computed(() => heroesStore.activeParty)
+
+// Check if current party has heroes
+const partyHasHeroes = computed(() => {
+  return activeParty.value?.slots.some(s => s !== null) ?? false
+})
+
+function switchToPrevParty() {
+  const currentIndex = parties.value.findIndex(p => p.id === activePartyId.value)
+  const prevIndex = currentIndex <= 0 ? parties.value.length - 1 : currentIndex - 1
+  heroesStore.setActiveParty(parties.value[prevIndex].id)
+}
+
+function switchToNextParty() {
+  const currentIndex = parties.value.findIndex(p => p.id === activePartyId.value)
+  const nextIndex = currentIndex >= parties.value.length - 1 ? 0 : currentIndex + 1
+  heroesStore.setActiveParty(parties.value[nextIndex].id)
+}
+
+function getActivePartyPreview() {
+  if (!activeParty.value) return []
+  return activeParty.value.slots.map(instanceId => {
+    if (!instanceId) return null
+    return heroesStore.getHeroFull(instanceId)
+  })
+}
+
 const selectedNode = ref(null)
 const selectedRegion = ref(null) // null = show region list, string = show map
 const selectedSuperRegion = ref(null)
@@ -772,6 +813,28 @@ const totalCleared = computed(() => {
             </div>
           </div>
 
+          <!-- Party Selector -->
+          <div class="party-selector">
+            <button class="party-arrow" @click.stop="switchToPrevParty">&lsaquo;</button>
+            <div class="party-info">
+              <span class="party-name">{{ activeParty?.name }}</span>
+              <div class="party-mini-preview">
+                <template v-for="(hero, idx) in getActivePartyPreview()" :key="idx">
+                  <div v-if="hero" class="mini-hero">
+                    <img
+                      v-if="getHeroPortraitUrl(hero.templateId)"
+                      :src="getHeroPortraitUrl(hero.templateId)"
+                      :alt="hero.template?.name"
+                    />
+                    <span v-else class="mini-hero-placeholder">{{ hero.template?.name?.[0] || '?' }}</span>
+                  </div>
+                  <div v-else class="mini-hero empty"></div>
+                </template>
+              </div>
+            </div>
+            <button class="party-arrow" @click.stop="switchToNextParty">&rsaquo;</button>
+          </div>
+
           <div :class="['quest-buttons', { 'has-token': selectedNodeToken }]">
             <button
               v-if="selectedNodeToken"
@@ -786,6 +849,7 @@ const totalCleared = computed(() => {
 
             <button
               class="start-quest-btn"
+              :disabled="!partyHasHeroes"
               @click="startQuest"
             >
               <span class="btn-icon">⚔️</span>
@@ -2052,5 +2116,99 @@ const totalCleared = computed(() => {
   border-color: #64748b;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Party Selector */
+.party-selector {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #1a1f2e;
+  border-radius: 10px;
+  border: 1px solid #252b3b;
+  margin-bottom: 12px;
+}
+
+.party-arrow {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #252b3b;
+  border: 1px solid #374151;
+  border-radius: 8px;
+  color: #9ca3af;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.party-arrow:hover {
+  background: #374151;
+  color: #f3f4f6;
+}
+
+.party-arrow:active {
+  transform: scale(0.95);
+}
+
+.party-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.party-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f3f4f6;
+}
+
+.party-mini-preview {
+  display: flex;
+  gap: 6px;
+}
+
+.mini-hero {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mini-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mini-hero.empty {
+  border: 1px dashed #4b5563;
+  background: transparent;
+}
+
+.mini-hero-placeholder {
+  font-size: 0.7rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.start-quest-btn:disabled {
+  background: #374151;
+  color: #6b7280;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.start-quest-btn:disabled:hover {
+  transform: none;
 }
 </style>

@@ -1,5 +1,5 @@
 const SAVE_KEY = 'dorf_save'
-const SAVE_VERSION = 10  // Bump version for gem shop
+const SAVE_VERSION = 11  // Multi-party system + gem shop
 
 export function saveGame(stores) {
   const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex, colosseum, gemShop } = stores

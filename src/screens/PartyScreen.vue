@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, toRef, Teleport, Transition } from 'vue'
+import { ref, computed, toRef, Teleport, Transition, nextTick } from 'vue'
 import { useHeroesStore } from '../stores'
 import HeroCard from '../components/HeroCard.vue'
 import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
@@ -15,6 +15,53 @@ const props = defineProps({
 const emit = defineEmits(['navigate'])
 
 const heroesStore = useHeroesStore()
+
+const parties = computed(() => heroesStore.parties)
+const activePartyId = computed(() => heroesStore.activePartyId)
+
+// Long-press rename state
+const renamingPartyId = ref(null)
+const renameInput = ref('')
+const renameInputRef = ref(null)
+let longPressTimer = null
+
+function switchToParty(partyId) {
+  heroesStore.setActiveParty(partyId)
+}
+
+function startLongPress(partyId) {
+  longPressTimer = setTimeout(() => {
+    startRename(partyId)
+  }, 500)
+}
+
+function cancelLongPress() {
+  clearTimeout(longPressTimer)
+}
+
+function startRename(partyId) {
+  const party = parties.value.find(p => p.id === partyId)
+  if (!party) return
+  renamingPartyId.value = partyId
+  renameInput.value = party.name
+  nextTick(() => {
+    renameInputRef.value?.focus()
+    renameInputRef.value?.select()
+  })
+}
+
+function finishRename() {
+  if (renamingPartyId.value && renameInput.value.trim()) {
+    heroesStore.renameParty(renamingPartyId.value, renameInput.value.trim())
+  }
+  renamingPartyId.value = null
+  renameInput.value = ''
+}
+
+function cancelRename() {
+  renamingPartyId.value = null
+  renameInput.value = ''
+}
 
 const placingHero = ref(null)
 
@@ -203,6 +250,35 @@ const synergyMessages = computed(() => {
         <span class="placement-name">{{ placingHero.template.name }}</span>
       </div>
       <button class="cancel-btn" @click="cancelPlacing">Cancel</button>
+    </div>
+
+    <!-- Party Tabs -->
+    <div v-if="!placingHero" class="party-tabs">
+      <button
+        v-for="party in parties"
+        :key="party.id"
+        :class="['party-tab', { active: party.id === activePartyId }]"
+        @click="switchToParty(party.id)"
+        @pointerdown="startLongPress(party.id)"
+        @pointerup="cancelLongPress"
+        @pointerleave="cancelLongPress"
+      >
+        <template v-if="renamingPartyId === party.id">
+          <input
+            ref="renameInputRef"
+            v-model="renameInput"
+            class="rename-input"
+            maxlength="20"
+            @blur="finishRename"
+            @keyup.enter="finishRename"
+            @keyup.escape="cancelRename"
+            @click.stop
+          />
+        </template>
+        <template v-else>
+          {{ party.name }}
+        </template>
+      </button>
     </div>
 
     <!-- Party Synergy Bar -->
@@ -442,6 +518,68 @@ const synergyMessages = computed(() => {
 
 .synergy-text.neutral {
   color: #9ca3af;
+}
+
+/* Party Tabs */
+.party-tabs {
+  display: flex;
+  gap: 4px;
+  background: #1a1f2e;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #252b3b;
+}
+
+.party-tab {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.party-tab:hover {
+  color: #9ca3af;
+}
+
+.party-tab.active {
+  background: #252b3b;
+  color: #f3f4f6;
+}
+
+.party-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: #f59e0b;
+  border-radius: 1px;
+}
+
+.rename-input {
+  width: 100%;
+  background: #1f2937;
+  border: 1px solid #4b5563;
+  border-radius: 4px;
+  color: #f3f4f6;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 2px 6px;
+  text-align: center;
+}
+
+.rename-input:focus {
+  outline: none;
+  border-color: #f59e0b;
 }
 
 /* Leader Skill Bar */
