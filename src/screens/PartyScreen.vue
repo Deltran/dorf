@@ -1,9 +1,19 @@
 <script setup>
 import { ref, computed, toRef, Teleport, Transition, nextTick } from 'vue'
 import { useHeroesStore } from '../stores'
-import HeroCard from '../components/HeroCard.vue'
 import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 import { getClass } from '../data/classes.js'
+
+// Hero image imports (GIF priority)
+const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
+const heroGifs = import.meta.glob('../assets/heroes/*.gif', { eager: true, import: 'default' })
+
+function getHeroImageUrl(heroId) {
+  const gifPath = `../assets/heroes/${heroId}.gif`
+  if (heroGifs[gifPath]) return heroGifs[gifPath]
+  const pngPath = `../assets/heroes/${heroId}.png`
+  return heroImages[pngPath] || null
+}
 
 const props = defineProps({
   placingHeroId: {
@@ -310,13 +320,21 @@ const synergyMessages = computed(() => {
       </div>
     </div>
 
-    <!-- Leader Skill Preview -->
-    <div v-if="leaderSkill && !placingHero" class="leader-skill-bar">
-      <div class="leader-skill-icon">👑</div>
-      <div class="leader-skill-content">
-        <div class="leader-skill-name">{{ leaderSkill.name }}</div>
-        <div class="leader-skill-desc">{{ leaderSkill.description }}</div>
-      </div>
+    <!-- Leader Skill Preview (Always Visible) -->
+    <div class="leader-skill-bar">
+      <template v-if="leaderSkill">
+        <div class="leader-skill-icon">👑</div>
+        <div class="leader-skill-content">
+          <div class="leader-skill-name">{{ leaderSkill.name }}</div>
+          <div class="leader-skill-desc">{{ leaderSkill.description }}</div>
+        </div>
+      </template>
+      <template v-else>
+        <div class="leader-skill-placeholder dimmed">
+          <span>👑</span>
+          <span>Tap a hero to set as leader</span>
+        </div>
+      </template>
     </div>
 
     <section class="party-section">
@@ -329,11 +347,20 @@ const synergyMessages = computed(() => {
           <template v-if="slot.hero">
             <div class="party-slot-content">
               <div v-if="isLeader(slot.hero.instanceId)" class="leader-crown">👑</div>
-              <HeroCard
-                :hero="slot.hero"
-                showStats
+              <img
+                v-if="getHeroImageUrl(slot.hero.template.id)"
+                :src="getHeroImageUrl(slot.hero.template.id)"
+                :alt="slot.hero.template.name"
+                :class="['hero-image', `rarity-glow-${slot.hero.template.rarity}`]"
                 @click="toggleLeader(slot.hero)"
               />
+              <div class="hero-info">
+                <div class="hero-name">{{ slot.hero.template.name }}</div>
+                <div class="hero-meta">
+                  <span class="hero-level">Lv.{{ slot.hero.level || 1 }}</span>
+                  <span class="hero-class">{{ slot.hero.class?.title }}</span>
+                </div>
+              </div>
             </div>
             <button
               class="remove-btn"
@@ -773,6 +800,100 @@ const synergyMessages = computed(() => {
 @keyframes crownBob {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
+}
+
+/* Hero Images */
+.hero-image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease-out;
+}
+
+.hero-image:hover {
+  transform: scale(1.02);
+}
+
+/* Rarity Glow Effects */
+.rarity-glow-1 {
+  box-shadow: 0 0 12px rgba(156, 163, 175, 0.4);
+  border: 2px solid rgba(156, 163, 175, 0.3);
+}
+
+.rarity-glow-2 {
+  box-shadow: 0 0 12px rgba(34, 197, 94, 0.4);
+  border: 2px solid rgba(34, 197, 94, 0.4);
+}
+
+.rarity-glow-3 {
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+  border: 2px solid rgba(59, 130, 246, 0.5);
+}
+
+.rarity-glow-4 {
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.6);
+  border: 2px solid rgba(168, 85, 247, 0.6);
+}
+
+.rarity-glow-5 {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.7);
+  border: 2px solid rgba(245, 158, 11, 0.7);
+}
+
+/* Hero Info Below Image */
+.hero-info {
+  margin-top: 6px;
+  text-align: center;
+}
+
+.hero-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #f3f4f6;
+  margin-bottom: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.hero-level {
+  font-weight: 500;
+}
+
+.hero-class {
+  font-weight: 400;
+}
+
+/* Leader Skill Placeholder */
+.leader-skill-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.leader-skill-placeholder.dimmed {
+  opacity: 0.5;
+}
+
+.leader-skill-placeholder span:first-child {
+  font-size: 1.25rem;
+  opacity: 0.4;
 }
 
 .party-slot .empty-slot {
