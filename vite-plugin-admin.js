@@ -116,6 +116,279 @@ export default function adminPlugin() {
           }
         }
       }
+
+      // Helper: find a quest region file by regionId
+      function findQuestRegionFile(regionId) {
+        const filePath = path.resolve(process.cwd(), `src/data/quests/${regionId}.js`)
+        return fs.existsSync(filePath) ? filePath : null
+      }
+
+      // Helper: get all quest region files (excluding index.js and regions.js)
+      function getQuestRegionFiles() {
+        const questsDir = path.resolve(process.cwd(), 'src/data/quests')
+        const files = fs.readdirSync(questsDir).filter(f =>
+          f.endsWith('.js') && f !== 'index.js' && f !== 'regions.js'
+        )
+        return files.map(f => ({
+          regionId: f.replace('.js', ''),
+          filePath: path.join(questsDir, f)
+        }))
+      }
+
+      // Helper: parse a quest region file into regionMeta, nodes, and importLines
+      function parseQuestRegionFile(filePath) {
+        const content = fs.readFileSync(filePath, 'utf-8')
+
+        // Extract import lines
+        const importLines = []
+        const importRegex = /^import\s+.+$/gm
+        let importMatch
+        while ((importMatch = importRegex.exec(content)) !== null) {
+          importLines.push(importMatch[0])
+        }
+
+        // Parse regionMeta export
+        const regionMetaMatch = content.match(/export\s+const\s+regionMeta\s*=\s*\{/)
+        if (!regionMetaMatch) {
+          throw new Error(`Could not find regionMeta export in ${filePath}`)
+        }
+
+        let startIndex = content.indexOf('{', regionMetaMatch.index)
+        let braceCount = 0
+        let endIndex = startIndex
+        for (let i = startIndex; i < content.length; i++) {
+          if (content[i] === '{') braceCount++
+          else if (content[i] === '}') {
+            braceCount--
+            if (braceCount === 0) {
+              endIndex = i
+              break
+            }
+          }
+        }
+
+        let regionMetaStr = content.slice(startIndex, endIndex + 1)
+        // Strip backgroundImage property since it references a bare import identifier
+        regionMetaStr = regionMetaStr.replace(/\n\s*backgroundImage:\s*[a-zA-Z_$][a-zA-Z0-9_$]*,?\s*\n/g, '\n')
+
+        let regionMeta
+        try {
+          regionMeta = new Function(`return ${regionMetaStr}`)()
+        } catch (e) {
+          throw new Error(`Failed to parse regionMeta in ${filePath}: ${e.message}`)
+        }
+
+        // Parse nodes export
+        const nodesMatch = content.match(/export\s+const\s+nodes\s*=\s*\{/)
+        if (!nodesMatch) {
+          throw new Error(`Could not find nodes export in ${filePath}`)
+        }
+
+        startIndex = content.indexOf('{', nodesMatch.index)
+        braceCount = 0
+        endIndex = startIndex
+        for (let i = startIndex; i < content.length; i++) {
+          if (content[i] === '{') braceCount++
+          else if (content[i] === '}') {
+            braceCount--
+            if (braceCount === 0) {
+              endIndex = i
+              break
+            }
+          }
+        }
+
+        const nodesStr = content.slice(startIndex, endIndex + 1)
+        let nodes
+        try {
+          nodes = new Function(`return ${nodesStr}`)()
+        } catch (e) {
+          throw new Error(`Failed to parse nodes in ${filePath}: ${e.message}`)
+        }
+
+        return { regionMeta, nodes, importLines }
+      }
+
+      // GET /__admin/quest-regions - fetch all quest region data
+      server.middlewares.use((req, res, next) => {
+        if (req.method === 'GET' && req.url === '/__admin/quest-regions') {
+          try {
+            const regionFiles = getQuestRegionFiles()
+            const regions = regionFiles.map(({ regionId, filePath }) => {
+              const { regionMeta, nodes, importLines } = parseQuestRegionFile(filePath)
+              return { regionId, regionMeta, nodes, importLines }
+            })
+
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(regions))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
+
+      // POST /__admin/quest-regions/:regionId/nodes - create a node
+      server.middlewares.use(async (req, res, next) => {
+        const match = req.url?.match(/^\/__admin\/quest-regions\/([^/]+)\/nodes$/)
+        if (req.method === 'POST' && match) {
+          const regionId = decodeURIComponent(match[1])
+
+          let body = ''
+          for await (const chunk of req) {
+            body += chunk
+          }
+
+          try {
+            const node = JSON.parse(body)
+            if (!node.id) {
+              res.statusCode = 400
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: 'Node must have an id field' }))
+              return
+            }
+
+            const filePath = findQuestRegionFile(regionId)
+            if (!filePath) {
+              res.statusCode = 404
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: `Region "${regionId}" not found` }))
+              return
+            }
+
+            const parsed = parseQuestRegionFile(filePath)
+
+            if (parsed.nodes[node.id]) {
+              res.statusCode = 409
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: `Node with id "${node.id}" already exists` }))
+              return
+            }
+
+            parsed.nodes[node.id] = node
+
+            const { serializeRegionFile } = await import('./src/utils/questSerializer.js')
+            const content = serializeRegionFile(parsed.regionMeta, parsed.nodes, parsed.importLines)
+            fs.writeFileSync(filePath, content, 'utf-8')
+
+            invalidateQuestModules()
+
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(node))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
+
+      // PUT /__admin/quest-regions/:regionId/nodes/:nodeId - update a node
+      server.middlewares.use(async (req, res, next) => {
+        const match = req.url?.match(/^\/__admin\/quest-regions\/([^/]+)\/nodes\/([^/]+)$/)
+        if (req.method === 'PUT' && match) {
+          const regionId = decodeURIComponent(match[1])
+          const nodeId = decodeURIComponent(match[2])
+
+          let body = ''
+          for await (const chunk of req) {
+            body += chunk
+          }
+
+          try {
+            const node = JSON.parse(body)
+
+            const filePath = findQuestRegionFile(regionId)
+            if (!filePath) {
+              res.statusCode = 404
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: `Region "${regionId}" not found` }))
+              return
+            }
+
+            const parsed = parseQuestRegionFile(filePath)
+
+            if (!parsed.nodes[nodeId]) {
+              res.statusCode = 404
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: `Node "${nodeId}" not found in region "${regionId}"` }))
+              return
+            }
+
+            // Handle ID change: if the node's id changed, remove the old key
+            if (node.id !== nodeId) {
+              delete parsed.nodes[nodeId]
+            }
+            parsed.nodes[node.id] = node
+
+            const { serializeRegionFile } = await import('./src/utils/questSerializer.js')
+            const content = serializeRegionFile(parsed.regionMeta, parsed.nodes, parsed.importLines)
+            fs.writeFileSync(filePath, content, 'utf-8')
+
+            invalidateQuestModules()
+
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(node))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
+
+      // DELETE /__admin/quest-regions/:regionId/nodes/:nodeId - delete a node
+      server.middlewares.use(async (req, res, next) => {
+        const match = req.url?.match(/^\/__admin\/quest-regions\/([^/]+)\/nodes\/([^/]+)$/)
+        if (req.method === 'DELETE' && match) {
+          const regionId = decodeURIComponent(match[1])
+          const nodeId = decodeURIComponent(match[2])
+
+          try {
+            const filePath = findQuestRegionFile(regionId)
+            if (!filePath) {
+              res.statusCode = 404
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: `Region "${regionId}" not found` }))
+              return
+            }
+
+            const parsed = parseQuestRegionFile(filePath)
+
+            if (!parsed.nodes[nodeId]) {
+              res.statusCode = 404
+              res.setHeader('Content-Type', 'application/json')
+              res.end(JSON.stringify({ error: `Node "${nodeId}" not found in region "${regionId}"` }))
+              return
+            }
+
+            delete parsed.nodes[nodeId]
+
+            const { serializeRegionFile } = await import('./src/utils/questSerializer.js')
+            const content = serializeRegionFile(parsed.regionMeta, parsed.nodes, parsed.importLines)
+            fs.writeFileSync(filePath, content, 'utf-8')
+
+            invalidateQuestModules()
+
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ success: true }))
+          } catch (e) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ error: e.message }))
+          }
+          return
+        }
+        next()
+      })
+
       // GET /api/admin/:contentType - fetch all entries
       server.middlewares.use((req, res, next) => {
         const match = req.url?.match(/^\/api\/admin\/(\w+)$/)
