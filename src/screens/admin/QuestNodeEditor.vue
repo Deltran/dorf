@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useQuestsStore } from '../../stores/quests.js'
 
 const questsStore = useQuestsStore()
@@ -15,8 +15,20 @@ const showCreateRegion = ref(false)
 const showDeleteConfirm = ref(false)
 const deleteTarget = ref(null) // { type: 'region'|'node', id, name }
 
-// Placeholder refs for Task 9 and Task 10
+// Region metadata form state
 const regionForm = ref({})
+const newRegionForm = ref({
+  id: '',
+  name: '',
+  description: '',
+  superRegion: 'western_veros',
+  startNode: '',
+  width: 600,
+  height: 1000,
+  backgroundColor: '#1f2937'
+})
+
+// Placeholder ref for Task 10
 const nodeForm = ref({})
 
 // Fetch all regions from API
@@ -60,6 +72,15 @@ const selectedRegionNodes = computed(() => {
     completed: questsStore.completedNodes.includes(node.id)
   }))
 })
+
+// Sync regionForm when selected region changes
+watch(selectedRegion, (region) => {
+  if (region) {
+    regionForm.value = { ...region.regionMeta }
+  } else {
+    regionForm.value = {}
+  }
+}, { immediate: true })
 
 // Actions
 function selectRegion(regionId) {
@@ -146,13 +167,50 @@ async function executeDelete() {
   }
 }
 
-// Placeholder functions for Task 9
-function saveRegionMeta() {
-  // Task 9 will implement
+// Region metadata save
+async function saveRegionMeta() {
+  if (!selectedRegionId.value) return
+  try {
+    const res = await fetch(`/__admin/quest-regions/${selectedRegionId.value}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ regionMeta: regionForm.value })
+    })
+    if (!res.ok) throw new Error(await res.text())
+    await fetchRegions()
+  } catch (e) {
+    error.value = e.message
+  }
 }
 
-function createRegion() {
-  // Task 9 will implement
+// Create new region
+async function createRegion() {
+  try {
+    const res = await fetch('/__admin/quest-regions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ regionMeta: newRegionForm.value })
+    })
+    if (!res.ok) throw new Error(await res.text())
+    const created = await res.json()
+    await fetchRegions()
+    // Select the newly created region
+    selectedRegionId.value = created.regionId || newRegionForm.value.id
+    // Reset the form
+    newRegionForm.value = {
+      id: '',
+      name: '',
+      description: '',
+      superRegion: 'western_veros',
+      startNode: '',
+      width: 600,
+      height: 1000,
+      backgroundColor: '#1f2937'
+    }
+    showCreateRegion.value = false
+  } catch (e) {
+    error.value = e.message
+  }
 }
 
 // Placeholder functions for Task 10
@@ -201,6 +259,60 @@ function onNodeSaved() {
 
     <!-- Right Panel: Region Detail + Nodes -->
     <main class="detail-panel">
+      <template v-if="showCreateRegion">
+        <div class="create-region-panel">
+          <div class="section-header">
+            <span>Create New Region</span>
+          </div>
+          <div class="section-body">
+            <div class="form-grid">
+              <label class="form-field">
+                <span class="field-label">ID</span>
+                <input v-model="newRegionForm.id" class="field-input" placeholder="e.g. crystal_caverns" />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Name</span>
+                <input v-model="newRegionForm.name" class="field-input" placeholder="e.g. Crystal Caverns" />
+              </label>
+              <label class="form-field full-width">
+                <span class="field-label">Description</span>
+                <textarea v-model="newRegionForm.description" class="field-textarea" rows="2" placeholder="Region description..." />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Super Region</span>
+                <select v-model="newRegionForm.superRegion" class="field-select">
+                  <option value="western_veros">Western Veros</option>
+                  <option value="aquarias">Aquarias</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span class="field-label">Start Node</span>
+                <input v-model="newRegionForm.startNode" class="field-input" placeholder="First node ID" />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Width</span>
+                <input v-model.number="newRegionForm.width" type="number" class="field-input" />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Height</span>
+                <input v-model.number="newRegionForm.height" type="number" class="field-input" />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Background Color</span>
+                <div class="color-field">
+                  <input v-model="newRegionForm.backgroundColor" type="color" class="field-color" />
+                  <input v-model="newRegionForm.backgroundColor" class="field-input color-text" />
+                </div>
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="cancel-btn" @click="showCreateRegion = false">Cancel</button>
+              <button class="save-btn" @click="createRegion">Create Region</button>
+            </div>
+          </div>
+        </div>
+      </template>
+
       <template v-if="!selectedRegion && !showCreateRegion">
         <div class="empty-state">Select a region or create a new one</div>
       </template>
@@ -213,8 +325,53 @@ function onNodeSaved() {
             <span class="collapse-icon">{{ showRegionMeta ? '▼' : '▶' }}</span>
           </div>
           <div v-if="showRegionMeta" class="section-body">
-            <!-- Region form: Task 9 -->
-            <p class="placeholder-text">Region metadata form (Task 9)</p>
+            <div class="form-grid">
+              <label class="form-field">
+                <span class="field-label">ID</span>
+                <input v-model="regionForm.id" class="field-input" />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Name</span>
+                <input v-model="regionForm.name" class="field-input" />
+              </label>
+              <label class="form-field full-width">
+                <span class="field-label">Description</span>
+                <textarea v-model="regionForm.description" class="field-textarea" rows="2" />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Super Region</span>
+                <select v-model="regionForm.superRegion" class="field-select">
+                  <option value="western_veros">Western Veros</option>
+                  <option value="aquarias">Aquarias</option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span class="field-label">Start Node</span>
+                <select v-model="regionForm.startNode" class="field-select">
+                  <option v-for="node in selectedRegionNodes" :key="node.id" :value="node.id">
+                    {{ node.name }} ({{ node.id }})
+                  </option>
+                </select>
+              </label>
+              <label class="form-field">
+                <span class="field-label">Width</span>
+                <input v-model.number="regionForm.width" type="number" class="field-input" />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Height</span>
+                <input v-model.number="regionForm.height" type="number" class="field-input" />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Background Color</span>
+                <div class="color-field">
+                  <input v-model="regionForm.backgroundColor" type="color" class="field-color" />
+                  <input v-model="regionForm.backgroundColor" class="field-input color-text" />
+                </div>
+              </label>
+            </div>
+            <div class="form-actions">
+              <button class="save-btn" @click="saveRegionMeta">Save Region</button>
+            </div>
           </div>
           <div class="region-actions-bar">
             <button class="action-btn danger" @click="confirmDelete('region', selectedRegion.regionId, selectedRegion.regionMeta.name)">Delete Region</button>
@@ -711,5 +868,117 @@ function onNodeSaved() {
   padding: 20px;
   text-align: center;
   color: #6b7280;
+}
+
+/* Form styles */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-field.full-width {
+  grid-column: 1 / -1;
+}
+
+.field-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.field-input, .field-textarea, .field-select {
+  padding: 6px 10px;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  color: #f3f4f6;
+  font-size: 0.85rem;
+}
+
+.field-input:focus, .field-textarea:focus, .field-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.field-textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.field-select {
+  cursor: pointer;
+}
+
+.color-field {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.field-color {
+  width: 36px;
+  height: 30px;
+  border: 1px solid #374151;
+  border-radius: 4px;
+  padding: 0;
+  cursor: pointer;
+}
+
+.color-text {
+  flex: 1;
+}
+
+.form-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.save-btn {
+  padding: 6px 20px;
+  background: #3b82f6;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.save-btn:hover {
+  background: #2563eb;
+}
+
+.cancel-btn {
+  padding: 6px 20px;
+  background: #374151;
+  border: none;
+  border-radius: 4px;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-btn:hover {
+  background: #4b5563;
+  color: #f3f4f6;
+}
+
+.create-region-panel {
+  background: #1f2937;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
 }
 </style>
