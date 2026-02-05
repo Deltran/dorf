@@ -32,23 +32,16 @@ describe('Colosseum Shop', () => {
       expect(result.success).toBe(false)
     })
 
-    it('tracks purchase count', () => {
-      store.addLaurels(1000)
-      store.purchaseColosseumItem('tome_large')
-      store.purchaseColosseumItem('tome_large')
-      const remaining = store.getColosseumItemStock('tome_large')
-      expect(remaining).toBe(3) // 5 max - 2 purchased
-    })
-
-    it('fails when out of stock', () => {
+    it('allows unlimited purchases for consumables', () => {
       store.addLaurels(10000)
-      // Buy all 5 tomes
-      for (let i = 0; i < 5; i++) {
-        store.purchaseColosseumItem('tome_large')
+      // Buy multiple tomes - should always succeed (no stock limit)
+      for (let i = 0; i < 10; i++) {
+        const result = store.purchaseColosseumItem('tome_large')
+        expect(result.success).toBe(true)
       }
-      const result = store.purchaseColosseumItem('tome_large')
-      expect(result.success).toBe(false)
-      expect(result.message).toContain('stock')
+      // Stock should still be infinite
+      const remaining = store.getColosseumItemStock('tome_large')
+      expect(remaining).toBe(Infinity)
     })
 
     it('rejects placeholder hero purchases', () => {
@@ -60,16 +53,14 @@ describe('Colosseum Shop', () => {
   })
 
   describe('getColosseumItemStock', () => {
-    it('returns full stock for unpurchased items', () => {
+    it('returns Infinity for unlimited items', () => {
       const stock = store.getColosseumItemStock('dragon_heart_shard')
-      expect(stock).toBe(2)
+      expect(stock).toBe(Infinity)
     })
 
-    it('returns reduced stock after purchases', () => {
-      store.addLaurels(2000)
-      store.purchaseColosseumItem('dragon_heart_shard')
-      const stock = store.getColosseumItemStock('dragon_heart_shard')
-      expect(stock).toBe(1)
+    it('returns maxStock for limited items (exclusive heroes)', () => {
+      const stock = store.getColosseumItemStock('colosseum_hero_3star')
+      expect(stock).toBe(1) // maxStock: 1 for exclusive heroes
     })
 
     it('returns 0 for unknown items', () => {

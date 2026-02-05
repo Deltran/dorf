@@ -1,5 +1,6 @@
 <script setup>
 import { useCodexStore } from '../stores'
+import codexIcon from '../assets/icons/codex.png'
 
 const emit = defineEmits(['navigate'])
 const codexStore = useCodexStore()
@@ -24,7 +25,7 @@ const codexStore = useCodexStore()
         @click="emit('navigate', 'field-guide')"
       >
         <div class="nav-icon-wrapper field-guide">
-          <span class="nav-icon">📜</span>
+          <img :src="codexIcon" alt="Field Guide" class="nav-icon-img" />
         </div>
         <div class="nav-content">
           <span class="nav-label">Field Guide</span>
@@ -38,7 +39,7 @@ const codexStore = useCodexStore()
         @click="emit('navigate', 'compendium')"
       >
         <div class="nav-icon-wrapper compendium">
-          <span class="nav-icon">📚</span>
+          <img :src="codexIcon" alt="Compendium" class="nav-icon-img" />
         </div>
         <div class="nav-content">
           <span class="nav-label">Compendium</span>
@@ -170,6 +171,12 @@ const codexStore = useCodexStore()
 
 .nav-icon {
   font-size: 1.8rem;
+}
+
+.nav-icon-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .nav-content {

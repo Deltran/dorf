@@ -192,4 +192,63 @@ describe('Colosseum Store', () => {
       expect(store.laurels).toBe(100)
     })
   })
+
+  describe('persistence', () => {
+    it('saveState returns all persisted fields', () => {
+      store.unlockColosseum()
+      store.completeBout(1)
+      store.addLaurels(50)
+
+      const saved = store.saveState()
+
+      expect(saved.highestBout).toBe(1)
+      expect(saved.laurels).toBe(60) // 10 from bout + 50 added
+      expect(saved.colosseumUnlocked).toBe(true)
+      expect(saved.shopPurchases).toEqual({})
+    })
+
+    it('loadState restores all fields', () => {
+      const savedState = {
+        highestBout: 5,
+        laurels: 100,
+        colosseumUnlocked: true,
+        lastDailyCollection: '2026-02-04',
+        shopPurchases: { dragon_heart_shard: 2 }
+      }
+
+      store.loadState(savedState)
+
+      expect(store.highestBout).toBe(5)
+      expect(store.laurels).toBe(100)
+      expect(store.colosseumUnlocked).toBe(true)
+      expect(store.lastDailyCollection).toBe('2026-02-04')
+      expect(store.shopPurchases).toEqual({ dragon_heart_shard: 2 })
+    })
+
+    it('saveState/loadState round-trips correctly', () => {
+      store.unlockColosseum()
+      for (let i = 1; i <= 3; i++) store.completeBout(i)
+      store.collectDailyLaurels()
+
+      const saved = store.saveState()
+
+      // Create new store and load
+      setActivePinia(createPinia())
+      const newStore = useColosseumStore()
+      newStore.loadState(saved)
+
+      expect(newStore.highestBout).toBe(3)
+      expect(newStore.colosseumUnlocked).toBe(true)
+      expect(newStore.laurels).toBe(saved.laurels)
+      expect(newStore.lastDailyCollection).toBe(saved.lastDailyCollection)
+    })
+
+    it('loadState handles partial state gracefully', () => {
+      store.loadState({ colosseumUnlocked: true })
+
+      expect(store.colosseumUnlocked).toBe(true)
+      expect(store.highestBout).toBe(0) // unchanged
+      expect(store.laurels).toBe(0) // unchanged
+    })
+  })
 })

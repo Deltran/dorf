@@ -992,7 +992,8 @@ function getTurnOrderPortrait(unit) {
   const templateId = unit.templateId
   if (!templateId) return null
 
-  if (unit.type === 'hero') {
+  // Heroes and colosseum enemies use hero images
+  if (unit.type === 'hero' || unit.isColosseumEnemy) {
     // Check for portrait first
     const portraitPath = `../assets/heroes/${templateId}_portrait.png`
     if (heroPortraits[portraitPath]) return heroPortraits[portraitPath]
@@ -1000,6 +1001,7 @@ function getTurnOrderPortrait(unit) {
     const imagePath = `../assets/heroes/${templateId}.png`
     return heroImages[imagePath] || null
   } else {
+    // Regular enemies use enemy images
     // Check for portrait first
     const portraitPath = `../assets/enemies/${templateId}_portrait.png`
     if (enemyPortraits[portraitPath]) return enemyPortraits[portraitPath]
@@ -1012,6 +1014,14 @@ function getTurnOrderPortrait(unit) {
 function getEnemyImageUrl(enemy) {
   const templateId = enemy.template?.id || enemy.templateId
   if (!templateId) return null
+
+  // Colosseum enemies use hero images
+  if (enemy.isColosseumEnemy) {
+    const imagePath = `../assets/heroes/${templateId}.png`
+    return heroImages[imagePath] || null
+  }
+
+  // Regular enemies use enemy images
   const imagePath = `../assets/enemies/${templateId}.png`
   return enemyImages[imagePath] || null
 }
@@ -2677,10 +2687,7 @@ function getStatChange(hero, stat) {
 
 @keyframes victoryOverlayFade {
   0% {
-    background: rgba(255, 255, 255, 0.3);
-  }
-  30% {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0);
   }
   100% {
     background: rgba(0, 0, 0, 0.85);

@@ -58,7 +58,8 @@ export const items = {
     description: 'A fragment of crystallized dragon essence. Required to ascend a hero from 3-star to 4-star.',
     type: 'merge_material',
     rarity: 3,
-    sellReward: { gems: 100 }
+    sellReward: { gems: 100 },
+    icon: 'shard_of_dragon_heart'
   },
   dragon_heart: {
     id: 'dragon_heart',
@@ -66,49 +67,56 @@ export const items = {
     description: 'A complete dragon heart, pulsing with ancient power. Required to ascend a hero from 4-star to 5-star.',
     type: 'merge_material',
     rarity: 4,
-    sellReward: { gems: 500 }
+    sellReward: { gems: 500 },
+    icon: 'dragon_heart'
   },
   lake_tower_key: {
     id: 'lake_tower_key',
     name: 'Lake Tower Key',
     description: 'An ancient key that grants passage to the Lake Tower. Used to challenge Valinar.',
     type: 'key',
-    rarity: 3
+    rarity: 3,
+    sellReward: { gems: 50 }
   },
   valinar_crest: {
     id: 'valinar_crest',
     name: "Valinar's Crest",
     description: 'A battle-worn crest pried from the Lake Tower Guardian. Its purpose remains unknown.',
     type: 'genusLoci',
-    rarity: 4
+    rarity: 4,
+    sellReward: { gems: 150 }
   },
   den_key: {
     id: 'den_key',
     name: 'Den Key',
     description: 'A heavy iron key covered in claw marks. Grants passage to the Hibernation Den.',
     type: 'key',
-    rarity: 3
+    rarity: 3,
+    sellReward: { gems: 50 }
   },
   great_troll_crest: {
     id: 'great_troll_crest',
     name: "Great Troll's Crest",
     description: 'A mossy stone emblem torn from the Great Troll. Its purpose remains unknown.',
     type: 'genusLoci',
-    rarity: 4
+    rarity: 4,
+    sellReward: { gems: 150 }
   },
   eruption_vent_key: {
     id: 'eruption_vent_key',
     name: 'Eruption Vent Key',
     description: 'A key forged in volcanic glass. It pulses with heat, granting passage to the Eruption Vent.',
     type: 'key',
-    rarity: 3
+    rarity: 3,
+    sellReward: { gems: 50 }
   },
   pyroclast_crest: {
     id: 'pyroclast_crest',
     name: "Pyroclast's Crest",
     description: 'A searing emblem torn from the Living Eruption. Its surface still glows with molten fury.',
     type: 'genusLoci',
-    rarity: 4
+    rarity: 4,
+    sellReward: { gems: 150 }
   },
   magical_rocks: {
     id: 'magical_rocks',
@@ -125,7 +133,8 @@ export const items = {
     description: 'Instantly collect rewards from a completed Whispering Woods quest.',
     type: 'token',
     rarity: 3,
-    region: 'Whispering Woods'
+    region: 'Whispering Woods',
+    sellReward: { gems: 30 }
   },
   token_whisper_lake: {
     id: 'token_whisper_lake',
@@ -133,7 +142,8 @@ export const items = {
     description: 'Instantly collect rewards from a completed Whisper Lake quest.',
     type: 'token',
     rarity: 3,
-    region: 'Whisper Lake'
+    region: 'Whisper Lake',
+    sellReward: { gems: 30 }
   },
   token_echoing_caverns: {
     id: 'token_echoing_caverns',
@@ -141,7 +151,8 @@ export const items = {
     description: 'Instantly collect rewards from a completed Echoing Caverns quest.',
     type: 'token',
     rarity: 3,
-    region: 'Echoing Caverns'
+    region: 'Echoing Caverns',
+    sellReward: { gems: 30 }
   },
   token_stormwind_peaks: {
     id: 'token_stormwind_peaks',
@@ -149,7 +160,8 @@ export const items = {
     description: 'Instantly collect rewards from a completed Stormwind Peaks quest.',
     type: 'token',
     rarity: 3,
-    region: 'Stormwind Peaks'
+    region: 'Stormwind Peaks',
+    sellReward: { gems: 30 }
   },
   token_blistering_cliffs: {
     id: 'token_blistering_cliffs',
@@ -157,7 +169,8 @@ export const items = {
     description: 'Instantly collect rewards from a completed Blistering Cliffsides quest.',
     type: 'token',
     rarity: 3,
-    region: 'Blistering Cliffsides'
+    region: 'Blistering Cliffsides',
+    sellReward: { gems: 30 }
   },
   token_summit: {
     id: 'token_summit',
@@ -165,7 +178,8 @@ export const items = {
     description: 'Instantly collect rewards from a completed Summit quest.',
     type: 'token',
     rarity: 3,
-    region: 'The Summit'
+    region: 'The Summit',
+    sellReward: { gems: 30 }
   },
   token_gate_to_aquaria: {
     id: 'token_gate_to_aquaria',
@@ -173,7 +187,8 @@ export const items = {
     description: 'Instantly collect rewards from a completed Gate to Aquaria quest.',
     type: 'token',
     rarity: 3,
-    region: 'Gate to Aquaria'
+    region: 'Gate to Aquaria',
+    sellReward: { gems: 30 }
   },
   token_janxier_floodplain: {
     id: 'token_janxier_floodplain',
@@ -181,7 +196,8 @@ export const items = {
     description: 'Instantly collect rewards from a completed Janxier Floodplain quest.',
     type: 'token',
     rarity: 3,
-    region: 'Janxier Floodplain'
+    region: 'Janxier Floodplain',
+    sellReward: { gems: 30 }
   },
 
   // Equipment upgrade materials - Weapon stones
@@ -192,7 +208,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 1,
     materialSlot: 'weapon',
-    materialTier: 1
+    materialTier: 1,
+    sellReward: { gems: 10 }
   },
   uncommon_weapon_stone: {
     id: 'uncommon_weapon_stone',
@@ -201,7 +218,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 2,
     materialSlot: 'weapon',
-    materialTier: 2
+    materialTier: 2,
+    sellReward: { gems: 25 }
   },
   rare_weapon_stone: {
     id: 'rare_weapon_stone',
@@ -210,7 +228,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 3,
     materialSlot: 'weapon',
-    materialTier: 3
+    materialTier: 3,
+    sellReward: { gems: 60 }
   },
   epic_weapon_stone: {
     id: 'epic_weapon_stone',
@@ -219,7 +238,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 4,
     materialSlot: 'weapon',
-    materialTier: 4
+    materialTier: 4,
+    sellReward: { gems: 150 }
   },
 
   // Equipment upgrade materials - Armor plates
@@ -230,7 +250,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 1,
     materialSlot: 'armor',
-    materialTier: 1
+    materialTier: 1,
+    sellReward: { gems: 10 }
   },
   uncommon_armor_plate: {
     id: 'uncommon_armor_plate',
@@ -239,7 +260,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 2,
     materialSlot: 'armor',
-    materialTier: 2
+    materialTier: 2,
+    sellReward: { gems: 25 }
   },
   rare_armor_plate: {
     id: 'rare_armor_plate',
@@ -248,7 +270,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 3,
     materialSlot: 'armor',
-    materialTier: 3
+    materialTier: 3,
+    sellReward: { gems: 60 }
   },
   epic_armor_plate: {
     id: 'epic_armor_plate',
@@ -257,7 +280,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 4,
     materialSlot: 'armor',
-    materialTier: 4
+    materialTier: 4,
+    sellReward: { gems: 150 }
   },
 
   // Equipment upgrade materials - Gem shards (trinkets)
@@ -268,7 +292,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 1,
     materialSlot: 'trinket',
-    materialTier: 1
+    materialTier: 1,
+    sellReward: { gems: 10 }
   },
   uncommon_gem_shard: {
     id: 'uncommon_gem_shard',
@@ -277,7 +302,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 2,
     materialSlot: 'trinket',
-    materialTier: 2
+    materialTier: 2,
+    sellReward: { gems: 25 }
   },
   rare_gem_shard: {
     id: 'rare_gem_shard',
@@ -286,7 +312,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 3,
     materialSlot: 'trinket',
-    materialTier: 3
+    materialTier: 3,
+    sellReward: { gems: 60 }
   },
   epic_gem_shard: {
     id: 'epic_gem_shard',
@@ -295,7 +322,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 4,
     materialSlot: 'trinket',
-    materialTier: 4
+    materialTier: 4,
+    sellReward: { gems: 150 }
   },
 
   // Equipment upgrade materials - Class tokens
@@ -306,7 +334,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 1,
     materialSlot: 'class',
-    materialTier: 1
+    materialTier: 1,
+    sellReward: { gems: 10 }
   },
   uncommon_class_token: {
     id: 'uncommon_class_token',
@@ -315,7 +344,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 2,
     materialSlot: 'class',
-    materialTier: 2
+    materialTier: 2,
+    sellReward: { gems: 25 }
   },
   rare_class_token: {
     id: 'rare_class_token',
@@ -324,7 +354,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 3,
     materialSlot: 'class',
-    materialTier: 3
+    materialTier: 3,
+    sellReward: { gems: 60 }
   },
   epic_class_token: {
     id: 'epic_class_token',
@@ -333,7 +364,8 @@ export const items = {
     type: 'equipment_material',
     rarity: 4,
     materialSlot: 'class',
-    materialTier: 4
+    materialTier: 4,
+    sellReward: { gems: 150 }
   }
 }
 

@@ -8,6 +8,7 @@ export const useColosseumStore = defineStore('colosseum', () => {
   const laurels = ref(0)
   const colosseumUnlocked = ref(false)
   const lastDailyCollection = ref(null) // 'YYYY-MM-DD'
+  const shopPurchases = ref({}) // { itemId: count }
 
   function getTodayDate() {
     return new Date().toISOString().split('T')[0]
@@ -86,9 +87,6 @@ export const useColosseumStore = defineStore('colosseum', () => {
     laurels.value += amount
   }
 
-  // --- Shop methods ---
-  const shopPurchases = ref({}) // { itemId: count }
-
   function purchaseColosseumItem(itemId) {
     const shopItems = getColosseumShopItems()
     const item = shopItems.find(i => i.id === itemId)
@@ -115,6 +113,8 @@ export const useColosseumStore = defineStore('colosseum', () => {
     const shopItems = getColosseumShopItems()
     const item = shopItems.find(i => i.id === itemId)
     if (!item) return 0
+    // Items without maxStock are unlimited
+    if (!item.maxStock) return Infinity
     return item.maxStock - (shopPurchases.value[itemId] || 0)
   }
 
@@ -126,12 +126,32 @@ export const useColosseumStore = defineStore('colosseum', () => {
     }))
   }
 
+  // Persistence
+  function saveState() {
+    return {
+      highestBout: highestBout.value,
+      laurels: laurels.value,
+      colosseumUnlocked: colosseumUnlocked.value,
+      lastDailyCollection: lastDailyCollection.value,
+      shopPurchases: shopPurchases.value
+    }
+  }
+
+  function loadState(savedState) {
+    if (savedState?.highestBout !== undefined) highestBout.value = savedState.highestBout
+    if (savedState?.laurels !== undefined) laurels.value = savedState.laurels
+    if (savedState?.colosseumUnlocked !== undefined) colosseumUnlocked.value = savedState.colosseumUnlocked
+    if (savedState?.lastDailyCollection !== undefined) lastDailyCollection.value = savedState.lastDailyCollection
+    if (savedState?.shopPurchases !== undefined) shopPurchases.value = savedState.shopPurchases
+  }
+
   return {
     // State
     highestBout,
     laurels,
     colosseumUnlocked,
     lastDailyCollection,
+    shopPurchases,
     // Actions
     unlockColosseum,
     getCurrentBout,
@@ -141,14 +161,11 @@ export const useColosseumStore = defineStore('colosseum', () => {
     spendLaurels,
     addLaurels,
     // Shop
-    shopPurchases,
     purchaseColosseumItem,
     getColosseumItemStock,
-    getColosseumShopDisplay
-  }
-}, {
-  persist: {
-    key: 'dorf-colosseum',
-    paths: ['highestBout', 'laurels', 'colosseumUnlocked', 'lastDailyCollection', 'shopPurchases']
+    getColosseumShopDisplay,
+    // Persistence
+    saveState,
+    loadState
   }
 })

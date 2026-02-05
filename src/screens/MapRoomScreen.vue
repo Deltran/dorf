@@ -4,6 +4,11 @@ import questBg from '../assets/backgrounds/quests_bg.png'
 import genusLociBg from '../assets/backgrounds/genus_loci.png'
 import exploreBg from '../assets/backgrounds/explore_bg.png'
 import mapRoomBg from '../assets/backgrounds/map_room.png'
+import colosseumBg from '../assets/backgrounds/colosseum_button.png'
+import mapIcon from '../assets/icons/map.png'
+import compassIcon from '../assets/icons/compass.png'
+import genusLociIcon from '../assets/icons/genus_loci_icon.png'
+import colosseumIcon from '../assets/icons/colosseum.png'
 
 const emit = defineEmits(['navigate'])
 const colosseumStore = useColosseumStore()
@@ -37,7 +42,7 @@ const colosseumStore = useColosseumStore()
         @click="emit('navigate', 'worldmap')"
       >
         <div class="nav-icon-wrapper quests">
-          <span class="nav-icon">🗺️</span>
+          <img :src="mapIcon" alt="Quests" class="nav-icon-img" />
         </div>
         <div class="nav-content">
           <span class="nav-label">Quests</span>
@@ -54,7 +59,7 @@ const colosseumStore = useColosseumStore()
           @click="emit('navigate', 'explorations')"
         >
           <div class="nav-icon-wrapper explorations">
-            <span class="nav-icon">🧭</span>
+            <img :src="compassIcon" alt="Explorations" class="nav-icon-img" />
           </div>
           <div class="nav-content">
             <span class="nav-label">Explorations</span>
@@ -67,7 +72,7 @@ const colosseumStore = useColosseumStore()
           @click="emit('navigate', 'genus-loci-list')"
         >
           <div class="nav-icon-wrapper genus-loci">
-            <span class="nav-icon">👹</span>
+            <img :src="genusLociIcon" alt="Genus Loci" class="nav-icon-img" />
           </div>
           <div class="nav-content">
             <span class="nav-label">Genus Loci</span>
@@ -79,10 +84,11 @@ const colosseumStore = useColosseumStore()
       <button
         v-if="colosseumStore.colosseumUnlocked"
         class="nav-button nav-button-secondary colosseum-button"
+        :style="{ backgroundImage: `url(${colosseumBg})` }"
         @click="emit('navigate', 'colosseum')"
       >
         <div class="nav-icon-wrapper colosseum">
-          <span class="nav-icon">🏛️</span>
+          <img :src="colosseumIcon" alt="Colosseum" class="nav-icon-img" />
         </div>
         <div class="nav-content">
           <span class="nav-label">Colosseum</span>
@@ -282,6 +288,12 @@ const colosseumStore = useColosseumStore()
   font-size: 1.5rem;
 }
 
+.nav-icon-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .nav-content {
   display: flex;
   flex-direction: column;
@@ -450,15 +462,43 @@ const colosseumStore = useColosseumStore()
 
 .nav-button.colosseum-button {
   border-color: #f59e0b;
-  background: linear-gradient(135deg, rgba(180, 83, 9, 0.3) 0%, #0f172a 100%);
+  background-size: cover;
+  background-position: center;
+}
+
+.nav-button.colosseum-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(120, 53, 15, 0.85) 0%, rgba(180, 83, 9, 0.5) 100%);
+  border-radius: inherit;
+}
+
+.nav-button.colosseum-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-button.colosseum-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
 
 .nav-button.colosseum-button:hover {
   border-color: #fbbf24;
 }
 
+.nav-button.colosseum-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.colosseum-button:hover .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
 .nav-button.colosseum-button .nav-hint {
-  color: #d97706;
+  color: #fbbf24;
   font-size: 0.75rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 </style>

@@ -1,8 +1,8 @@
 const SAVE_KEY = 'dorf_save'
-const SAVE_VERSION = 9  // Bump version for intro system
+const SAVE_VERSION = 10  // Bump version for gem shop
 
 export function saveGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex, colosseum, gemShop } = stores
 
   const saveData = {
     version: SAVE_VERSION,
@@ -17,7 +17,9 @@ export function saveGame(stores) {
     shops: shops?.saveState() || { purchases: {} },
     equipment: equipment?.saveState() || { ownedEquipment: {}, equippedGear: {}, blacksmithUnlocked: false },
     intro: intro?.saveState() || { isIntroComplete: false },
-    codex: codex?.saveState() || { unlockedTopics: [], readEntries: [] }
+    codex: codex?.saveState() || { unlockedTopics: [], readEntries: [] },
+    colosseum: colosseum?.saveState() || { highestBout: 0, laurels: 0, colosseumUnlocked: false, lastDailyCollection: null, shopPurchases: {} },
+    gemShop: gemShop?.saveState() || { lastPurchaseDate: null, purchasedToday: [] }
   }
 
   try {
@@ -30,7 +32,7 @@ export function saveGame(stores) {
 }
 
 export function loadGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex, colosseum, gemShop } = stores
 
   try {
     const saved = localStorage.getItem(SAVE_KEY)
@@ -55,6 +57,8 @@ export function loadGame(stores) {
     if (saveData.equipment && equipment) equipment.loadState(saveData.equipment)
     if (saveData.intro && intro) intro.loadState(saveData.intro)
     if (saveData.codex && codex) codex.loadState(saveData.codex)
+    if (saveData.colosseum && colosseum) colosseum.loadState(saveData.colosseum)
+    if (saveData.gemShop && gemShop) gemShop.loadState(saveData.gemShop)
 
     return true
   } catch (e) {

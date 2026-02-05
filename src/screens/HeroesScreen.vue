@@ -13,6 +13,8 @@ import { getRegionsBySuperRegion, getQuestNode } from '../data/quests/index.js'
 import { useTooltip } from '../composables/useTooltip.js'
 import { particleBurst, glowPulse } from '../composables/useParticleBurst.js'
 import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
+import gemIcon from '../assets/icons/gems.png'
+import goldIcon from '../assets/icons/gold.png'
 
 const { onPointerEnter, onPointerLeave } = useTooltip()
 
@@ -1207,13 +1209,13 @@ function getEffectTypeName(type) {
             </span>
           </div>
           <div class="nsr-row">
-            <span class="nsr-label">🪙 {{ mergeInfo.goldCost?.toLocaleString() }} Gold</span>
+            <span class="nsr-label"><img :src="goldIcon" alt="" class="inline-req-icon" /> {{ mergeInfo.goldCost?.toLocaleString() }} Gold</span>
             <span class="nsr-value" :class="hasEnoughGold ? 'met' : 'unmet'">
               {{ hasEnoughGold ? '✓' : '✗' }}
             </span>
           </div>
           <div v-if="mergeInfo.requiredMaterial" class="nsr-row">
-            <span class="nsr-label">💎 {{ mergeInfo.requiredMaterialName }}</span>
+            <span class="nsr-label"><img :src="gemIcon" alt="" class="inline-req-icon" /> {{ mergeInfo.requiredMaterialName }}</span>
             <span class="nsr-value" :class="hasMergeMaterial ? 'met' : 'unmet'">
               {{ hasMergeMaterial ? '✓' : '✗' }}
             </span>
@@ -1340,14 +1342,14 @@ function getEffectTypeName(type) {
           <div class="merge-requirements">
             <div class="requirement-header">Requirements</div>
             <div class="requirement-row">
-              <span class="req-icon">🪙</span>
+              <img :src="goldIcon" alt="Gold" class="req-icon-img" />
               <span class="req-label">{{ mergeInfo?.goldCost?.toLocaleString() }} Gold</span>
               <span class="req-status" :class="hasEnoughGold ? 'met' : 'unmet'">
                 {{ hasEnoughGold ? `✓ (${gachaStore.gold.toLocaleString()})` : '✗' }}
               </span>
             </div>
             <div v-if="mergeInfo?.requiredMaterial" class="requirement-row">
-              <span class="req-icon">💎</span>
+              <img :src="gemIcon" alt="Shard" class="req-icon-img" />
               <span class="req-label">{{ mergeInfo?.requiredMaterialName }}</span>
               <span class="req-status" :class="hasMergeMaterial ? 'met' : 'unmet'">
                 {{ hasMergeMaterial ? '✓' : '✗' }}
@@ -2770,6 +2772,20 @@ function getEffectTypeName(type) {
   font-size: 1rem;
   width: 24px;
   text-align: center;
+}
+
+.req-icon-img {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.inline-req-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 2px;
 }
 
 .req-label {

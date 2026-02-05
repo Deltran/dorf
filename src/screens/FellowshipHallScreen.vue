@@ -4,6 +4,10 @@ import partyBg from '../assets/backgrounds/party_bg.png'
 import fusionBg from '../assets/backgrounds/fusion.png'
 import shardsBg from '../assets/backgrounds/shards.png'
 import heroPrepBg from '../assets/backgrounds/hero_prep_bg.png'
+import gemIcon from '../assets/icons/gems.png'
+import crossedSwordsIcon from '../assets/icons/crossed_swords.png'
+import shieldIcon from '../assets/icons/shield.png'
+import dragonShardIcon from '../assets/icons/shard_of_dragon_heart.png'
 
 const emit = defineEmits(['navigate'])
 </script>
@@ -36,7 +40,7 @@ const emit = defineEmits(['navigate'])
         @click="emit('navigate', 'heroes')"
       >
         <div class="nav-icon-wrapper heroes">
-          <span class="nav-icon">⚔️</span>
+          <img :src="crossedSwordsIcon" alt="Heroes" class="nav-icon-img" />
         </div>
         <div class="nav-content">
           <span class="nav-label">Heroes</span>
@@ -53,7 +57,7 @@ const emit = defineEmits(['navigate'])
           @click="emit('navigate', 'party')"
         >
           <div class="nav-icon-wrapper party">
-            <span class="nav-icon">🛡️</span>
+            <img :src="shieldIcon" alt="Party" class="nav-icon-img" />
           </div>
           <div class="nav-content">
             <span class="nav-label">Party</span>
@@ -66,7 +70,7 @@ const emit = defineEmits(['navigate'])
           @click="emit('navigate', 'merge')"
         >
           <div class="nav-icon-wrapper fusion">
-            <span class="nav-icon">⭐</span>
+            <img :src="dragonShardIcon" alt="Fusion" class="nav-icon-img" />
           </div>
           <div class="nav-content">
             <span class="nav-label">Fusion</span>
@@ -80,7 +84,7 @@ const emit = defineEmits(['navigate'])
         @click="emit('navigate', 'shards')"
       >
         <div class="nav-icon-wrapper shards">
-          <span class="nav-icon">💎</span>
+          <img :src="gemIcon" alt="Shards" class="nav-icon-img" />
         </div>
         <div class="nav-content">
           <span class="nav-label">Shards</span>
@@ -282,6 +286,12 @@ const emit = defineEmits(['navigate'])
 
 .nav-icon {
   font-size: 1.5rem;
+}
+
+.nav-icon-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .nav-content {

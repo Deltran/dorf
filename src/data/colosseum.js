@@ -340,46 +340,36 @@ export const colosseumShopItems = [
     stockType: 'permanent',
     placeholder: true
   },
-  // Consumables
+  // Consumables (unlimited purchase)
   {
     id: 'dragon_heart',
     name: 'Dragon Heart',
     type: 'item',
-    cost: 3000,
-    maxStock: 1,
-    stockType: 'monthly'
+    cost: 3000
   },
   {
     id: 'dragon_heart_shard',
     name: 'Dragon Heart Shard',
     type: 'item',
-    cost: 800,
-    maxStock: 2,
-    stockType: 'weekly'
+    cost: 800
   },
   {
     id: 'tome_large',
     name: 'Knowledge Tome (Large)',
     type: 'item',
-    cost: 150,
-    maxStock: 5,
-    stockType: 'weekly'
+    cost: 150
   },
   {
     id: 'gold_5000',
     name: 'Gold (5,000)',
     type: 'currency',
-    cost: 100,
-    maxStock: 3,
-    stockType: 'weekly'
+    cost: 100
   },
   {
     id: 'gems_100',
     name: 'Gems (100)',
     type: 'currency',
-    cost: 200,
-    maxStock: 2,
-    stockType: 'weekly'
+    cost: 200
   }
 ]
 

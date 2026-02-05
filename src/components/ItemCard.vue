@@ -1,6 +1,18 @@
 <script setup>
 import { computed } from 'vue'
 import StarRating from './StarRating.vue'
+import gemIcon from '../assets/icons/gems.png'
+import goldIcon from '../assets/icons/gold.png'
+import codexIcon from '../assets/icons/codex.png'
+import laurelIcon from '../assets/icons/laurels.png'
+import dragonHeartIcon from '../assets/icons/dragon_heart.png'
+import dragonShardIcon from '../assets/icons/shard_of_dragon_heart.png'
+
+// Map item icon property to imported icons
+const itemIcons = {
+  dragon_heart: dragonHeartIcon,
+  shard_of_dragon_heart: dragonShardIcon
+}
 
 const props = defineProps({
   item: {
@@ -25,7 +37,23 @@ const emit = defineEmits(['click'])
 
 const rarityClass = computed(() => `rarity-${props.item.rarity || 1}`)
 
-const typeIcon = computed(() => {
+// Image icons for types that have them
+const typeIconImage = computed(() => {
+  if (props.item.isEquipment) return null
+  // Check for custom icon property first
+  if (props.item.icon && itemIcons[props.item.icon]) {
+    return itemIcons[props.item.icon]
+  }
+  switch (props.item.type) {
+    case 'xp': return codexIcon
+    case 'material': return gemIcon
+    case 'genusLoci': return laurelIcon
+    default: return null
+  }
+})
+
+// Emoji fallback for types without image icons
+const typeIconEmoji = computed(() => {
   // Equipment uses slot icons
   if (props.item.isEquipment && props.item.equipment) {
     const slotIcons = {
@@ -45,14 +73,11 @@ const typeIcon = computed(() => {
     return slotIcons[props.item.equipment.slot] || '🗡️'
   }
   switch (props.item.type) {
-    case 'xp': return '📖'
     case 'junk': return '🪨'
-    case 'material': return '💎'
     case 'equipment_material': return '🔧'
     case 'token': return '🎟️'
     case 'key': return '🗝️'
     case 'merge_material': return '💠'
-    case 'genusLoci': return '🏆'
     default: return '📦'
   }
 })
@@ -64,7 +89,8 @@ const typeIcon = computed(() => {
     @click="emit('click', item)"
   >
     <div class="card-header">
-      <span class="type-icon">{{ typeIcon }}</span>
+      <img v-if="typeIconImage" :src="typeIconImage" alt="" class="type-icon-img" />
+      <span v-else class="type-icon">{{ typeIconEmoji }}</span>
       <span v-if="showCount && item.count" class="item-count">×{{ item.count }}</span>
     </div>
 
@@ -81,10 +107,10 @@ const typeIcon = computed(() => {
         {{ item.equipment.slot.replace('_', ' ') }}
       </div>
       <div v-else-if="item.sellReward?.gold" class="item-value sell-gold">
-        {{ item.sellReward.gold }} 🪙
+        {{ item.sellReward.gold }} <img :src="goldIcon" alt="Gold" class="sell-icon" />
       </div>
       <div v-else-if="item.sellReward?.gems" class="item-value sell">
-        {{ item.sellReward.gems }} 💎
+        {{ item.sellReward.gems }} <img :src="gemIcon" alt="Gems" class="sell-icon" />
       </div>
     </div>
   </div>
@@ -134,8 +160,26 @@ const typeIcon = computed(() => {
   font-size: 1.4rem;
 }
 
+.type-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
 .compact .type-icon {
   font-size: 1.1rem;
+}
+
+.compact .type-icon-img {
+  width: 18px;
+  height: 18px;
+}
+
+.sell-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  vertical-align: middle;
 }
 
 .item-count {

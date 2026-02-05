@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore, useIntroStore, useCodexStore } from './stores'
 import { useColosseumStore } from './stores/colosseum.js'
+import { useGemShopStore } from './stores/gemShop.js'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
 import { getAllQuestNodes } from './data/quests/index.js'
@@ -50,6 +51,7 @@ const equipmentStore = useEquipmentStore()
 const introStore = useIntroStore()
 const codexStore = useCodexStore()
 const colosseumStore = useColosseumStore()
+const gemShopStore = useGemShopStore()
 
 const currentScreen = ref(
   import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_screen') || 'home') : 'home'
@@ -77,13 +79,30 @@ function repairGenusLociCompletions() {
   }
 }
 
+// All persisted stores - add new stores here and they'll auto-save
+const persistedStores = {
+  heroes: heroesStore,
+  gacha: gachaStore,
+  quests: questsStore,
+  inventory: inventoryStore,
+  shards: shardsStore,
+  genusLoci: genusLociStore,
+  explorations: explorationsStore,
+  shops: shopsStore,
+  equipment: equipmentStore,
+  intro: introStore,
+  codex: codexStore,
+  colosseum: colosseumStore,
+  gemShop: gemShopStore
+}
+
 // Load game on mount
 onMounted(() => {
   const hasData = hasSaveData()
   tipsStore.loadTips()
 
   if (hasData) {
-    loadGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore, intro: introStore, codex: codexStore })
+    loadGame(persistedStores)
     codexStore.syncUnlocksFromCollection()
     repairGenusLociCompletions()
   } else {
@@ -108,32 +127,22 @@ onMounted(() => {
   }
 })
 
-// Auto-save when relevant state changes
+// Auto-save when any persisted store state changes
+// Watches the serialized state of all stores - no manual property listing needed
 watch(
-  () => [
-    heroesStore.collection.length,
-    heroesStore.party,
-    gachaStore.gems,
-    gachaStore.gold,
-    gachaStore.totalPulls,
-    questsStore.completedNodes.length,
-    inventoryStore.totalItemCount,
-    shardsStore.huntingSlots,
-    shardsStore.unlocked,
-    genusLociStore.progress,
-    explorationsStore.activeExplorations,
-    explorationsStore.completedHistory,
-    shopsStore.purchases,
-    equipmentStore.ownedEquipment,
-    equipmentStore.equippedGear,
-    equipmentStore.blacksmithUnlocked,
-    introStore.isIntroComplete,
-    codexStore.unlockedTopics,
-    codexStore.readEntries
-  ],
+  () => {
+    // Create a snapshot of all store states for change detection
+    const snapshot = {}
+    for (const [name, store] of Object.entries(persistedStores)) {
+      if (store.saveState) {
+        snapshot[name] = JSON.stringify(store.saveState())
+      }
+    }
+    return snapshot
+  },
   () => {
     if (isLoaded.value) {
-      saveGame({ heroes: heroesStore, gacha: gachaStore, quests: questsStore, inventory: inventoryStore, shards: shardsStore, genusLoci: genusLociStore, explorations: explorationsStore, shops: shopsStore, equipment: equipmentStore, intro: introStore, codex: codexStore })
+      saveGame(persistedStores)
     }
   },
   { deep: true }

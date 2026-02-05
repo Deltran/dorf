@@ -1,5 +1,7 @@
 <script setup>
 import goodsBg from '../assets/backgrounds/goods_bg.png'
+import storeIcon from '../assets/icons/store_goods.png'
+import shopsIcon from '../assets/icons/shops.png'
 
 const emit = defineEmits(['navigate'])
 </script>
@@ -30,7 +32,7 @@ const emit = defineEmits(['navigate'])
         @click="emit('navigate', 'inventory')"
       >
         <div class="option-icon-wrapper inventory">
-          <span class="option-icon">📦</span>
+          <img :src="storeIcon" alt="Inventory" class="option-icon-img" />
         </div>
         <div class="option-content">
           <span class="option-label">Inventory</span>
@@ -44,7 +46,7 @@ const emit = defineEmits(['navigate'])
         @click="emit('navigate', 'shops')"
       >
         <div class="option-icon-wrapper shops">
-          <span class="option-icon">🏪</span>
+          <img :src="shopsIcon" alt="Shops" class="option-icon-img" />
         </div>
         <div class="option-content">
           <span class="option-label">Shops</span>
@@ -189,8 +191,10 @@ const emit = defineEmits(['navigate'])
   background: linear-gradient(135deg, #854d0e 0%, #f59e0b 100%);
 }
 
-.option-icon {
-  font-size: 1.8rem;
+.option-icon-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .option-content {

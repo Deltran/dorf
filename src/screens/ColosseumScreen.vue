@@ -5,6 +5,8 @@ import { useBattleStore } from '../stores/battle.js'
 import { useHeroesStore } from '../stores/heroes.js'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
+import colosseumBg from '../assets/backgrounds/colosseum_bg.png'
+import laurelIcon from '../assets/icons/laurels.png'
 
 const emit = defineEmits(['navigate', 'startColosseumBattle'])
 
@@ -68,6 +70,15 @@ onMounted(() => {
 
 <template>
   <div class="colosseum-screen">
+    <!-- Dark vignette background -->
+    <div class="bg-vignette"></div>
+
+    <!-- Atmospheric background image -->
+    <div
+      class="screen-background"
+      :style="{ backgroundImage: `url(${colosseumBg})` }"
+    ></div>
+
     <header class="screen-header">
       <button class="back-button" @click="emit('navigate', 'map-room')">
         <span class="back-arrow">&#8249;</span>
@@ -75,7 +86,7 @@ onMounted(() => {
       </button>
       <h1 class="screen-title">Colosseum</h1>
       <div class="laurel-display">
-        <span class="laurel-icon">&#127811;</span>
+        <img :src="laurelIcon" alt="Laurels" class="laurel-icon" />
         <span class="laurel-count">{{ colosseumStore.laurels }}</span>
       </div>
     </header>
@@ -83,7 +94,7 @@ onMounted(() => {
     <!-- Income display -->
     <div class="income-bar">
       <span class="income-label">Daily Income</span>
-      <span class="income-value">{{ dailyIncome }} &#127811;/day</span>
+      <span class="income-value">{{ dailyIncome }} <img :src="laurelIcon" alt="" class="inline-laurel" />/day</span>
     </div>
 
     <!-- Main view: Bout preview or Shop -->
@@ -127,7 +138,7 @@ onMounted(() => {
 
         <div class="bout-reward">
           <span class="reward-label">First Clear</span>
-          <span class="reward-value">{{ currentBout.firstClearReward }} &#127811;</span>
+          <span class="reward-value">{{ currentBout.firstClearReward }} <img :src="laurelIcon" alt="Laurels" class="inline-laurel" /></span>
         </div>
 
         <button class="fight-button" @click="startFight">
@@ -164,7 +175,7 @@ onMounted(() => {
               </div>
               <div class="item-name">{{ item.name }}</div>
               <div class="item-coming-soon">Coming Soon</div>
-              <div class="item-cost">{{ item.cost }} &#127811;</div>
+              <div class="item-cost">{{ item.cost }} <img :src="laurelIcon" alt="Laurels" class="inline-laurel" /></div>
             </div>
           </div>
         </div>
@@ -187,7 +198,7 @@ onMounted(() => {
                 :disabled="colosseumStore.laurels < item.cost || item.remainingStock <= 0"
                 @click="purchaseItem(item.id)"
               >
-                {{ item.cost }} &#127811;
+                {{ item.cost }} <img :src="laurelIcon" alt="" class="inline-laurel" />
               </button>
             </div>
           </div>
@@ -209,7 +220,7 @@ onMounted(() => {
         :class="{ active: showShop }"
         @click="showShop = true"
       >
-        &#127811; Shop
+        <img :src="laurelIcon" alt="" class="inline-laurel" /> Shop
       </button>
     </div>
   </div>
@@ -219,6 +230,8 @@ onMounted(() => {
 .colosseum-screen {
   min-height: 100vh;
   padding: 16px;
+  position: relative;
+  overflow: hidden;
   padding-top: calc(16px + var(--safe-area-top));
   padding-bottom: calc(80px + var(--safe-area-bottom));
   display: flex;
@@ -227,11 +240,42 @@ onMounted(() => {
   background: linear-gradient(to bottom, #1a0a0a 0%, #111827 40%, #0a0a1a 100%);
 }
 
+/* Dark vignette background */
+.bg-vignette {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Atmospheric background image */
+.screen-background {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 600px;
+  height: 100%;
+  background-size: contain;
+  background-position: center center;
+  background-repeat: no-repeat;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.6;
+}
+
 /* Header */
 .screen-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .back-button {
@@ -277,7 +321,16 @@ onMounted(() => {
 }
 
 .laurel-icon {
-  font-size: 1.1rem;
+  height: 18px;
+  width: auto;
+  vertical-align: middle;
+}
+
+.inline-laurel {
+  height: 14px;
+  width: auto;
+  vertical-align: middle;
+  margin-left: 2px;
 }
 
 .laurel-count {
@@ -295,6 +348,8 @@ onMounted(() => {
   border: 1px solid rgba(245, 158, 11, 0.2);
   border-radius: 8px;
   padding: 8px 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .income-label {
@@ -317,6 +372,8 @@ onMounted(() => {
   justify-content: center;
   gap: 12px;
   text-align: center;
+  position: relative;
+  z-index: 1;
 }
 
 .cleared-icon {
@@ -340,6 +397,8 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .bout-header {
@@ -472,6 +531,7 @@ onMounted(() => {
 /* Progress bar */
 .progress-bar {
   position: relative;
+  z-index: 1;
   height: 24px;
   background: rgba(30, 41, 59, 0.8);
   border-radius: 12px;
@@ -505,6 +565,8 @@ onMounted(() => {
   gap: 20px;
   flex: 1;
   overflow-y: auto;
+  position: relative;
+  z-index: 1;
 }
 
 .shop-header {

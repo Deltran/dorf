@@ -246,49 +246,45 @@ describe('Colosseum Shop Items', () => {
     })
   })
 
-  it('includes Dragon Heart at 3000 laurels', () => {
+  it('includes Dragon Heart at 3000 laurels (unlimited)', () => {
     const items = getColosseumShopItems()
     const dh = items.find(i => i.id === 'dragon_heart')
     expect(dh).toBeDefined()
     expect(dh.cost).toBe(3000)
-    expect(dh.maxStock).toBe(1)
-    expect(dh.stockType).toBe('monthly')
+    // No maxStock = unlimited purchases
+    expect(dh.maxStock).toBeUndefined()
   })
 
-  it('includes Dragon Heart Shard at 800 laurels', () => {
+  it('includes Dragon Heart Shard at 800 laurels (unlimited)', () => {
     const items = getColosseumShopItems()
     const dhs = items.find(i => i.id === 'dragon_heart_shard')
     expect(dhs).toBeDefined()
     expect(dhs.cost).toBe(800)
-    expect(dhs.maxStock).toBe(2)
-    expect(dhs.stockType).toBe('weekly')
+    expect(dhs.maxStock).toBeUndefined()
   })
 
-  it('includes Knowledge Tome Large at 150 laurels', () => {
+  it('includes Knowledge Tome Large at 150 laurels (unlimited)', () => {
     const items = getColosseumShopItems()
     const tome = items.find(i => i.id === 'tome_large')
     expect(tome).toBeDefined()
     expect(tome.cost).toBe(150)
-    expect(tome.maxStock).toBe(5)
-    expect(tome.stockType).toBe('weekly')
+    expect(tome.maxStock).toBeUndefined()
   })
 
-  it('includes Gold 5000 at 100 laurels', () => {
+  it('includes Gold 5000 at 100 laurels (unlimited)', () => {
     const items = getColosseumShopItems()
     const gold = items.find(i => i.id === 'gold_5000')
     expect(gold).toBeDefined()
     expect(gold.cost).toBe(100)
-    expect(gold.maxStock).toBe(3)
-    expect(gold.stockType).toBe('weekly')
+    expect(gold.maxStock).toBeUndefined()
   })
 
-  it('includes Gems 100 at 200 laurels', () => {
+  it('includes Gems 100 at 200 laurels (unlimited)', () => {
     const items = getColosseumShopItems()
     const gems = items.find(i => i.id === 'gems_100')
     expect(gems).toBeDefined()
     expect(gems.cost).toBe(200)
-    expect(gems.maxStock).toBe(2)
-    expect(gems.stockType).toBe('weekly')
+    expect(gems.maxStock).toBeUndefined()
   })
 
   it('includes exclusive hero placeholders', () => {

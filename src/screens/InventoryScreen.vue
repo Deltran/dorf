@@ -6,6 +6,9 @@ import StarRating from '../components/StarRating.vue'
 import { getEquipment, SLOT_ICONS } from '../data/equipment.js'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
+import gemIcon from '../assets/icons/gems.png'
+import goldIcon from '../assets/icons/gold.png'
+import storeIcon from '../assets/icons/store_goods.png'
 
 const emit = defineEmits(['navigate'])
 
@@ -208,7 +211,7 @@ function getContextualAction(item) {
       </button>
       <h1 class="screen-title">Inventory</h1>
       <div class="gem-display">
-        <span class="gem-icon">💎</span>
+        <img :src="gemIcon" alt="Gems" class="currency-icon" />
         <span class="gem-count">{{ gachaStore.gems }}</span>
       </div>
     </header>
@@ -220,7 +223,7 @@ function getContextualAction(item) {
 
     <!-- Empty State -->
     <section v-if="items.length === 0" class="empty-inventory">
-      <div class="empty-icon">📦</div>
+      <img :src="storeIcon" alt="Empty" class="empty-icon-img" />
       <p>No items yet!</p>
       <p class="empty-hint">Complete quests to find items.</p>
       <button class="quest-cta" @click="emit('navigate', 'worldmap')">
@@ -338,7 +341,8 @@ function getContextualAction(item) {
             <div v-if="sellRewardType" class="stat-row">
               <span class="stat-label">Sell Value</span>
               <span :class="['stat-value', sellRewardType === 'gold' ? 'sell-gold' : 'sell']">
-                {{ selectedItem.sellReward.gold || selectedItem.sellReward.gems }} {{ sellRewardType === 'gold' ? '🪙' : '💎' }}
+                {{ selectedItem.sellReward.gold || selectedItem.sellReward.gems }}
+                <img :src="sellRewardType === 'gold' ? goldIcon : gemIcon" alt="" class="inline-currency-icon" />
               </span>
             </div>
           </div>
@@ -359,7 +363,7 @@ function getContextualAction(item) {
                 <button class="count-btn" @click="incrementSellCount" :disabled="sellCount >= selectedItem.count">+</button>
               </div>
               <button class="sell-btn" :class="{ 'sell-for-gold': sellRewardType === 'gold' }" @click="sellSelected">
-                Sell for {{ sellValue }} {{ sellRewardType === 'gold' ? '🪙' : '💎' }}
+                Sell for {{ sellValue }} <img :src="sellRewardType === 'gold' ? goldIcon : gemIcon" alt="" class="btn-currency-icon" />
               </button>
               <button v-if="selectedItem.count > 1" class="sell-all-btn" @click="sellAll">
                 Sell All ({{ selectedItem.count }})
@@ -436,8 +440,34 @@ function getContextualAction(item) {
   border: 1px solid #334155;
 }
 
-.gem-icon {
-  font-size: 1.1rem;
+.currency-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+.inline-currency-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+
+.btn-currency-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.empty-icon-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  opacity: 0.4;
+  margin-bottom: 12px;
 }
 
 .gem-count {

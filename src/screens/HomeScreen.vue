@@ -3,6 +3,12 @@ import { computed, ref, onMounted } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore, useIntroStore } from '../stores'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 import dorfLogo from '../assets/dorf-logo-1.png'
+import gemIcon from '../assets/icons/gems.png'
+import goldIcon from '../assets/icons/gold.png'
+import mapIcon from '../assets/icons/map.png'
+import codexIcon from '../assets/icons/codex.png'
+import storeIcon from '../assets/icons/store_goods.png'
+import fellowshipIcon from '../assets/icons/fellowship_hall.png'
 
 const emit = defineEmits(['navigate'])
 
@@ -76,11 +82,11 @@ const hasParty = computed(() => {
       <img :src="dorfLogo" alt="Dorf" class="game-logo" />
       <div class="currency-row">
         <div class="gem-display">
-          <span class="gem-icon">💎</span>
+          <img :src="gemIcon" alt="Gems" class="currency-icon" />
           <span class="gem-count">{{ gachaStore.gems.toLocaleString() }}</span>
         </div>
         <div class="gold-display">
-          <span class="gold-icon">🪙</span>
+          <img :src="goldIcon" alt="Gold" class="currency-icon" />
           <span class="gold-count">{{ gachaStore.gold.toLocaleString() }}</span>
         </div>
       </div>
@@ -129,7 +135,7 @@ const hasParty = computed(() => {
           @click="emit('navigate', 'fellowship-hall')"
         >
           <div class="room-icon-wrapper fellowship">
-            <span class="room-icon">🏰</span>
+            <img :src="fellowshipIcon" alt="Fellowship Hall" class="room-icon-img" />
           </div>
           <span class="room-label">Fellowship Hall</span>
         </button>
@@ -139,7 +145,7 @@ const hasParty = computed(() => {
           @click="emit('navigate', 'map-room')"
         >
           <div class="room-icon-wrapper map">
-            <span class="room-icon">🗺️</span>
+            <img :src="mapIcon" alt="Map Room" class="room-icon-img" />
           </div>
           <span class="room-label">Map Room</span>
         </button>
@@ -149,7 +155,7 @@ const hasParty = computed(() => {
           @click="emit('navigate', 'goodsAndMarkets')"
         >
           <div class="room-icon-wrapper store">
-            <span class="room-icon">📦</span>
+            <img :src="storeIcon" alt="Goods & Markets" class="room-icon-img" />
           </div>
           <span class="room-label">Goods & Markets</span>
         </button>
@@ -159,7 +165,7 @@ const hasParty = computed(() => {
           @click="emit('navigate', 'codex')"
         >
           <div class="room-icon-wrapper codex">
-            <span class="room-icon">📖</span>
+            <img :src="codexIcon" alt="Codex" class="room-icon-img" />
           </div>
           <span class="room-label">Codex</span>
         </button>
@@ -224,9 +230,10 @@ const hasParty = computed(() => {
   gap: 4px;
 }
 
-.gem-icon,
-.gold-icon {
-  font-size: 0.9rem;
+.currency-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
 }
 
 .gem-count,
@@ -530,8 +537,10 @@ const hasParty = computed(() => {
   background: #92400e;
 }
 
-.room-icon {
-  font-size: 1.3rem;
+.room-icon-img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
 }
 
 .room-label {
