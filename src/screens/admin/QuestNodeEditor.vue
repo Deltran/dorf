@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import { useQuestsStore } from '../../stores/quests.js'
+import SearchableDropdown from '../../components/admin/SearchableDropdown.vue'
 
 const questsStore = useQuestsStore()
 
@@ -28,8 +29,11 @@ const newRegionForm = ref({
   backgroundColor: '#1f2937'
 })
 
-// Placeholder ref for Task 10
+// Node form state
 const nodeForm = ref({})
+const enemyOptions = ref([])
+const itemOptions = ref([])
+const showAllRegionConnections = ref(false)
 
 // Fetch all regions from API
 async function fetchRegions() {
@@ -46,7 +50,31 @@ async function fetchRegions() {
   }
 }
 
-onMounted(fetchRegions)
+async function fetchDropdownData() {
+  try {
+    const [enemyRes, itemRes] = await Promise.all([
+      fetch('/__admin/enemies'),
+      fetch('/__admin/items')
+    ])
+    if (enemyRes.ok) {
+      const data = await enemyRes.json()
+      enemyOptions.value = Object.values(data).map(e => ({
+        id: e.id, label: e.name || e.id, sublabel: e.id
+      }))
+    }
+    if (itemRes.ok) {
+      const data = await itemRes.json()
+      itemOptions.value = Object.values(data).map(i => ({
+        id: i.id, label: i.name || i.id, sublabel: i.id
+      }))
+    }
+  } catch (e) { /* ignore dropdown fetch errors */ }
+}
+
+onMounted(() => {
+  fetchRegions()
+  fetchDropdownData()
+})
 
 // Computed
 const superRegionGroups = computed(() => {
@@ -81,6 +109,28 @@ watch(selectedRegion, (region) => {
     regionForm.value = {}
   }
 }, { immediate: true })
+
+// Populate node form when editing node changes
+watch(editingNodeId, (nodeId) => {
+  if (nodeId && selectedRegion.value) {
+    nodeForm.value = JSON.parse(JSON.stringify(selectedRegion.value.nodes[nodeId]))
+  }
+})
+
+// Connection options computed
+const connectionOptions = computed(() => {
+  if (showAllRegionConnections.value) {
+    return allRegions.value.flatMap(r =>
+      Object.values(r.nodes).map(n => ({
+        id: n.id, label: n.name, sublabel: `${r.regionMeta.name} / ${n.id}`
+      }))
+    )
+  }
+  if (!selectedRegion.value) return []
+  return Object.values(selectedRegion.value.nodes)
+    .filter(n => n.id !== editingNodeId.value)
+    .map(n => ({ id: n.id, label: n.name, sublabel: n.id }))
+})
 
 // Actions
 function selectRegion(regionId) {
@@ -213,13 +263,90 @@ async function createRegion() {
   }
 }
 
-// Placeholder functions for Task 10
-function saveNode() {
-  // Task 10 will implement
+// Save node
+async function saveNode() {
+  if (!selectedRegion.value || !editingNodeId.value) return
+  try {
+    const res = await fetch(
+      `/__admin/quest-regions/${selectedRegion.value.regionId}/nodes/${editingNodeId.value}`,
+      { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nodeForm.value) }
+    )
+    if (!res.ok) throw new Error(await res.text())
+    if (nodeForm.value.id !== editingNodeId.value) {
+      editingNodeId.value = nodeForm.value.id
+    }
+    await fetchRegions()
+  } catch (e) { error.value = e.message }
 }
 
-function createNode() {
-  // Task 10 will implement
+// Create node
+async function createNode() {
+  if (!selectedRegion.value) return
+  const existingIds = Object.keys(selectedRegion.value.nodes)
+  const prefix = selectedRegion.value.regionId.split('_')[0]
+  const num = String(existingIds.length + 1).padStart(2, '0')
+  const nodeId = `${prefix}_${num}`
+  const newNode = {
+    id: nodeId,
+    name: 'New Node',
+    region: selectedRegion.value.regionMeta.name,
+    x: 100, y: 100,
+    battles: [{ enemies: [] }],
+    connections: [],
+    rewards: { gems: 0, gold: 0, exp: 0 }
+  }
+  try {
+    const res = await fetch(
+      `/__admin/quest-regions/${selectedRegion.value.regionId}/nodes`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newNode) }
+    )
+    if (!res.ok) throw new Error(await res.text())
+    await fetchRegions()
+    editingNodeId.value = nodeId
+  } catch (e) { error.value = e.message }
+}
+
+// Battle wave helpers
+function addBattleWave() {
+  if (!nodeForm.value.battles) nodeForm.value.battles = []
+  nodeForm.value.battles.push({ enemies: [] })
+}
+function removeBattleWave(index) {
+  nodeForm.value.battles.splice(index, 1)
+}
+function moveBattleWave(index, direction) {
+  const newIndex = index + direction
+  if (newIndex < 0 || newIndex >= nodeForm.value.battles.length) return
+  const battles = nodeForm.value.battles
+  const temp = battles[index]
+  battles[index] = battles[newIndex]
+  battles[newIndex] = temp
+}
+function addEnemyToBattle(battleIndex, option) {
+  nodeForm.value.battles[battleIndex].enemies.push(option.id)
+}
+function removeEnemyFromBattle(battleIndex, enemyIndex) {
+  nodeForm.value.battles[battleIndex].enemies.splice(enemyIndex, 1)
+}
+
+// Connection helpers
+function addConnection(option) {
+  if (!nodeForm.value.connections) nodeForm.value.connections = []
+  if (!nodeForm.value.connections.includes(option.id)) {
+    nodeForm.value.connections.push(option.id)
+  }
+}
+function removeConnection(index) {
+  nodeForm.value.connections.splice(index, 1)
+}
+
+// Item drop helpers
+function addItemDrop(option) {
+  if (!nodeForm.value.itemDrops) nodeForm.value.itemDrops = []
+  nodeForm.value.itemDrops.push({ itemId: option.id, min: 1, max: 1, chance: 0.5 })
+}
+function removeItemDrop(index) {
+  nodeForm.value.itemDrops.splice(index, 1)
 }
 
 // Expose for child components
@@ -385,7 +512,7 @@ function onNodeSaved() {
             <div class="node-list-actions">
               <button class="small-btn" @click="unlockAllInRegion">Unlock All</button>
               <button class="small-btn muted" @click="lockAllInRegion">Lock All</button>
-              <!-- Add Node button: Task 10 -->
+              <button class="small-btn" @click="createNode">+ Node</button>
             </div>
           </div>
           <div class="node-rows">
@@ -415,14 +542,231 @@ function onNodeSaved() {
         </div>
       </template>
 
-      <!-- Node Editor: Task 10 -->
+      <!-- Node Editor -->
       <template v-if="editingNodeId">
         <div class="node-editor-header">
           <button class="back-btn" @click="backToNodeList">&#x2190; Back</button>
           <span>Editing: {{ editingNodeId }}</span>
         </div>
-        <!-- Node editor form: Task 10 -->
-        <p class="placeholder-text">Node editor form (Task 10)</p>
+
+        <div class="node-editor-form">
+          <!-- Identity -->
+          <div class="section-divider">Identity</div>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="field-label">ID</span>
+              <input v-model="nodeForm.id" class="field-input" />
+            </label>
+            <label class="form-field">
+              <span class="field-label">Name</span>
+              <input v-model="nodeForm.name" class="field-input" />
+            </label>
+            <label class="form-field">
+              <span class="field-label">Type</span>
+              <select v-model="nodeForm.type" class="field-select">
+                <option value="battle">Battle</option>
+                <option value="genusLoci">Genus Loci</option>
+                <option value="exploration">Exploration</option>
+              </select>
+            </label>
+            <label class="form-field">
+              <span class="field-label">Region</span>
+              <input :value="nodeForm.region" class="field-input" readonly />
+            </label>
+          </div>
+
+          <!-- Position -->
+          <div class="section-divider">Position</div>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="field-label">X</span>
+              <input v-model.number="nodeForm.x" type="number" class="field-input" />
+            </label>
+            <label class="form-field">
+              <span class="field-label">Y</span>
+              <input v-model.number="nodeForm.y" type="number" class="field-input" />
+            </label>
+          </div>
+
+          <!-- Battles -->
+          <div v-if="(nodeForm.type || 'battle') === 'battle'" class="battles-section">
+            <div class="section-divider">Battles</div>
+            <div
+              v-for="(battle, bIdx) in (nodeForm.battles || [])"
+              :key="bIdx"
+              class="battle-wave"
+            >
+              <div class="wave-header">
+                <span>Wave {{ bIdx + 1 }}</span>
+                <div class="wave-actions">
+                  <button class="wave-btn" :disabled="bIdx === 0" @click="moveBattleWave(bIdx, -1)">&#x2191;</button>
+                  <button class="wave-btn" :disabled="bIdx === (nodeForm.battles || []).length - 1" @click="moveBattleWave(bIdx, 1)">&#x2193;</button>
+                  <button class="wave-btn danger" @click="removeBattleWave(bIdx)">&#x2715;</button>
+                </div>
+              </div>
+              <div class="tag-list">
+                <span v-for="(enemyId, eIdx) in battle.enemies" :key="eIdx" class="tag">
+                  {{ enemyId }}
+                  <button class="tag-remove" @click="removeEnemyFromBattle(bIdx, eIdx)">&#x2715;</button>
+                </span>
+              </div>
+              <SearchableDropdown
+                :options="enemyOptions"
+                placeholder="Add enemy..."
+                @select="addEnemyToBattle(bIdx, $event)"
+              />
+            </div>
+            <button class="small-btn" @click="addBattleWave">+ Add Wave</button>
+          </div>
+
+          <!-- Connections -->
+          <div class="section-divider">Connections</div>
+          <div class="tag-list">
+            <span v-for="(connId, cIdx) in (nodeForm.connections || [])" :key="cIdx" class="tag">
+              {{ connId }}
+              <button class="tag-remove" @click="removeConnection(cIdx)">&#x2715;</button>
+            </span>
+          </div>
+          <label class="checkbox-field">
+            <input v-model="showAllRegionConnections" type="checkbox" />
+            Show all regions
+          </label>
+          <SearchableDropdown
+            :options="connectionOptions"
+            placeholder="Add connection..."
+            @select="addConnection"
+          />
+
+          <!-- Rewards -->
+          <div class="section-divider">Rewards</div>
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+            <label class="form-field">
+              <span class="field-label">Gems</span>
+              <input v-model.number="nodeForm.rewards.gems" type="number" class="field-input" />
+            </label>
+            <label class="form-field">
+              <span class="field-label">Gold</span>
+              <input v-model.number="nodeForm.rewards.gold" type="number" class="field-input" />
+            </label>
+            <label class="form-field">
+              <span class="field-label">Exp</span>
+              <input v-model.number="nodeForm.rewards.exp" type="number" class="field-input" />
+            </label>
+          </div>
+
+          <!-- First Clear Bonus -->
+          <div class="section-divider">First Clear Bonus</div>
+          <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+            <label class="form-field">
+              <span class="field-label">Gems</span>
+              <input
+                :value="(nodeForm.firstClearBonus || {}).gems || 0"
+                type="number"
+                class="field-input"
+                @input="if (!nodeForm.firstClearBonus) nodeForm.firstClearBonus = {}; nodeForm.firstClearBonus.gems = Number($event.target.value)"
+              />
+            </label>
+            <label class="form-field">
+              <span class="field-label">Gold</span>
+              <input
+                :value="(nodeForm.firstClearBonus || {}).gold || 0"
+                type="number"
+                class="field-input"
+                @input="if (!nodeForm.firstClearBonus) nodeForm.firstClearBonus = {}; nodeForm.firstClearBonus.gold = Number($event.target.value)"
+              />
+            </label>
+            <label class="form-field">
+              <span class="field-label">Exp</span>
+              <input
+                :value="(nodeForm.firstClearBonus || {}).exp || 0"
+                type="number"
+                class="field-input"
+                @input="if (!nodeForm.firstClearBonus) nodeForm.firstClearBonus = {}; nodeForm.firstClearBonus.exp = Number($event.target.value)"
+              />
+            </label>
+          </div>
+
+          <!-- Item Drops -->
+          <div class="section-divider">Item Drops</div>
+          <div v-for="(drop, dIdx) in (nodeForm.itemDrops || [])" :key="dIdx" class="item-drop-row">
+            <span>{{ drop.itemId }}</span>
+            <input v-model.number="drop.chance" type="number" step="0.05" min="0" max="1" class="drop-input" title="Chance" />
+            <input v-model.number="drop.min" type="number" min="1" class="drop-input" title="Min" />
+            <input v-model.number="drop.max" type="number" min="1" class="drop-input" title="Max" />
+            <button class="tag-remove" @click="removeItemDrop(dIdx)">&#x2715;</button>
+          </div>
+          <SearchableDropdown
+            :options="itemOptions"
+            placeholder="Add item drop..."
+            @select="addItemDrop"
+          />
+
+          <!-- Genus Loci -->
+          <template v-if="nodeForm.type === 'genusLoci'">
+            <div class="section-divider">Genus Loci</div>
+            <div class="form-grid">
+              <label class="form-field full-width">
+                <span class="field-label">Genus Loci ID</span>
+                <input v-model="nodeForm.genusLociId" class="field-input" placeholder="e.g. great_troll" />
+              </label>
+            </div>
+          </template>
+
+          <!-- Exploration -->
+          <template v-if="nodeForm.type === 'exploration'">
+            <div class="section-divider">Exploration Config</div>
+            <div class="form-grid">
+              <label class="form-field">
+                <span class="field-label">Required Fights</span>
+                <input
+                  :value="(nodeForm.explorationConfig || {}).requiredFights || 0"
+                  type="number"
+                  class="field-input"
+                  @input="if (!nodeForm.explorationConfig) nodeForm.explorationConfig = {}; nodeForm.explorationConfig.requiredFights = Number($event.target.value)"
+                />
+              </label>
+              <label class="form-field">
+                <span class="field-label">Time Limit</span>
+                <input
+                  :value="(nodeForm.explorationConfig || {}).timeLimit || 0"
+                  type="number"
+                  class="field-input"
+                  @input="if (!nodeForm.explorationConfig) nodeForm.explorationConfig = {}; nodeForm.explorationConfig.timeLimit = Number($event.target.value)"
+                />
+              </label>
+              <label class="form-field full-width">
+                <span class="field-label">Required Crest ID</span>
+                <input
+                  :value="(nodeForm.explorationConfig || {}).requiredCrestId || ''"
+                  class="field-input"
+                  @input="if (!nodeForm.explorationConfig) nodeForm.explorationConfig = {}; nodeForm.explorationConfig.requiredCrestId = $event.target.value"
+                />
+              </label>
+            </div>
+          </template>
+
+          <!-- Special Fields -->
+          <div class="section-divider">Special</div>
+          <div class="form-grid">
+            <label class="form-field">
+              <span class="field-label">Unlocks</span>
+              <input v-model="nodeForm.unlocks" class="field-input" placeholder="Node ID to unlock" />
+            </label>
+            <label class="form-field">
+              <span class="field-label">Unlocked By</span>
+              <input v-model="nodeForm.unlockedBy" class="field-input" placeholder="Required node ID" />
+            </label>
+            <label class="form-field full-width">
+              <span class="field-label">Background ID</span>
+              <input v-model="nodeForm.backgroundId" class="field-input" placeholder="Battle background asset ID" />
+            </label>
+          </div>
+
+          <!-- Save -->
+          <div class="form-actions">
+            <button class="save-btn" @click="saveNode">Save Node</button>
+          </div>
+        </div>
       </template>
     </main>
 
@@ -781,12 +1125,6 @@ function onNodeSaved() {
   color: #f3f4f6;
 }
 
-.placeholder-text {
-  color: #6b7280;
-  font-size: 0.85rem;
-  padding: 16px;
-}
-
 /* Delete confirmation dialog */
 .confirm-overlay {
   position: fixed;
@@ -980,5 +1318,136 @@ function onNodeSaved() {
   border-radius: 8px;
   overflow: hidden;
   margin-bottom: 16px;
+}
+
+.node-editor-form {
+  background: #1f2937;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  background: #374151;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #d1d5db;
+}
+
+.tag-remove {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 0.7rem;
+  padding: 0 2px;
+}
+
+.tag-remove:hover {
+  color: #ef4444;
+}
+
+.battle-wave {
+  background: #111827;
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 8px;
+}
+
+.wave-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.wave-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.wave-btn {
+  padding: 2px 6px;
+  background: #374151;
+  border: none;
+  border-radius: 3px;
+  color: #9ca3af;
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.wave-btn:hover {
+  background: #4b5563;
+  color: #f3f4f6;
+}
+
+.wave-btn.danger:hover {
+  background: #7f1d1d;
+  color: #fca5a5;
+}
+
+.wave-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.item-drop-row {
+  display: grid;
+  grid-template-columns: 1fr 70px 50px 50px 30px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid #1a2332;
+  font-size: 0.8rem;
+  color: #d1d5db;
+}
+
+.item-drop-row:last-child {
+  border-bottom: none;
+}
+
+.drop-input {
+  padding: 4px 6px;
+  background: #111827;
+  border: 1px solid #374151;
+  border-radius: 3px;
+  color: #f3f4f6;
+  font-size: 0.8rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section-divider {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #9ca3af;
+  margin: 16px 0 8px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #374151;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  margin-bottom: 8px;
+}
+
+.battles-section {
+  margin-bottom: 4px;
 }
 </style>
