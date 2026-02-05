@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue'
+import { computed, ref, onMounted, watch } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore, useIntroStore } from '../stores'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 import dorfLogo from '../assets/dorf-logo-1.png'
@@ -57,16 +57,49 @@ const partyBackgroundUrl = computed(() => {
   return defaultBg
 })
 
-const partyPreview = computed(() => {
-  return heroesStore.partyHeroes.map(hero => {
-    if (!hero) return null
-    return heroesStore.getHeroFull(hero.instanceId)
-  })
-})
+// Multi-party carousel
+const parties = computed(() => heroesStore.parties)
+const activePartyId = computed(() => heroesStore.activePartyId)
+const carouselRef = ref(null)
+const currentVisibleParty = ref(1)
 
-const hasParty = computed(() => {
-  return heroesStore.party.some(id => id !== null)
-})
+function getPartyPreview(partyIndex) {
+  const party = heroesStore.parties[partyIndex]
+  if (!party) return []
+  return party.slots.map(instanceId => {
+    if (!instanceId) return null
+    return heroesStore.getHeroFull(instanceId)
+  })
+}
+
+let scrollTimeout = null
+
+function handleCarouselScroll() {
+  if (!carouselRef.value) return
+  clearTimeout(scrollTimeout)
+  scrollTimeout = setTimeout(() => {
+    const container = carouselRef.value
+    const scrollLeft = container.scrollLeft
+    const pageWidth = container.offsetWidth
+    const newPartyIndex = Math.round(scrollLeft / pageWidth)
+    const newPartyId = newPartyIndex + 1
+    if (newPartyId !== currentVisibleParty.value && newPartyId >= 1 && newPartyId <= 3) {
+      currentVisibleParty.value = newPartyId
+      heroesStore.setActiveParty(newPartyId)
+    }
+  }, 50)
+}
+
+watch(activePartyId, (newId) => {
+  if (newId !== currentVisibleParty.value && carouselRef.value) {
+    const pageWidth = carouselRef.value.offsetWidth
+    carouselRef.value.scrollTo({
+      left: (newId - 1) * pageWidth,
+      behavior: 'smooth'
+    })
+    currentVisibleParty.value = newId
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -89,27 +122,34 @@ const hasParty = computed(() => {
     <section class="party-preview">
       <div class="party-container">
         <div class="party-title">Your Party</div>
-        <div v-if="hasParty" class="party-grid">
-          <template v-for="(hero, index) in partyPreview" :key="index">
-            <div class="party-slot" :class="{ filled: hero }" @click="emit('navigate', 'heroes', hero?.instanceId)">
-              <img
-                v-if="hero"
-                :src="getHeroImageUrl(hero.templateId)"
-                :alt="hero.template?.name"
-                class="hero-portrait"
-              />
-              <div v-else class="empty-slot">
-                <span class="slot-number">{{ index + 1 }}</span>
-              </div>
+        <div ref="carouselRef" class="party-carousel" @scroll="handleCarouselScroll">
+          <div v-for="(party, pIndex) in parties" :key="party.id" class="party-page">
+            <div v-if="getPartyPreview(pIndex).some(h => h)" class="party-grid">
+              <template v-for="(hero, index) in getPartyPreview(pIndex)" :key="index">
+                <div class="party-slot" :class="{ filled: hero }" @click="emit('navigate', 'heroes', hero?.instanceId)">
+                  <img
+                    v-if="hero"
+                    :src="getHeroImageUrl(hero.templateId)"
+                    :alt="hero.template?.name"
+                    class="hero-portrait"
+                  />
+                  <div v-else class="empty-slot">
+                    <span class="slot-number">{{ index + 1 }}</span>
+                  </div>
+                </div>
+              </template>
             </div>
-          </template>
+            <div v-else class="no-party">
+              <div class="no-party-icon">⚔️</div>
+              <p>No heroes in {{ party.name }}!</p>
+              <button class="summon-cta" @click="emit('navigate', 'gacha')">
+                <span>Summon Heroes</span>
+              </button>
+            </div>
+          </div>
         </div>
-        <div v-else class="no-party">
-          <div class="no-party-icon">⚔️</div>
-          <p>No heroes in party!</p>
-          <button class="summon-cta" @click="emit('navigate', 'gacha')">
-            <span>Summon Heroes</span>
-          </button>
+        <div class="carousel-dots">
+          <span v-for="party in parties" :key="party.id" :class="['dot', { active: party.id === currentVisibleParty }]"></span>
         </div>
       </div>
     </section>
@@ -374,6 +414,46 @@ const hasParty = computed(() => {
 
 .summon-cta:hover {
   background: #818cf8;
+}
+
+/* ===== Party Carousel ===== */
+.party-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.party-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.party-page {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.carousel-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #374151;
+  transition: all 0.2s ease;
+}
+
+.dot.active {
+  background: #f59e0b;
+  transform: scale(1.2);
 }
 
 /* ===== Navigation ===== */
