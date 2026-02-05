@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted, watch } from 'vue'
+import { computed, ref, onMounted, watch, nextTick } from 'vue'
 import { useHeroesStore, useGachaStore, useQuestsStore, useIntroStore } from '../stores'
 import defaultBg from '../assets/battle_backgrounds/default.png'
 import dorfLogo from '../assets/dorf-logo-1.png'
@@ -96,6 +96,7 @@ function handleCarouselScroll() {
   }, 50)
 }
 
+// Sync carousel position when activePartyId changes externally (e.g., from PartyScreen)
 watch(activePartyId, (newId) => {
   if (newId !== currentVisibleParty.value && carouselRef.value) {
     const pageWidth = carouselRef.value.offsetWidth
@@ -105,7 +106,22 @@ watch(activePartyId, (newId) => {
     })
     currentVisibleParty.value = newId
   }
-}, { immediate: true })
+})
+
+// On mount, ensure carousel is scrolled to the active party (DOM must be ready first)
+onMounted(() => {
+  nextTick(() => {
+    if (carouselRef.value && heroesStore.activePartyId !== 1) {
+      const pageWidth = carouselRef.value.offsetWidth
+      // Use instant scroll on mount (no animation)
+      carouselRef.value.scrollTo({
+        left: (heroesStore.activePartyId - 1) * pageWidth,
+        behavior: 'instant'
+      })
+      currentVisibleParty.value = heroesStore.activePartyId
+    }
+  })
+})
 </script>
 
 <template>
@@ -326,7 +342,7 @@ watch(activePartyId, (newId) => {
   gap: 12px;
   max-width: 520px;
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 24px 16px 0 16px; /* Top padding for staggered heroes */
 }
 
 .party-slot {
@@ -360,13 +376,12 @@ watch(activePartyId, (newId) => {
 }
 
 .hero-portrait {
-  width: 135%;
-  height: 135%;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
   image-rendering: pixelated;
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.7));
-  margin: -17.5%;
 }
 
 .empty-slot {

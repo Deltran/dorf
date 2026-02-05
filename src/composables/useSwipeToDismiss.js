@@ -15,6 +15,29 @@ export function useSwipeToDismiss({ elementRef, isOpen, onClose, threshold = 100
 
   let startY = 0
   let currentY = 0
+  let canDismiss = false // Track if swipe-to-dismiss is allowed for this gesture
+
+  // Find the nearest scrollable ancestor of an element
+  function findScrollableParent(element) {
+    let current = element
+    while (current && current !== elementRef.value) {
+      const style = window.getComputedStyle(current)
+      const overflowY = style.overflowY
+      if ((overflowY === 'auto' || overflowY === 'scroll') && current.scrollHeight > current.clientHeight) {
+        return current
+      }
+      current = current.parentElement
+    }
+    // Check the element itself
+    if (elementRef.value) {
+      const style = window.getComputedStyle(elementRef.value)
+      const overflowY = style.overflowY
+      if ((overflowY === 'auto' || overflowY === 'scroll') && elementRef.value.scrollHeight > elementRef.value.clientHeight) {
+        return elementRef.value
+      }
+    }
+    return null
+  }
 
   function handleTouchStart(e) {
     // Only track single touch
@@ -22,17 +45,21 @@ export function useSwipeToDismiss({ elementRef, isOpen, onClose, threshold = 100
 
     startY = e.touches[0].clientY
     currentY = startY
-    isDragging.value = true
     dragOffset.value = 0
 
+    // Check if we're allowed to dismiss (only when scrolled to top)
+    const scrollable = findScrollableParent(e.target)
+    canDismiss = !scrollable || scrollable.scrollTop <= 0
+    isDragging.value = canDismiss
+
     // Remove transition during drag for responsive feel
-    if (elementRef.value) {
+    if (canDismiss && elementRef.value) {
       elementRef.value.style.transition = 'none'
     }
   }
 
   function handleTouchMove(e) {
-    if (!isDragging.value) return
+    if (!isDragging.value || !canDismiss) return
 
     currentY = e.touches[0].clientY
     const delta = currentY - startY
@@ -49,9 +76,14 @@ export function useSwipeToDismiss({ elementRef, isOpen, onClose, threshold = 100
   }
 
   function handleTouchEnd() {
-    if (!isDragging.value) return
+    if (!isDragging.value || !canDismiss) {
+      isDragging.value = false
+      canDismiss = false
+      return
+    }
 
     isDragging.value = false
+    canDismiss = false
 
     // Restore transition for snap-back animation
     if (elementRef.value) {
