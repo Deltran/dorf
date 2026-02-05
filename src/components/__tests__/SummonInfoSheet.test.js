@@ -335,6 +335,8 @@ describe('SummonInfoSheet', () => {
     })
 
     it('emits close on sufficient swipe down', async () => {
+      vi.useFakeTimers()
+
       const wrapper = mount(SummonInfoSheet, {
         props: {
           visible: true,
@@ -344,18 +346,35 @@ describe('SummonInfoSheet', () => {
         }
       })
 
-      const sheet = wrapper.find('.sheet-content')
+      // Wait for the composable's setTimeout to attach listeners
+      await vi.runAllTimersAsync()
 
-      // Simulate swipe down
-      await sheet.trigger('touchstart', {
-        touches: [{ clientY: 100 }]
+      const sheetEl = wrapper.find('.sheet-content').element
+
+      // Create and dispatch native touch events
+      const touchStart = new window.TouchEvent('touchstart', {
+        touches: [{ clientY: 100 }],
+        bubbles: true
       })
-      await sheet.trigger('touchmove', {
-        touches: [{ clientY: 250 }] // 150px down swipe
+      const touchMove = new window.TouchEvent('touchmove', {
+        touches: [{ clientY: 250 }], // 150px down swipe (> 100px threshold)
+        bubbles: true,
+        cancelable: true
       })
-      await sheet.trigger('touchend')
+      const touchEnd = new window.TouchEvent('touchend', {
+        bubbles: true
+      })
+
+      sheetEl.dispatchEvent(touchStart)
+      sheetEl.dispatchEvent(touchMove)
+      sheetEl.dispatchEvent(touchEnd)
+
+      // Wait for the dismiss setTimeout (200ms) to fire
+      await vi.runAllTimersAsync()
 
       expect(wrapper.emitted('close')).toBeTruthy()
+
+      vi.useRealTimers()
     })
 
     it('does not emit close on insufficient swipe', async () => {
