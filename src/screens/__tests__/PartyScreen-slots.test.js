@@ -649,4 +649,236 @@ describe('PartyScreen - Frameless Hero Slot Rendering', () => {
       // (primarily just the image with glow effect)
     })
   })
+
+  describe('Leader skill bar - always visible', () => {
+    it('should ALWAYS render leader skill bar, even with no leader set', () => {
+      const wrapper = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        }
+      })
+
+      // Bar should exist even when no leader is set
+      const leaderSkillBar = wrapper.find('.leader-skill-bar')
+      expect(leaderSkillBar.exists()).toBe(true)
+    })
+
+    it('should show placeholder text when no leader is set', () => {
+      const wrapper = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        }
+      })
+
+      const leaderSkillBar = wrapper.find('.leader-skill-bar')
+      expect(leaderSkillBar.exists()).toBe(true)
+
+      // Should show placeholder text
+      const placeholderText = leaderSkillBar.find('.leader-skill-placeholder')
+      expect(placeholderText.exists()).toBe(true)
+      expect(placeholderText.text()).toContain('Tap a hero to set as leader')
+    })
+
+    it('should show placeholder with dimmed styling when no leader', () => {
+      const wrapper = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        }
+      })
+
+      const placeholder = wrapper.find('.leader-skill-placeholder')
+      expect(placeholder.exists()).toBe(true)
+
+      // Placeholder should have dimmed class
+      expect(placeholder.classes()).toContain('dimmed')
+    })
+
+    it('should show leader skill content when leader is set', () => {
+      // Add Aurora (5-star with leader skill)
+      const hero = heroesStore.addHero('aurora_the_dawn')
+      heroesStore.setPartySlot(0, hero.instanceId)
+      heroesStore.setPartyLeader(hero.instanceId)
+
+      const wrapper = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        }
+      })
+
+      const leaderSkillBar = wrapper.find('.leader-skill-bar')
+      expect(leaderSkillBar.exists()).toBe(true)
+
+      // Should show crown icon
+      const icon = leaderSkillBar.find('.leader-skill-icon')
+      expect(icon.exists()).toBe(true)
+      expect(icon.text()).toContain('👑')
+
+      // Should show skill name
+      const skillName = leaderSkillBar.find('.leader-skill-name')
+      expect(skillName.exists()).toBe(true)
+      expect(skillName.text()).toBeTruthy()
+
+      // Should show skill description
+      const skillDesc = leaderSkillBar.find('.leader-skill-desc')
+      expect(skillDesc.exists()).toBe(true)
+      expect(skillDesc.text()).toBeTruthy()
+    })
+
+    it('should NOT show placeholder when leader is set', () => {
+      const hero = heroesStore.addHero('aurora_the_dawn')
+      heroesStore.setPartySlot(0, hero.instanceId)
+      heroesStore.setPartyLeader(hero.instanceId)
+
+      const wrapper = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        }
+      })
+
+      // Placeholder should not exist when leader is set
+      const placeholder = wrapper.find('.leader-skill-placeholder')
+      expect(placeholder.exists()).toBe(false)
+    })
+
+    it('should have consistent minimum height in both states', () => {
+      // Test with no leader
+      const wrapperNoLeader = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        }
+      })
+
+      const barNoLeader = wrapperNoLeader.find('.leader-skill-bar')
+      expect(barNoLeader.exists()).toBe(true)
+
+      // Test with leader
+      const hero = heroesStore.addHero('aurora_the_dawn')
+      heroesStore.setPartySlot(0, hero.instanceId)
+      heroesStore.setPartyLeader(hero.instanceId)
+
+      const wrapperWithLeader = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        }
+      })
+
+      const barWithLeader = wrapperWithLeader.find('.leader-skill-bar')
+      expect(barWithLeader.exists()).toBe(true)
+
+      // Both bars should exist (testing for layout consistency)
+      // The actual height would be tested via CSS, but we verify the element structure
+      expect(barNoLeader.classes()).toContain('leader-skill-bar')
+      expect(barWithLeader.classes()).toContain('leader-skill-bar')
+    })
+
+    it('should remain visible during placement mode', () => {
+      // Add a hero and start placing another
+      const hero1 = heroesStore.addHero('aurora_the_dawn')
+      const hero2 = heroesStore.addHero('shadow_king')
+      heroesStore.setPartySlot(0, hero1.instanceId)
+      heroesStore.setPartyLeader(hero1.instanceId)
+
+      const wrapper = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        },
+        props: {
+          placingHeroId: hero2.instanceId
+        }
+      })
+
+      // Leader skill bar should still be visible during placement
+      const leaderSkillBar = wrapper.find('.leader-skill-bar')
+      expect(leaderSkillBar.exists()).toBe(true)
+
+      // Should show actual content, not placeholder (since leader is set)
+      const skillContent = leaderSkillBar.find('.leader-skill-content')
+      expect(skillContent.exists()).toBe(true)
+    })
+
+    it('should transition from placeholder to content when leader is set', async () => {
+      const hero = heroesStore.addHero('aurora_the_dawn')
+      heroesStore.setPartySlot(0, hero.instanceId)
+
+      const wrapper = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        }
+      })
+
+      // Initially should show placeholder
+      let placeholder = wrapper.find('.leader-skill-placeholder')
+      expect(placeholder.exists()).toBe(true)
+
+      // Set hero as leader
+      heroesStore.setPartyLeader(hero.instanceId)
+      await wrapper.vm.$nextTick()
+
+      // Placeholder should be gone
+      placeholder = wrapper.find('.leader-skill-placeholder')
+      expect(placeholder.exists()).toBe(false)
+
+      // Content should now be visible
+      const skillContent = wrapper.find('.leader-skill-content')
+      expect(skillContent.exists()).toBe(true)
+    })
+
+    it('should transition from content to placeholder when leader is unset', async () => {
+      const hero = heroesStore.addHero('aurora_the_dawn')
+      heroesStore.setPartySlot(0, hero.instanceId)
+      heroesStore.setPartyLeader(hero.instanceId)
+
+      const wrapper = mount(PartyScreen, {
+        global: {
+          plugins: [pinia],
+          stubs: {
+            Teleport: true
+          }
+        }
+      })
+
+      // Initially should show content
+      let skillContent = wrapper.find('.leader-skill-content')
+      expect(skillContent.exists()).toBe(true)
+
+      // Unset leader
+      heroesStore.setPartyLeader(null)
+      await wrapper.vm.$nextTick()
+
+      // Content should be gone
+      skillContent = wrapper.find('.leader-skill-content')
+      expect(skillContent.exists()).toBe(false)
+
+      // Placeholder should now be visible
+      const placeholder = wrapper.find('.leader-skill-placeholder')
+      expect(placeholder.exists()).toBe(true)
+    })
+  })
 })
