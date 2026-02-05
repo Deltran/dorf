@@ -90,6 +90,7 @@ export const effectDefinitions = {
   [EffectType.ATK_UP]: {
     name: 'ATK Up',
     icon: '⚔️',
+    iconName: 'sword',
     color: '#ef4444',
     isBuff: true,
     stat: 'atk',
@@ -98,6 +99,7 @@ export const effectDefinitions = {
   [EffectType.ATK_DOWN]: {
     name: 'ATK Down',
     icon: '⚔️',
+    iconName: 'sword',
     color: '#6b7280',
     isBuff: false,
     stat: 'atk',
@@ -146,6 +148,7 @@ export const effectDefinitions = {
   [EffectType.BURN]: {
     name: 'Burn',
     icon: '🔥',
+    iconName: 'fire',
     color: '#f97316',
     isBuff: false,
     isDot: true,
@@ -202,6 +205,7 @@ export const effectDefinitions = {
   [EffectType.RIPOSTE]: {
     name: 'Riposte',
     icon: '⚔️',
+    iconName: 'sword',
     color: '#f59e0b',
     isBuff: true,
     isRiposte: true,
@@ -210,6 +214,7 @@ export const effectDefinitions = {
   [EffectType.TAUNT]: {
     name: 'Taunt',
     icon: '🎯',
+    iconName: 'target',
     color: '#ef4444',
     isBuff: true,
     isTaunt: true,
@@ -298,6 +303,7 @@ export const effectDefinitions = {
   [EffectType.FLAME_SHIELD]: {
     name: 'Flame Shield',
     icon: '🔥',
+    iconName: 'fire',
     color: '#f97316',
     isBuff: true,
     isFlameShield: true,
@@ -306,6 +312,7 @@ export const effectDefinitions = {
   [EffectType.MARKED]: {
     name: 'Marked',
     icon: '🎯',
+    iconName: 'target',
     color: '#ef4444',
     isBuff: false,
     isMarked: true,
@@ -314,6 +321,7 @@ export const effectDefinitions = {
   [EffectType.VICIOUS]: {
     name: 'Vicious',
     icon: '🗡️',
+    iconName: 'sword',
     color: '#dc2626',
     isBuff: true,
     isVicious: true,

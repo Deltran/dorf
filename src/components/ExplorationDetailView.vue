@@ -5,6 +5,7 @@ import { RANK_BONUS_PER_LEVEL } from '../data/explorationRanks.js'
 import { getItem } from '../data/items.js'
 import { particleBurst, scaleBounce } from '../composables/useParticleBurst.js'
 import HeroCard from './HeroCard.vue'
+import GameIcon from './GameIcon.vue'
 
 // Image imports
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
@@ -138,10 +139,10 @@ const sortOptions = [
 ]
 
 const roleOptions = [
-  { value: 'tank', label: 'Tank', icon: '🛡️' },
-  { value: 'dps', label: 'DPS', icon: '⚔️' },
-  { value: 'healer', label: 'Healer', icon: '💚' },
-  { value: 'support', label: 'Support', icon: '✨' }
+  { value: 'tank', label: 'Tank', icon: 'tank' },
+  { value: 'dps', label: 'DPS', icon: 'dps' },
+  { value: 'healer', label: 'Healer', icon: 'healer' },
+  { value: 'support', label: 'Support', icon: 'support' }
 ]
 
 const classOptions = [
@@ -509,7 +510,7 @@ function cancelExploration() {
                       :checked="selectedRoles.includes(role.value)"
                       @change="toggleRole(role.value)"
                     />
-                    <span class="role-icon">{{ role.icon }}</span>
+                    <GameIcon :name="role.icon" size="sm" inline />
                     <span>{{ role.label }}</span>
                   </label>
                 </div>
@@ -989,9 +990,6 @@ h3 {
   height: 16px;
 }
 
-.role-icon {
-  font-size: 1rem;
-}
 
 .hero-grid {
   display: grid;

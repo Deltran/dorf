@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
+import GameIcon from './GameIcon.vue'
 
 const props = defineProps({
   hero: {
@@ -67,9 +68,9 @@ const resourceDisplay = computed(() => {
 
   switch (resourceType.value) {
     case 'rage':
-      return { icon: '🔥', name: 'Rage', value: h.currentRage || 0, max: 100 }
+      return { icon: '🔥', iconName: 'fire', name: 'Rage', value: h.currentRage || 0, max: 100 }
     case 'focus':
-      return { icon: '🎯', name: 'Focus', value: h.hasFocus ? 'Ready' : '—', max: null }
+      return { icon: '🎯', iconName: 'target', name: 'Focus', value: h.hasFocus ? 'Ready' : '—', max: null }
     case 'valor':
       return { icon: '⚜️', name: 'Valor', value: h.currentValor || 0, max: 100 }
     case 'verse':
@@ -146,7 +147,10 @@ function formatTargetType(skill) {
         <div class="skills-column">
           <!-- Resource indicator -->
           <div v-if="resourceDisplay" class="resource-line">
-            <span class="resource-icon">{{ resourceDisplay.icon }}</span>
+            <span class="resource-icon">
+              <GameIcon v-if="resourceDisplay.iconName" :name="resourceDisplay.iconName" size="sm" inline />
+              <template v-else>{{ resourceDisplay.icon }}</template>
+            </span>
             <span class="resource-name">{{ resourceDisplay.name }}</span>
             <span class="resource-value">
               {{ resourceDisplay.value }}

@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useCodexStore, useHeroesStore } from '../stores'
 import { getAllHeroTemplates } from '../data/heroes/index.js'
 import { classes } from '../data/classes.js'
+import GameIcon from '../components/GameIcon.vue'
 
 const emit = defineEmits(['navigate'])
 const codexStore = useCodexStore()
@@ -32,10 +33,10 @@ const rarityColors = {
 }
 
 const roleIcons = {
-  tank: '🛡️',
-  dps: '⚔️',
-  healer: '💚',
-  support: '✨'
+  tank: 'tank',
+  dps: 'dps',
+  healer: 'healer',
+  support: 'support'
 }
 
 const herosByRarity = computed(() => {
@@ -141,7 +142,7 @@ function closeDetail() {
           <h2 class="detail-name">{{ selectedHero.name }}</h2>
           <div v-if="selectedHero.epithet" class="detail-epithet">{{ selectedHero.epithet }}</div>
           <div class="detail-class">
-            {{ roleIcons[classes[selectedHero.classId]?.role] || '' }}
+            <GameIcon :name="roleIcons[classes[selectedHero.classId]?.role] || 'dps'" size="sm" inline />
             {{ classes[selectedHero.classId]?.title || selectedHero.classId }}
           </div>
         </div>
@@ -188,7 +189,10 @@ function closeDetail() {
 
         <!-- Leader Skill -->
         <div v-if="selectedHero.leaderSkill" class="detail-section">
-          <h3 class="detail-section-title">👑 Leader Skill</h3>
+          <h3 class="detail-section-title">
+            <GameIcon name="crown" size="sm" inline />
+            Leader Skill
+          </h3>
           <div class="skill-entry">
             <span class="skill-name">{{ selectedHero.leaderSkill.name }}</span>
             <span class="skill-desc">{{ selectedHero.leaderSkill.description }}</span>

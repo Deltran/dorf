@@ -44,6 +44,12 @@ export const SLOT_ICONS = {
   instrument: '🎵'
 }
 
+export const SLOT_ICON_NAMES = {
+  weapon: 'sword',
+  war_trophy: 'skull',
+  shield: 'shield'
+}
+
 // Equipment data object - keyed by id for fast lookup
 export const equipment = {
   // ===== WEAPONS (Universal) =====

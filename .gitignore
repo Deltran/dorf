@@ -37,3 +37,4 @@ android/local.properties
 
 # Asset generation
 scripts/generation-errors.log
+*.Zone.Identifier

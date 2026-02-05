@@ -6,6 +6,7 @@ import StarRating from '../components/StarRating.vue'
 import MergePlannerModal from '../components/MergePlannerModal.vue'
 import EquipmentSlot from '../components/EquipmentSlot.vue'
 import EquipmentSelectModal from '../components/EquipmentSelectModal.vue'
+import GameIcon from '../components/GameIcon.vue'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 import { getItem } from '../data/items.js'
@@ -99,10 +100,10 @@ const sortOptions = [
 ]
 
 const roleOptions = [
-  { value: 'tank', label: 'Tank', icon: '🛡️' },
-  { value: 'dps', label: 'DPS', icon: '⚔️' },
-  { value: 'healer', label: 'Healer', icon: '💚' },
-  { value: 'support', label: 'Support', icon: '✨' }
+  { value: 'tank', label: 'Tank', icon: 'tank' },
+  { value: 'dps', label: 'DPS', icon: 'dps' },
+  { value: 'healer', label: 'Healer', icon: 'healer' },
+  { value: 'support', label: 'Support', icon: 'support' }
 ]
 
 const classOptions = [
@@ -345,14 +346,14 @@ function isInParty(instanceId) {
 }
 
 const roleIcons = {
-  tank: '🛡️',
-  dps: '⚔️',
-  healer: '💚',
-  support: '✨'
+  tank: 'tank',
+  dps: 'dps',
+  healer: 'healer',
+  support: 'support'
 }
 
 function getRoleIcon(role) {
-  return roleIcons[role] || '❓'
+  return roleIcons[role] || 'dps'
 }
 
 function getLevelDisplay(level) {
@@ -837,7 +838,7 @@ function getEffectTypeName(type) {
                 :checked="selectedRoles.includes(role.value)"
                 @change="toggleRole(role.value)"
               />
-              <span class="role-icon">{{ role.icon }}</span>
+              <GameIcon :name="role.icon" size="sm" inline />
               <span>{{ role.label }}</span>
             </label>
           </div>
@@ -952,7 +953,10 @@ function getEffectTypeName(type) {
           </div>
           <div class="info-item">
             <span class="info-label">Role</span>
-            <span class="info-value">{{ getRoleIcon(selectedHero.class.role) }} {{ selectedHero.class.role }}</span>
+            <span class="info-value">
+              <GameIcon :name="getRoleIcon(selectedHero.class.role)" size="sm" inline />
+              {{ selectedHero.class.role }}
+            </span>
           </div>
           <div class="info-item">
             <span class="info-label">Level</span>
@@ -3095,9 +3099,6 @@ function getEffectTypeName(type) {
   height: 16px;
 }
 
-.role-icon {
-  font-size: 1rem;
-}
 
 /* ===== Build Copies Section ===== */
 .build-copies-btn-inline {

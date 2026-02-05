@@ -3,6 +3,7 @@ import { ref, computed, toRef, Teleport, Transition, nextTick } from 'vue'
 import { useHeroesStore } from '../stores'
 import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 import { getClass } from '../data/classes.js'
+import GameIcon from '../components/GameIcon.vue'
 
 // Hero image imports (GIF priority)
 const heroImages = import.meta.glob('../assets/heroes/*.png', { eager: true, import: 'default' })
@@ -105,15 +106,15 @@ const availableHeroes = computed(() => {
 
 // Role icons for hero picker
 const roleIcons = {
-  tank: '🛡️',
-  dps: '⚔️',
-  healer: '💚',
-  support: '✨'
+  tank: 'tank',
+  dps: 'dps',
+  healer: 'healer',
+  support: 'support'
 }
 
 function getRoleIcon(classId) {
   const heroClass = getClass(classId)
-  return roleIcons[heroClass?.role] || '❓'
+  return roleIcons[heroClass?.role] || 'dps'
 }
 
 const partySlots = computed(() => {
@@ -295,19 +296,19 @@ const synergyMessages = computed(() => {
     <div v-if="!placingHero" class="synergy-bar">
       <div class="role-counts">
         <div :class="['role-count', { active: roleCounts.tank > 0 }]">
-          <span class="role-icon">🛡️</span>
+          <GameIcon name="tank" size="sm" inline />
           <span class="role-num">{{ roleCounts.tank }}</span>
         </div>
         <div :class="['role-count', { active: roleCounts.dps > 0 }]">
-          <span class="role-icon">⚔️</span>
+          <GameIcon name="dps" size="sm" inline />
           <span class="role-num">{{ roleCounts.dps }}</span>
         </div>
         <div :class="['role-count', { active: roleCounts.healer > 0 }]">
-          <span class="role-icon">💚</span>
+          <GameIcon name="healer" size="sm" inline />
           <span class="role-num">{{ roleCounts.healer }}</span>
         </div>
         <div :class="['role-count', { active: roleCounts.support > 0 }]">
-          <span class="role-icon">✨</span>
+          <GameIcon name="support" size="sm" inline />
           <span class="role-num">{{ roleCounts.support }}</span>
         </div>
       </div>
@@ -323,7 +324,7 @@ const synergyMessages = computed(() => {
     <!-- Leader Skill Preview (Always Visible) -->
     <div class="leader-skill-bar">
       <template v-if="leaderSkill">
-        <div class="leader-skill-icon">👑</div>
+        <GameIcon name="crown" size="lg" />
         <div class="leader-skill-content">
           <div class="leader-skill-name">{{ leaderSkill.name }}</div>
           <div class="leader-skill-desc">{{ leaderSkill.description }}</div>
@@ -331,7 +332,7 @@ const synergyMessages = computed(() => {
       </template>
       <template v-else>
         <div class="leader-skill-placeholder dimmed">
-          <span>👑</span>
+          <GameIcon name="crown" size="lg" />
           <span>Tap a hero to set as leader</span>
         </div>
       </template>
@@ -346,7 +347,9 @@ const synergyMessages = computed(() => {
         >
           <template v-if="slot.hero">
             <div class="party-slot-content">
-              <div v-if="isLeader(slot.hero.instanceId)" class="leader-crown">👑</div>
+              <div v-if="isLeader(slot.hero.instanceId)" class="leader-crown">
+                <GameIcon name="crown" size="lg" />
+              </div>
               <img
                 v-if="getHeroImageUrl(slot.hero.template.id)"
                 :src="getHeroImageUrl(slot.hero.template.id)"
@@ -359,7 +362,7 @@ const synergyMessages = computed(() => {
                 :class="['hero-placeholder', `rarity-glow-${slot.hero.template.rarity}`]"
                 @click="toggleLeader(slot.hero)"
               >
-                <span class="placeholder-icon">{{ getRoleIcon(slot.hero.template.classId) }}</span>
+                <GameIcon :name="getRoleIcon(slot.hero.template.classId)" size="xl" />
               </div>
               <div class="hero-info">
                 <div class="hero-name">{{ slot.hero.template.name }}</div>
@@ -391,12 +394,12 @@ const synergyMessages = computed(() => {
 
     <div class="party-actions">
       <button class="auto-fill-btn" @click="heroesStore.autoFillParty">
-        <span class="btn-icon">✨</span>
+        <GameIcon name="support" size="md" inline />
         <span>Auto-Fill Party</span>
       </button>
 
       <button class="browse-btn" @click="emit('navigate', 'heroes')">
-        <span class="btn-icon">⚔️</span>
+        <GameIcon name="dps" size="md" inline />
         <span>Manage Heroes</span>
       </button>
     </div>
@@ -440,7 +443,7 @@ const synergyMessages = computed(() => {
               :class="['picker-hero', `rarity-${hero.template?.rarity || 1}`]"
               @click="selectHeroForSlot(hero)"
             >
-              <div class="picker-hero-role">{{ getRoleIcon(hero.template?.classId) }}</div>
+              <GameIcon :name="getRoleIcon(hero.template?.classId)" size="lg" />
               <div class="picker-hero-name">{{ hero.template?.name }}</div>
               <div class="picker-hero-meta">
                 <span class="picker-hero-class">{{ hero.class?.title }}</span>
@@ -498,9 +501,6 @@ const synergyMessages = computed(() => {
   opacity: 1;
 }
 
-.role-count .role-icon {
-  font-size: 1rem;
-}
 
 .role-count .role-num {
   font-size: 0.85rem;
@@ -627,8 +627,7 @@ const synergyMessages = computed(() => {
   border: 1px solid rgba(245, 158, 11, 0.2);
 }
 
-.leader-skill-icon {
-  font-size: 1.25rem;
+.leader-skill-bar :deep(.game-icon) {
   flex-shrink: 0;
   animation: subtlePulse 3s ease-in-out infinite;
 }
@@ -798,7 +797,6 @@ const synergyMessages = computed(() => {
   position: absolute;
   top: -8px;
   right: -8px;
-  font-size: 1.5rem;
   z-index: 10;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
   animation: crownBob 2s ease-in-out infinite;
@@ -841,10 +839,6 @@ const synergyMessages = computed(() => {
   transform: scale(1.02);
 }
 
-.placeholder-icon {
-  font-size: 3rem;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-}
 
 /* Rarity Glow Effects */
 .rarity-glow-1 {
@@ -920,8 +914,7 @@ const synergyMessages = computed(() => {
   opacity: 0.5;
 }
 
-.leader-skill-placeholder span:first-child {
-  font-size: 1.25rem;
+.leader-skill-placeholder :deep(.game-icon) {
   opacity: 0.4;
 }
 
@@ -1013,9 +1006,6 @@ const synergyMessages = computed(() => {
   transform: translateY(-2px);
 }
 
-.btn-icon {
-  font-size: 1.1rem;
-}
 
 /* Empty slot redesign */
 .slot-icon {
@@ -1158,10 +1148,7 @@ const synergyMessages = computed(() => {
 .picker-hero.rarity-4 { border-left-color: #a855f7; }
 .picker-hero.rarity-5 { border-left-color: #f59e0b; }
 
-.picker-hero-role {
-  font-size: 1.25rem;
-  width: 32px;
-  text-align: center;
+.picker-hero :deep(.game-icon) {
   flex-shrink: 0;
 }
 

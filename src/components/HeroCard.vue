@@ -7,6 +7,7 @@ import ValorBar from './ValorBar.vue'
 import RageBar from './RageBar.vue'
 import VerseIndicator from './VerseIndicator.vue'
 import EssenceBar from './EssenceBar.vue'
+import GameIcon from './GameIcon.vue'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 
@@ -98,12 +99,12 @@ const rarityClass = computed(() => {
 
 const roleIcon = computed(() => {
   const icons = {
-    tank: '🛡️',
-    dps: '⚔️',
-    healer: '💚',
-    support: '✨'
+    tank: 'tank',
+    dps: 'dps',
+    healer: 'healer',
+    support: 'support'
   }
-  return icons[heroClass.value?.role] || '❓'
+  return icons[heroClass.value?.role] || 'dps'
 })
 
 const statusEffects = computed(() => {
@@ -136,7 +137,7 @@ const isOnExploration = computed(() => {
     @click="emit('click', hero)"
   >
     <div v-if="!showBars" class="card-header">
-      <span class="role-icon">{{ roleIcon }}</span>
+      <GameIcon :name="roleIcon" size="sm" inline />
       <span class="hero-level">{{ levelDisplay }}</span>
       <span v-if="isOnExploration" class="exploration-badge" title="Currently Exploring">🧭</span>
     </div>
@@ -293,9 +294,6 @@ const isOnExploration = computed(() => {
   margin-bottom: 4px;
 }
 
-.role-icon {
-  font-size: 1rem;
-}
 
 .hero-level {
   font-size: 0.7rem;

@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import GameIcon from './GameIcon.vue'
 
 const props = defineProps({
   type: {
@@ -12,15 +13,19 @@ const emit = defineEmits(['complete'])
 
 const isVisible = ref(true)
 
-const icons = {
-  attack: '⚔️',
-  magic: '✨',
-  heal: '💚',
-  buff: '🛡️',
-  debuff: '💀'
+const iconNames = {
+  attack: 'sword',
+  buff: 'shield',
+  debuff: 'skull'
 }
 
-const icon = icons[props.type] || '⚔️'
+const iconEmojis = {
+  magic: '✨',
+  heal: '💚'
+}
+
+const iconName = computed(() => iconNames[props.type])
+const iconEmoji = computed(() => iconEmojis[props.type])
 
 onMounted(() => {
   setTimeout(() => {
@@ -32,7 +37,8 @@ onMounted(() => {
 
 <template>
   <div v-if="isVisible" class="impact-icon">
-    {{ icon }}
+    <GameIcon v-if="iconName" :name="iconName" size="xl" inline />
+    <span v-else>{{ iconEmoji }}</span>
   </div>
 </template>
 

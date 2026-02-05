@@ -8,6 +8,7 @@ import { getGenusLoci } from '../data/genusLoci.js'
 import MapCanvas from '../components/MapCanvas.vue'
 import SuperRegionSelect from '../components/SuperRegionSelect.vue'
 import EnemyDetailSheet from '../components/EnemyDetailSheet.vue'
+import GameIcon from '../components/GameIcon.vue'
 import { useTooltip } from '../composables/useTooltip.js'
 import { useSwipeToDismiss } from '../composables/useSwipeToDismiss.js'
 
@@ -695,7 +696,9 @@ const totalCleared = computed(() => {
 
           <div v-else class="exploration-requirements">
             <div class="requirement-row">
-              <span class="requirement-icon">⚔️</span>
+              <span class="requirement-icon">
+                <GameIcon name="sword" size="sm" inline />
+              </span>
               <span class="requirement-text">{{ selectedNode.explorationConfig.requiredFights }} fights required</span>
             </div>
             <div class="requirement-row">
@@ -755,7 +758,7 @@ const totalCleared = computed(() => {
           <div class="quest-detail-columns">
             <div class="quest-info-left">
               <div class="quest-fight-count">
-                <span class="fight-icon">⚔️</span>
+                <GameIcon name="sword" size="sm" inline class="fight-icon" />
                 <span class="fight-number">{{ selectedNode.battles.length }}</span>
                 <span class="fight-label">fights</span>
               </div>
@@ -782,7 +785,9 @@ const totalCleared = computed(() => {
                       :alt="enemy.name"
                       class="enemy-portrait-img"
                     />
-                    <div v-else class="enemy-portrait-fallback">💀</div>
+                    <div v-else class="enemy-portrait-fallback">
+                      <GameIcon name="skull" size="sm" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -852,7 +857,9 @@ const totalCleared = computed(() => {
               :disabled="!partyHasHeroes"
               @click="startQuest"
             >
-              <span class="btn-icon">⚔️</span>
+              <span class="btn-icon">
+                <GameIcon name="sword" size="sm" inline />
+              </span>
               <span>{{ selectedNode.isCompleted ? 'Replay Quest' : 'Start Quest' }}</span>
             </button>
           </div>

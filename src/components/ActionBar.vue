@@ -1,6 +1,7 @@
 <script setup>
 import { computed } from 'vue'
 import overlayImage from '../assets/action_backgrounds/action_bar_overlay_1.png'
+import GameIcon from './GameIcon.vue'
 
 const props = defineProps({
   heroName: {
@@ -33,12 +34,12 @@ const emit = defineEmits(['open-skills'])
 
 const roleIcon = computed(() => {
   const icons = {
-    tank: '🛡️',
-    dps: '⚔️',
-    healer: '💚',
-    support: '✨'
+    tank: 'tank',
+    dps: 'dps',
+    healer: 'healer',
+    support: 'support'
   }
-  return icons[props.role] || '⚔️'
+  return icons[props.role] || 'dps'
 })
 
 const heroCardStyle = computed(() => {
@@ -55,7 +56,7 @@ const heroCardStyle = computed(() => {
   <div class="action-bar" :style="{ '--class-color': classColor }">
     <div :class="['hero-card', { stunned: isStunned }]" :style="heroCardStyle">
       <div class="hero-info">
-        <span class="role-icon">{{ roleIcon }}</span>
+        <GameIcon :name="roleIcon" size="sm" inline />
         <span class="hero-name">{{ heroName }}</span>
       </div>
     </div>
@@ -102,9 +103,8 @@ const heroCardStyle = computed(() => {
   gap: 8px;
 }
 
-.role-icon {
-  font-size: 1rem;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.5);
+.hero-info :deep(.game-icon) {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.8)) drop-shadow(0 0 8px rgba(0, 0, 0, 0.5));
 }
 
 .hero-name {

@@ -5,7 +5,8 @@ export const topics = [
     title: 'Combat Basics',
     category: 'Core',
     alwaysVisible: true,
-    icon: '⚔️'
+    icon: '⚔️',
+    iconName: 'sword'
   },
   {
     id: 'rarity',
@@ -65,6 +66,7 @@ export const topics = [
     category: 'Class Resources',
     alwaysVisible: false,
     icon: '🔥',
+    iconName: 'fire',
     unlockCondition: 'berserker_encountered'
   },
   {
@@ -73,6 +75,7 @@ export const topics = [
     category: 'Class Resources',
     alwaysVisible: false,
     icon: '🎯',
+    iconName: 'target',
     unlockCondition: 'ranger_encountered'
   },
   {
