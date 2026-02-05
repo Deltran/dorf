@@ -2628,6 +2628,11 @@ export const useBattleStore = defineStore('battle', () => {
             return
           }
 
+          // Regenerate essence for colosseum alchemist enemies
+          if (enemy.isColosseumEnemy) {
+            regenerateEssence(enemy)
+          }
+
           state.value = BattleState.ENEMY_TURN
           addLog(`${enemy.template.name}'s turn`)
           setTimeout(() => executeEnemyTurn(enemy), 800)
@@ -4355,8 +4360,12 @@ export const useBattleStore = defineStore('battle', () => {
     // Get available skills (supports both 'skill' and 'skills')
     const allSkills = enemy.template.skills || (enemy.template.skill ? [enemy.template.skill] : [])
     const readySkills = allSkills.filter(s => {
-      // Check cooldown
-      if (enemy.currentCooldowns[s.name] !== 0) return false
+      // Check cooldown - only filter if explicitly > 0
+      if (enemy.currentCooldowns?.[s.name] > 0) return false
+      // Check essence cost for colosseum alchemists
+      if (s.essenceCost && enemy.currentEssence !== undefined) {
+        if (enemy.currentEssence < s.essenceCost) return false
+      }
       // Check HP-based use conditions
       if (s.useCondition === 'hp_below_50') {
         const hpPercent = (enemy.currentHp / enemy.maxHp) * 100
@@ -4384,6 +4393,11 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     if (skill) {
+      // Deduct essence cost for colosseum alchemists (do once before branching)
+      if (skill.essenceCost && enemy.currentEssence !== undefined) {
+        enemy.currentEssence -= skill.essenceCost
+      }
+
       // Handle summon skills before normal skill processing
       if (skill.summon) {
         const aliveCount = enemies.value.filter(e => e.currentHp > 0).length
