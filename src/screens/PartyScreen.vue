@@ -622,6 +622,8 @@ const synergyMessages = computed(() => {
   align-items: flex-start;
   gap: 12px;
   padding: 12px 14px;
+  min-height: 76px;
+  box-sizing: border-box;
   background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(26, 31, 46, 1) 100%);
   border-radius: 10px;
   border: 1px solid rgba(245, 158, 11, 0.2);
@@ -653,6 +655,10 @@ const synergyMessages = computed(() => {
   font-size: 0.75rem;
   color: #9ca3af;
   line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Header */

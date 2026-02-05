@@ -318,7 +318,7 @@ onMounted(() => {
   flex-direction: column;
   justify-content: flex-end;
   min-height: 200px;
-  padding-bottom: 16px;
+  padding-bottom: 0;
 }
 
 .party-container {
@@ -350,6 +350,7 @@ onMounted(() => {
   cursor: pointer;
   transition: transform 0.2s ease;
   position: relative;
+  overflow: visible;
 }
 
 /* Back row - heroes 1 and 3 (odd slots) raised up */
@@ -382,6 +383,8 @@ onMounted(() => {
   display: block;
   image-rendering: pixelated;
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.7));
+  transform: scale(1.33);
+  transform-origin: bottom center;
 }
 
 .empty-slot {
@@ -462,7 +465,7 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 4px;
 }
 
 .dot {
