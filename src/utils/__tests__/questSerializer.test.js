@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'fs'
+import { resolve } from 'path'
 import {
   parseRegionFile,
   serializeRegionFile,
@@ -815,6 +817,124 @@ export const regions = [
       const result = removeRegionFromRegions(regionsWithThree, 'whisper_lake')
       expect(result).toContain('export const superRegions')
       expect(result).toContain('western_veros')
+    })
+  })
+
+  describe('real file round-trip', () => {
+    it('round-trips whispering_woods.js', () => {
+      const filePath = resolve(process.cwd(), 'src/data/quests/whispering_woods.js')
+      const fileContent = readFileSync(filePath, 'utf-8')
+
+      // Parse -> Serialize -> Re-parse
+      const parsed = parseRegionFile(fileContent)
+      const serialized = serializeRegionFile(parsed.regionMeta, parsed.nodes, parsed.importLines)
+      const reparsed = parseRegionFile(serialized)
+
+      // Verify regionMeta fields match
+      expect(reparsed.regionMeta.id).toBe(parsed.regionMeta.id)
+      expect(reparsed.regionMeta.name).toBe(parsed.regionMeta.name)
+      expect(reparsed.regionMeta.width).toBe(parsed.regionMeta.width)
+      expect(reparsed.regionMeta.height).toBe(parsed.regionMeta.height)
+      expect(reparsed.regionMeta.startNode).toBe(parsed.regionMeta.startNode)
+      expect(reparsed.regionMeta.superRegion).toBe(parsed.regionMeta.superRegion)
+      expect(reparsed.regionMeta.backgroundColor).toBe(parsed.regionMeta.backgroundColor)
+
+      // Verify same node IDs
+      const originalNodeIds = Object.keys(parsed.nodes).sort()
+      const reparsedNodeIds = Object.keys(reparsed.nodes).sort()
+      expect(reparsedNodeIds).toEqual(originalNodeIds)
+
+      // Verify each node's data matches
+      for (const nodeId of originalNodeIds) {
+        const original = parsed.nodes[nodeId]
+        const roundTripped = reparsed.nodes[nodeId]
+
+        expect(roundTripped.name).toBe(original.name)
+        expect(roundTripped.x).toBe(original.x)
+        expect(roundTripped.y).toBe(original.y)
+        expect(roundTripped.connections).toEqual(original.connections)
+
+        if (original.battles) {
+          expect(roundTripped.battles).toEqual(original.battles)
+        }
+        if (original.rewards) {
+          expect(roundTripped.rewards).toEqual(original.rewards)
+        }
+        if (original.itemDrops) {
+          expect(roundTripped.itemDrops).toEqual(original.itemDrops)
+        }
+      }
+    })
+
+    it('round-trips hibernation_den.js (genus loci)', () => {
+      const filePath = resolve(process.cwd(), 'src/data/quests/hibernation_den.js')
+      const fileContent = readFileSync(filePath, 'utf-8')
+
+      // Parse -> Serialize -> Re-parse
+      const parsed = parseRegionFile(fileContent)
+      const serialized = serializeRegionFile(parsed.regionMeta, parsed.nodes, parsed.importLines)
+      const reparsed = parseRegionFile(serialized)
+
+      // Verify regionMeta fields match
+      expect(reparsed.regionMeta.id).toBe(parsed.regionMeta.id)
+      expect(reparsed.regionMeta.name).toBe(parsed.regionMeta.name)
+      expect(reparsed.regionMeta.width).toBe(parsed.regionMeta.width)
+      expect(reparsed.regionMeta.height).toBe(parsed.regionMeta.height)
+      expect(reparsed.regionMeta.startNode).toBe(parsed.regionMeta.startNode)
+      expect(reparsed.regionMeta.superRegion).toBe(parsed.regionMeta.superRegion)
+      expect(reparsed.regionMeta.backgroundColor).toBe(parsed.regionMeta.backgroundColor)
+
+      // Verify same node IDs
+      const originalNodeIds = Object.keys(parsed.nodes).sort()
+      const reparsedNodeIds = Object.keys(reparsed.nodes).sort()
+      expect(reparsedNodeIds).toEqual(originalNodeIds)
+
+      // Specifically verify the genus loci node
+      const glNode = reparsed.nodes.hibernation_den
+      expect(glNode.type).toBe('genusLoci')
+      expect(glNode.genusLociId).toBe('great_troll')
+      expect(glNode.x).toBe(220)
+      expect(glNode.y).toBe(120)
+      expect(glNode.connections).toEqual([])
+
+      // Verify each node's data matches
+      for (const nodeId of originalNodeIds) {
+        const original = parsed.nodes[nodeId]
+        const roundTripped = reparsed.nodes[nodeId]
+
+        expect(roundTripped.name).toBe(original.name)
+        expect(roundTripped.x).toBe(original.x)
+        expect(roundTripped.y).toBe(original.y)
+        expect(roundTripped.connections).toEqual(original.connections)
+
+        if (original.battles) {
+          expect(roundTripped.battles).toEqual(original.battles)
+        }
+        if (original.rewards) {
+          expect(roundTripped.rewards).toEqual(original.rewards)
+        }
+        if (original.itemDrops) {
+          expect(roundTripped.itemDrops).toEqual(original.itemDrops)
+        }
+      }
+    })
+
+    it('round-trips regionLinkPosition from whispering_woods.js', () => {
+      const filePath = resolve(process.cwd(), 'src/data/quests/whispering_woods.js')
+      const fileContent = readFileSync(filePath, 'utf-8')
+
+      // Parse -> Serialize -> Re-parse
+      const parsed = parseRegionFile(fileContent)
+      const serialized = serializeRegionFile(parsed.regionMeta, parsed.nodes, parsed.importLines)
+      const reparsed = parseRegionFile(serialized)
+
+      // forest_03 has regionLinkPosition: { x: 553, y: 429 }
+      expect(parsed.nodes.forest_03.regionLinkPosition).toEqual({ x: 553, y: 429 })
+      expect(reparsed.nodes.forest_03.regionLinkPosition).toEqual({ x: 553, y: 429 })
+
+      // forest_05 also has regionLinkPosition: { x: 308, y: 801 }
+      expect(parsed.nodes.forest_05.regionLinkPosition).toEqual({ x: 308, y: 801 })
+      expect(reparsed.nodes.forest_05.regionLinkPosition).toEqual({ x: 308, y: 801 })
     })
   })
 })
