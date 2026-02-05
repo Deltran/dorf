@@ -6,7 +6,7 @@ import AssetViewerBackgrounds from './admin/AssetViewerBackgrounds.vue'
 import AssetViewerMaps from './admin/AssetViewerMaps.vue'
 import HeroPicker from './admin/HeroPicker.vue'
 import HeroEditor from './admin/HeroEditor.vue'
-import QuestNodeList from './admin/QuestNodeList.vue'
+import QuestNodeEditor from './admin/QuestNodeEditor.vue'
 
 const activeSection = ref(
   import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_admin_section') || 'hero-editor') : 'hero-editor'
@@ -107,7 +107,7 @@ function selectSection(item) {
             @select="selectHeroToEdit"
           />
         </template>
-        <QuestNodeList v-else-if="activeSection === 'quest-nodes'" />
+        <QuestNodeEditor v-else-if="activeSection === 'quest-nodes'" />
         <AssetViewerHeroes v-else-if="activeSection === 'heroes'" />
         <AssetViewerEnemies v-else-if="activeSection === 'enemies'" />
         <AssetViewerBackgrounds v-else-if="activeSection === 'backgrounds'" />
