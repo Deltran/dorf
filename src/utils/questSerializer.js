@@ -107,6 +107,163 @@ export function parseRegionFile(fileContent) {
 }
 
 /**
+ * Serializes a JavaScript value into source code string with single-quoted
+ * strings, unquoted object keys, and compact formatting for small flat objects
+ * and primitive arrays.
+ *
+ * @param {*} value - The value to serialize
+ * @param {number} indent - Current indentation level (number of spaces)
+ * @param {Object} [options] - Options
+ * @param {Object} [options.bareIdentifiers] - Map of key names to bare identifier strings
+ *   (e.g., { backgroundImage: 'whisperingWoodsMap' }) that should be emitted unquoted
+ * @returns {string} JavaScript source code representation
+ */
+function serializeValue(value, indent, options = {}) {
+  if (value === null || value === undefined) {
+    return String(value)
+  }
+  if (typeof value === 'string') {
+    // Escape single quotes and backslashes within the string
+    const escaped = value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+    return `'${escaped}'`
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value)
+  }
+  if (Array.isArray(value)) {
+    return serializeArray(value, indent, options)
+  }
+  if (typeof value === 'object') {
+    return serializeObject(value, indent, options)
+  }
+  return String(value)
+}
+
+/**
+ * Checks if all values in an object are primitives (not arrays or objects).
+ */
+function isFlat(obj) {
+  return Object.values(obj).every(v =>
+    v === null || v === undefined || typeof v !== 'object'
+  )
+}
+
+/**
+ * Serializes an array. Arrays of primitives go on one line.
+ * Arrays of objects get multi-line with each element indented.
+ */
+function serializeArray(arr, indent, options = {}) {
+  if (arr.length === 0) {
+    return '[]'
+  }
+
+  // Check if all elements are primitives
+  const allPrimitive = arr.every(v =>
+    v === null || v === undefined || typeof v !== 'object'
+  )
+
+  if (allPrimitive) {
+    const items = arr.map(v => serializeValue(v, indent, options))
+    return `[${items.join(', ')}]`
+  }
+
+  // Multi-line array
+  const pad = ' '.repeat(indent)
+  const itemPad = ' '.repeat(indent + 2)
+  const items = arr.map(v => itemPad + serializeValue(v, indent + 2, options))
+  return `[\n${items.join(',\n')}\n${pad}]`
+}
+
+/**
+ * Serializes an object. Small flat objects (all primitive values, <=5 entries)
+ * go on one line. Larger or nested objects get multi-line.
+ */
+function serializeObject(obj, indent, options = {}) {
+  const entries = Object.entries(obj)
+  if (entries.length === 0) {
+    return '{}'
+  }
+
+  // Small flat objects go inline
+  if (isFlat(obj) && entries.length <= 5 && !options.bareIdentifiers) {
+    const items = entries.map(([k, v]) => `${k}: ${serializeValue(v, indent, options)}`)
+    return `{ ${items.join(', ')} }`
+  }
+
+  // Multi-line object
+  const pad = ' '.repeat(indent)
+  const propPad = ' '.repeat(indent + 2)
+  const lines = []
+
+  for (const [key, val] of entries) {
+    // Check if this key should be rendered as a bare identifier
+    if (options.bareIdentifiers && key in options.bareIdentifiers) {
+      lines.push(`${propPad}${key}: ${options.bareIdentifiers[key]}`)
+    } else {
+      lines.push(`${propPad}${key}: ${serializeValue(val, indent + 2)}`)
+    }
+  }
+
+  return `{\n${lines.join(',\n')}\n${pad}}`
+}
+
+/**
+ * Serializes structured data back into a valid region JS file string.
+ *
+ * @param {Object} regionMeta - The region metadata object (without backgroundImage)
+ * @param {Object} nodes - Object keyed by node ID
+ * @param {string[]} importLines - Array of import line strings
+ * @returns {string} Valid JS file content
+ */
+export function serializeRegionFile(regionMeta, nodes, importLines) {
+  const parts = []
+
+  // 1. Import lines
+  if (importLines && importLines.length > 0) {
+    parts.push(importLines.join('\n'))
+    parts.push('')  // blank line after imports
+  }
+
+  // 2. Detect map import variable name for backgroundImage restoration
+  let mapVarName = null
+  if (importLines) {
+    for (const line of importLines) {
+      if (line.includes('/assets/maps/')) {
+        // Extract the default import variable name: "import varName from '...'"
+        const varMatch = line.match(/^import\s+(\w+)\s+from\s+/)
+        if (varMatch) {
+          mapVarName = varMatch[1]
+        }
+      }
+    }
+  }
+
+  // 3. Serialize regionMeta
+  const metaOptions = mapVarName
+    ? { bareIdentifiers: { backgroundImage: mapVarName } }
+    : {}
+
+  // Build regionMeta object, adding backgroundImage at the end if we have a map import
+  const metaToSerialize = mapVarName
+    ? { ...regionMeta, backgroundImage: null }  // placeholder, overridden by bareIdentifiers
+    : { ...regionMeta }
+
+  parts.push(`export const regionMeta = ${serializeObject(metaToSerialize, 0, metaOptions)}`)
+  parts.push('')  // blank line between sections
+
+  // 4. Serialize nodes
+  const nodeEntries = Object.entries(nodes)
+  const nodeLines = []
+  for (const [nodeId, nodeData] of nodeEntries) {
+    nodeLines.push(`  ${nodeId}: ${serializeValue(nodeData, 2)}`)
+  }
+  parts.push(`export const nodes = {\n${nodeLines.join(',\n')}\n}`)
+
+  // Trailing newline
+  return parts.join('\n') + '\n'
+}
+
+/**
  * Converts a snake_case string to camelCase.
  *
  * @param {string} str - snake_case string (e.g., 'whispering_woods')
