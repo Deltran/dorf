@@ -12,8 +12,44 @@ const SHARD_TIER_COSTS = [50, 100, 200]
 export const useHeroesStore = defineStore('heroes', () => {
   // State
   const collection = ref([]) // Array of hero instances
-  const party = ref([null, null, null, null]) // 4 slots for party
-  const partyLeader = ref(null) // instanceId of the party leader
+
+  // Multi-party system: 3 parties with names, slots, and leaders
+  const parties = ref([
+    { id: 1, name: 'Party 1', slots: [null, null, null, null], leader: null },
+    { id: 2, name: 'Party 2', slots: [null, null, null, null], leader: null },
+    { id: 3, name: 'Party 3', slots: [null, null, null, null], leader: null }
+  ])
+  const activePartyId = ref(1)
+
+  // Active party computed
+  const activeParty = computed(() => {
+    return parties.value.find(p => p.id === activePartyId.value) || parties.value[0]
+  })
+
+  // Backward compatibility aliases
+  const party = computed({
+    get: () => activeParty.value.slots,
+    set: (val) => { activeParty.value.slots = val }
+  })
+
+  const partyLeader = computed({
+    get: () => activeParty.value.leader,
+    set: (val) => { activeParty.value.leader = val }
+  })
+
+  // Party management actions
+  function setActiveParty(id) {
+    if (parties.value.some(p => p.id === id)) {
+      activePartyId.value = id
+    }
+  }
+
+  function renameParty(id, name) {
+    const party = parties.value.find(p => p.id === id)
+    if (party) {
+      party.name = name
+    }
+  }
 
   // Getters
   const heroCount = computed(() => collection.value.length)
@@ -99,12 +135,15 @@ export const useHeroesStore = defineStore('heroes', () => {
   }
 
   function removeHero(instanceId) {
-    // Clear leader if this hero was leader
-    if (instanceId === partyLeader.value) {
-      partyLeader.value = null
-    }
-    // Remove from party if present
-    party.value = party.value.map(id => id === instanceId ? null : id)
+    // Clear from ALL parties (not just active)
+    parties.value.forEach(p => {
+      // Clear leader if this hero was leader
+      if (p.leader === instanceId) {
+        p.leader = null
+      }
+      // Remove from party slots if present
+      p.slots = p.slots.map(id => id === instanceId ? null : id)
+    })
     // Remove from collection
     collection.value = collection.value.filter(h => h.instanceId !== instanceId)
   }
@@ -118,45 +157,49 @@ export const useHeroesStore = defineStore('heroes', () => {
     const hero = collection.value.find(h => h.instanceId === instanceId)
     if (!hero) return false
 
+    const slots = activeParty.value.slots
+
     // If hero is already in another slot, it's a swap — always allowed
-    const existingSlot = party.value.findIndex(id => id === instanceId)
+    const existingSlot = slots.findIndex(id => id === instanceId)
     if (existingSlot !== -1 && existingSlot !== slotIndex) {
-      party.value[existingSlot] = party.value[slotIndex]
+      slots[existingSlot] = slots[slotIndex]
     } else if (existingSlot === -1) {
       // New hero being added — check for duplicate templateId
-      const partyTemplateIds = party.value
+      const partyTemplateIds = slots
         .filter((id, idx) => id && idx !== slotIndex) // exclude the slot being replaced
         .map(id => collection.value.find(h => h.instanceId === id)?.templateId)
         .filter(Boolean)
       if (partyTemplateIds.includes(hero.templateId)) return false
     }
 
-    party.value[slotIndex] = instanceId
+    slots[slotIndex] = instanceId
     return true
   }
 
   function clearPartySlot(slotIndex) {
     if (slotIndex < 0 || slotIndex > 3) return false
-    const removedId = party.value[slotIndex]
-    if (removedId === partyLeader.value) {
-      partyLeader.value = null
+    const slots = activeParty.value.slots
+    const removedId = slots[slotIndex]
+    if (removedId === activeParty.value.leader) {
+      activeParty.value.leader = null
     }
-    party.value[slotIndex] = null
+    slots[slotIndex] = null
     return true
   }
 
   function setPartyLeader(instanceId) {
     // Allow null to clear leader, or valid party member
-    if (instanceId && !party.value.includes(instanceId)) {
+    if (instanceId && !activeParty.value.slots.includes(instanceId)) {
       return false
     }
-    partyLeader.value = instanceId
+    activeParty.value.leader = instanceId
     return true
   }
 
   function autoFillParty() {
     // Fill empty party slots with strongest available heroes
     const available = [...availableForParty.value]
+    const slots = activeParty.value.slots
 
     // Sort by rarity then level
     available.sort((a, b) => {
@@ -170,18 +213,18 @@ export const useHeroesStore = defineStore('heroes', () => {
 
     // Track templateIds used during this fill to prevent duplicates
     const usedTemplateIds = new Set(
-      party.value.filter(Boolean).map(id => {
+      slots.filter(Boolean).map(id => {
         const hero = collection.value.find(h => h.instanceId === id)
         return hero?.templateId
       }).filter(Boolean)
     )
 
     for (let i = 0; i < 4; i++) {
-      if (!party.value[i]) {
+      if (!slots[i]) {
         const candidate = available.find(h => !usedTemplateIds.has(h.templateId))
         if (candidate) {
           available.splice(available.indexOf(candidate), 1)
-          party.value[i] = candidate.instanceId
+          slots[i] = candidate.instanceId
           usedTemplateIds.add(candidate.templateId)
         }
       }
@@ -721,6 +764,9 @@ export const useHeroesStore = defineStore('heroes', () => {
   return {
     // State
     collection,
+    parties,
+    activePartyId,
+    // Backward compat aliases (computed)
     party,
     partyLeader,
     // Getters
@@ -729,6 +775,7 @@ export const useHeroesStore = defineStore('heroes', () => {
     partyIsFull,
     availableForParty,
     leaderHero,
+    activeParty,
     // Actions
     addHero,
     removeHero,
@@ -736,6 +783,8 @@ export const useHeroesStore = defineStore('heroes', () => {
     clearPartySlot,
     setPartyLeader,
     autoFillParty,
+    setActiveParty,
+    renameParty,
     addExp,
     addExpToParty,
     getHeroStats,
