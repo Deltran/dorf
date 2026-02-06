@@ -127,6 +127,22 @@ export const topics = [
     unlockCondition: 'exploration_unlocked'
   },
   {
+    id: 'colosseum',
+    title: 'Colosseum',
+    category: 'Systems',
+    alwaysVisible: false,
+    icon: '🏟️',
+    unlockCondition: 'colosseum_visited'
+  },
+  {
+    id: 'the_maw',
+    title: 'The Maw',
+    category: 'Systems',
+    alwaysVisible: false,
+    icon: '🕳️',
+    unlockCondition: 'maw_visited'
+  },
+  {
     id: 'status_effects',
     title: 'Status Effects',
     category: 'Advanced Combat',

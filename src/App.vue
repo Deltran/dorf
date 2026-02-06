@@ -287,6 +287,10 @@ function applyNavigation(screen, param = null) {
     codexStore.unlockTopic('fusion')
   } else if (screen === 'explorations') {
     codexStore.unlockTopic('explorations')
+  } else if (screen === 'colosseum') {
+    codexStore.unlockTopic('colosseum')
+  } else if (screen === 'maw') {
+    codexStore.unlockTopic('the_maw')
   }
 }
 

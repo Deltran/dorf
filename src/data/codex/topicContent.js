@@ -8,15 +8,11 @@ export const topicContent = {
       },
       {
         heading: 'Attacking',
-        body: 'Each unit performs a basic attack on their turn unless they use a skill. Basic attacks deal damage based on the attacker\'s ATK stat minus the defender\'s DEF stat. Damage is always at least 1.'
+        body: 'Each unit performs a basic attack on their turn unless they use a skill. Damage is based on the attacker\'s ATK and the defender\'s DEF, and is always at least 1.'
       },
       {
         heading: 'Skills',
         body: 'Heroes can use skills instead of basic attacking. Skills cost resources (MP, Rage, Essence, etc.) and have cooldowns. Tap a skill from the action bar during a hero\'s turn to use it. Skills can deal damage, heal allies, apply buffs and debuffs, or protect the party.'
-      },
-      {
-        heading: 'Auto-Battle',
-        body: 'Toggle auto-battle to let the AI control your heroes. The AI uses basic attacks and will use skills when available. Auto-battle is useful for clearing content you\'ve already mastered.'
       },
       {
         heading: 'Victory & Defeat',
@@ -125,6 +121,16 @@ export const topicContent = {
       {
         heading: 'Earning Currency',
         body: 'Both currencies can be earned through completing quests (first-clear bonuses give the most gems), selling junk items, exploration rewards, and discovering new Codex entries. Advancing to new regions unlocks increasingly valuable rewards.'
+      },
+      {
+        heading: 'Other Currencies',
+        body: 'As you progress, you\'ll unlock additional currencies tied to specific systems.',
+        items: [
+          { label: 'Shards', desc: 'Hero-specific fragments earned from shard hunting on quests. Spend them to upgrade a hero\'s shard tier for permanent stat bonuses.' },
+          { label: 'Laurels', desc: 'Earned by completing Colosseum bouts and collected daily. Spent in the Colosseum shop.' },
+          { label: 'Crests', desc: 'Region-specific trophies dropped from quests and explorations. Used in regional shops and to upgrade exploration ranks.' },
+          { label: 'Dregs', desc: 'Earned by surviving waves in the Maw. Spent in the Maw shop between runs.' }
+        ]
       }
     ]
   },
@@ -138,7 +144,7 @@ export const topicContent = {
       },
       {
         heading: 'Setting a Leader',
-        body: 'One party member can be designated as the party leader. Only 5-star (Legendary) heroes have Leader Skills, which provide powerful bonuses to the entire party during battle. Set your leader from the Party screen.'
+        body: 'Each party can only have one leader. Only 5-star (Legendary) heroes have Leader Skills, which provide powerful bonuses to the entire party during battle. Setting a leader who doesn\'t have a Leader Skill has no gameplay effect. Tap a hero in the Party screen to set them as leader.'
       },
       {
         heading: 'Leader Skill Types',
@@ -165,11 +171,11 @@ export const topicContent = {
       },
       {
         heading: 'Using Items',
-        body: 'XP Tomes are used from the hero detail screen to level up heroes. Keys are consumed when challenging Genus Loci bosses. Region Tokens are used from the world map on completed quests.'
+        body: 'Most items are used from the screen where they apply — for example, Knowledge Tomes can be fed to heroes from the hero detail screen. All items can also be accessed from the Inventory. Keep an eye out for prompts to use items as you explore different parts of the game.'
       },
       {
         heading: 'Selling Items',
-        body: 'Junk items found during quests can be sold from the inventory screen. Each item has a sell value in gems or gold. Some junk items are more valuable than others — check the sell value before discarding!'
+        body: 'All items can be sold from the Inventory for gems or gold. Junk items sell for more than most and have no other purpose, so sell them freely.'
       }
     ]
   },
@@ -295,11 +301,23 @@ export const topicContent = {
       },
       {
         heading: 'Requirements',
-        body: '⚔️ The hero you want to upgrade (the "base")\n\n👥 Copies of that same hero at the same star level — one copy per star (a 1★ needs 1 copy, a 3★ needs 3)\n\n🪙 Gold — gets more expensive as the star level goes up\n\n💎 Rare merge materials for the big jumps (3★→4★ and 4★→5★)'
+        items: [
+          { label: '⚔️ Base Hero', desc: 'The hero you want to upgrade.' },
+          { label: '👥 Copies', desc: 'Duplicates of that same hero at the same star level — one copy per star (a 1★ needs 1 copy, a 3★ needs 3).' },
+          { label: '🪙 Gold', desc: 'Gets more expensive as the star level goes up.' },
+          { label: '💎 Merge Materials', desc: 'Rare materials required for the big jumps (3★\u21924★ and 4★\u21925★).' }
+        ]
       },
       {
         heading: 'The Fusion Screen',
-        body: 'The Hero Fusion screen shows the highest star level version of each hero you own that can still be upgraded. Each row shows their portrait, name, current star level, and how many copies you have.\n\nIf a hero is ready to fuse, the row will glow and say "Ready to merge!" — just tap it to go straight to that hero and start the fusion.\n\nIf you\'re not quite there yet, you\'ll see a progress tracker like "1/3 for next ★" so you always know how many more copies you need.\n\n🔨 Some heroes have a hammer icon next to their progress. This opens the Build Copies tool — it lets you combine lower-star duplicates into the copies you actually need. For example, if you need 3★ copies but only have a pile of 1★ and 2★ duplicates, Build Copies can merge them up the chain for you in one go.\n\nHeroes that have already reached 5★ won\'t show up here — they\'re fully maxed!'
+        body: 'The Hero Fusion screen shows the highest star level version of each hero you own that can still be upgraded.',
+        items: [
+          { label: 'Hero Rows', desc: 'Each row shows a hero\'s portrait, name, current star level, and how many copies you have.' },
+          { label: 'Ready to Fuse', desc: 'If a hero is ready, the row will glow and say "Ready to merge!" \u2014 tap it to go straight to that hero and start the fusion.' },
+          { label: 'Progress Tracking', desc: 'Not enough copies yet? You\'ll see a tracker like "1/3 for next \u2605" so you always know how many more you need.' },
+          { label: '\uD83D\uDD28 Build Copies', desc: 'Some heroes show a hammer icon. This opens the Build Copies tool \u2014 it combines lower-star duplicates into the copies you actually need. For example, merge a pile of 1\u2605 and 2\u2605 dupes up the chain into the 3\u2605 copies required, all in one go.' },
+          { label: 'Maxed Heroes', desc: 'Heroes that have reached 5\u2605 won\'t appear here \u2014 they\'re fully maxed!' }
+        ]
       }
     ]
   },
@@ -340,6 +358,46 @@ export const topicContent = {
       {
         heading: 'Rewards',
         body: 'Exploration rewards include gold, gems, EXP, and item drops. Meeting the party composition request grants a 10% bonus to all rewards. Explorations continue even when the app is closed.'
+      }
+    ]
+  },
+
+  colosseum: {
+    title: 'Colosseum',
+    sections: [
+      {
+        heading: 'What Is the Colosseum',
+        body: 'The Colosseum is an arena where your party fights through a series of increasingly difficult bouts. Each bout pits you against a preset enemy lineup. Progress is permanent — clear a bout once and it stays cleared.'
+      },
+      {
+        heading: 'Bouts',
+        body: 'There are 50 bouts total, each harder than the last. Clearing a bout for the first time earns Laurels and increases your daily Laurel income. You can replay cleared bouts but won\'t earn first-clear rewards again.'
+      },
+      {
+        heading: 'Laurels & Daily Income',
+        body: 'Laurels are the Colosseum\'s currency. You earn them from first clears and can collect a daily income based on how many bouts you\'ve cleared. Spend Laurels in the Colosseum shop for exclusive items.'
+      }
+    ]
+  },
+
+  the_maw: {
+    title: 'The Maw',
+    sections: [
+      {
+        heading: 'What Is the Maw',
+        body: 'The Maw is a daily dungeon with roguelike elements. Each day presents a fresh gauntlet of waves. Choose a tier, dive in, and survive as deep as you can.'
+      },
+      {
+        heading: 'Runs & Waves',
+        body: 'Each run is a sequence of combat waves that get progressively harder. Between waves you choose boons — powerful modifiers that shape your strategy for the rest of the run. If your party falls, the run ends.'
+      },
+      {
+        heading: 'Tiers',
+        body: 'The Maw has multiple difficulty tiers. Higher tiers offer better rewards but tougher enemies. Unlock new tiers by proving yourself in the ones below.'
+      },
+      {
+        heading: 'Dregs',
+        body: 'Dregs are the Maw\'s currency, earned by surviving waves. Taking a rest day before your next run increases your Dregs payout. Spend Dregs in the Maw shop for exclusive rewards.'
       }
     ]
   },
