@@ -67,3 +67,22 @@ export function getEnemyTemplate(templateId) {
 export function getAllEnemyTemplates() {
   return Object.values(enemyTemplates)
 }
+
+/**
+ * Extract all enemy IDs that a given enemy can summon via its skills.
+ * Covers all summon formats: skill.summon.templateId, skill.summon.enemyId,
+ * skill.onKill.summon, and skill.startOfTurn.summon.
+ */
+export function getSummonedEnemyIds(enemy) {
+  const ids = []
+  const skills = enemy.skills || (enemy.skill ? [enemy.skill] : [])
+  for (const skill of skills) {
+    if (skill.summon) {
+      const id = skill.summon.templateId || skill.summon.enemyId
+      if (id) ids.push(id)
+    }
+    if (skill.onKill?.summon) ids.push(skill.onKill.summon)
+    if (skill.startOfTurn?.summon) ids.push(skill.startOfTurn.summon)
+  }
+  return ids
+}

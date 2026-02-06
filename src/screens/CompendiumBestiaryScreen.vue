@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useCodexStore, useQuestsStore } from '../stores'
-import { getAllEnemyTemplates } from '../data/enemies/index.js'
+import { getAllEnemyTemplates, getEnemyTemplate, getSummonedEnemyIds } from '../data/enemies/index.js'
 import { getNodesByRegion } from '../data/quests/index.js'
 import { regions } from '../data/quests/regions.js'
 
@@ -35,6 +35,15 @@ const enemiesByRegion = computed(() => {
         for (const enemyId of (battle.enemies || [])) {
           if (!enemyRegionMap[enemyId]) {
             enemyRegionMap[enemyId] = region.name
+          }
+          // Also map any enemies this one can summon to the same region
+          const template = getEnemyTemplate(enemyId)
+          if (template) {
+            for (const summonId of getSummonedEnemyIds(template)) {
+              if (!enemyRegionMap[summonId]) {
+                enemyRegionMap[summonId] = region.name
+              }
+            }
           }
         }
       }

@@ -37,7 +37,7 @@ const content = computed(() => getTopicContent(props.topicId))
         <p v-if="section.body" class="section-body">{{ section.body }}</p>
         <ul v-if="section.items" class="section-list">
           <li v-for="(item, i) in section.items" :key="i" class="section-list-item">
-            <span class="item-label">{{ item.label }}</span>
+            <span class="item-label" :style="item.color ? { color: item.color } : {}">{{ item.label }}</span>
             <span class="item-desc"> — {{ item.desc }}</span>
           </li>
         </ul>

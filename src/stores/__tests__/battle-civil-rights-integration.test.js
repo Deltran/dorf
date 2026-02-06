@@ -143,7 +143,7 @@ describe('Civil Rights Banner heroes integration', () => {
       const zina = heroTemplates.zina_the_desperate
       const deathsNeedle = zina.skills.find(s => s.name === "Death's Needle")
       expect(deathsNeedle).toBeDefined()
-      expect(deathsNeedle.damagePercent).toBe(175)
+      expect(deathsNeedle.damagePercent).toBe(130)
       expect(deathsNeedle.conditionalAtLowHp).toBeDefined()
       expect(deathsNeedle.conditionalAtLowHp.hpThreshold).toBe(30)
       expect(deathsNeedle.conditionalAtLowHp.ignoresDef).toBe(true)

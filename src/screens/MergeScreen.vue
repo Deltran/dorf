@@ -107,7 +107,10 @@ function selectGroup(group) {
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>
-      <h2>Hero Fusion</h2>
+      <div class="title-group">
+        <h2>Hero Fusion</h2>
+        <button class="help-btn" @click="emit('navigate', 'field-guide-article', 'fusion')" title="What is Fusion?">?</button>
+      </div>
       <div class="gold-display">
         <span class="gold-icon">🪙</span>
         <span class="gold-value">{{ gachaStore.gold }}</span>
@@ -212,11 +215,38 @@ function selectGroup(group) {
   line-height: 1;
 }
 
+.title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .screen-header h2 {
   margin: 0;
   font-size: 1.2rem;
   font-weight: 700;
   color: #f59e0b;
+}
+
+.help-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.help-btn:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: #f59e0b;
 }
 
 .gold-display {

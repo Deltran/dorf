@@ -30,15 +30,14 @@ export const topicContent = {
     sections: [
       {
         heading: 'The Five Tiers',
-        body: 'Heroes come in five rarity tiers: 1-star (Common), 2-star (Uncommon), 3-star (Rare), 4-star (Epic), and 5-star (Legendary). Higher rarity heroes have stronger base stats, more skills, and unique abilities.'
-      },
-      {
-        heading: 'What Rarity Affects',
-        body: 'Rarity determines a hero\'s base stat totals, number of skills (higher rarity heroes unlock more), and access to special mechanics. 5-star heroes have Leader Skills that buff the entire party when set as leader.'
-      },
-      {
-        heading: 'Rarity Colors',
-        body: 'Each rarity has a signature color: gray for Common, green for Uncommon, blue for Rare, purple for Epic, and gold for Legendary. These colors appear on card borders, gradients, and star ratings throughout the game.'
+        body: 'Heroes come in five rarity tiers. Rarity determines a hero\'s base stat totals, number of skills, and access to special mechanics.',
+        items: [
+          { label: '★ Common', color: '#9ca3af', desc: 'The weakest heroes out of the gate, but the easiest to grow through Fusion (Field Guide \u2192 Systems \u2192 Fusion). They can learn up to 4 skills through leveling up.' },
+          { label: '★★ Uncommon', color: '#22c55e', desc: 'Stronger base stats while still being accessible through Fusion. They can learn up to 4 skills through leveling up.' },
+          { label: '★★★ Rare', color: '#3b82f6', desc: 'Solid base stats and an expanded kit. They can learn up to 5 skills through leveling up.' },
+          { label: '★★★★ Epic', color: '#a855f7', desc: 'Powerful heroes with strong base stats and complex mechanics. They can learn up to 5 skills through leveling up.' },
+          { label: '★★★★★ Legendary', color: '#f59e0b', desc: 'The strongest heroes in the game with the highest base stats. They can learn up to 5 skills and have an exclusive Leader Skill that buffs the entire party when set as leader (Field Guide \u2192 Advanced Combat \u2192 Leader Skills).' }
+        ]
       }
     ]
   },
@@ -73,7 +72,7 @@ export const topicContent = {
       },
       {
         heading: 'Unique Resource Systems',
-        body: 'Some classes have completely unique mechanics. Berserkers gain Rage from combat and spend it on devastating skills. Rangers lose Focus when hit or debuffed but regain it from ally buffs. Bards can\'t repeat skills and build toward an automatic Finale. Alchemists risk self-damage at high Essence for bonus damage.'
+        body: 'Some classes have completely unique mechanics. For details on how these resources work for the classes you\'ve discovered, look under the Field Guide in Class Resources.'
       }
     ]
   },
@@ -153,7 +152,16 @@ export const topicContent = {
     sections: [
       {
         heading: 'Item Types',
-        body: 'Items come in several types: XP Tomes grant hero experience, Junk Items can be sold for gems or gold, Keys unlock special encounters, Region Tokens let you collect quest rewards without replaying, and Shards upgrade hero skills.'
+        body: 'Items come in several types, which include:',
+        items: [
+          { label: 'Knowledge Tomes', desc: 'Grant hero experience when used. Come in several tiers of potency.' },
+          { label: 'Junk', desc: 'Trinkets, rocks, and curiosities found on your travels. No use other than selling for gems or gold.' },
+          { label: 'Keys', desc: 'Unlock Genus Loci boss encounters. Each key grants a single attempt against a specific boss.' },
+          { label: 'Region Tokens', desc: 'Instantly collect rewards from a completed quest without replaying the battle. Each token is tied to a specific region.' },
+          { label: 'Fusion Materials', desc: 'Rare components required to ascend heroes to higher rarity tiers through Fusion (Field Guide \u2192 Systems \u2192 Fusion).' },
+          { label: 'Equipment Materials', desc: 'Weapon Stones, Armor Plates, Gem Shards, and Class Tokens used to upgrade hero equipment. Come in tiers matching rarity.' },
+          { label: 'Genus Loci Crests', desc: 'Battle trophies torn from defeated bosses. Their purpose remains unknown.' }
+        ]
       },
       {
         heading: 'Using Items',
@@ -287,7 +295,11 @@ export const topicContent = {
       },
       {
         heading: 'Requirements',
-        body: 'Fusion requires at least one duplicate copy of the same hero and a gold fee. The gold cost scales with the hero\'s rarity. Plan your summoning and fusion strategy together for the most efficient progression.'
+        body: '⚔️ The hero you want to upgrade (the "base")\n\n👥 Copies of that same hero at the same star level — one copy per star (a 1★ needs 1 copy, a 3★ needs 3)\n\n🪙 Gold — gets more expensive as the star level goes up\n\n💎 Rare merge materials for the big jumps (3★→4★ and 4★→5★)'
+      },
+      {
+        heading: 'The Fusion Screen',
+        body: 'The Hero Fusion screen shows the highest star level version of each hero you own that can still be upgraded. Each row shows their portrait, name, current star level, and how many copies you have.\n\nIf a hero is ready to fuse, the row will glow and say "Ready to merge!" — just tap it to go straight to that hero and start the fusion.\n\nIf you\'re not quite there yet, you\'ll see a progress tracker like "1/3 for next ★" so you always know how many more copies you need.\n\n🔨 Some heroes have a hammer icon next to their progress. This opens the Build Copies tool — it lets you combine lower-star duplicates into the copies you actually need. For example, if you need 3★ copies but only have a pile of 1★ and 2★ duplicates, Build Copies can merge them up the chain for you in one go.\n\nHeroes that have already reached 5★ won\'t show up here — they\'re fully maxed!'
       }
     ]
   },
