@@ -31,6 +31,10 @@ export const tips = {
     title: 'The Colosseum',
     message: 'The gates of the Colosseum are open! Fight through 50 bouts of increasingly deadly opponents to earn Laurels — a currency you can spend in the Colosseum Shop. Find it in the Maps section.'
   },
+  maw_unlock: {
+    title: 'The Maw',
+    message: 'As you peer into the chasm for a safe way to proceed, you find a terrifying maw made of energy beckoning to you. Find it in the Map Room!'
+  },
   black_market_unlock: {
     title: 'A Whisper in the Dark',
     message: "Psst... looking for something special? I've got wares you won't find on the regular shelves. Come find me.",

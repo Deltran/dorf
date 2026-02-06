@@ -151,8 +151,11 @@ describe('Zina the Desperate', () => {
         expect(deathsNeedle().essenceCost).toBe(25)
       })
 
-      it('should deal 175% ATK damage', () => {
-        expect(deathsNeedle().damagePercent).toBe(175)
+      it('should deal 130% ATK base damage (190% if target poisoned)', () => {
+        expect(deathsNeedle().damagePercent).toBe(130)
+        expect(deathsNeedle().bonusIfTargetHas).toBeDefined()
+        expect(deathsNeedle().bonusIfTargetHas[0].effectType).toBe('poison')
+        expect(deathsNeedle().bonusIfTargetHas[0].damagePercent).toBe(190)
       })
 
       it('should target a single enemy', () => {

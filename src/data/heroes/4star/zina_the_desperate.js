@@ -57,12 +57,15 @@ export const zina_the_desperate = {
     },
     {
       name: "Death's Needle",
-      description: 'Deal 175% ATK damage. Below 30% HP: ignores DEF and cannot miss. Damage scales with Volatility.',
+      description: 'Deal 130% ATK damage. +60% if target is Poisoned. Below 30% HP: ignores DEF and cannot miss. Damage scales with Volatility.',
       skillUnlockLevel: 6,
       essenceCost: 25,
       targetType: 'enemy',
-      damagePercent: 175,
+      damagePercent: 130,
       usesVolatility: true,
+      bonusIfTargetHas: [
+        { effectType: 'poison', damagePercent: 190 }
+      ],
       conditionalAtLowHp: { hpThreshold: 30, ignoresDef: true, cannotMiss: true }
     },
     {

@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useCodexStore } from '../stores'
 import { getTopicsByCategory } from '../data/codex/topics.js'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 const codexStore = useCodexStore()
 
 const categories = computed(() => {
@@ -28,7 +28,7 @@ function openTopic(topicId) {
     <div class="bg-vignette"></div>
 
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'codex')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

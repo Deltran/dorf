@@ -10,7 +10,7 @@ import gemIcon from '../assets/icons/gems.png'
 import goldIcon from '../assets/icons/gold.png'
 import storeIcon from '../assets/icons/store_goods.png'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 
 const inventoryStore = useInventoryStore()
 const gachaStore = useGachaStore()
@@ -205,7 +205,7 @@ function getContextualAction(item) {
 <template>
   <div class="inventory-screen">
     <header class="inventory-header">
-      <button class="back-button" @click="emit('navigate', 'goodsAndMarkets')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

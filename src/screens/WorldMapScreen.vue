@@ -38,7 +38,7 @@ function getRegionMapImage(regionId) {
   return mapImages[path] || null
 }
 
-const emit = defineEmits(['navigate', 'startBattle', 'startGenusLociBattle'])
+const emit = defineEmits(['navigate', 'back', 'startBattle', 'startGenusLociBattle'])
 const props = defineProps({
   initialRegionName: { type: String, default: null }
 })
@@ -493,13 +493,13 @@ const totalCleared = computed(() => {
       :unlocked-super-regions="questsStore.unlockedSuperRegions"
       :super-region-progress="questsStore.superRegionProgress"
       @select="selectedSuperRegion = $event"
-      @back="emit('navigate', 'map-room')"
+      @back="emit('back')"
     />
 
     <!-- Region List View (Screen 1) -->
     <div v-else-if="!selectedRegion" class="region-list-view">
       <header class="floating-header">
-        <button class="back-button" @click="showSuperRegionSelect ? goToSuperRegionSelect() : emit('navigate', 'map-room')">
+        <button class="back-button" @click="showSuperRegionSelect ? goToSuperRegionSelect() : emit('back')">
           <span class="back-arrow">&larr;</span>
         </button>
         <h1 class="header-title">{{ currentSuperRegion?.name || 'World Map' }}</h1>
@@ -2218,4 +2218,5 @@ const totalCleared = computed(() => {
 .start-quest-btn:disabled:hover {
   transform: none;
 }
+
 </style>

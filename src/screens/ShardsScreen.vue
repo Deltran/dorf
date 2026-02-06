@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useShardsStore, useHeroesStore } from '../stores'
 import { getHeroTemplate } from '../data/heroes/index.js'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 
 const shardsStore = useShardsStore()
 const heroesStore = useHeroesStore()
@@ -67,7 +67,7 @@ function navigateToHero(hero) {
 <template>
   <div class="shards-screen">
     <header class="screen-header">
-      <button class="back-btn" @click="emit('navigate', 'fellowship-hall')">
+      <button class="back-btn" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

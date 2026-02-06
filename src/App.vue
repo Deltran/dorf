@@ -1,8 +1,9 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore, useIntroStore, useCodexStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore, useIntroStore, useCodexStore, useBattleStore } from './stores'
 import { useColosseumStore } from './stores/colosseum.js'
 import { useGemShopStore } from './stores/gemShop.js'
+import { useMawStore } from './stores/maw.js'
 import { saveGame, loadGame, hasSaveData } from './utils/storage.js'
 import { getGenusLoci } from './data/genusLoci.js'
 import { getAllQuestNodes } from './data/quests/index.js'
@@ -33,10 +34,12 @@ import CompendiumRosterScreen from './screens/CompendiumRosterScreen.vue'
 import CompendiumBestiaryScreen from './screens/CompendiumBestiaryScreen.vue'
 import CompendiumAtlasScreen from './screens/CompendiumAtlasScreen.vue'
 import ColosseumScreen from './screens/ColosseumScreen.vue'
+import MawScreen from './screens/MawScreen.vue'
 import ExplorationDetailView from './components/ExplorationDetailView.vue'
 import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
 import TipPopup from './components/TipPopup.vue'
 import TooltipOverlay from './components/TooltipOverlay.vue'
+import BattleTransitionOverlay from './components/BattleTransitionOverlay.vue'
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
@@ -52,6 +55,10 @@ const introStore = useIntroStore()
 const codexStore = useCodexStore()
 const colosseumStore = useColosseumStore()
 const gemShopStore = useGemShopStore()
+const mawStore = useMawStore()
+const battleStore = useBattleStore()
+
+const battleTransitionActive = ref(false)
 
 const currentScreen = ref(
   import.meta.env.DEV ? (sessionStorage.getItem('dorf_dev_screen') || 'home') : 'home'
@@ -67,6 +74,48 @@ const placingHeroId = ref(null)
 const initialRegionName = ref(null)
 const isIntroBattle = ref(false)
 const selectedTopicId = ref(null)
+
+// Navigation back-stack
+const navigationStack = ref([])
+
+const FALLBACK_BACK = {
+  'fellowship-hall': 'home',
+  'heroes': 'fellowship-hall',
+  'party': 'fellowship-hall',
+  'merge': 'fellowship-hall',
+  'shards': 'fellowship-hall',
+  'map-room': 'home',
+  'worldmap': 'map-room',
+  'explorations': 'map-room',
+  'exploration-detail': 'explorations',
+  'genus-loci-list': 'map-room',
+  'genusLoci': 'genus-loci-list',
+  'colosseum': 'map-room',
+  'maw': 'map-room',
+  'gacha': 'home',
+  'goodsAndMarkets': 'home',
+  'inventory': 'goodsAndMarkets',
+  'shops': 'goodsAndMarkets',
+  'codex': 'home',
+  'field-guide': 'codex',
+  'field-guide-article': 'field-guide',
+  'compendium': 'codex',
+  'compendium-roster': 'compendium',
+  'compendium-bestiary': 'compendium',
+  'compendium-atlas': 'compendium',
+  'admin': 'home'
+}
+
+function captureCurrentParams() {
+  const s = currentScreen.value
+  if (s === 'heroes') return initialHeroId.value ? (autoOpenMerge.value ? { heroId: initialHeroId.value, openMerge: true } : initialHeroId.value) : null
+  if (s === 'genusLoci') return selectedBossId.value
+  if (s === 'exploration-detail') return selectedExplorationNodeId.value
+  if (s === 'party') return placingHeroId.value
+  if (s === 'worldmap') return initialRegionName.value
+  if (s === 'field-guide-article') return selectedTopicId.value
+  return null
+}
 
 // Repair: sync genus loci victories with completedNodes
 // Older saves may have genus loci progress without the quest node marked complete
@@ -93,7 +142,8 @@ const persistedStores = {
   intro: introStore,
   codex: codexStore,
   colosseum: colosseumStore,
-  gemShop: gemShopStore
+  gemShop: gemShopStore,
+  maw: mawStore
 }
 
 // Load game on mount
@@ -208,10 +258,9 @@ function claimCompletionPopup() {
   }
 }
 
-function navigate(screen, param = null) {
+function applyNavigation(screen, param = null) {
   currentScreen.value = screen
   if (screen === 'heroes') {
-    // Support both string (heroId) and object ({ heroId, openMerge })
     if (typeof param === 'object' && param !== null) {
       initialHeroId.value = param.heroId
       autoOpenMerge.value = param.openMerge || false
@@ -239,85 +288,130 @@ function navigate(screen, param = null) {
   }
 }
 
-function handleExplorationBack() {
-  currentScreen.value = 'map-room'
+function navigate(screen, param = null) {
+  if (screen === 'home') {
+    navigationStack.value = []
+  } else {
+    navigationStack.value.push({ screen: currentScreen.value, params: captureCurrentParams() })
+    if (navigationStack.value.length > 20) navigationStack.value.shift()
+  }
+  applyNavigation(screen, param)
+}
+
+function navigateBack() {
+  if (navigationStack.value.length > 0) {
+    const prev = navigationStack.value.pop()
+    applyNavigation(prev.screen, prev.params)
+  } else {
+    applyNavigation(FALLBACK_BACK[currentScreen.value] || 'home', null)
+  }
+}
+
+function navigateReplace(screen, param = null) {
+  if (screen === 'home') navigationStack.value = []
+  applyNavigation(screen, param)
 }
 
 function handleExplorationDetailClose() {
-  currentScreen.value = 'explorations'
   selectedExplorationNodeId.value = null
+  navigateBack()
 }
 
 function handleExplorationStarted() {
-  // Return to explorations list after starting
-  currentScreen.value = 'explorations'
   selectedExplorationNodeId.value = null
+  navigateBack()
 }
 
 function handleExplorationCancelled() {
-  // Return to explorations list after cancelling
-  currentScreen.value = 'explorations'
   selectedExplorationNodeId.value = null
+  navigateBack()
 }
 
 const colosseumBattleContext = ref(null)
+const mawBattleContext = ref(null)
+
+function transitionToBattle(setupFn) {
+  if (battleTransitionActive.value) return
+  if (setupFn) setupFn()
+  battleTransitionActive.value = true
+}
+
+function onTransitionScreenSwap() {
+  currentScreen.value = 'battle'
+}
+
+function onTransitionComplete() {
+  battleTransitionActive.value = false
+  battleStore.signalTransitionComplete()
+}
 
 function startBattle() {
-  genusLociBattleContext.value = null
-  colosseumBattleContext.value = null
-  currentScreen.value = 'battle'
+  transitionToBattle(() => {
+    genusLociBattleContext.value = null
+    colosseumBattleContext.value = null
+  })
 }
 
 function startColosseumBattle(bout) {
-  genusLociBattleContext.value = null
-  colosseumBattleContext.value = { bout }
-  currentScreen.value = 'battle'
+  transitionToBattle(() => {
+    genusLociBattleContext.value = null
+    colosseumBattleContext.value = { bout }
+  })
+}
+
+function startMawBattle(battleConfig) {
+  transitionToBattle(() => {
+    genusLociBattleContext.value = null
+    colosseumBattleContext.value = null
+    mawBattleContext.value = battleConfig
+  })
 }
 
 function startGenusLociBattle({ genusLociId, powerLevel }) {
-  // Consume key before battle
-  const bossData = getGenusLoci(genusLociId)
-  if (bossData && inventoryStore.getItemCount(bossData.keyItemId) > 0) {
-    inventoryStore.removeItem(bossData.keyItemId, 1)
-  }
-
-  // Initialize party state for battle
-  const partyState = {}
-  for (const instanceId of heroesStore.party.filter(Boolean)) {
-    const stats = heroesStore.getHeroStats(instanceId)
-    partyState[instanceId] = {
-      currentHp: stats.hp,
-      currentMp: Math.floor(stats.mp * 0.3)
+  transitionToBattle(() => {
+    // Consume key before battle
+    const bossData = getGenusLoci(genusLociId)
+    if (bossData && inventoryStore.getItemCount(bossData.keyItemId) > 0) {
+      inventoryStore.removeItem(bossData.keyItemId, 1)
     }
-  }
 
-  // Set battle context for BattleScreen
-  genusLociBattleContext.value = {
-    genusLociId,
-    powerLevel,
-    partyState
-  }
+    // Initialize party state for battle
+    const partyState = {}
+    for (const instanceId of heroesStore.party.filter(Boolean)) {
+      const stats = heroesStore.getHeroStats(instanceId)
+      partyState[instanceId] = {
+        currentHp: stats.hp,
+        currentMp: Math.floor(stats.mp * 0.3)
+      }
+    }
 
-  currentScreen.value = 'battle'
+    // Set battle context for BattleScreen
+    genusLociBattleContext.value = {
+      genusLociId,
+      powerLevel,
+      partyState
+    }
+  })
 }
 
 // Intro flow handlers
 function handleIntroStartBattle() {
-  isIntroBattle.value = true
+  transitionToBattle(() => {
+    isIntroBattle.value = true
 
-  // Build party state for intro battle
-  const partyState = {}
-  for (const instanceId of heroesStore.party.filter(Boolean)) {
-    const stats = heroesStore.getHeroStats(instanceId)
-    partyState[instanceId] = {
-      currentHp: stats.hp,
-      currentMp: Math.floor(stats.mp * 0.3)
+    // Build party state for intro battle
+    const partyState = {}
+    for (const instanceId of heroesStore.party.filter(Boolean)) {
+      const stats = heroesStore.getHeroStats(instanceId)
+      partyState[instanceId] = {
+        currentHp: stats.hp,
+        currentMp: Math.floor(stats.mp * 0.3)
+      }
     }
-  }
 
-  // Start the first quest run
-  questsStore.startRun('forest_01', partyState)
-  currentScreen.value = 'battle'
+    // Start the first quest run
+    questsStore.startRun('forest_01', partyState)
+  })
 }
 
 function handleIntroComplete() {
@@ -342,7 +436,7 @@ function handleBattleNavigate(screen, param) {
       return
     }
   }
-  navigate(screen, param)
+  navigateReplace(screen, param)
 }
 </script>
 
@@ -361,39 +455,53 @@ function handleBattleNavigate(screen, param) {
       <FellowshipHallScreen
         v-else-if="currentScreen === 'fellowship-hall'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <MapRoomScreen
         v-else-if="currentScreen === 'map-room'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <GenusLociListScreen
         v-else-if="currentScreen === 'genus-loci-list'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <ColosseumScreen
         v-else-if="currentScreen === 'colosseum'"
         @navigate="navigate"
+        @back="navigateBack"
         @startColosseumBattle="startColosseumBattle"
+      />
+      <MawScreen
+        v-else-if="currentScreen === 'maw'"
+        @navigate="navigate"
+        @back="navigateBack"
+        @startMawBattle="startMawBattle"
       />
       <PartyScreen
         v-else-if="currentScreen === 'party'"
         :placing-hero-id="placingHeroId"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <GachaScreen
         v-else-if="currentScreen === 'gacha'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <HeroesScreen
         v-else-if="currentScreen === 'heroes'"
         :initial-hero-id="initialHeroId"
         :auto-open-merge="autoOpenMerge"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <WorldMapScreen
         v-else-if="currentScreen === 'worldmap'"
         :initial-region-name="initialRegionName"
         @navigate="navigate"
+        @back="navigateBack"
         @startBattle="startBattle"
         @startGenusLociBattle="startGenusLociBattle"
       />
@@ -401,34 +509,40 @@ function handleBattleNavigate(screen, param) {
         v-else-if="currentScreen === 'battle'"
         :genus-loci-context="genusLociBattleContext"
         :colosseum-context="colosseumBattleContext"
+        :maw-context="mawBattleContext"
         @navigate="handleBattleNavigate"
       />
       <GenusLociScreen
         v-else-if="currentScreen === 'genusLoci'"
         :selected-boss-id="selectedBossId"
         @navigate="navigate"
+        @back="navigateBack"
         @startGenusLociBattle="startGenusLociBattle"
       />
       <InventoryScreen
         v-else-if="currentScreen === 'inventory'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <ShardsScreen
         v-else-if="currentScreen === 'shards'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <MergeScreen
         v-else-if="currentScreen === 'merge'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <AdminScreen
         v-else-if="currentScreen === 'admin'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <ExplorationsScreen
         v-else-if="currentScreen === 'explorations'"
         @navigate="navigate"
-        @back="handleExplorationBack"
+        @back="navigateBack"
       />
       <ExplorationDetailView
         v-else-if="currentScreen === 'exploration-detail'"
@@ -440,39 +554,48 @@ function handleBattleNavigate(screen, param) {
       <GoodsAndMarketsScreen
         v-else-if="currentScreen === 'goodsAndMarkets'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <ShopsScreen
         v-else-if="currentScreen === 'shops'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <CodexScreen
         v-else-if="currentScreen === 'codex'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <FieldGuideScreen
         v-else-if="currentScreen === 'field-guide'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <FieldGuideArticleScreen
         v-else-if="currentScreen === 'field-guide-article'"
         :topic-id="selectedTopicId"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <CompendiumScreen
         v-else-if="currentScreen === 'compendium'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <CompendiumRosterScreen
         v-else-if="currentScreen === 'compendium-roster'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <CompendiumBestiaryScreen
         v-else-if="currentScreen === 'compendium-bestiary'"
         @navigate="navigate"
+        @back="navigateBack"
       />
       <CompendiumAtlasScreen
         v-else-if="currentScreen === 'compendium-atlas'"
         @navigate="navigate"
+        @back="navigateBack"
       />
 
       <!-- Exploration Completion Popup -->
@@ -485,6 +608,13 @@ function handleBattleNavigate(screen, param) {
       <!-- Tip Popup (global) -->
       <TipPopup />
       <TooltipOverlay />
+
+      <!-- Battle transition overlay (doors) -->
+      <BattleTransitionOverlay
+        :active="battleTransitionActive"
+        @screenSwap="onTransitionScreenSwap"
+        @complete="onTransitionComplete"
+      />
     </template>
 
     <div v-else class="loading">

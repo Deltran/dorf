@@ -1,25 +1,37 @@
 # Dorf
 
 
-A browser-based gacha hero collector with turn-based tactical combat. Summon heroes, build parties, and battle through quest nodes on a world map.
+A browser-based gacha hero collector with turn-based tactical combat. Summon heroes, build parties, and battle through a dark fantasy world across two continents. Playable on web and Android.
 
 ## Features
 
-- **Gacha System**: Summon heroes with 1-5 star rarities, featuring soft pity at 50 pulls and hard pity at 90 pulls
-- **Hero Collection**: Collect and manage a roster of unique heroes across multiple classes (Knight, Mage, Cleric, Ranger, Berserker, Bard, Druid, Paladin, Alchemist)
-- **Party Building**: Assemble a team of 4 heroes with complementary roles (Tank, DPS, Healer, Support)
-- **Leader Skills**: Designate a 5-star hero as party leader to unlock powerful team-wide bonuses
-- **Turn-Based Combat**: Strategic battles with speed-based turn order, skills, and status effects
-- **World Map Progression**: Battle through connected quest nodes with multi-fight encounters
-- **Item System**: Collect XP tomes and items from battles to power up your heroes
-- **Dual Currency**: Earn gems for summoning and gold for hero upgrades
-- **Local Save**: Progress is automatically saved to browser local storage
+- **Gacha Summoning**: Pull heroes from rotating banners with pity system (soft pity at 50, guaranteed 5-star at 90)
+- **38 Collectible Heroes**: 9 classes across 5 rarity tiers, each with unique skills and resource mechanics
+- **Multi-Party System**: Build and switch between 3 independent parties of 4 heroes
+- **9 Class Resource Systems**: Rage, Focus, Valor, Verse, Essence, and MP -- each class plays differently
+- **Leader Skills**: 5-star heroes unlock powerful team-wide bonuses when set as party leader
+- **Turn-Based Combat**: Speed-based turn order, 20+ status effects, damage interception chains, fight-level encounter modifiers, and conditional skill mechanics
+- **28 Quest Regions**: Two continents (Western Veros and Aquarias) with connected node-based progression
+- **4 Genus Loci Bosses**: Unique boss encounters with passive abilities and special mechanics
+- **Colosseum Arena**: 50-bout PvP gauntlet with laurel currency and exclusive shop
+- **Explorations**: Time-gated expeditions with rank progression and reward multipliers
+- **Equipment System**: 60 gear items across 12 slot types with blacksmith upgrades
+- **Shard Hunting**: Target specific heroes through shard collection and tier upgrades
+- **Banner Rotation**: Standard banner + 3 rotating limited banners + monthly Black Market banners
+- **Codex**: Field Guide (game mechanics tutorials) and Compendium (hero/enemy/region discovery tracking with gem rewards)
+- **Hero Fusion**: Merge duplicate heroes to increase star level
+- **Multiple Shops**: Blacksmith, Laurel Shop, Gem Shop (daily rotation), Gold Shop
+- **New Player Intro**: Guided introduction with starter hero, gifted 4-star pull, and tutorial battle
+- **Local Save**: Progress auto-saved to browser local storage
+- **Mobile-First**: Portrait layout, touch-optimized, Android APK via Capacitor
 
 ## Tech Stack
 
 - **Vue 3** with Composition API
 - **Pinia** for state management
 - **Vite** for development and building
+- **Vitest** for testing
+- **Capacitor** for Android builds
 
 ## Prerequisites
 
@@ -69,6 +81,14 @@ Preview the production build locally:
 npm run preview
 ```
 
+### Tests
+
+Run the test suite:
+
+```bash
+npm test
+```
+
 ### Android APK Build
 
 Build an Android APK for installing on your phone.
@@ -101,7 +121,7 @@ cd android && ./gradlew assembleDebug
 Or as a single command:
 
 ```bash
-npm run cap:sync && cd android && ./gradlew assembleDebug
+npm run build:apk
 ```
 
 The APK will be at: `android/app/build/outputs/apk/debug/app-debug.apk`
@@ -110,76 +130,25 @@ Transfer this file to your phone and install it (enable "Install from unknown so
 
 ## Project Structure
 
-```
-dorf/
-├── src/
-│   ├── main.js              # Vue app entry point
-│   ├── App.vue              # Root component, handles screen navigation
-│   ├── assets/
-│   │   ├── heroes/          # Hero portrait images (named by hero ID)
-│   │   ├── enemies/         # Enemy images
-│   │   ├── maps/            # World map background images
-│   │   └── battle_backgrounds/  # Battle scene backgrounds
-│   ├── components/          # Reusable UI components
-│   │   ├── HeroCard.vue     # Hero display card
-│   │   ├── EnemyCard.vue    # Enemy display card
-│   │   ├── ItemCard.vue     # Item display card
-│   │   ├── StatBar.vue      # HP/MP bar component
-│   │   ├── StarRating.vue   # Rarity star display
-│   │   ├── ActionButton.vue # Battle action buttons
-│   │   ├── MapCanvas.vue    # World map with SVG trails
-│   │   └── NodeMarker.vue   # Quest node markers
-│   ├── screens/             # Full-page views
-│   │   ├── HomeScreen.vue   # Main hub
-│   │   ├── GachaScreen.vue  # Hero summoning
-│   │   ├── HeroesScreen.vue # Collection and party management
-│   │   ├── WorldMapScreen.vue # Quest node selection
-│   │   └── BattleScreen.vue # Combat interface
-│   ├── stores/              # Pinia state stores
-│   │   ├── heroes.js        # Hero collection, party, and leader
-│   │   ├── gacha.js         # Pull logic, pity counters, currency
-│   │   ├── quests.js        # World map and progress
-│   │   ├── battle.js        # Combat state machine
-│   │   └── inventory.js     # Item storage
-│   ├── data/                # Static game data
-│   │   ├── heroTemplates.js # Hero definitions
-│   │   ├── enemyTemplates.js # Enemy definitions
-│   │   ├── questNodes.js    # World map nodes
-│   │   ├── classes.js       # Hero class definitions
-│   │   ├── statusEffects.js # Buff/debuff definitions
-│   │   └── items.js         # Item definitions
-│   └── utils/
-│       └── storage.js       # Local storage helpers
-├── scripts/
-│   ├── generate-assets.js   # Asset generation CLI
-│   └── lib/                 # Asset checker, prompt builder, Pixellab client
-├── docs/
-│   └── plans/               # Design documents
-├── index.html               # HTML entry point
-├── package.json
-└── vite.config.js
-```
+- `src/screens/` - 26 full-page views (Home, Battle, Gacha, World Map, Colosseum, Codex, etc.)
+- `src/components/` - Reusable UI components (cards, bars, resource indicators, admin panel)
+- `src/stores/` - 14 Pinia stores (heroes, battle, gacha, quests, equipment, colosseum, etc.)
+- `src/data/` - Static game data: heroes (by rarity), enemies (by region), quests (by region), equipment, banners, status effects
+- `src/assets/` - Hero portraits, enemy sprites, battle backgrounds, region maps, banner images
+- `scripts/` - AI asset generation tools (Pixellab, Gemini)
+- `docs/plans/` - Design documents
 
 ## Asset Generation
 
-Generate missing enemy sprites and battle backgrounds using the [Pixellab.ai](https://pixellab.ai) API.
+Generate missing enemy sprites and battle backgrounds using AI APIs.
 
-### Setup
-
-1. Get an API token from Pixellab.ai
-2. Create a `.env` file in the project root:
-   ```
-   PIXELLAB_TOKEN=your-token-here
-   ```
-
-### Commands
+### Pixellab (Enemy Sprites)
 
 ```bash
+# Setup: add PIXELLAB_TOKEN to .env
+
 # List all missing assets
 npm run generate-assets -- list
-
-# Preview enemy generation (no API calls)
-npm run generate-assets -- enemies --dry-run
 
 # Generate all missing enemy sprites
 npm run generate-assets -- enemies
@@ -195,17 +164,11 @@ npm run generate-assets -- enemies --id cave_leech
 npm run generate-assets -- backgrounds --id forest_01
 ```
 
-### Batch Generation (Gemini API)
+### Gemini (Backgrounds & Maps)
 
-Generate battle backgrounds and region maps using the Gemini API.
-
-**Setup**: Add your Gemini API key to `.env`:
-```
-VITE_GEMINI_API_KEY=your-key-here
-```
-
-**Commands**:
 ```bash
+# Setup: add VITE_GEMINI_API_KEY to .env
+
 # Generate all missing battle backgrounds (600x1000)
 npm run generate-battle-backgrounds
 
@@ -213,12 +176,10 @@ npm run generate-battle-backgrounds
 npm run generate-region-maps
 ```
 
-These scripts skip assets that already exist at the correct size.
-
 ### Asset Sizes
 
 - **Enemies**: 64x64 (regular) or 128x128 (bosses/large creatures)
-- **Backgrounds**: 320x128 (Pixellab) or 600x1000 (Gemini batch)
+- **Backgrounds**: 600x1000
 - **Region Maps**: 600x1000
 
 ### Custom Prompts
@@ -230,12 +191,6 @@ export const enemyPrompts = {
   cave_leech: {
     prompt: 'A slimy cave leech. Pale white skin. Circular mouth with teeth. High fantasy.',
     size: 64
-  }
-}
-
-export const backgroundPrompts = {
-  forest_01: {
-    prompt: 'Dense forest clearing. Sunlight through canopy. Moss-covered rocks. Dark fantasy.'
   }
 }
 ```
@@ -256,20 +211,32 @@ export const backgroundPrompts = {
 - **Hard pity**: Guaranteed 5-star at 90 pulls
 - **4-star pity**: Guaranteed 4-star or higher every 10 pulls
 
+### Banners
+
+| Banner Type | Availability | Description |
+|-------------|--------------|-------------|
+| **Standard** | Always | Full hero pool, all rarities |
+| **Rotating Limited** | 10-day cycle | 3 themed banners cycle (Shields of Valor, Flames of War, Nature's Call) |
+| **Monthly** | 1 per month | Featured heroes with rate-up (Musical Mayhem, Voices of Change, Oriental Fighters, Golden Showers, Deplorable Companions, Drums of the Old Blood) |
+| **Black Market** | Hidden entrance | Access to last month, next month, and a daily vault banner |
+
 ### Currency
 
 | Currency | Use | Starting Amount |
 |----------|-----|-----------------|
-| Gems | Gacha pulls, premium purchases | 1000 |
-| Gold | Hero merging, upgrades | 10000 |
+| Gems | Gacha pulls, shop purchases | 1000 |
+| Gold | Hero merging, equipment upgrades | 10000 |
+| Laurels | Colosseum shop purchases | Earned from arena |
 
 ### Combat
 
-- Turn order is determined by speed stat (highest acts first)
+- Turn order determined by speed stat (highest acts first)
 - Heroes start battles with full HP and 30% of their resource (MP, Essence)
 - Basic attacks are free; skills cost resources (varies by class)
 - Status effects (buffs/debuffs) last for a set number of turns
 - Heroes unlock additional skills at levels 2 and 3
+- Damage interception chain: Evasion > Divine Sacrifice > Guardian Link > Guarded By > Damage Reduction > Shield > Marked > Normal
+- Fight-Level Effects: Encounter modifiers (environmental damage, damage multipliers, burn-on-hit) that persist for the entire battle and cannot be cleansed
 
 ### Class Resource Systems
 
@@ -279,22 +246,55 @@ Each class uses a unique resource system that defines their combat rhythm:
 |-------|----------|------|----------|
 | **Berserker** | Rage | Build & Spend | Starts at 0, gains +10 on attack or taking damage. Capped at 100. Skills consume Rage for powerful attacks. |
 | **Ranger** | Focus | Binary State | Starts battle focused. Loses Focus when hit or debuffed. Cannot use skills without Focus. Regains Focus from ally buffs or critical hits. |
-| **Knight** | Valor | Build & Spend | Starts at 0, gains +5 when redirecting damage (Guardian Link, blocking). Skills have minimum Valor requirements and scale effects with current Valor tier (0/25/50/75/100). |
-| **Bard** | Verse | Build to Finale | All skills are free but add +1 Verse (0-3 max). Cannot repeat same skill consecutively. At 3 Verses, Finale auto-triggers next turn as a free action with powerful team effects. |
-| **Alchemist** | Essence | Manage Volatility | Starts at 50%, regenerates +10 per turn. Skills cost Essence. **Volatility tiers**: Stable (0-20, no bonus), Reactive (21-40, +15% damage), Volatile (41+, +30% damage but 5% max HP self-damage per skill). |
+| **Knight** | Valor | Build & Scale | Starts at 0, gains +5 when redirecting damage. Skills have minimum Valor requirements and scale effects at tiers (0/25/50/75/100). |
+| **Bard** | Verse | Build to Finale | All skills free but add +1 Verse (0-3 max). Cannot repeat same skill consecutively. At 3 Verses, Finale auto-triggers as a free action. |
+| **Alchemist** | Essence | Manage Volatility | Starts at 50%, regenerates +10 per turn. Volatility tiers: Stable (0-20, no bonus), Reactive (21-40, +15% damage), Volatile (41+, +30% damage but 5% max HP self-damage). |
 | **Paladin** | Faith | Standard MP | Starts at 30%, skills cost MP. |
 | **Mage** | Mana | Standard MP | Starts at 30%, skills cost MP. |
 | **Cleric** | Devotion | Standard MP | Starts at 30%, skills cost MP. |
 | **Druid** | Nature | Standard MP | Starts at 30%, skills cost MP. |
 
-**Special Skill Costs:**
-- `rageCost: 'all'` - Consumes all Rage with scaling damage (e.g., +1% per Rage consumed)
-- `valorCost: 'all'` - Consumes all Valor with scaling effects
-- Valor skills use `valorRequired` for minimum threshold and scale duration/strength at higher tiers
+### Multi-Party System
+
+- Manage 3 independent parties of 4 heroes each
+- Switch active party on the home screen via swipe carousel
+- Rename parties with long-press
+- Each party has its own leader slot
+- Select which party to bring into battle from quest details
+
+### Equipment
+
+- 5 gear slots per hero: weapon, armor, ring, cloak, and class-specific item
+- Class-specific slots: Shield (Knight), War Trophy (Berserker), Bow (Ranger), Staff (Mage), Holy Symbol (Cleric), Holy Relic (Paladin), Totem (Druid), Instrument (Bard)
+- Equipment ranges from rarity 1-5 with upgrade paths
+- Blacksmith upgrades use gold + materials (Weapon Stones, Armor Plates, Gem Shards, Class Tokens)
+
+### Hero Progression
+
+- **Leveling**: Use XP tomes (Faded Tome 50 XP, Knowledge Tome 200 XP, Ancient Codex 500 XP) to level heroes
+- **Merging**: Fuse duplicate heroes to increase star level (1 > 2 > 3 > 4 > 5)
+- **Shards**: Hunt shards for specific heroes through 5 hunting slots with tier upgrades (0-3)
+- **Equipment**: Gear stat bonuses (ATK, DEF, HP, SPD) applied to heroes
+
+### Colosseum
+
+A 50-bout PvP gauntlet against AI-controlled hero parties:
+- Progressive difficulty from 1-star through 5-star opponents
+- First-clear bonuses scale from 10-50 laurels per bout
+- Daily laurel income from cleared bouts (2-5 laurels/day each)
+- Laurel shop with exclusive items and limited stock
+
+### Explorations
+
+Time-gated expeditions for passive rewards:
+- Send parties on hour-long missions
+- Rank system (E through S) with reward multipliers
+- Rank up using materials earned from exploration
+- Shard drops available for targeted heroes
 
 ### Leader Skills
 
-5-star (Legendary) heroes have unique leader skills that activate when designated as party leader:
+5-star (Legendary) heroes have unique leader skills that activate when set as party leader:
 
 | Hero | Leader Skill | Effect |
 |------|--------------|--------|
@@ -336,11 +336,31 @@ Each class uses a unique resource system that defines their combat rhythm:
 | FLAME_SHIELD | Burns attackers when hit |
 | WELL_FED | Auto-heals when HP drops below threshold |
 | DEATH_PREVENTION | Prevents fatal damage once |
+| DEBUFF_IMMUNE | Immune to debuffs for duration |
+| SWIFT_MOMENTUM | Stacking SPD buff (max 5 stacks) |
 
 - Stat modifiers stack additively (two 20% DEF downs = 40% reduction)
+- Effects can use counter-based stacking with `maxStacks` (e.g., Swift Momentum)
 - DoT/HoT effects can scale with caster's ATK via `atkPercent`
 - Cleanse effects can remove debuffs; some enemy skills remove buffs
 - Protection effects (Divine Sacrifice, Guardian Link) are checked before normal damage
+
+### Fight-Level Effects
+
+Encounter-level modifiers that apply to the entire battle based on where you're fighting. Unlike status effects, they cannot be cleansed, dispelled, or removed.
+
+| Hook | Effect | Description |
+|------|--------|-------------|
+| Pre-Damage | Damage Multiplier | Multiply outgoing damage for heroes, enemies, or all |
+| Pre-Damage | Damage Reduction | Reduce incoming damage (caps at 80%) |
+| Turn Start | % Max HP Damage | Deal periodic damage based on max HP |
+| Turn Start | % Max HP Heal | Heal periodically based on max HP |
+| Post-Damage | Apply Status | Chance to inflict a status effect on hit |
+
+- Scoped to `heroes`, `enemies`, or `all` combatants
+- Multiple effects of the same type stack additively
+- Set per quest node, boss arena, or added mid-battle by source systems
+- Cleared automatically when the battle ends
 
 ### Items
 
@@ -348,8 +368,12 @@ Items drop from quest battles and can be used or sold:
 
 | Type | Items | Use |
 |------|-------|-----|
-| XP | Faded Tome, Knowledge Tome, Ancient Codex | Grant hero experience |
-| Junk | Useless Rock, Shiny Pebble, Goblin Trinket | Sell for gems |
+| XP Tomes | Faded Tome (50), Knowledge Tome (200), Ancient Codex (500) | Grant hero experience |
+| Junk | Useless Rock, Shiny Pebble, Goblin Trinket, Magical Rocks | Sell for gems or gold |
+| Region Tokens | 1 per region | Instantly collect rewards from a completed quest |
+| Upgrade Materials | Weapon Stones, Armor Plates, Gem Shards, Class Tokens | Blacksmith equipment upgrades |
+| Genus Loci Crests | Valinar, Great Troll, Pyroclast, Thalassion | Boss-specific drops |
+| Keys | Lake Tower, Den, Eruption Vent, Abyss | Unlock Genus Loci encounters |
 
 ### Progression
 
@@ -357,37 +381,46 @@ Items drop from quest battles and can be used or sold:
 - Each node contains multiple battles with HP/MP carrying over
 - Earn gems, gold, EXP, and items as rewards
 - First-time node completion grants bonus gems
+- Region tokens let you instant-collect rewards from cleared nodes without replaying
 
 ### World Regions
 
-| Region | Difficulty | Enemies |
-|--------|------------|---------|
-| Whispering Woods | Early | Goblin Scout, Goblin Warrior, Forest Wolf, Dire Wolf, Forest Spider |
-| Echoing Caverns | Mid | Cave Bat, Rock Golem, Dark Cultist, Dark Caster, Cave Troll |
-| Whisper Lake | Mid | Valinar, Lake Tower Guardian (Genus Loci) |
-| Stormwind Peaks | Late | Harpy, Frost Elemental, Storm Giant |
-| Hibernation Den | Late | Cave Troll, Great Troll (Genus Loci) |
+28 quest areas across two super-regions:
 
-Each region has a boss node with unique mechanics and better rewards.
+- **Western Veros** (13 regions) - The starting continent, ranging from the Whispering Woods through volcanic cliffs and ancient catacombs, ending at the Gate to Aquaria. Includes 3 Genus Loci boss encounters (Valinar, Great Troll, Pyroclast).
+- **Aquarias** (15 regions) - An underwater realm unlocked after completing the Gate to Aquaria. 10 main-path regions leading to the final boss Thalassion, plus 5 branch regions with optional content.
 
 ### Genus Loci Bosses
 
-Genus Loci are powerful boss enemies with unique abilities and passives:
+Genus Loci are powerful boss enemies with unique abilities, passives, and scaling power levels (1-20):
 
 | Boss | Region | Key Mechanics |
 |------|--------|---------------|
 | Valinar, Lake Tower Guardian | Whisper Lake | Iron Guard, Shield Bash, Counterattack Stance |
-| Great Troll | Hibernation Den | Hibernation (self-inflicted SLEEP with 10% HP regen), counterattack when woken |
+| The Great Troll Vurgorol | Hibernation Den | Hibernation (self-inflicted SLEEP with 10% HP regen), counterattack when woken |
+| Pyroclast, the Living Eruption | Eruption Vent | Fire-based attacks, volcanic mechanics |
+| Thalassion, the Deep Mind | The Abyssal Maw | Deep sea abilities, final boss |
+
+### Codex
+
+The in-game knowledge system with two sections:
+
+- **Field Guide**: Categorized tutorials covering combat basics, classes, resources, status effects, leader skills, damage interception, equipment, and more. Unlocking topics awards gems.
+- **Compendium**: Encyclopedia tracking discovery of heroes (Roster), enemies (Bestiary), and regions (Atlas). Reading new entries awards gems (50 per hero, 10 per enemy).
 
 ### Heroes
 
+38 heroes across 9 classes:
+
 | Rarity | Heroes |
 |--------|--------|
-| 5-star | Aurora the Dawn (Paladin), Shadow King (Berserker), Yggra the World Root (Druid), Cacophon (Bard), Rosara the Unmoved (Knight), Onibaba (Druid), Fortuna Inversus (Bard), Mara Thornheart (Berserker), Grandmother Rot (Druid), Korrath Hollow Ear (Ranger) |
-| 4-star | Sir Gallan (Knight), Ember Witch (Mage), Lady Moonwhisper (Cleric), Swift Arrow (Ranger), Chroma (Bard), Zina the Desperate (Alchemist), Shinobi Jin (Ranger), Copper Jack (Berserker), Philemon the Ardent (Knight), Penny Dreadful (Alchemist), Vraxx Thunderskin (Bard) |
-| 3-star | Town Guard (Knight), Hedge Wizard (Mage), Village Healer (Cleric), Wandering Bard (Bard), Vashek the Unrelenting (Knight), Matsuda (Berserker), Bones McCready (Druid), The Grateful Dead (Knight), Torga Bloodbeat (Berserker) |
-| 2-star | Militia Soldier (Knight), Apprentice Mage (Mage), Herb Gatherer (Druid), Fennick (Ranger) |
-| 1-star | Farm Hand (Berserker), Street Urchin (Ranger), Beggar Monk (Cleric), Street Busker (Bard) |
+| 5-star (10) | Aurora the Dawn (Paladin), Shadow King (Berserker), Yggra the World Root (Druid), Cacophon (Bard), Rosara the Unmoved (Knight), Onibaba (Druid), Fortuna Inversus (Bard), Mara Thornheart (Berserker), Grandmother Rot (Druid), Korrath Hollow Ear (Ranger) |
+| 4-star (11) | Sir Gallan (Knight), Ember Witch (Mage), Lady Moonwhisper (Cleric), Swift Arrow (Ranger), Chroma (Bard), Zina the Desperate (Alchemist), Shinobi Jin (Ranger), Copper Jack (Berserker), Philemon the Ardent (Knight), Penny Dreadful (Alchemist), Vraxx Thunderskin (Bard) |
+| 3-star (9) | Town Guard (Knight), Hedge Wizard (Mage), Village Healer (Cleric), Wandering Bard (Bard), Vashek the Unrelenting (Knight), Matsuda (Berserker), Bones McCready (Druid), The Grateful Dead (Knight), Torga Bloodbeat (Berserker) |
+| 2-star (4) | Militia Soldier (Knight), Apprentice Mage (Mage), Herb Gatherer (Druid), Fennick (Ranger) |
+| 1-star (4) | Farm Hand (Berserker), Street Urchin (Ranger), Beggar Monk (Cleric), Street Busker (Bard) |
+
+**Class distribution:** Knight (7), Berserker (6), Bard (6), Ranger (5), Druid (5), Mage (3), Cleric (3), Alchemist (2), Paladin (1)
 
 ### Featured 5-Star Heroes
 
@@ -416,8 +449,42 @@ Genus Loci are powerful boss enemies with unique abilities and passives:
 - **Whisper Shot**: Single-target execute, bonus damage to low HP enemies
 - Focus-dependent kit rewards positioning and protection
 
+**Mara Thornheart** (Berserker) - Seething Fury
+- Rage-fueled berserker with lifesteal and pain-triggered power spikes
+- **Heartbreak**: Damage that chains conditional effects on debuffed targets
+- Leader skill grants team lifesteal and ATK boost when allies are wounded
+
+**Fortuna Inversus** (Bard) - Lady of Upturned Fates
+- Gambler bard with fortune-themed verse skills
+- **Finale - Fortune Swap**: Redistributes team HP for dramatic reversals
+- Leader skill buffs allies below 50% HP
+
+**Grandmother Rot** (Druid) - The Hungry Grandmother
+- Poison and decomposition specialist
+- **The Great Composting**: Unique damage-over-time mechanics
+- Leader skill extends poison duration and heals allies off poisoned enemies
+
+**Onibaba** (Druid) - The Mountain Crone
+- Soul-draining support druid
+- Leader skill auto-triggers Soul Siphon when allies drop below 30% HP
+
+**Yggra the World Root** (Druid) - Ancient Support
+- Nature-based healer and buffer
+- Leader skill provides passive HP regen to all allies each round
+
 ## New Player Start
 
+- Guided introduction with narrative about the world of Veros
+- One guaranteed 3-star hero (Town Guard) as starter
+- One gifted random 4-star hero from the standard banner
+- Tutorial battle teaching combat basics
 - Begin with 1000 gems and 10000 gold
-- One guaranteed 3-star hero
-- Tutorial quest node unlocked
+- Whispering Woods quest region unlocked
+
+## Admin Tools
+
+A development-only admin panel (`AdminScreen`) accessible in dev mode:
+
+- **Hero Editor**: Create and modify hero templates with full stat/skill editing
+- **Quest Node Editor**: Create regions, add nodes, configure battles and rewards
+- **Asset Viewers**: Browse hero portraits, enemy sprites, battle backgrounds, and region maps

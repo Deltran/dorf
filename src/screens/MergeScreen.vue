@@ -4,7 +4,7 @@ import { useHeroesStore, useGachaStore } from '../stores'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import MergePlannerModal from '../components/MergePlannerModal.vue'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
@@ -103,7 +103,7 @@ function selectGroup(group) {
 <template>
   <div class="merge-screen">
     <header class="screen-header">
-      <button class="back-btn" @click="emit('navigate', 'fellowship-hall')">
+      <button class="back-btn" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

@@ -8,7 +8,7 @@ import { getClass } from '../data/classes.js'
 import colosseumBg from '../assets/backgrounds/colosseum_bg.png'
 import laurelIcon from '../assets/icons/laurels.png'
 
-const emit = defineEmits(['navigate', 'startColosseumBattle'])
+const emit = defineEmits(['navigate', 'back', 'startColosseumBattle'])
 
 const colosseumStore = useColosseumStore()
 const heroesStore = useHeroesStore()
@@ -80,7 +80,7 @@ onMounted(() => {
     ></div>
 
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'map-room')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">&#8249;</span>
         <span>Back</span>
       </button>

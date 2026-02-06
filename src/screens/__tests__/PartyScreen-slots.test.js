@@ -206,10 +206,11 @@ describe('PartyScreen - Frameless Hero Slot Rendering', () => {
         }
       })
 
-      // Find the leader crown
+      // Find the leader crown (uses GameIcon with crown image)
       const leaderCrown = wrapper.find('.leader-crown')
       expect(leaderCrown.exists()).toBe(true)
-      expect(leaderCrown.text()).toContain('👑')
+      const crownIcon = leaderCrown.find('.game-icon')
+      expect(crownIcon.exists()).toBe(true)
     })
 
     it('should NOT show crown on non-leader slots', () => {
@@ -720,10 +721,9 @@ describe('PartyScreen - Frameless Hero Slot Rendering', () => {
       const leaderSkillBar = wrapper.find('.leader-skill-bar')
       expect(leaderSkillBar.exists()).toBe(true)
 
-      // Should show crown icon
-      const icon = leaderSkillBar.find('.leader-skill-icon')
+      // Should show crown icon (uses GameIcon with crown image)
+      const icon = leaderSkillBar.find('.game-icon')
       expect(icon.exists()).toBe(true)
-      expect(icon.text()).toContain('👑')
 
       // Should show skill name
       const skillName = leaderSkillBar.find('.leader-skill-name')

@@ -3,7 +3,7 @@ import goodsBg from '../assets/backgrounds/goods_bg.png'
 import storeIcon from '../assets/icons/store_goods.png'
 import shopsIcon from '../assets/icons/shops.png'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 </script>
 
 <template>
@@ -18,7 +18,7 @@ const emit = defineEmits(['navigate'])
     ></div>
 
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'home')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">&#8249;</span>
         <span>Back</span>
       </button>

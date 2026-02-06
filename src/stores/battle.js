@@ -51,6 +51,12 @@ export const useBattleStore = defineStore('battle', () => {
   // Track Blood Tempo uses per hero for Torga's Blood Echo
   const bloodTempoUses = ref({})
 
+  // Fight-Level Effects (FLE) — modifiers attached to quest nodes
+  const fightLevelEffects = ref([])
+
+  // Battle transition signaling — prevents turns from starting before transition animation completes
+  const waitingForTransition = ref(false)
+
   // Getters
   const currentUnit = computed(() => {
     if (turnOrder.value.length === 0) return null
@@ -626,6 +632,9 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Process fight-level effects for this unit's turn start
+    processTurnStartEffects(unit)
+
     return true // Can act
   }
 
@@ -736,7 +745,8 @@ export const useBattleStore = defineStore('battle', () => {
     if (effect.type === 'damage' && effect.damagePercent) {
       const bardAtk = getEffectiveStat(bard, 'atk')
       const boostedPercent = effect.damagePercent * boostMultiplier
-      const damage = Math.floor(bardAtk * (boostedPercent / 100))
+      let damage = Math.floor(bardAtk * (boostedPercent / 100))
+      damage = processPreDamage(bard, enemy, damage)
       applyDamage(enemy, damage, 'skill', bard)
       emitCombatEffect(enemy.id, 'enemy', 'damage', damage)
     }
@@ -835,8 +845,9 @@ export const useBattleStore = defineStore('battle', () => {
           const storedDamage = effect.storedDamage || 0
           if (storedDamage > 0) {
             for (const enemy of aliveEnemies.value) {
-              applyDamage(enemy, storedDamage, 'attack', unit)
-              emitCombatEffect(enemy.id, 'enemy', 'damage', storedDamage)
+              const storeFle = processPreDamage(unit, enemy, storedDamage)
+              applyDamage(enemy, storeFle, 'attack', unit)
+              emitCombatEffect(enemy.id, 'enemy', 'damage', storeFle)
             }
             addLog(`${unitName} releases ${storedDamage} stored damage to all enemies!`)
           }
@@ -1143,7 +1154,7 @@ export const useBattleStore = defineStore('battle', () => {
   function initializeEssence(hero) {
     if (!isAlchemist(hero)) return
     hero.maxEssence = hero.template?.baseStats?.mp || 60
-    hero.currentEssence = Math.floor(hero.maxEssence / 2) // Start at 50%
+    hero.currentEssence = Math.floor(hero.maxEssence / 2) - 10
   }
 
   function regenerateEssence(hero) {
@@ -1555,6 +1566,116 @@ export const useBattleStore = defineStore('battle', () => {
     return { roll: result.total, isDoubles: result.isDoubles }
   }
 
+  // Fight-Level Effects (FLE) helpers
+  function setFightLevelEffects(effects) {
+    fightLevelEffects.value = effects
+  }
+
+  function addFightLevelEffect(effect) {
+    fightLevelEffects.value.push(effect)
+  }
+
+  function matchesScope(scope, unit) {
+    if (scope === 'all') return true
+    if (scope === 'heroes') return !!unit?.instanceId
+    if (scope === 'enemies') return !unit?.instanceId
+    return false
+  }
+
+  function processPreDamage(attacker, target, damage) {
+    const effects = fightLevelEffects.value.filter(e => e.hook === 'on_pre_damage')
+    if (effects.length === 0) return damage
+
+    // Collect multipliers for the attacker and reductions for the target
+    let totalMultiplier = 0
+    let totalReduction = 0
+
+    for (const effect of effects) {
+      if (effect.type === 'damage_multiplier' && matchesScope(effect.scope, attacker)) {
+        totalMultiplier += effect.value
+      }
+      if (effect.type === 'damage_reduction' && matchesScope(effect.scope, target)) {
+        totalReduction += effect.value
+      }
+    }
+
+    // Apply multiplier (additive stacking, value is bonus percent: 15 = +15%)
+    if (totalMultiplier !== 0) {
+      damage = Math.floor(damage * (100 + totalMultiplier) / 100)
+    }
+
+    // Apply reduction (capped at 80%)
+    if (totalReduction > 0) {
+      const cappedReduction = Math.min(totalReduction, 80)
+      damage = Math.floor(damage * (100 - cappedReduction) / 100)
+    }
+
+    return damage
+  }
+
+  function processTurnStartEffects(unit) {
+    const effects = fightLevelEffects.value.filter(e => e.hook === 'on_turn_start')
+    if (effects.length === 0) return
+
+    const unitName = unit.template?.name || 'Unknown'
+
+    // Collect damage and healing from matching effects
+    let totalDamagePercent = 0
+    let totalHealPercent = 0
+
+    for (const effect of effects) {
+      if (!matchesScope(effect.scope, unit)) continue
+
+      if (effect.type === 'damage_percent_max_hp') {
+        totalDamagePercent += effect.value
+      }
+      if (effect.type === 'heal_percent_max_hp') {
+        totalHealPercent += effect.value
+      }
+      if (effect.type === 'grant_shield') {
+        const shieldAmount = Math.floor(unit.maxHp * effect.value / 100)
+        applyEffect(unit, 'shield', { shieldHp: shieldAmount, duration: 99 })
+      }
+    }
+
+    if (totalDamagePercent > 0 && unit.currentHp > 1) {
+      const damage = Math.floor(unit.maxHp * totalDamagePercent / 100)
+      const actualDamage = Math.min(damage, unit.currentHp - 1)
+      if (actualDamage > 0) {
+        unit.currentHp -= actualDamage
+        addLog(`${unitName} takes ${actualDamage} environmental damage!`)
+        emitCombatEffect(unit.instanceId || unit.id, unit.instanceId ? 'hero' : 'enemy', 'damage', actualDamage)
+      }
+    }
+
+    if (totalHealPercent > 0) {
+      const heal = Math.floor(unit.maxHp * totalHealPercent / 100)
+      const oldHp = unit.currentHp
+      unit.currentHp = Math.min(unit.maxHp, unit.currentHp + heal)
+      const actualHeal = unit.currentHp - oldHp
+      if (actualHeal > 0) {
+        addLog(`${unitName} heals ${actualHeal} HP from the environment!`)
+        emitCombatEffect(unit.instanceId || unit.id, unit.instanceId ? 'hero' : 'enemy', 'heal', actualHeal)
+      }
+    }
+  }
+
+  function processPostDamage(attacker, target) {
+    const effects = fightLevelEffects.value.filter(e => e.hook === 'on_post_damage')
+    if (effects.length === 0) return
+
+    for (const effect of effects) {
+      if (effect.type === 'apply_status' && matchesScope(effect.scope, attacker)) {
+        if (Math.random() * 100 < effect.chance) {
+          applyEffect(target, effect.statusType, {
+            duration: effect.duration,
+            value: effect.value
+          })
+        }
+      }
+    }
+  }
+
   // Apply damage to a unit and handle focus loss for rangers
   // attacker: optional unit object for the attacker (used for rage gain)
   function applyDamage(unit, damage, source = 'attack', attacker = null, result = null) {
@@ -1864,6 +1985,24 @@ export const useBattleStore = defineStore('battle', () => {
     // Check for lowHpTrigger passive (e.g., Cornered Animal)
     if (actualDamage > 0 && unit.currentHp > 0 && unit.instanceId) {
       processLowHpTrigger(unit, hpBeforeDamage)
+    }
+
+    // Fight-level post-damage effects (e.g., chance to apply burn on hit)
+    if (actualDamage > 0 && unit.currentHp > 0 && attacker) {
+      processPostDamage(attacker, unit)
+    }
+
+    // FLE: heal_percent_damage — heal attacker for % of actual damage dealt
+    if (actualDamage > 0 && attacker) {
+      for (const fle of fightLevelEffects.value) {
+        if (fle.hook === 'on_post_damage' && fle.type === 'heal_percent_damage' && matchesScope(fle.scope, attacker)) {
+          const healAmount = Math.floor(actualDamage * fle.value / 100)
+          if (healAmount > 0 && attacker.currentHp > 0) {
+            attacker.currentHp = Math.min(attacker.maxHp, attacker.currentHp + healAmount)
+            addLog(`${attacker.template?.name || 'Attacker'} heals ${healAmount} HP from lifesteal!`)
+          }
+        }
+      }
     }
 
     // Clear all status effects on death
@@ -2464,11 +2603,11 @@ export const useBattleStore = defineStore('battle', () => {
         class: heroFull.class,
         statusEffects: [],
         currentCooldowns: heroCooldowns,
-        hasFocus: heroFull.class?.resourceType === 'focus' ? true : undefined,
-        currentValor: heroFull.class?.resourceType === 'valor' ? 0 : undefined,
+        hasFocus: heroFull.class?.resourceType === 'focus' ? (savedState?.hasFocus ?? true) : undefined,
+        currentValor: heroFull.class?.resourceType === 'valor' ? (savedState?.currentValor ?? 0) : undefined,
         currentRage: heroFull.class?.resourceType === 'rage' ? (savedState?.currentRage ?? 0) : undefined,
-        currentVerses: heroFull.class?.resourceType === 'verse' ? 0 : undefined,
-        lastSkillName: heroFull.class?.resourceType === 'verse' ? null : undefined,
+        currentVerses: heroFull.class?.resourceType === 'verse' ? (savedState?.currentVerses ?? 0) : undefined,
+        lastSkillName: heroFull.class?.resourceType === 'verse' ? (savedState?.lastSkillName ?? null) : undefined,
         wasAttacked: false
       }
 
@@ -2482,6 +2621,11 @@ export const useBattleStore = defineStore('battle', () => {
 
       // Initialize Essence for Alchemist heroes
       initializeEssence(battleHero)
+
+      // Override Essence from saved state if present
+      if (savedState?.currentEssence !== undefined && battleHero.currentEssence !== undefined) {
+        battleHero.currentEssence = savedState.currentEssence
+      }
 
       heroes.value.push(battleHero)
     }
@@ -2538,7 +2682,14 @@ export const useBattleStore = defineStore('battle', () => {
     state.value = BattleState.STARTING
     addLog(`Battle start! Round ${roundNumber.value}`)
 
-    setTimeout(() => startNextTurn(), 500)
+    waitingForTransition.value = true
+  }
+
+  function signalTransitionComplete() {
+    if (waitingForTransition.value) {
+      waitingForTransition.value = false
+      startNextTurn()
+    }
   }
 
   function calculateTurnOrder() {
@@ -2806,7 +2957,8 @@ export const useBattleStore = defineStore('battle', () => {
       const effectiveAtk = getEffectiveStat(hero, 'atk')
       const effectiveDef = getEffectiveStat(target, 'def')
       const basicDamagePercent = getBasicAttackDamagePercent(hero)
-      const damage = calculateDamage(effectiveAtk, basicDamagePercent / 100, effectiveDef)
+      let damage = calculateDamage(effectiveAtk, basicDamagePercent / 100, effectiveDef)
+      damage = processPreDamage(hero, target, damage)
       applyDamage(target, damage, 'attack', hero)
       addLog(`${hero.template.name} attacks ${target.template.name} for ${damage} damage!`)
       emitCombatEffect(target.id, 'enemy', 'damage', damage)
@@ -3031,6 +3183,7 @@ export const useBattleStore = defineStore('battle', () => {
               let hitDamage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
               // Apply crit and spell amp
               hitDamage = Math.floor(hitDamage * critResult.multiplier * (1 + spellAmp / 100))
+              hitDamage = processPreDamage(hero, target, hitDamage)
               applyDamage(target, hitDamage, 'attack', hero)
               totalDamage += hitDamage
               emitCombatEffect(target.id, 'enemy', 'damage', hitDamage)
@@ -3068,6 +3221,7 @@ export const useBattleStore = defineStore('battle', () => {
               processFocusOnCrit(hero, true)
             }
 
+            damage = processPreDamage(hero, target, damage)
             applyDamage(target, damage, 'attack', hero)
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage! (${valorConsumed} Valor consumed)`)
             emitCombatEffect(target.id, 'enemy', 'damage', damage)
@@ -3107,6 +3261,7 @@ export const useBattleStore = defineStore('battle', () => {
               let hitDamage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
               // Apply crit and spell amp
               hitDamage = Math.floor(hitDamage * critResult.multiplier * (1 + spellAmp / 100))
+              hitDamage = processPreDamage(hero, target, hitDamage)
               applyDamage(target, hitDamage, 'attack', hero)
               totalDamage += hitDamage
               emitCombatEffect(target.id, 'enemy', 'damage', hitDamage)
@@ -3229,6 +3384,7 @@ export const useBattleStore = defineStore('battle', () => {
               processFocusOnCrit(hero, true)
             }
 
+            damage = processPreDamage(hero, target, damage)
             const dmgResult = {}
             const attackSource = (lowHpActive && lowHpCondition.cannotMiss) ? 'attack_cannot_miss' : 'attack'
             applyDamage(target, damage, attackSource, hero, dmgResult)
@@ -3455,7 +3611,8 @@ export const useBattleStore = defineStore('battle', () => {
               for (const bounceTarget of bounceTargets) {
                 if (bounceTarget.currentHp <= 0) continue
                 const bounceDef = getEffectiveStat(bounceTarget, 'def')
-                const bounceDamage = calculateDamage(effectiveAtk, bouncePercent, bounceDef)
+                let bounceDamage = calculateDamage(effectiveAtk, bouncePercent, bounceDef)
+                bounceDamage = processPreDamage(hero, bounceTarget, bounceDamage)
                 applyDamage(bounceTarget, bounceDamage, 'attack', hero)
                 emitCombatEffect(bounceTarget.id, 'enemy', 'damage', bounceDamage)
                 addLog(`Lightning chains to ${bounceTarget.template.name} for ${bounceDamage} damage!`)
@@ -3900,13 +4057,14 @@ export const useBattleStore = defineStore('battle', () => {
 
               // Deal damage per debuff to random enemies
               const dmgPercent = skill.consumeDebuffs.damagePercentPerDebuff
-              const damagePerHit = Math.floor(effectiveAtk * dmgPercent / 100)
+              let damagePerHit = Math.floor(effectiveAtk * dmgPercent / 100)
               for (let i = 0; i < debuffCount; i++) {
                 const target = selectRandomTarget(aliveEnemies.value)
                 if (!target) break
-                applyDamage(target, damagePerHit, 'skill', hero)
-                addLog(`${hero.template.name} deals ${damagePerHit} shadow damage to ${target.template?.name || target.name}!`)
-                emitCombatEffect(target.id, 'enemy', 'damage', damagePerHit)
+                const fleDmg = processPreDamage(hero, target, damagePerHit)
+                applyDamage(target, fleDmg, 'skill', hero)
+                addLog(`${hero.template.name} deals ${fleDmg} shadow damage to ${target.template?.name || target.name}!`)
+                emitCombatEffect(target.id, 'enemy', 'damage', fleDmg)
               }
             } else {
               addLog(`${hero.template.name} has no debuffs to consume.`)
@@ -3934,6 +4092,7 @@ export const useBattleStore = defineStore('battle', () => {
             let damage = calculateDamageWithMarked(effectiveAtk, multiplier, reducedDef, markedMultiplier)
             // Apply crit and spell amp
             damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
+            damage = processPreDamage(hero, target, damage)
 
             applyDamage(target, damage, 'attack', hero)
             totalDamage += damage
@@ -3969,8 +4128,9 @@ export const useBattleStore = defineStore('battle', () => {
               // Distribute damage to all alive enemies
               const damagePerEnemy = Math.floor(totalDamage / aliveEnemies.value.length)
               for (const enemy of aliveEnemies.value) {
-                applyDamage(enemy, damagePerEnemy, 'attack', hero)
-                emitCombatEffect(enemy.id, 'enemy', 'damage', damagePerEnemy)
+                const burnFle = processPreDamage(hero, enemy, damagePerEnemy)
+                applyDamage(enemy, burnFle, 'attack', hero)
+                emitCombatEffect(enemy.id, 'enemy', 'damage', burnFle)
                 if (enemy.currentHp <= 0) {
                   addLog(`${enemy.template.name} defeated!`)
                 }
@@ -4045,6 +4205,7 @@ export const useBattleStore = defineStore('battle', () => {
               damage = calculateDamageWithMarked(effectiveAtk, multiplier, effectiveDef, markedMultiplier)
               // Apply crit and spell amp
               damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
+              damage = processPreDamage(hero, target, damage)
               applyDamage(target, damage, 'attack', hero, aoeResult)
               totalDamage += damage
               emitCombatEffect(target.id, 'enemy', 'damage', damage)
@@ -4604,7 +4765,7 @@ export const useBattleStore = defineStore('battle', () => {
           const heroDef = getEffectiveStat(heroTarget, 'def')
           const damage = calculateDamage(effectiveAtk, multiplier, heroDef)
           const aoeHeroResult = {}
-          const actualDamage = applyDamage(heroTarget, damage, 'attack', null, aoeHeroResult)
+          const actualDamage = applyDamage(heroTarget, damage, 'attack', enemy, aoeHeroResult)
           totalDamage += actualDamage
           if (actualDamage > 0) {
             emitCombatEffect(heroTarget.instanceId, 'hero', 'damage', actualDamage)
@@ -4698,7 +4859,7 @@ export const useBattleStore = defineStore('battle', () => {
         const multiplier = parseSkillMultiplier(skill.description)
         const damage = calculateDamage(effectiveAtk, multiplier, effectiveDef)
         const enemyDmgResult = {}
-        const actualDamage = applyDamage(target, damage, 'attack', null, enemyDmgResult)
+        const actualDamage = applyDamage(target, damage, 'attack', enemy, enemyDmgResult)
         if (actualDamage > 0) {
           addLog(`${enemy.template.name} uses ${skill.name} on ${target.template.name} for ${actualDamage} damage!`)
           emitCombatEffect(target.instanceId, 'hero', 'damage', actualDamage)
@@ -4751,7 +4912,7 @@ export const useBattleStore = defineStore('battle', () => {
       }
     } else {
       const damage = calculateDamage(effectiveAtk, 1.0, effectiveDef)
-      const actualDamage = applyDamage(target, damage)
+      const actualDamage = applyDamage(target, damage, 'attack', enemy)
       if (actualDamage > 0) {
         addLog(`${enemy.template.name} attacks ${target.template.name} for ${actualDamage} damage!`)
         emitCombatEffect(target.instanceId, 'hero', 'damage', actualDamage)
@@ -4964,7 +5125,8 @@ export const useBattleStore = defineStore('battle', () => {
       if (splashTarget.currentHp <= 0) continue
 
       const splashDef = getEffectiveStat(splashTarget, 'def')
-      const splashDamage = calculateDamage(effectiveAtk, splashMultiplier, splashDef)
+      let splashDamage = calculateDamage(effectiveAtk, splashMultiplier, splashDef)
+      splashDamage = processPreDamage(attacker, splashTarget, splashDamage)
       applyDamage(splashTarget, splashDamage, 'attack', attacker)
       emitCombatEffect(splashTarget.id, 'enemy', 'damage', splashDamage)
       addLog(`${skill.name} splashes to ${splashTarget.template.name} for ${splashDamage} damage!`)
@@ -5013,7 +5175,12 @@ export const useBattleStore = defineStore('battle', () => {
       partyState[hero.instanceId] = {
         currentHp: hero.currentHp,
         currentMp: hero.currentMp,
-        currentRage: hero.currentRage
+        currentRage: hero.currentRage,
+        currentEssence: hero.currentEssence,
+        currentValor: hero.currentValor,
+        currentVerses: hero.currentVerses,
+        lastSkillName: hero.lastSkillName,
+        hasFocus: hero.hasFocus
       }
     }
     return partyState
@@ -5025,6 +5192,7 @@ export const useBattleStore = defineStore('battle', () => {
     enemies.value = []
     turnOrder.value = []
     battleLog.value = []
+    fightLevelEffects.value = []
   }
 
   // Get chain bounce targets (excludes primary target and dead enemies)
@@ -5652,6 +5820,7 @@ export const useBattleStore = defineStore('battle', () => {
     enemySkillActivation,
     battleType,
     genusLociMeta,
+    fightLevelEffects,
     // Getters
     currentUnit,
     isPlayerTurn,
@@ -5671,6 +5840,12 @@ export const useBattleStore = defineStore('battle', () => {
     clearCombatEffects,
     applyDamage,
     reviveUnit,
+    // Fight-Level Effects (quest node modifiers)
+    setFightLevelEffects,
+    addFightLevelEffect,
+    processPreDamage,
+    processPostDamage,
+    processTurnStartEffects,
     // Turn order (with SHATTERED_TEMPO priority support)
     calculateTurnOrder,
     // Effect helpers (for UI)
@@ -5829,6 +6004,9 @@ export const useBattleStore = defineStore('battle', () => {
     getEffectiveStatWithPassives,
     // Colosseum
     createColosseumEnemies,
-    calculateColosseumStats
+    calculateColosseumStats,
+    // Battle transition signaling
+    waitingForTransition,
+    signalTransitionComplete
   }
 })

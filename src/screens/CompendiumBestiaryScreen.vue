@@ -5,7 +5,7 @@ import { getAllEnemyTemplates } from '../data/enemies/index.js'
 import { getNodesByRegion } from '../data/quests/index.js'
 import { regions } from '../data/quests/regions.js'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 const codexStore = useCodexStore()
 const questsStore = useQuestsStore()
 
@@ -90,7 +90,7 @@ function closeDetail() {
     <div class="bg-vignette"></div>
 
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'compendium')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

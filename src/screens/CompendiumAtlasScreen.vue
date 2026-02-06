@@ -4,7 +4,7 @@ import { useCodexStore, useQuestsStore } from '../stores'
 import { regions, superRegions } from '../data/quests/regions.js'
 import { getNodesByRegion } from '../data/quests/index.js'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 const codexStore = useCodexStore()
 const questsStore = useQuestsStore()
 
@@ -71,7 +71,7 @@ const selectedRegionNodes = computed(() => {
     <div class="bg-vignette"></div>
 
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'compendium')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

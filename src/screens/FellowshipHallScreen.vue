@@ -9,7 +9,7 @@ import crossedSwordsIcon from '../assets/icons/crossed_swords.png'
 import shieldIcon from '../assets/icons/shield.png'
 import dragonShardIcon from '../assets/icons/shard_of_dragon_heart.png'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 </script>
 
 <template>
@@ -24,7 +24,7 @@ const emit = defineEmits(['navigate'])
     ></div>
 
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'home')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

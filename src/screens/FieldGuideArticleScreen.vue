@@ -7,7 +7,7 @@ const props = defineProps({
   topicId: { type: String, required: true }
 })
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 
 const topic = computed(() => getTopic(props.topicId))
 const content = computed(() => getTopicContent(props.topicId))
@@ -18,7 +18,7 @@ const content = computed(() => getTopicContent(props.topicId))
     <div class="bg-vignette"></div>
 
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'field-guide')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

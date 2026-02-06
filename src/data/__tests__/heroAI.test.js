@@ -107,7 +107,7 @@ function mockAlchemist(overrides = {}) {
       skills: [
         { name: 'Tainted Tonic', essenceCost: 10, targetType: 'enemy', damagePercent: 90, usesVolatility: true },
         { name: 'Tainted Feast', essenceCost: 20, targetType: 'all_enemies', noDamage: true, usesVolatility: true },
-        { name: "Death's Needle", essenceCost: 25, targetType: 'enemy', damagePercent: 175, usesVolatility: true }
+        { name: "Death's Needle", essenceCost: 25, targetType: 'enemy', damagePercent: 130, usesVolatility: true, bonusIfTargetHas: [{ effectType: 'poison', damagePercent: 190 }] }
       ]
     },
     ...overrides

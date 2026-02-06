@@ -1,7 +1,7 @@
 <script setup>
 import { useCodexStore } from '../stores'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 const codexStore = useCodexStore()
 </script>
 
@@ -10,7 +10,7 @@ const codexStore = useCodexStore()
     <div class="bg-vignette"></div>
 
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'codex')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

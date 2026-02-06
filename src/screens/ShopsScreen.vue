@@ -39,7 +39,7 @@ function getSectionBackground(section) {
   return battleBackgrounds[path] || null
 }
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 
 const shopsStore = useShopsStore()
 const gachaStore = useGachaStore()
@@ -321,7 +321,7 @@ function typeIcon(type) {
 <template>
   <div class="shops-screen">
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'goodsAndMarkets')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

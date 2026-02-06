@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useGenusLociStore } from '../stores'
 import { getAllQuestNodes } from '../data/quests/index.js'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 
 const genusLociStore = useGenusLociStore()
 
@@ -41,7 +41,7 @@ function selectBoss(bossId) {
 <template>
   <div class="genus-loci-list-screen">
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'map-room')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

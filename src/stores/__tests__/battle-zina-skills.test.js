@@ -148,12 +148,12 @@ describe('battle store - Zina skill behaviors', () => {
 
     it("Death's Needle damage is increased by Volatility bonus at Volatile tier", () => {
       const hero = makeZina({ currentEssence: 50 })
-      const skill = { damagePercent: 175, usesVolatility: true }
+      const skill = { damagePercent: 130, usesVolatility: true }
 
       const bonus = store.getVolatilityDamageBonus(hero)
       const effectiveDamagePercent = skill.damagePercent + bonus
-      // 175 + 30 = 205
-      expect(effectiveDamagePercent).toBe(205)
+      // 130 + 30 = 160
+      expect(effectiveDamagePercent).toBe(160)
     })
 
     it('Volatile tier self-damage is 5% max HP', () => {
@@ -192,7 +192,7 @@ describe('battle store - Zina skill behaviors', () => {
     it('ignoresDef at low HP means DEF is treated as 0', () => {
       const hero = makeZina({ currentHp: 150, maxHp: 750 })
       const skill = {
-        damagePercent: 175,
+        damagePercent: 130,
         conditionalAtLowHp: { hpThreshold: 30, ignoresDef: true, cannotMiss: true }
       }
       const targetDef = 100
@@ -208,8 +208,8 @@ describe('battle store - Zina skill behaviors', () => {
 
       expect(isLowHp).toBe(true)
       expect(ignoredDefDamage).toBeGreaterThan(normalDamage)
-      // Full damage: 380 * 1.75 = 665 (no def reduction)
-      expect(ignoredDefDamage).toBe(665)
+      // Full damage: 380 * 1.30 = 494 (no def reduction)
+      expect(ignoredDefDamage).toBe(494)
     })
   })
 

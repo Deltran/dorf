@@ -5,6 +5,7 @@ import { useInventoryStore } from './inventory.js'
 import { useShardsStore } from './shards.js'
 import { useTipsStore } from './tips.js'
 import { useColosseumStore } from './colosseum.js'
+import { useMawStore } from './maw.js'
 import { getTokenForRegion, getItem } from '../data/items.js'
 
 export const useQuestsStore = defineStore('quests', () => {
@@ -211,6 +212,15 @@ export const useQuestsStore = defineStore('quests', () => {
       if (unlockedNodes.value.includes(glNode.id)) {
         tipsStore.showTip('genus_loci_intro')
         break
+      }
+    }
+
+    // Check for Maw unlock (when Deep Chasm / cave_04 is completed)
+    if (node.id === 'cave_04') {
+      const mawStore = useMawStore()
+      if (!mawStore.mawUnlocked) {
+        mawStore.unlockMaw()
+        tipsStore.showTip('maw_unlock')
       }
     }
 

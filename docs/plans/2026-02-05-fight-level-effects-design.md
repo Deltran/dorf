@@ -418,7 +418,7 @@ Each source system manages its own effect definitions and persistence. The battl
 - `on_pre_damage` hook in `applyDamage` (~line 1561, before evasion)
 - `on_post_damage` hook in `applyDamage` (~line 1783, after HP reduction, before death checks)
 - `on_turn_start` hook in turn processing
-- Effect types: `damage_multiplier`, `damage_reduction`, `apply_status`, `heal_percent_max_hp`
+- Effect types: `damage_multiplier`, `damage_reduction`, `damage_percent_max_hp`, `apply_status`, `heal_percent_max_hp`
 
 **Phase 2 (Extended):**
 - `on_kill`, `on_battle_start`, `on_wave_start`, `on_resource_spend` hooks

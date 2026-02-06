@@ -54,10 +54,10 @@ const activeLabel = computed(() => {
   return item?.label || ''
 })
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 
 function exitAdmin() {
-  emit('navigate', 'home')
+  emit('back')
 }
 
 function selectSection(item) {

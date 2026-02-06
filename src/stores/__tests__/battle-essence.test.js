@@ -29,7 +29,7 @@ describe('battle store - Essence resource system', () => {
 
       store.initializeEssence(hero)
 
-      expect(hero.currentEssence).toBe(30) // Starts at 50%
+      expect(hero.currentEssence).toBe(20) // 50% minus 10
       expect(hero.maxEssence).toBe(60)
     })
   })
@@ -128,7 +128,7 @@ describe('battle store - Essence resource system', () => {
       const battleZina = store.heroes.find(h => h.templateId === 'zina_the_desperate')
       expect(battleZina).toBeDefined()
       expect(battleZina.maxEssence).toBe(60) // Zina's MP stat
-      expect(battleZina.currentEssence).toBe(30) // 50% of maxEssence
+      expect(battleZina.currentEssence).toBe(20) // 50% of maxEssence minus 10
     })
 
     it('does not initialize Essence for non-Alchemist heroes', () => {

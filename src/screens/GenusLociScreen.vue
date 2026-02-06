@@ -28,7 +28,7 @@ function getBossBackgroundUrl(bossId) {
   return null
 }
 
-const emit = defineEmits(['navigate', 'startGenusLociBattle'])
+const emit = defineEmits(['navigate', 'back', 'startGenusLociBattle'])
 
 const props = defineProps({
   selectedBossId: {
@@ -110,7 +110,7 @@ const itemDropsDisplay = computed(() => {
 })
 
 function goBack() {
-  emit('navigate', 'genus-loci-list')
+  emit('back')
 }
 </script>
 

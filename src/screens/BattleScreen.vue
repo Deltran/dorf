@@ -2,6 +2,9 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLociStore, useExplorationsStore, BattleState } from '../stores'
 import { useColosseumStore } from '../stores/colosseum.js'
+import { useMawStore } from '../stores/maw.js'
+import goldIcon from '../assets/icons/gold.png'
+import dregsIcon from '../assets/icons/valor_marks.png'
 import HeroCard from '../components/HeroCard.vue'
 import EnemyCard from '../components/EnemyCard.vue'
 import DamageNumber from '../components/DamageNumber.vue'
@@ -86,6 +89,10 @@ const props = defineProps({
   colosseumContext: {
     type: Object,
     default: null
+  },
+  mawContext: {
+    type: Object,
+    default: null
   }
 })
 
@@ -99,9 +106,11 @@ const inventoryStore = useInventoryStore()
 const genusLociStore = useGenusLociStore()
 const explorationsStore = useExplorationsStore()
 const colosseumStore = useColosseumStore()
+const mawStore = useMawStore()
 const tipsStore = useTipsStore()
 
 const showVictoryModal = ref(false)
+const battleInstance = ref(0) // Increments each battle to force fresh DOM for enemy entrance animations
 const defeatPhase = ref(null) // null | 'fading' | 'reveal' | 'complete'
 const defeatFlavorText = ref('')
 let defeatTimers = []
@@ -151,6 +160,10 @@ const isGenusLociBattle = computed(() => battleStore.battleType === 'genusLoci')
 // Colosseum battle tracking
 const isColosseumBattle = computed(() => !!props.colosseumContext)
 const colosseumResult = ref(null) // { laurelsEarned, firstClear, newDailyIncome, boutNumber }
+
+// Maw battle tracking
+const isMawBattle = computed(() => !!props.mawContext)
+const mawDefeatResult = ref(null) // { rewards, depth }
 
 const currentGenusLociName = computed(() => {
   if (!isGenusLociBattle.value || !battleStore.genusLociMeta) return ''
@@ -495,6 +508,8 @@ onMounted(() => {
 })
 
 function startCurrentBattle() {
+  battleInstance.value++
+
   // Check if this is a Genus Loci battle
   if (props.genusLociContext) {
     const { genusLociId, powerLevel, partyState } = props.genusLociContext
@@ -508,6 +523,12 @@ function startCurrentBattle() {
     return
   }
 
+  // Check if this is a Maw battle
+  if (props.mawContext) {
+    initMawBattle()
+    return
+  }
+
   // Normal quest battle
   const battle = questsStore.currentBattle
   if (!battle) {
@@ -517,6 +538,12 @@ function startCurrentBattle() {
 
   const partyState = questsStore.currentRun?.partyState || {}
   battleStore.initBattle(partyState, battle.enemies)
+
+  // Apply fight-level effects from quest node
+  const node = questsStore.currentNode
+  if (node?.fightLevelEffects) {
+    battleStore.setFightLevelEffects(node.fightLevelEffects)
+  }
 }
 
 function initColosseumBattle() {
@@ -540,10 +567,28 @@ function initColosseumBattle() {
   battleStore.calculateTurnOrder()
 }
 
+function initMawBattle() {
+  const { partyState, enemies, boons } = props.mawContext
+  battleStore.initBattle(partyState, enemies)
+
+  // Apply accumulated boons as FLEs
+  if (boons && boons.length > 0) {
+    const fles = boons.map(boon => ({
+      hook: boon.hook,
+      scope: boon.scope,
+      ...boon.effect
+    }))
+    battleStore.setFightLevelEffects(fles)
+  }
+}
+
 // Watch for battle end
 watch(() => battleStore.state, (newState) => {
   if (newState === BattleState.VICTORY) {
-    handleVictory()
+    // Mid-wave victories get a short delay, final victory waits for death animation
+    const hasMoreWaves = currentBattleIndex.value < totalBattles.value - 1
+    const delay = hasMoreWaves ? 600 : (isSoloEnemy.value ? 3500 : 2000)
+    setTimeout(() => handleVictory(), delay)
   } else if (newState === BattleState.DEFEAT) {
     handleDefeat()
   }
@@ -559,6 +604,12 @@ function handleVictory() {
   // Handle Colosseum victory
   if (isColosseumBattle.value) {
     handleColosseumVictory()
+    return
+  }
+
+  // Handle Maw victory
+  if (isMawBattle.value) {
+    handleMawVictory()
     return
   }
 
@@ -580,6 +631,7 @@ function handleVictory() {
     setTimeout(() => {
       battleStore.endBattle()
       startCurrentBattle()
+      nextTick(() => battleStore.signalTransitionComplete())
     }, 1000)
   } else {
     // Node complete!
@@ -657,7 +709,13 @@ function animateRewards() {
 }
 
 function handleDefeat() {
-  if (!isGenusLociBattle.value && !isColosseumBattle.value) {
+  if (isMawBattle.value) {
+    // Maw defeat — fail the run, capture results for display
+    const result = mawStore.failRun()
+    mawDefeatResult.value = result
+  }
+
+  if (!isGenusLociBattle.value && !isColosseumBattle.value && !isMawBattle.value) {
     questsStore.failRun()
   }
 
@@ -907,6 +965,25 @@ function returnToColosseum() {
   emit('navigate', 'colosseum')
 }
 
+function returnToMaw() {
+  defeatTimers.forEach(clearTimeout)
+  defeatTimers = []
+  defeatPhase.value = null
+  showVictoryModal.value = false
+  mawDefeatResult.value = null
+  battleStore.endBattle()
+  emit('navigate', 'maw')
+}
+
+function handleMawVictory() {
+  const partyState = battleStore.getPartyState()
+  mawStore.completeWave(partyState)
+
+  // Navigate back to MawScreen — it handles boon selection overlay
+  battleStore.endBattle()
+  emit('navigate', 'maw')
+}
+
 function handleColosseumVictory() {
   const bout = props.colosseumContext.bout
   const result = colosseumStore.completeBout(bout.bout)
@@ -940,6 +1017,7 @@ function replayStage() {
   setTimeout(() => {
     questsStore.startRun(nodeId)
     startCurrentBattle()
+    nextTick(() => battleStore.signalTransitionComplete())
   }, 50)
 }
 
@@ -1026,6 +1104,29 @@ function getEnemyImageUrl(enemy) {
   return enemyImages[imagePath] || null
 }
 
+// Enemy entrance animation: random direction (left, right, top) + staggered delay
+const entranceDirections = ['left', 'right', 'top']
+
+const isSoloEnemy = computed(() => battleStore.enemies.length === 1)
+
+function getEnemyEntranceStyle(enemyIndex) {
+  // Solo enemy (boss) gets a different entrance — no directional slide
+  if (isSoloEnemy.value) return {}
+
+  // Pick direction based on index for variety
+  const dir = entranceDirections[enemyIndex % 3]
+  let x = '0px', y = '0px'
+  if (dir === 'left') x = '-120vw'
+  else if (dir === 'right') x = '120vw'
+  else y = '-120vh'
+
+  return {
+    '--entrance-x': x,
+    '--entrance-y': y,
+    animationDelay: `${enemyIndex * 0.12}s`
+  }
+}
+
 function getEnemyImageSize(enemy) {
   const size = enemy.template?.imageSize
   if (!size) return { width: '100px', height: '100px' }
@@ -1040,6 +1141,12 @@ function getEnemyImageSize(enemy) {
 const battleBackgrounds = import.meta.glob('../assets/battle_backgrounds/*.png', { eager: true, import: 'default' })
 
 const battleBackgroundUrl = computed(() => {
+  // For Maw battles, use the dedicated Maw battle background
+  if (isMawBattle.value) {
+    const mawPath = '../assets/battle_backgrounds/the_maw.png'
+    return battleBackgrounds[mawPath] || null
+  }
+
   // For Genus Loci battles, find the quest node that hosts this boss
   if (props.genusLociContext?.genusLociId || battleStore.genusLociMeta?.genusLociId) {
     const genusLociId = props.genusLociContext?.genusLociId || battleStore.genusLociMeta?.genusLociId
@@ -1366,7 +1473,7 @@ function getStatChange(hero, stat) {
 </script>
 
 <template>
-  <div class="battle-screen" :class="{ 'battle-defeat-fading': defeatPhase }">
+  <div class="battle-screen" :class="{ 'battle-defeat-fading': defeatPhase, 'boss-vignette': isSoloEnemy }">
     <!-- Full-screen battle background -->
     <div
       v-if="battleBackgroundUrl"
@@ -1378,8 +1485,10 @@ function getStatChange(hero, stat) {
     <section class="enemy-area" :class="{ 'crowded': battleStore.aliveEnemies.length > 4 }">
       <div class="battle-header-overlay">
         <div class="node-info">
-          <span class="node-name">{{ currentNode?.name || (questsStore.lastVisitedNode ? getQuestNode(questsStore.lastVisitedNode)?.name : 'Battle') }}</span>
-          <span class="battle-progress">Battle {{ currentBattleIndex + 1 }}/{{ totalBattles }}</span>
+          <span v-if="isMawBattle" class="node-name">The Maw</span>
+          <span v-else class="node-name">{{ currentNode?.name || (questsStore.lastVisitedNode ? getQuestNode(questsStore.lastVisitedNode)?.name : 'Battle') }}</span>
+          <span v-if="isMawBattle" class="maw-wave-indicator">Wave {{ props.mawContext?.wave || 1 }}/11</span>
+          <span v-else class="battle-progress">Battle {{ currentBattleIndex + 1 }}/{{ totalBattles }}</span>
         </div>
         <div class="round-info">
           Round {{ battleStore.roundNumber }}
@@ -1416,11 +1525,14 @@ function getStatChange(hero, stat) {
 
       <div
         v-for="(enemy, enemyIndex) in battleStore.enemies"
-        :key="enemy.id"
+        :key="`${battleInstance}-${enemy.id}`"
         :class="[
           'enemy-wrapper',
-          { 'has-image': getEnemyImageUrl(enemy) }
+          { 'has-image': getEnemyImageUrl(enemy) },
+          { dead: enemy.currentHp <= 0 },
+          { 'boss-entrance': isSoloEnemy }
         ]"
+        :style="getEnemyEntranceStyle(enemyIndex)"
       >
         <!-- Enemy name tooltip on hover -->
         <div class="enemy-name-tooltip">{{ enemy.template?.name || enemy.name }}</div>
@@ -1958,7 +2070,7 @@ function getStatChange(hero, stat) {
   </div>
 
   <!-- Defeat Scene (outside battle-screen to avoid grayscale filter) -->
-  <div v-if="defeatPhase" class="defeat-scene">
+  <div v-if="defeatPhase" class="defeat-scene" :class="{ 'maw-defeat': isMawBattle }">
     <!-- Genus Loci: Boss portrait looming above -->
     <div v-if="isGenusLociBattle && genusLociPortraitUrl" class="defeat-boss-portrait"
          :class="{ visible: defeatPhase !== 'fading' }">
@@ -1971,6 +2083,7 @@ function getStatChange(hero, stat) {
         v-for="(hero, index) in battleStore.heroes"
         :key="hero.instanceId"
         class="fallen-hero"
+        :class="{ 'maw-fallen': isMawBattle }"
         :style="{ '--tilt': (index % 2 === 0 ? (-3 - index) : (3 + index)) + 'deg' }"
       >
         <img
@@ -1995,15 +2108,35 @@ function getStatChange(hero, stat) {
         <template v-else-if="isColosseumBattle">
           The arena claims another challenger.
         </template>
+        <template v-else-if="isMawBattle">
+          The Maw consumes all.
+        </template>
         <template v-else>
           {{ defeatFlavorText }}
         </template>
       </p>
     </div>
 
+    <!-- Maw run summary -->
+    <div v-if="isMawBattle && mawDefeatResult" class="maw-defeat-summary" :class="{ visible: defeatPhase === 'reveal' || defeatPhase === 'complete' }">
+      <div class="maw-depth-reached">Reached Wave {{ mawDefeatResult.depth }} / 11</div>
+      <div v-if="mawDefeatResult.rewards" class="maw-defeat-loot">
+        <span v-if="mawDefeatResult.rewards.gold" class="maw-loot-item">
+          <img :src="goldIcon" alt="Gold" class="maw-loot-icon" /> {{ mawDefeatResult.rewards.gold }}
+        </span>
+        <span v-if="mawDefeatResult.rewards.dregs" class="maw-loot-item">
+          <img :src="dregsIcon" alt="Dregs" class="maw-loot-icon" /> {{ mawDefeatResult.rewards.dregs }}
+        </span>
+      </div>
+    </div>
+
     <!-- Actions -->
     <div class="defeat-actions" :class="{ visible: defeatPhase === 'complete' }">
-      <template v-if="isColosseumBattle">
+      <template v-if="isMawBattle">
+        <button class="defeat-btn-primary" @click="returnToMaw">Back to The Maw</button>
+        <button class="defeat-btn-secondary" @click="returnHome">Home</button>
+      </template>
+      <template v-else-if="isColosseumBattle">
         <button class="defeat-btn-primary" @click="returnToColosseum">Back to Colosseum</button>
         <button class="defeat-btn-secondary" @click="returnHome">Home</button>
       </template>
@@ -2029,6 +2162,17 @@ function getStatChange(hero, stat) {
 
 .battle-defeat-fading {
   filter: grayscale(1) brightness(0.3);
+}
+
+/* Full-screen boss vignette — darkens entire screen during boss entrance */
+.battle-screen.boss-vignette::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 50% 35%, transparent 10%, rgba(0, 0, 0, 0.9) 70%);
+  z-index: 3;
+  animation: bossDarken 2.8s ease-out both;
+  pointer-events: none;
 }
 
 /* Turn Order Portrait Strip */
@@ -2166,6 +2310,13 @@ function getStatChange(hero, stat) {
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
+.maw-wave-indicator {
+  font-size: 0.75rem;
+  color: #f87171;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
 .round-info {
   padding: 4px 12px;
   border-radius: 4px;
@@ -2214,6 +2365,112 @@ function getStatChange(hero, stat) {
 .enemy-wrapper {
   position: relative;
   z-index: 1;
+  animation: enemyEntrance 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --entrance-x: -120vw;
+  --entrance-y: 0px;
+}
+
+@keyframes enemyEntrance {
+  0% {
+    transform: translate(var(--entrance-x), var(--entrance-y));
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  70% {
+    transform: translate(0, 0) rotate(3deg);
+  }
+  85% {
+    transform: translate(0, 0) rotate(-2deg);
+  }
+  95% {
+    transform: translate(0, 0) rotate(0.5deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0);
+    opacity: 1;
+  }
+}
+
+/* Boss entrance: ominous materialization from nothing */
+.enemy-wrapper.boss-entrance {
+  animation: bossEntrance 2s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+}
+
+@keyframes bossEntrance {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+    filter: brightness(5) saturate(0);
+  }
+  15% {
+    transform: scale(0.15);
+    opacity: 0.2;
+    filter: brightness(4) saturate(0);
+  }
+  40% {
+    transform: scale(0.5);
+    opacity: 0.6;
+    filter: brightness(2) saturate(0.5);
+  }
+  65% {
+    transform: scale(1.15);
+    opacity: 1;
+    filter: brightness(1.3) saturate(1);
+  }
+  75% {
+    transform: scale(0.95);
+    filter: brightness(0.8);
+  }
+  85% {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+  92% {
+    transform: scale(0.99);
+    filter: brightness(1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+  }
+}
+
+/* Battlefield darkens BEFORE boss appears, then shakes on materialization */
+.enemy-area:has(.boss-entrance) {
+  animation: bossShake 0.3s ease-out 2s both;
+}
+
+@keyframes bossShake {
+  0% { transform: translate(0, 0); }
+  15% { transform: translate(-4px, 2px); }
+  30% { transform: translate(5px, -3px); }
+  45% { transform: translate(-3px, 1px); }
+  60% { transform: translate(3px, -2px); }
+  75% { transform: translate(-2px, 1px); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Boss vignette now lives on .battle-screen for full coverage */
+
+@keyframes bossDarken {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 
 .enemy-name-tooltip {
@@ -2236,7 +2493,7 @@ function getStatChange(hero, stat) {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-.enemy-wrapper:hover .enemy-name-tooltip {
+.enemy-wrapper:not(.dead):hover .enemy-name-tooltip {
   opacity: 1;
 }
 
@@ -2307,8 +2564,158 @@ function getStatChange(hero, stat) {
 }
 
 .enemy-image-display.dead {
-  opacity: 0.4;
   cursor: not-allowed;
+  animation: enemyDeathDramatic 2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes enemyDeathDramatic {
+  0% {
+    opacity: 1;
+    filter: brightness(1);
+    transform: translate(0, 0) scale(1);
+  }
+  5% {
+    filter: brightness(4);
+    transform: scale(1.08);
+  }
+  10% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  15% {
+    filter: brightness(2.5);
+    transform: scale(1.04);
+  }
+  20% {
+    filter: brightness(0.8);
+    transform: translate(-3px, 0) scale(1);
+  }
+  24% { transform: translate(4px, -1px); }
+  28% { transform: translate(-4px, 2px); }
+  32% { transform: translate(3px, -2px); }
+  36% { transform: translate(-2px, 1px); }
+  40% {
+    transform: translate(0, 0);
+    filter: brightness(1);
+    opacity: 0.9;
+  }
+  60% {
+    opacity: 0.5;
+    filter: brightness(0.6);
+    transform: scale(0.97);
+  }
+  80% {
+    opacity: 0.2;
+    filter: brightness(0.3);
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(0);
+    transform: scale(0.9);
+  }
+}
+
+/* Boss death: even more dramatic — reward the player */
+.enemy-wrapper.boss-entrance.dead .enemy-image-display.dead {
+  animation: bossDeathDramatic 3s ease-out forwards;
+}
+
+@keyframes bossDeathDramatic {
+  0% {
+    opacity: 1;
+    filter: brightness(1) saturate(1);
+    transform: translate(0, 0) scale(1);
+  }
+  3% {
+    filter: brightness(6) saturate(0);
+    transform: scale(1.2);
+  }
+  6% {
+    filter: brightness(0.5) saturate(1);
+    transform: scale(0.95);
+  }
+  9% {
+    filter: brightness(5) saturate(0);
+    transform: scale(1.15);
+  }
+  12% {
+    filter: brightness(0.3);
+    transform: scale(0.98);
+  }
+  15% {
+    filter: brightness(3);
+    transform: scale(1.1);
+  }
+  20% {
+    filter: brightness(0.8);
+    transform: translate(-6px, 0) scale(1);
+  }
+  23% { transform: translate(8px, -3px); }
+  26% { transform: translate(-7px, 4px); }
+  29% { transform: translate(6px, -4px); }
+  32% { transform: translate(-8px, 2px); }
+  35% { transform: translate(5px, -3px); }
+  38% { transform: translate(-4px, 3px); }
+  41% { transform: translate(3px, -2px); }
+  44% {
+    transform: translate(0, 0) scale(1);
+    filter: brightness(1);
+    opacity: 1;
+  }
+  50% {
+    filter: brightness(2);
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+  55% {
+    filter: brightness(0.5);
+    transform: scale(0.98);
+    opacity: 0.8;
+  }
+  65% {
+    opacity: 0.5;
+    filter: brightness(0.4) saturate(0.5);
+    transform: scale(0.93);
+  }
+  80% {
+    opacity: 0.2;
+    filter: brightness(0.2) saturate(0);
+    transform: scale(0.85);
+  }
+  95% {
+    opacity: 0.05;
+    filter: brightness(0) saturate(0);
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(0) saturate(0);
+    transform: scale(0.75);
+  }
+}
+
+/* Screen flash when boss dies */
+.enemy-area:has(.boss-entrance.dead)::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: white;
+  z-index: 10;
+  animation: bossDeathFlash 3s ease-out both;
+  pointer-events: none;
+}
+
+@keyframes bossDeathFlash {
+  0% { opacity: 0; }
+  3% { opacity: 0.8; }
+  6% { opacity: 0; }
+  9% { opacity: 0.6; }
+  12% { opacity: 0; }
+  15% { opacity: 0.3; }
+  18% { opacity: 0; }
+  100% { opacity: 0; }
 }
 
 .enemy-image-display.attacking {
@@ -2531,6 +2938,8 @@ function getStatChange(hero, stat) {
   position: relative;
   z-index: 2;
 }
+
+/* Hero boss-darken removed — full-screen vignette on .battle-screen handles it */
 
 .hero-wrapper {
   flex: 1;
@@ -4052,6 +4461,54 @@ function getStatChange(hero, stat) {
   color: #9ca3af;
 }
 
+/* Maw defeat — purple tint instead of grayscale */
+.maw-defeat {
+  background: radial-gradient(ellipse at center, rgba(88, 28, 135, 0.3) 0%, rgba(0, 0, 0, 0.85) 100%);
+}
+
+.fallen-hero.maw-fallen {
+  filter: sepia(1) saturate(3) hue-rotate(240deg) brightness(0.7);
+}
+
+.maw-defeat-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  opacity: 0;
+  transition: opacity 0.6s ease-out;
+}
+
+.maw-defeat-summary.visible {
+  opacity: 1;
+}
+
+.maw-depth-reached {
+  color: #c4b5fd;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.maw-defeat-loot {
+  display: flex;
+  gap: 16px;
+}
+
+.maw-loot-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #d1d5db;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.maw-loot-icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* Reduced motion for accessibility */
 @media (prefers-reduced-motion: reduce) {
   .modal-overlay {
@@ -4119,6 +4576,33 @@ function getStatChange(hero, stat) {
   .log-overlay-enter-active .combat-log-panel,
   .log-overlay-leave-active .combat-log-panel {
     transition: none;
+  }
+  .enemy-wrapper {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  .enemy-wrapper.boss-entrance {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+  .battle-screen.boss-vignette::before {
+    animation: none;
+    opacity: 0;
+  }
+  .enemy-image-display.dead {
+    animation: none;
+    opacity: 0;
+  }
+  .enemy-wrapper.boss-entrance.dead .enemy-image-display.dead {
+    animation: none;
+    opacity: 0;
+  }
+  .enemy-area::after {
+    animation: none;
+    opacity: 0;
   }
 }
 </style>

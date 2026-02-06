@@ -1,17 +1,21 @@
 <script setup>
 import { useColosseumStore } from '../stores/colosseum.js'
+import { useMawStore } from '../stores/maw.js'
 import questBg from '../assets/backgrounds/quests_bg.png'
 import genusLociBg from '../assets/backgrounds/genus_loci.png'
 import exploreBg from '../assets/backgrounds/explore_bg.png'
 import mapRoomBg from '../assets/backgrounds/map_room.png'
 import colosseumBg from '../assets/backgrounds/colosseum_button.png'
+import mawBg from '../assets/battle_backgrounds/the_maw.png'
 import mapIcon from '../assets/icons/map.png'
 import compassIcon from '../assets/icons/compass.png'
 import genusLociIcon from '../assets/icons/genus_loci_icon.png'
 import colosseumIcon from '../assets/icons/colosseum.png'
+import mawIcon from '../assets/icons/valor_marks.png'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 const colosseumStore = useColosseumStore()
+const mawStore = useMawStore()
 </script>
 
 <template>
@@ -26,7 +30,7 @@ const colosseumStore = useColosseumStore()
     ></div>
 
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'home')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>
@@ -92,7 +96,24 @@ const colosseumStore = useColosseumStore()
         </div>
         <div class="nav-content">
           <span class="nav-label">Colosseum</span>
-          <span class="nav-hint">PvP Gauntlet</span>
+          <span class="nav-hint">Hero versus Hero Combat</span>
+        </div>
+        <div class="nav-arrow">›</div>
+      </button>
+
+      <!-- The Maw (shown when unlocked) -->
+      <button
+        v-if="mawStore.mawUnlocked"
+        class="nav-button nav-button-secondary maw-button"
+        :style="{ backgroundImage: `url(${mawBg})` }"
+        @click="emit('navigate', 'maw')"
+      >
+        <div class="nav-icon-wrapper maw">
+          <img :src="mawIcon" alt="The Maw" class="nav-icon-img" />
+        </div>
+        <div class="nav-content">
+          <span class="nav-label">The Maw</span>
+          <span class="nav-hint">Daily Adventure</span>
         </div>
         <div class="nav-arrow">›</div>
       </button>
@@ -498,6 +519,54 @@ const colosseumStore = useColosseumStore()
 
 .nav-button.colosseum-button .nav-hint {
   color: #fbbf24;
+  font-size: 0.75rem;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+/* The Maw button */
+.nav-icon-wrapper.maw {
+  background: linear-gradient(135deg, #064e3b 0%, #059669 100%);
+}
+
+.nav-button.maw-button {
+  border-color: #059669;
+  background-size: cover;
+  background-position: center;
+}
+
+.nav-button.maw-button::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(6, 78, 59, 0.92) 0%, rgba(6, 78, 59, 0.7) 50%, rgba(6, 78, 59, 0.15) 100%);
+  border-radius: 13px;
+  z-index: 0;
+}
+
+.nav-button.maw-button > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nav-button.maw-button:hover {
+  border-color: #34d399;
+}
+
+.nav-button.maw-button .nav-label {
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.nav-button.maw-button .nav-arrow {
+  color: rgba(255, 255, 255, 0.6);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.nav-button.maw-button:hover .nav-arrow {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.nav-button.maw-button .nav-hint {
+  color: #34d399;
   font-size: 0.75rem;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }

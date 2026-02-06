@@ -23,7 +23,7 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 
 const heroesStore = useHeroesStore()
 
@@ -246,7 +246,7 @@ const synergyMessages = computed(() => {
 <template>
   <div class="party-screen">
     <header class="screen-header">
-      <button class="back-button" @click="emit('navigate', 'fellowship-hall')">
+      <button class="back-button" @click="emit('back')">
         <span class="back-arrow">‹</span>
         <span>Back</span>
       </button>

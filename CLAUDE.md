@@ -481,6 +481,69 @@ if (sacrificer) {
 const { allyDamage, guardianDamage, guardian } = calculateGuardianLinkDamage(target, damage, heroes)
 ```
 
+## Fight-Level Effects (FLE)
+
+Encounter-level modifiers that belong to the battle, not individual units. They represent environmental conditions, arena rules, curses, or boons. They cannot be cleansed, dispelled, or removed — they persist for the entire encounter.
+
+**Key distinction from status effects:** FLEs modify *outcomes* (damage dealt, damage taken, healing done), not *stats*. They are processed at hook points that bracket the damage interception chain, never inside it.
+
+### Data Shape
+
+```js
+{ hook: 'on_pre_damage', type: 'damage_multiplier', scope: 'heroes', value: 200 }
+{ hook: 'on_turn_start', type: 'damage_percent_max_hp', scope: 'all', value: 5 }
+{ hook: 'on_post_damage', type: 'apply_status', scope: 'all', statusType: 'burn', duration: 2, value: 10, chance: 50 }
+```
+
+### Hooks and Effect Types
+
+| Hook | Effect Type | Perspective | Description |
+|------|------------|-------------|-------------|
+| `on_pre_damage` | `damage_multiplier` | Attacker | Multiply outgoing damage (value = percent, e.g. 200 = 2x) |
+| `on_pre_damage` | `damage_reduction` | Target | Reduce incoming damage (value = percent, cap 80%) |
+| `on_turn_start` | `damage_percent_max_hp` | Unit | Deal % max HP damage at turn start |
+| `on_turn_start` | `heal_percent_max_hp` | Unit | Heal % max HP at turn start |
+| `on_post_damage` | `apply_status` | Attacker | Chance to apply status effect on hit |
+
+### Scopes
+
+- `'heroes'` — units with `instanceId` (player heroes)
+- `'enemies'` — units without `instanceId`
+- `'all'` — both
+
+### Architecture
+
+- `processPreDamage(attacker, target, damage)` is called at each damage call site BEFORE `applyDamage`, not inside it. This ensures the `damage` variable carries the FLE-modified value for both `applyDamage` and display (logs, floating numbers).
+- `processPostDamage(attacker, target)` is called inside `applyDamage` after HP reduction, before death checks. Only fires if `actualDamage > 0`, unit is alive, and `attacker` is provided.
+- `processTurnStartEffects(unit)` is called inside `processStartOfTurnEffects`.
+
+### Store API
+
+```js
+battleStore.setFightLevelEffects(effects)  // Set all effects (replaces existing)
+battleStore.addFightLevelEffect(effect)    // Add single effect
+battleStore.fightLevelEffects              // Current effects array
+// Cleared automatically by endBattle()
+```
+
+### Quest Node Integration
+
+```js
+// In quest node data (e.g., whispering_woods.js)
+forest_01: {
+  // ...
+  fightLevelEffects: [
+    { hook: 'on_turn_start', type: 'damage_percent_max_hp', scope: 'all', value: 5 }
+  ]
+}
+```
+
+BattleScreen reads `node.fightLevelEffects` after `initBattle` and calls `setFightLevelEffects`.
+
+### Design Doc
+
+Full design: `docs/plans/2026-02-05-fight-level-effects-design.md`
+
 ## Skill Properties
 
 Skills can have these special properties:

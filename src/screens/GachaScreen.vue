@@ -13,7 +13,7 @@ import summonBackgroundImg from '../assets/gacha/summon_background.png'
 import bannerFrameImg from '../assets/gacha/banner_frame.png'
 import { getBannerAvailabilityText, getBannerImageUrl, getBlackMarketBanners } from '../data/banners.js'
 
-const emit = defineEmits(['navigate'])
+const emit = defineEmits(['navigate', 'back'])
 
 const gachaStore = useGachaStore()
 const tipsStore = useTipsStore()
@@ -653,7 +653,7 @@ function handleTenPull() {
           <span class="back-arrow">&#8249;</span>
           <span>Back</span>
         </button>
-        <button v-else class="back-button" @click="emit('navigate', 'home')">
+        <button v-else class="back-button" @click="emit('back')">
           <span class="back-arrow">&#8249;</span>
           <span>Back</span>
         </button>

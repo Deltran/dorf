@@ -126,8 +126,57 @@ const statusEffects = computed(() => {
 }
 
 .enemy-card.dead {
-  opacity: 0.4;
   cursor: not-allowed;
+  animation: enemyDeathDramatic 2s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes enemyDeathDramatic {
+  0% {
+    opacity: 1;
+    filter: brightness(1);
+    transform: translate(0, 0) scale(1);
+  }
+  5% {
+    filter: brightness(4);
+    transform: scale(1.08);
+  }
+  10% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  15% {
+    filter: brightness(2.5);
+    transform: scale(1.04);
+  }
+  20% {
+    filter: brightness(0.8);
+    transform: translate(-3px, 0) scale(1);
+  }
+  24% { transform: translate(4px, -1px); }
+  28% { transform: translate(-4px, 2px); }
+  32% { transform: translate(3px, -2px); }
+  36% { transform: translate(-2px, 1px); }
+  40% {
+    transform: translate(0, 0);
+    filter: brightness(1);
+    opacity: 0.9;
+  }
+  60% {
+    opacity: 0.5;
+    filter: brightness(0.6);
+    transform: scale(0.97);
+  }
+  80% {
+    opacity: 0.2;
+    filter: brightness(0.3);
+    transform: scale(0.94);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(0);
+    transform: scale(0.9);
+  }
 }
 
 .card-header {
