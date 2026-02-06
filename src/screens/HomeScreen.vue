@@ -129,15 +129,18 @@ onMounted(() => {
     <div class="bg-vignette"></div>
     <header class="home-header">
       <img :src="dorfLogo" alt="Dorf" class="game-logo" />
-      <div class="currency-row">
-        <div class="gem-display">
-          <img :src="gemIcon" alt="Gems" class="currency-icon" />
-          <span class="gem-count">{{ gachaStore.gems.toLocaleString() }}</span>
+      <div class="header-right">
+        <div class="currency-row">
+          <div class="gem-display">
+            <img :src="gemIcon" alt="Gems" class="currency-icon" />
+            <span class="gem-count">{{ gachaStore.gems.toLocaleString() }}</span>
+          </div>
+          <div class="gold-display">
+            <img :src="goldIcon" alt="Gold" class="currency-icon" />
+            <span class="gold-count">{{ gachaStore.gold.toLocaleString() }}</span>
+          </div>
         </div>
-        <div class="gold-display">
-          <img :src="goldIcon" alt="Gold" class="currency-icon" />
-          <span class="gold-count">{{ gachaStore.gold.toLocaleString() }}</span>
-        </div>
+        <button class="settings-btn" @click="emit('navigate', 'settings')">⚙️</button>
       </div>
     </header>
 
@@ -269,11 +272,33 @@ onMounted(() => {
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.7));
 }
 
+.header-right {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
 .currency-row {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 2px;
+}
+
+.settings-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 2px;
+  opacity: 0.4;
+  transition: opacity 0.15s ease;
+  filter: grayscale(1);
+  line-height: 1;
+}
+
+.settings-btn:hover {
+  opacity: 0.7;
 }
 
 .gem-display,

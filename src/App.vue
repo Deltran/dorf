@@ -35,6 +35,7 @@ import CompendiumBestiaryScreen from './screens/CompendiumBestiaryScreen.vue'
 import CompendiumAtlasScreen from './screens/CompendiumAtlasScreen.vue'
 import ColosseumScreen from './screens/ColosseumScreen.vue'
 import MawScreen from './screens/MawScreen.vue'
+import SettingsScreen from './screens/SettingsScreen.vue'
 import ExplorationDetailView from './components/ExplorationDetailView.vue'
 import ExplorationCompletePopup from './components/ExplorationCompletePopup.vue'
 import TipPopup from './components/TipPopup.vue'
@@ -103,7 +104,8 @@ const FALLBACK_BACK = {
   'compendium-roster': 'compendium',
   'compendium-bestiary': 'compendium',
   'compendium-atlas': 'compendium',
-  'admin': 'home'
+  'admin': 'home',
+  'settings': 'home'
 }
 
 function captureCurrentParams() {
@@ -536,6 +538,11 @@ function handleBattleNavigate(screen, param) {
       />
       <AdminScreen
         v-else-if="currentScreen === 'admin'"
+        @navigate="navigate"
+        @back="navigateBack"
+      />
+      <SettingsScreen
+        v-else-if="currentScreen === 'settings'"
         @navigate="navigate"
         @back="navigateBack"
       />

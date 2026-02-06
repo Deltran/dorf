@@ -8,6 +8,23 @@ Dorf is a Vue 3 gacha hero battler with turn-based combat. See `README.md` for f
 
 **Platforms:** Web and mobile (Android via Capacitor). All features must work with both mouse and touch — no touch-only gestures.
 
+**Distribution:** APK shared via Google Drive to friends/testers (not Play Store).
+
+## App Versioning & Updates
+
+Version info lives in `src/config.js`:
+
+```js
+export const APP_VERSION = '1.0.0'  // Bump before each build
+export const VERSION_CHECK_URL = 'https://drive.google.com/uc?export=download&id=...'
+export const APK_DOWNLOAD_URL = 'https://drive.google.com/uc?export=download&id=...'
+```
+
+- **Semver** format (`major.minor.patch`)
+- A `version.txt` file on Google Drive (publicly shared) contains the latest version string
+- Settings screen (`SettingsScreen.vue`) fetches `version.txt`, compares to `APP_VERSION`, and offers APK download if newer
+- **Release process:** bump `APP_VERSION` in `config.js` → build APK → upload to Google Drive (overwrite existing file) → update `version.txt` to match
+
 ## Safe Area Handling (Phone Status Bar)
 
 All screens must account for the phone's status bar and notch. CSS variables are defined globally in `App.vue`:
