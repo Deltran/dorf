@@ -162,11 +162,8 @@ onMounted(() => {
               </template>
             </div>
             <div v-else class="no-party">
-              <div class="no-party-icon">⚔️</div>
-              <p>No heroes in {{ party.name }}!</p>
-              <button class="summon-cta" @click="emit('navigate', 'gacha')">
-                <span>Summon Heroes</span>
-              </button>
+              <span class="no-party-icon">⚔️</span>
+              <span class="no-party-text">No heroes in {{ party.name }}</span>
             </div>
           </div>
         </div>
@@ -318,7 +315,7 @@ onMounted(() => {
   flex-direction: column;
   justify-content: flex-end;
   min-height: 200px;
-  padding-bottom: 0;
+  margin-bottom: -12px;
 }
 
 .party-container {
@@ -331,7 +328,7 @@ onMounted(() => {
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
   letter-spacing: 3px;
-  margin-bottom: 40px;
+  margin-bottom: 8px;
   text-align: left;
   padding-left: 16px;
 }
@@ -342,7 +339,7 @@ onMounted(() => {
   gap: 12px;
   max-width: 520px;
   margin: 0 auto;
-  padding: 24px 16px 0 16px; /* Top padding for staggered heroes */
+  padding: 70px 16px 0 16px; /* Extra top padding so scaled hero images don't clip at carousel overflow boundary */
 }
 
 .party-slot {
@@ -409,36 +406,21 @@ onMounted(() => {
 }
 
 .no-party {
-  text-align: center;
-  padding: 40px 24px;
-}
-
-.no-party-icon {
-  font-size: 2.5rem;
-  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
   opacity: 0.4;
 }
 
-.no-party p {
+.no-party-icon {
+  font-size: 1.1rem;
+}
+
+.no-party-text {
   color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 16px;
-  font-size: 0.9rem;
-}
-
-.summon-cta {
-  background: #6366f1;
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
-
-.summon-cta:hover {
-  background: #818cf8;
+  font-size: 0.8rem;
 }
 
 /* ===== Party Carousel ===== */
@@ -465,7 +447,7 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 .dot {
