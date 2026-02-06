@@ -217,6 +217,56 @@ export const useBattleStore = defineStore('battle', () => {
         }
       }
 
+      // Handle battle_start_protect_lowest type (Rosara's The First to Stand)
+      if (effect.type === 'battle_start_protect_lowest') {
+        const heroesStore = useHeroesStore()
+        const leaderId = heroesStore.partyLeader
+        const leader = heroes.value.find(h => h.instanceId === leaderId)
+
+        // Find the lowest HP% ally (excluding the leader)
+        const candidates = heroes.value.filter(h => h.instanceId !== leaderId && h.currentHp > 0)
+        if (candidates.length > 0 && leader) {
+          const lowestHpAlly = candidates.reduce((lowest, h) => {
+            const hpPercent = h.currentHp / h.maxHp
+            const lowestPercent = lowest.currentHp / lowest.maxHp
+            return hpPercent < lowestPercent ? h : lowest
+          })
+
+          // Grant Taunt to the protected ally
+          if (effect.grantTaunt) {
+            applyEffect(lowestHpAlly, EffectType.TAUNT, {
+              duration: effect.duration,
+              value: 0,
+              sourceId: 'leader_skill'
+            })
+          }
+
+          // Grant DEF_UP to the protected ally
+          if (effect.grantDefUp) {
+            applyEffect(lowestHpAlly, EffectType.DEF_UP, {
+              duration: effect.duration,
+              value: effect.grantDefUp,
+              sourceId: 'leader_skill'
+            })
+          }
+
+          // Set up damage share: leader takes a % of damage dealt to the protected ally
+          if (effect.damageSharePercent) {
+            lowestHpAlly.leaderDamageShare = {
+              protectorId: leaderId,
+              percent: effect.damageSharePercent,
+              duration: effect.damageShareDuration || effect.duration
+            }
+          }
+
+          // Trigger visual announcement
+          leaderSkillActivation.value = {
+            skillName: leaderSkill.name,
+            leaderId
+          }
+        }
+      }
+
       // Handle battle_start_debuff type (Cacophon's Harmonic Bleeding)
       if (effect.type === 'battle_start_debuff') {
         const heroesStore = useHeroesStore()
@@ -438,6 +488,23 @@ export const useBattleStore = defineStore('battle', () => {
       const unitName = unit.template?.name || 'Unknown'
       addLog(`${unitName} is immune to debuffs!`)
       return
+    }
+
+    // Check for control immunity passive (e.g., Rosara's Unwavering)
+    if (!definition.isBuff) {
+      const controlImmunity = getControlImmunityPassive(unit)
+      if (controlImmunity && controlImmunity.immuneTo.includes(effectType)) {
+        const unitName = unit.template?.name || 'Unknown'
+        addLog(`${unitName} is immune to ${definition.name}!`)
+        // Trigger onImmunityTrigger (e.g., Valor gain)
+        if (controlImmunity.onImmunityTrigger) {
+          if (controlImmunity.onImmunityTrigger.valorGain && isKnight(unit)) {
+            gainValor(unit, controlImmunity.onImmunityTrigger.valorGain)
+            addLog(`${unitName} gains ${controlImmunity.onImmunityTrigger.valorGain} Valor from Unwavering!`)
+          }
+        }
+        return
+      }
     }
 
     const newEffect = createEffect(effectType, { duration, value, sourceId, ...extra })
@@ -983,11 +1050,49 @@ export const useBattleStore = defineStore('battle', () => {
     return modifier.baseDamagePercent || 100
   }
 
+  // Get control immunity passive (e.g., Rosara's Unwavering)
+  function getControlImmunityPassive(unit) {
+    const skills = unit.template?.skills || []
+    const immunitySkill = skills.find(s => s.isPassive && s.passiveType === 'controlImmunity')
+    if (!immunitySkill) return null
+    return { immuneTo: immunitySkill.immuneTo || [], onImmunityTrigger: immunitySkill.onImmunityTrigger || null }
+  }
+
   // Get hero's on-death passive if any
   function getHeroOnDeathPassive(hero) {
     const skills = hero.template?.skills || []
     const onDeathSkill = skills.find(s => s.isPassive && s.passiveType === 'onDeath')
     return onDeathSkill?.onDeath || null
+  }
+
+  // Process onDeathDuringEffect triggers (e.g., Rosara's Monument to Defiance)
+  // When a hero dies while having a status effect with onDeathDuringEffect data,
+  // apply the specified buffs to allies.
+  function processOnDeathDuringEffect(hero) {
+    if (!hero.statusEffects) return
+    for (const effect of hero.statusEffects) {
+      if (!effect.onDeathDuringEffect) continue
+      const { target, effects: deathEffects } = effect.onDeathDuringEffect
+      if (target === 'all_allies' && deathEffects) {
+        const heroName = hero.template?.name || 'Unknown'
+        addLog(`${heroName}'s ${effect.definition?.name || 'effect'} triggers on death!`)
+        const aliveAllies = heroes.value.filter(h => h.currentHp > 0 && h.instanceId !== hero.instanceId)
+        for (const ally of aliveAllies) {
+          for (const deathEffect of deathEffects) {
+            // Resolve Valor-scaled values using cast-time tier
+            let effectValue = deathEffect.value
+            if (typeof effectValue === 'object' && effectValue !== null && effectValue.base !== undefined) {
+              effectValue = resolveValorScaling(effectValue, effect.castTimeValorTier || 0)
+            }
+            applyEffect(ally, deathEffect.type, {
+              duration: deathEffect.duration,
+              value: effectValue,
+              sourceId: hero.instanceId
+            })
+          }
+        }
+      }
+    }
   }
 
   // Process hero death triggers
@@ -1058,6 +1163,10 @@ export const useBattleStore = defineStore('battle', () => {
         // 'all' cost skills require valorRequired minimum (or any valor > 0)
         const required = unit.skill.valorRequired || 1
         return (unit.currentValor || 0) >= required
+      }
+      // Check valorRequired for non-'all' skills
+      if (unit.skill.valorRequired && (unit.currentValor || 0) < unit.skill.valorRequired) {
+        return false
       }
       // Knights with no valorCost can always use their skills (no MP cost)
       return true
@@ -1824,6 +1933,35 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Check for leader damage share (Rosara's "The First to Stand")
+    if (unit.leaderDamageShare && unit.leaderDamageShare.duration > 0) {
+      const protector = heroes.value.find(h => h.instanceId === unit.leaderDamageShare.protectorId)
+      if (protector && protector.currentHp > 0) {
+        const sharePercent = unit.leaderDamageShare.percent
+        const sharedDamage = Math.floor(damage * sharePercent / 100)
+        const remainingDamage = damage - sharedDamage
+
+        if (sharedDamage > 0) {
+          const protectorActual = Math.min(protector.currentHp, sharedDamage)
+          protector.currentHp = Math.max(0, protector.currentHp - protectorActual)
+          addLog(`${protector.template.name} shares ${protectorActual} damage for ${unit.template?.name || 'ally'}!`)
+          emitCombatEffect(protector.instanceId, 'hero', 'damage', protectorActual)
+
+          // Track wasAttacked for protector
+          if (protector.wasAttacked !== undefined) {
+            protector.wasAttacked = true
+          }
+
+          // Knight Valor gain from damage redirection
+          if (isKnight(protector)) {
+            gainValor(protector, 5)
+          }
+        }
+
+        damage = remainingDamage
+      }
+    }
+
     // Check for DAMAGE_REDUCTION effect
     let damageBlockedByReduction = 0
     const damageReductionEffect = (unit.statusEffects || []).find(e => e.type === EffectType.DAMAGE_REDUCTION)
@@ -2007,6 +2145,10 @@ export const useBattleStore = defineStore('battle', () => {
 
     // Clear all status effects on death
     if (unit.currentHp <= 0) {
+      // Process onDeathDuringEffect triggers (e.g., Rosara's Monument to Defiance)
+      if (unit.instanceId && heroes.value.includes(unit)) {
+        processOnDeathDuringEffect(unit)
+      }
       // Process on-death triggers for heroes before clearing effects
       if (unit.instanceId && heroes.value.includes(unit)) {
         processHeroDeathTrigger(unit)
@@ -2072,7 +2214,13 @@ export const useBattleStore = defineStore('battle', () => {
       const reflectEffect = (unit.statusEffects || []).find(e => e.type === EffectType.REFLECT)
       if (reflectEffect) {
         const reflectPercent = reflectEffect.value
-        const reflectDamage = Math.floor(actualDamage * reflectPercent / 100)
+        let reflectDamage = Math.floor(actualDamage * reflectPercent / 100)
+        // Apply reflect cap if present (cap is % of reflector's ATK)
+        if (reflectEffect.cap) {
+          const reflectorAtk = getEffectiveStat(unit, 'atk')
+          const maxReflect = Math.floor(reflectorAtk * reflectEffect.cap / 100)
+          reflectDamage = Math.min(reflectDamage, maxReflect)
+        }
         if (reflectDamage > 0) {
           const unitName = unit.template?.name || 'Unknown'
           const attackerName = attacker.template?.name || attacker.name || 'Unknown'
@@ -2873,6 +3021,13 @@ export const useBattleStore = defineStore('battle', () => {
       roundNumber.value++
       addLog(`--- Round ${roundNumber.value} ---`)
 
+      // Tick down leader damage share durations
+      for (const hero of heroes.value) {
+        if (hero.leaderDamageShare && hero.leaderDamageShare.duration > 0) {
+          hero.leaderDamageShare.duration--
+        }
+      }
+
       // Valor gains at round end for Knights
       processRoundEndValor()
 
@@ -2914,9 +3069,15 @@ export const useBattleStore = defineStore('battle', () => {
 
   function selectAction(action) {
     if (state.value !== BattleState.PLAYER_TURN) return
-    selectedAction.value = action
 
     const skillIndex = parseSkillIndex(action)
+    if (skillIndex !== null) {
+      // Block skill use while SEATED (Bulwark stance)
+      if (isSeated(currentUnit.value)) return
+    }
+
+    selectedAction.value = action
+
     if (skillIndex !== null) {
       const skill = getSkillByIndex(currentUnit.value, skillIndex)
       if (!skill) return
@@ -3992,13 +4153,40 @@ export const useBattleStore = defineStore('battle', () => {
         }
 
         case 'self': {
+          // Consume all Valor for valorCost:'all' noDamage/self skills (e.g., Monument to Defiance)
+          // Capture Valor tier BEFORE consuming so effect scaling uses cast-time Valor
+          let castTimeValorTier = null
+          if (isKnight(hero) && skill.valorCost === 'all') {
+            castTimeValorTier = getValorTier(hero)
+            hero.currentValor = 0
+          }
+
           addLog(`${hero.template.name} uses ${skill.name}!`)
           if (skill.effects) {
             for (const effect of skill.effects) {
               if (effect.target === 'self' && shouldApplyEffect(effect, hero)) {
+                // Use cast-time Valor tier if Valor was consumed
+                const savedValor = hero.currentValor
+                if (castTimeValorTier !== null) {
+                  // Temporarily restore Valor tier for scaling resolution
+                  hero.currentValor = castTimeValorTier
+                }
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
-                applyEffect(hero, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: false })
+                // Resolve cap if present (for REFLECT effects)
+                const effectExtra = {}
+                if (effect.cap) {
+                  effectExtra.cap = resolveEffectValue({ value: effect.cap }, hero, effectiveAtk, 0)
+                }
+                // Store onDeathDuringEffect data on the effect for death trigger processing
+                if (skill.onDeathDuringEffect) {
+                  effectExtra.onDeathDuringEffect = skill.onDeathDuringEffect
+                  effectExtra.castTimeValorTier = castTimeValorTier
+                }
+                if (castTimeValorTier !== null) {
+                  hero.currentValor = savedValor
+                }
+                applyEffect(hero, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, fromAllySkill: false, ...effectExtra })
                 emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               }
             }

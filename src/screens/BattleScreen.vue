@@ -345,6 +345,9 @@ function getSkillCostLabel(skill) {
 function canUseSkill(skill) {
   if (!currentHero.value || !skill) return false
 
+  // Block all skills while SEATED (Bulwark stance)
+  if ((currentHero.value.statusEffects || []).some(e => e.type === 'seated')) return false
+
   // Check cooldown (applies to all classes)
   if (currentHero.value.currentCooldowns?.[skill.name] > 0) return false
 
