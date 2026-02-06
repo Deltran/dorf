@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { generateHeroImage } from '../../lib/pixellab.js'
 import { getCropSize, getDefaultCropPosition, clampCropPosition } from '../../lib/portraitCrop.js'
 
@@ -21,8 +21,6 @@ const prompt = ref('')
 const generating = ref(false)
 const generationError = ref(null)
 const generatedDataUrl = ref(null)
-const showPortraitCrop = ref(false)
-const portraitPreviewUrl = ref(null)
 const generateSize = ref(64)
 const cropMode = ref(false)
 const cropX = ref(0)
@@ -44,8 +42,6 @@ watch(() => props.enemy, (newEnemy) => {
     generatedDataUrl.value = null
     generationError.value = null
     generating.value = false
-    showPortraitCrop.value = false
-    portraitPreviewUrl.value = null
     generateSize.value = props.isGenusLoci ? 128 : 64
     cropMode.value = false
     sourceImageObj.value = null
@@ -106,27 +102,12 @@ function createPortrait() {
     cropX.value = pos.x
     cropY.value = pos.y
     cropMode.value = true
-    showPortraitCrop.value = false
     nextTick(() => drawCropCanvas())
   }
   img.onerror = () => {
     generationError.value = 'Failed to load image for portrait crop'
   }
   img.src = props.imageUrl
-}
-
-function confirmPortrait() {
-  emit('save-portrait', {
-    enemyId: props.enemy.id,
-    dataUrl: portraitPreviewUrl.value
-  })
-  showPortraitCrop.value = false
-  portraitPreviewUrl.value = null
-}
-
-function cancelPortrait() {
-  showPortraitCrop.value = false
-  portraitPreviewUrl.value = null
 }
 
 function drawCropCanvas() {
@@ -544,34 +525,6 @@ function cancelCrop() {
 
 .portrait-btn:hover {
   background: #4b5563;
-}
-
-.portrait-confirm {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
-}
-
-.portrait-confirm-label {
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.portrait-preview-img {
-  width: 64px;
-  height: 64px;
-  image-rendering: pixelated;
-  border-radius: 4px;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-.portrait-confirm-actions {
-  display: flex;
-  gap: 8px;
 }
 
 .generation-column {
