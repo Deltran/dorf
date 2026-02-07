@@ -14,7 +14,7 @@ export const farm_hand = {
       rageCost: 25,
       targetType: 'random_enemies',
       damagePercent: 40,
-      hits: 3
+      multiHit: 3
     },
     {
       name: 'Twine and Prayer',

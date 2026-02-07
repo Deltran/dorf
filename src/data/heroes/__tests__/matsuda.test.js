@@ -82,7 +82,7 @@ describe('Matsuda the Masterless', () => {
 
       it('should grant 15 rage', () => {
         const skill = matsuda.skills.find(s => s.name === 'Last Sake')
-        expect(skill.rageGrant).toBe(15)
+        expect(skill.rageGain).toBe(15)
       })
     })
 

@@ -1021,6 +1021,52 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
+  // ========== ON-KILL HANDLER ==========
+
+  // Generic onKill handler — dispatches to specific onKill effects
+  function processOnKill(hero, skill, effectiveAtk) {
+    const onKill = skill.onKill
+    if (!onKill) return
+
+    // Rage gain on kill (e.g., Torga's Finale of Fury)
+    if (onKill.rageGain && isBerserker(hero)) {
+      hero.currentRage = Math.min(100, (hero.currentRage || 0) + onKill.rageGain)
+      addLog(`${hero.template.name} gains ${onKill.rageGain} Rage from the kill!`)
+    }
+
+    // Heal on kill (e.g., Matsuda's Glorious End)
+    if (onKill.healPercent && hero.currentHp > 0) {
+      const healAmount = Math.floor(effectiveAtk * onKill.healPercent / 100)
+      if (healAmount > 0) {
+        const maxHp = hero.stats?.hp || hero.maxHp
+        const oldHp = hero.currentHp
+        hero.currentHp = Math.min(maxHp, hero.currentHp + healAmount)
+        const actualHeal = hero.currentHp - oldHp
+        if (actualHeal > 0) {
+          addLog(`${hero.template.name} heals for ${actualHeal} from the kill!`)
+          emitCombatEffect(hero.instanceId, 'hero', 'heal', actualHeal)
+        }
+      }
+    }
+
+    // Apply effect on kill (e.g., Shinobi Jin's stealth on kill)
+    if (onKill.type) {
+      applyEffect(hero, onKill.type, {
+        duration: onKill.duration || 1,
+        value: onKill.value || 0,
+        sourceId: hero.instanceId
+      })
+      emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+      addLog(`${hero.template.name} gains ${onKill.type} from the kill!`)
+    }
+
+    // Reset turn order on kill (e.g., Korrath's The Last Drumbeat)
+    if (onKill.resetTurnOrder) {
+      currentTurnIndex.value = -1  // Will advance to 0 on next turn
+      addLog(`${hero.template.name} surges to the front of the turn order!`)
+    }
+  }
+
   // ========== VERSE HELPERS (Bards) ==========
 
   // Check if a unit is a Bard (uses Verse)
@@ -1163,6 +1209,10 @@ export const useBattleStore = defineStore('battle', () => {
         // 'all' cost skills require valorRequired minimum (or any valor > 0)
         const required = unit.skill.valorRequired || 1
         return (unit.currentValor || 0) >= required
+      }
+      // Check numeric valorCost (e.g., Philemon's skills)
+      if (typeof unit.skill.valorCost === 'number') {
+        return (unit.currentValor || 0) >= unit.skill.valorCost
       }
       // Check valorRequired for non-'all' skills
       if (unit.skill.valorRequired && (unit.currentValor || 0) < unit.skill.valorRequired) {
@@ -3169,6 +3219,16 @@ export const useBattleStore = defineStore('battle', () => {
           }
           // Valor will be consumed in resolveValorCost during damage calculation
         }
+        // Handle numeric valor cost (e.g., Philemon's skills that spend exact amounts)
+        if (typeof skill.valorCost === 'number') {
+          if ((hero.currentValor || 0) < skill.valorCost) {
+            addLog(`Requires ${skill.valorCost} Valor!`)
+            state.value = BattleState.PLAYER_TURN
+            return
+          }
+          hero.currentValor = (hero.currentValor || 0) - skill.valorCost
+          addLog(`${hero.template.name} spends ${skill.valorCost} Valor.`)
+        }
         // Knights don't spend MP
       } else if (isRanger(hero)) {
         if (!hero.hasFocus) {
@@ -3362,6 +3422,55 @@ export const useBattleStore = defineStore('battle', () => {
               processRageOnKill(hero)
             }
           }
+          // Handle single-hit rage-consuming skills (e.g., Torga's Finale of Fury)
+          else if (skill.rageCost === 'all' && !skill.multiHit && (skill.baseDamagePercent !== undefined || skill.baseDamage !== undefined) && skill.damagePerRage !== undefined) {
+            const rageConsumed = hero.currentRage || 0
+            hero.currentRage = 0
+
+            const baseDmg = skill.baseDamagePercent ?? skill.baseDamage
+            const effectiveDef = getEffectiveStat(target, 'def')
+            const defReduction = skill.ignoreDef ? (skill.ignoreDef / 100) : 0
+            const reducedDef = effectiveDef * (1 - defReduction)
+            const multiplier = (baseDmg + shardBonus + skill.damagePerRage * rageConsumed) / 100
+            const markedMultiplier = getMarkedDamageMultiplier(target)
+
+            let damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
+            damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
+
+            if (critResult.isCrit) {
+              processFocusOnCrit(hero, true)
+            }
+
+            damage = processPreDamage(hero, target, damage)
+            applyDamage(target, damage, 'attack', hero)
+            addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name} for ${damage} damage! (${rageConsumed} rage consumed)`)
+            emitCombatEffect(target.id, 'enemy', 'damage', damage)
+
+            // Handle healSelfPercent for rage-consuming single-hit
+            if (skill.healSelfPercent && damage > 0) {
+              const healAmount = calculateHealSelfPercent(damage, skill.healSelfPercent)
+              if (healAmount > 0) {
+                const maxHp = hero.stats?.hp || hero.maxHp
+                const oldHp = hero.currentHp
+                hero.currentHp = Math.min(maxHp, hero.currentHp + healAmount)
+                const actualHeal = hero.currentHp - oldHp
+                if (actualHeal > 0) {
+                  addLog(`${hero.template.name} heals for ${actualHeal}!`)
+                  emitCombatEffect(hero.instanceId, 'hero', 'heal', actualHeal)
+                }
+              }
+            }
+
+            if (target.currentHp <= 0) {
+              addLog(`${target.template.name} defeated!`)
+              processRageOnKill(hero)
+
+              // Generic onKill handler (single-hit rage consume)
+              if (skill.onKill) {
+                processOnKill(hero, skill, effectiveAtk)
+              }
+            }
+          }
           // Handle single-hit valor-consuming skills (e.g., Judgment of Steel)
           else if (skill.valorCost === 'all' && skill.baseDamage !== undefined && skill.damagePerValor !== undefined) {
             const { valorConsumed, damagePercent } = resolveValorCost(hero, skill)
@@ -3506,6 +3615,13 @@ export const useBattleStore = defineStore('battle', () => {
               heartbreakBonusDamagePercent += currentStacks * skill.damagePerHeartbreakStack
             }
 
+            // Bonus damage per Blood Tempo use (e.g., Torga's Blood Echo)
+            if (skill.bonusDamagePerBloodTempo) {
+              const btUses = getBloodTempoUses(hero.instanceId)
+              const btBonus = Math.min(btUses * skill.bonusDamagePerBloodTempo, skill.maxBloodTempoBonus || 999)
+              heartbreakBonusDamagePercent += btBonus
+            }
+
             // Check for Valor-scaled damage
             const scaledDamage = getSkillDamage(skill, hero)
             if (scaledDamage !== null) {
@@ -3525,7 +3641,24 @@ export const useBattleStore = defineStore('battle', () => {
               // Use explicit damagePercent if provided (for skills like Mara's)
               // Apply Volatility damage bonus for Alchemist skills
               const volatilityBonus = (skill.usesVolatility && isAlchemist(hero)) ? getVolatilityDamageBonus(hero) : 0
-              const multiplier = ((bonusDamagePercent || skill.damagePercent) + shardBonus + heartbreakBonusDamagePercent + volatilityBonus) / 100
+
+              // Execute bonus: override damagePercent if target is below HP threshold (e.g., Death Knell)
+              let effectiveDamagePercent = bonusDamagePercent || skill.damagePercent
+              if (skill.executeBonus) {
+                const targetHpPercent = (target.currentHp / target.maxHp) * 100
+                if (targetHpPercent < skill.executeBonus.threshold) {
+                  effectiveDamagePercent = skill.executeBonus.damagePercent
+                }
+              }
+
+              // Bonus damage per missing HP percent (e.g., Matsuda's Glorious End)
+              let missingHpBonus = 0
+              if (skill.bonusDamagePerMissingHpPercent) {
+                const missingHpPercent = Math.floor((1 - hero.currentHp / hero.maxHp) * 100)
+                missingHpBonus = missingHpPercent * skill.bonusDamagePerMissingHpPercent
+              }
+
+              const multiplier = (effectiveDamagePercent + shardBonus + heartbreakBonusDamagePercent + volatilityBonus + missingHpBonus) / 100
               damage = calculateDamageWithMarked(finalDamageStat, multiplier, reducedDef, markedMultiplier)
             } else {
               // Parse from description with Heartbreak bonus
@@ -3566,6 +3699,14 @@ export const useBattleStore = defineStore('battle', () => {
 
             // Handle healSelfPercent (lifesteal) and Heartbreak lifesteal
             let totalLifestealPercent = skill.healSelfPercent || 0
+
+            // Add executeBonus lifesteal when threshold was met
+            if (skill.executeBonus?.healSelfPercent) {
+              const targetHpPercent = (target.currentHp / target.maxHp) * 100
+              if (targetHpPercent < skill.executeBonus.threshold || target.currentHp <= 0) {
+                totalLifestealPercent += skill.executeBonus.healSelfPercent
+              }
+            }
 
             // Add Heartbreak lifesteal bonus if skill uses it
             if (skill.usesHeartbreakLifesteal && hasHeartbreakPassive(hero)) {
@@ -3736,6 +3877,11 @@ export const useBattleStore = defineStore('battle', () => {
             // Grant Heartbreak stacks on kill
             if (skill.onKillGrantHeartbreakStacks && hasHeartbreakPassive(hero)) {
               gainHeartbreakStack(hero, skill.onKillGrantHeartbreakStacks)
+            }
+
+            // Generic onKill handler
+            if (skill.onKill) {
+              processOnKill(hero, skill, effectiveAtk)
             }
           }
 
@@ -4035,6 +4181,15 @@ export const useBattleStore = defineStore('battle', () => {
                 emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
               }
             }
+            // Apply self-buff effects from ally-targeting skills (e.g., Vashek's Brothers in Arms)
+            for (const effect of skill.effects) {
+              if (effect.target === 'self' && shouldApplyEffect(effect, hero)) {
+                const effectDuration = resolveEffectDuration(effect, hero)
+                const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
+                applyEffect(hero, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
+                emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+              }
+            }
           }
 
           // Buff per debuff on target (e.g., Despair - gain ATK buff per debuff on ally)
@@ -4162,6 +4317,20 @@ export const useBattleStore = defineStore('battle', () => {
           }
 
           addLog(`${hero.template.name} uses ${skill.name}!`)
+
+          // Cleanse specific effect types from self (e.g., Grateful Dead's A Minor Inconvenience)
+          if (skill.cleanseSelf && Array.isArray(skill.cleanseSelf)) {
+            const before = (hero.statusEffects || []).length
+            hero.statusEffects = (hero.statusEffects || []).filter(e => !skill.cleanseSelf.includes(e.type))
+            const removed = before - (hero.statusEffects || []).length
+            if (removed > 0) {
+              addLog(`${hero.template.name} cleanses ${removed} effect(s)!`)
+              if (isRanger(hero)) {
+                grantFocus(hero)
+              }
+            }
+          }
+
           if (skill.effects) {
             for (const effect of skill.effects) {
               if (effect.target === 'self' && shouldApplyEffect(effect, hero)) {
@@ -4219,6 +4388,13 @@ export const useBattleStore = defineStore('battle', () => {
               addLog(`${hero.template.name} heals for ${actualHeal} HP!`)
               emitCombatEffect(hero.instanceId, 'hero', 'heal', actualHeal)
             }
+          }
+          // Self-damage (percentage of max HP, e.g., Torga's Blood Tempo)
+          if (skill.selfDamagePercentMaxHp && hero.currentHp > 0) {
+            const selfDamage = Math.floor(hero.maxHp * skill.selfDamagePercentMaxHp / 100)
+            hero.currentHp = Math.max(1, hero.currentHp - selfDamage)
+            addLog(`${hero.template.name} takes ${selfDamage} self-damage!`)
+            emitCombatEffect(hero.instanceId, 'hero', 'damage', selfDamage)
           }
           // MP restore
           if (skill.mpRestore) {
@@ -4366,6 +4542,29 @@ export const useBattleStore = defineStore('battle', () => {
             heartbreakBonusDamagePercentAoe += currentStacks * skill.damagePerHeartbreakStack
           }
 
+          // Consume all Valor for AoE valorCost:'all' skills (e.g., Bygone Valor)
+          let valorConsumedAoe = 0
+          if (isKnight(hero) && skill.valorCost === 'all') {
+            valorConsumedAoe = hero.currentValor || 0
+            hero.currentValor = 0
+          }
+
+          // Bonus damage per consumed Valor (e.g., Grateful Dead's Bygone Valor)
+          let valorBonusDamage = 0
+          if (skill.bonusDamagePerValor && valorConsumedAoe > 0) {
+            valorBonusDamage = Math.min(
+              valorConsumedAoe * skill.bonusDamagePerValor,
+              skill.maxBonusDamage || 999
+            )
+          }
+
+          // Bonus damage per missing HP percent (e.g., Matsuda's Glorious End)
+          let missingHpBonusAoe = 0
+          if (skill.bonusDamagePerMissingHpPercent) {
+            const missingHpPercent = Math.floor((1 - hero.currentHp / hero.maxHp) * 100)
+            missingHpBonusAoe = missingHpPercent * skill.bonusDamagePerMissingHpPercent
+          }
+
           // Use Valor-scaled damage, damagePercent, or parse from description (with shard and Heartbreak bonus)
           let multiplier = 0
           if (!skill.noDamage) {
@@ -4374,7 +4573,7 @@ export const useBattleStore = defineStore('battle', () => {
               multiplier = (scaledDamage + shardBonus + heartbreakBonusDamagePercentAoe) / 100
             } else if (skill.damagePercent !== undefined) {
               const volatilityBonusAoe = (skill.usesVolatility && isAlchemist(hero)) ? getVolatilityDamageBonus(hero) : 0
-              multiplier = (skill.damagePercent + shardBonus + heartbreakBonusDamagePercentAoe + volatilityBonusAoe) / 100
+              multiplier = (skill.damagePercent + shardBonus + heartbreakBonusDamagePercentAoe + volatilityBonusAoe + valorBonusDamage + missingHpBonusAoe) / 100
             } else {
               const baseMultiplier = parseSkillMultiplier(skill.description, shardBonus)
               multiplier = baseMultiplier + heartbreakBonusDamagePercentAoe / 100
@@ -4408,6 +4607,19 @@ export const useBattleStore = defineStore('battle', () => {
                   emitCombatEffect(target.id, 'enemy', 'debuff', 0)
                 }
               }
+            }
+
+            // Apply at100Valor bonus effects (e.g., Grateful Dead's Bygone Valor — DEF_DOWN at 100 Valor)
+            if (skill.at100Valor?.effects && valorConsumedAoe >= 100 && !aoeResult.evaded && target.currentHp > 0) {
+              for (const effect of skill.at100Valor.effects) {
+                applyEffect(target, effect.type, {
+                  duration: effect.duration,
+                  value: effect.value,
+                  sourceId: hero.instanceId
+                })
+                emitCombatEffect(target.id, 'enemy', 'debuff', 0)
+              }
+              addLog(`Full Valor bonus: ${skill.at100Valor.effects.map(e => e.type).join(', ')} applied!`)
             }
 
             // Process conditionalEffects (e.g., Swift Arrow's Pinning Volley: apply DEF_DOWN if target has a debuff)
@@ -4456,6 +4668,11 @@ export const useBattleStore = defineStore('battle', () => {
             // Grant Heartbreak stacks on kill (AoE)
             if (skill.onKillGrantHeartbreakStacks && hasHeartbreakPassive(hero)) {
               gainHeartbreakStack(hero, skill.onKillGrantHeartbreakStacks)
+            }
+
+            // Generic onKill handler (AoE)
+            if (skill.onKill) {
+              processOnKill(hero, skill, effectiveAtk)
             }
           }
 
@@ -4666,9 +4883,34 @@ export const useBattleStore = defineStore('battle', () => {
               addLog(`All allies gain Regen (${totalAtkPercent}% ATK) for ${duration} turns!`)
             }
           }
+          // Self-damage after all_allies skill (e.g., Vashek's Forward, Together)
+          if (skill.selfDamagePercentMaxHp && hero.currentHp > 0) {
+            const selfDamage = Math.floor(hero.maxHp * skill.selfDamagePercentMaxHp / 100)
+            hero.currentHp = Math.max(1, hero.currentHp - selfDamage)
+            addLog(`${hero.template.name} takes ${selfDamage} self-damage!`)
+            emitCombatEffect(hero.instanceId, 'hero', 'damage', selfDamage)
+          }
           break
         }
       }
+    }
+
+    // Grant rage from skill (e.g., Torga's Rhythm Strike, Blood Tempo)
+    if (usedSkill && skillUsed?.rageGain && isBerserker(hero)) {
+      const rageGain = skillUsed.rageGain
+      hero.currentRage = Math.min(100, (hero.currentRage || 0) + rageGain)
+      addLog(`${hero.template.name} gains ${rageGain} Rage!`)
+    }
+
+    // Grant valor from skill (e.g., Grateful Dead's Grave Tap, Philemon's Devoted Strike)
+    if (usedSkill && skillUsed?.valorGain && isKnight(hero)) {
+      let valorGain = skillUsed.valorGain
+      // Bonus valor if currently guarding (e.g., Philemon's Devoted Strike)
+      if (skillUsed.valorGainBonusIfGuarding && hasEffect(hero, EffectType.GUARDING)) {
+        valorGain += skillUsed.valorGainBonusIfGuarding
+      }
+      hero.currentValor = Math.min(100, (hero.currentValor || 0) + valorGain)
+      addLog(`${hero.template.name} gains ${valorGain} Valor!`)
     }
 
     // Rangers regain focus if they didn't use a skill this turn

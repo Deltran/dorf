@@ -72,7 +72,7 @@ describe('The Grateful Dead hero template', () => {
     it('exists with correct properties', () => {
       expect(skill).toBeDefined()
       expect(skill.valorRequired).toBe(1)
-      expect(skill.consumesAllValor).toBe(true)
+      expect(skill.valorCost).toBe('all')
       expect(skill.targetType).toBe('all_enemies')
       expect(skill.skillUnlockLevel).toBe(6)
     })

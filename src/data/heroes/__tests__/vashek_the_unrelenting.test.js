@@ -45,7 +45,7 @@ describe('Vashek the Unrelenting', () => {
 
       it('should have scaling damage based on Valor', () => {
         const skill = vashek_the_unrelenting.skills.find(s => s.name === 'Hold the Line')
-        expect(skill.damagePercent).toEqual({
+        expect(skill.damage).toEqual({
           base: 80,
           at25: 90,
           at50: 100,

@@ -23,7 +23,7 @@ export const matsuda = {
       targetType: 'enemy',
       damagePercent: 80,
       selfDamagePercentMaxHp: 5,
-      rageGrant: 15
+      rageGain: 15
     },
     {
       name: "Ronin's Pride",

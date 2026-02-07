@@ -57,7 +57,7 @@ export const philemon_the_ardent = {
           value: 10
         }
       ],
-      valorGainOnUse: 10
+      valorGain: 10
     },
     {
       name: 'Undying Devotion',

@@ -80,7 +80,7 @@ describe('Stolen Glance (Skill 3)', () => {
   })
 
   it('grants +10 Valor on use', () => {
-    expect(skill.valorGainOnUse).toBe(10)
+    expect(skill.valorGain).toBe(10)
   })
 })
 

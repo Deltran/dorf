@@ -36,7 +36,7 @@ describe('Farm Hand (Darl)', () => {
       it('should target random enemies with 3 hits', () => {
         const skill = farm_hand.skills.find(s => s.name === 'Pitchfork Jabs')
         expect(skill.targetType).toBe('random_enemies')
-        expect(skill.hits).toBe(3)
+        expect(skill.multiHit).toBe(3)
       })
     })
 

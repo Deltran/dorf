@@ -13,7 +13,7 @@ export const vashek_the_unrelenting = {
       skillUnlockLevel: 1,
       valorRequired: 0,
       targetType: 'enemy',
-      damagePercent: { base: 80, at25: 90, at50: 100, at75: 110, at100: 120 },
+      damage: { base: 80, at25: 90, at50: 100, at75: 110, at100: 120 },
       conditionalBonusDamage: {
         condition: 'anyAllyBelowHalfHp',
         bonusPercent: { base: 20, at50: 25, at75: 30, at100: 35 }

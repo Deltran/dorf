@@ -56,7 +56,7 @@ export const the_grateful_dead = {
       description: 'Consume all Valor to unleash an AoE attack. Deal 60% ATK + 1% per Valor consumed (max +100%) to all enemies and heal for 50% of damage dealt. At 100 Valor: also apply 20% DEF Down for 2 turns.',
       skillUnlockLevel: 6,
       valorRequired: 1,
-      consumesAllValor: true,
+      valorCost: 'all',
       targetType: 'all_enemies',
       damagePercent: 60,
       bonusDamagePerValor: 1,

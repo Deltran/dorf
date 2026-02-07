@@ -27,8 +27,8 @@ describe('Vashek the Unrelenting hero template', () => {
   it('has Hold the Line with Valor scaling', () => {
     const skill = vashek_the_unrelenting.skills.find(s => s.name === 'Hold the Line')
     expect(skill).toBeDefined()
-    expect(skill.damagePercent.base).toBe(80)
-    expect(skill.damagePercent.at100).toBe(120)
+    expect(skill.damage.base).toBe(80)
+    expect(skill.damage.at100).toBe(120)
   })
 
   it('has Unyielding passive', () => {

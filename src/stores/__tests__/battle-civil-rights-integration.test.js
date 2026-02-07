@@ -155,8 +155,8 @@ describe('Civil Rights Banner heroes integration', () => {
       const vashek = heroTemplates.vashek_the_unrelenting
       const holdTheLine = vashek.skills.find(s => s.name === 'Hold the Line')
       expect(holdTheLine).toBeDefined()
-      expect(holdTheLine.damagePercent.base).toBe(80)
-      expect(holdTheLine.damagePercent.at100).toBe(120)
+      expect(holdTheLine.damage.base).toBe(80)
+      expect(holdTheLine.damage.at100).toBe(120)
     })
 
     it('has conditional bonus damage on Hold the Line', () => {
