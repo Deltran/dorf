@@ -98,7 +98,6 @@ const displayImage = computed(() => props.imageUrl || null)
   justify-content: center;
   font-size: 28px;
   color: #4b5563;
-  user-select: none;
 }
 
 .enemy-name {

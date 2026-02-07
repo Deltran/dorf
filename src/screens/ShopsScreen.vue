@@ -988,7 +988,6 @@ function typeIcon(type) {
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
-  user-select: none;
 }
 
 .shop-item:hover:not(.sold-out) {

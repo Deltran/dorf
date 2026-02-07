@@ -53,7 +53,6 @@ defineProps({
   font-size: 0.7rem;
   color: #4b5563;
   transition: all 0.3s ease;
-  user-select: none;
 }
 
 .xs .verse-pip {

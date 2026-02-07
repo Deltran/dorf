@@ -218,8 +218,6 @@ function formatTargetType(skill) {
   display: flex;
   flex-direction: column;
   pointer-events: auto;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 .panel-enter-active,

@@ -125,7 +125,6 @@ const typeIconEmoji = computed(() => {
   transition: all 0.2s ease;
   border: 2px solid transparent;
   min-width: 100px;
-  user-select: none;
 }
 
 .item-card.compact {

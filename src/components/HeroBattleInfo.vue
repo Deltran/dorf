@@ -146,7 +146,6 @@ const rarityClass = computed(() => {
   transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   border: 1px solid #374151;
   min-width: 64px;
-  user-select: none;
 }
 
 /* Noise texture for Dorf grittiness */

@@ -498,7 +498,6 @@ function getLinkStyle(linkId) {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  user-select: none;
 }
 
 .node-marker:active,

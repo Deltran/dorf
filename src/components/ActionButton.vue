@@ -65,7 +65,6 @@ const emit = defineEmits(['click'])
   width: 100%;
   min-width: 0;
   text-align: left;
-  user-select: none;
 }
 
 .action-button:hover:not(.disabled) {

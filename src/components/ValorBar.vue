@@ -101,7 +101,6 @@ const currentTier = computed(() => {
   font-weight: 600;
   color: white;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  user-select: none;
 }
 
 .valor-bar.md .valor-text {
@@ -118,7 +117,6 @@ const currentTier = computed(() => {
   font-size: 0.5rem;
   color: #4b5563;
   transition: all 0.3s ease;
-  user-select: none;
 }
 
 .valor-bar.md .tier-pip {
