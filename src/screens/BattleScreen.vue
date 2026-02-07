@@ -2308,6 +2308,7 @@ function getStatChange(hero, stat) {
   flex-direction: column;
   gap: 12px;
   transition: filter 1.5s ease-out;
+  overflow: hidden; /* Prevent enemy entrance animations (120vw translate) from expanding viewport on mobile */
 }
 
 .battle-defeat-fading {
