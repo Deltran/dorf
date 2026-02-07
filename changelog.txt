@@ -1,3 +1,8 @@
+1.1.1
+- Fixes exploration rewards showing NaN XP instead of actual numbers
+- Exploration reward preview now correctly includes rank bonus
+- Fixes battle background briefly rescaling during wave transitions on mobile
+
 1.1.0
 - Combat logs: review your last 5 battles in the Codex with full turn-by-turn detail
 - Battle stats summary shows damage dealt, healing done, and more after each fight
