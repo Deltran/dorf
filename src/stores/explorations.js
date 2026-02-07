@@ -304,7 +304,7 @@ export const useExplorationsStore = defineStore('explorations', () => {
     // Calculate rewards
     const goldReward = Math.floor(config.rewards.gold * bonusMultiplier)
     const gemsReward = Math.floor(config.rewards.gems * bonusMultiplier)
-    const xpReward = Math.floor(config.rewards.xp * bonusMultiplier)
+    const xpReward = Math.floor(config.rewards.exp * bonusMultiplier)
     const xpPerHero = Math.floor(xpReward / 5)
 
     // Apply currency rewards

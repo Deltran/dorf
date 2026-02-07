@@ -71,7 +71,7 @@ export const nodes = {
       { enemies: ['dire_wolf', 'dire_wolf', 'lake_serpent', 'lake_serpent'] }
     ],
     connections: [],
-    rewards: { gems: 100, gold: 500 },
+    rewards: { gems: 100, gold: 500, exp: 250 },
     firstClearBonus: { gems: 50 },
     unlocks: 'colosseum'
   },

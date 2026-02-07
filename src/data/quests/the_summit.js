@@ -180,7 +180,7 @@ export const nodes = {
     explorationConfig: {
       requiredFights: 70,
       timeLimit: 300,
-      rewards: { gold: 800, gems: 35, xp: 500 },
+      rewards: { gold: 800, gems: 35, exp: 500 },
       requiredCrestId: 'great_troll_crest',
       itemDrops: [
         { itemId: 'tome_large', chance: 0.4 },

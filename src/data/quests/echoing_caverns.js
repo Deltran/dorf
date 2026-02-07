@@ -195,7 +195,7 @@ export const nodes = {
     explorationConfig: {
       requiredFights: 50,
       timeLimit: 240,
-      rewards: { gold: 500, gems: 20, xp: 300 },
+      rewards: { gold: 500, gems: 20, exp: 300 },
       requiredCrestId: 'valinar_crest',
       itemDrops: [
         { itemId: 'tome_medium', chance: 0.4 },

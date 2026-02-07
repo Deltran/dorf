@@ -185,7 +185,7 @@ export const nodes = {
     explorationConfig: {
       requiredFights: 65,
       timeLimit: 300,
-      rewards: { gold: 600, gems: 25, xp: 350 },
+      rewards: { gold: 600, gems: 25, exp: 350 },
       requiredCrestId: 'pyroclast_crest',
       itemDrops: [
         { itemId: 'tome_large', chance: 0.4 },

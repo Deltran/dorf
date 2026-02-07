@@ -252,7 +252,9 @@ export const useHeroesStore = defineStore('heroes', () => {
     // No XP gain at max level
     if (hero.level >= MAX_LEVEL) return
 
-    hero.exp += amount
+    // Guard against NaN from missing/undefined reward values
+    const safeAmount = Number(amount) || 0
+    hero.exp += safeAmount
 
     // Level up logic: 100 exp per level
     const expPerLevel = 100
