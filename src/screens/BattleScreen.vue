@@ -184,7 +184,7 @@ function snapshotBattleLog() {
 function capturePartySnapshot() {
   return battleStore.heroes.map(h => ({
     templateId: h.template?.id,
-    name: h.name,
+    name: h.template?.name,
     level: h.level,
     classId: h.template?.classId,
     rarity: h.template?.rarity,
@@ -2251,7 +2251,7 @@ function getStatChange(hero, stat) {
 
     <!-- View log button -->
     <button
-      v-if="defeatPhase === 'complete' && battleStore.battleLog.length > 0"
+      v-if="battleStore.battleLog.length > 0"
       class="defeat-view-log"
       :class="{ visible: defeatPhase === 'complete' }"
       @click="toggleDefeatLog"
