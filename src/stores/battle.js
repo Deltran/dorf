@@ -360,7 +360,7 @@ export const useBattleStore = defineStore('battle', () => {
     }
   }
 
-  // Check HP threshold triggers from leader skill (Mara's "What Doesn't Kill Us")
+  // Check HP threshold triggers from leader skill (Mara's "What Doesn't Kill Us", Onibaba's "Grandmother's Vigil")
   function checkHpThresholdLeaderTriggers(unit, hpBefore) {
     // Only trigger for heroes (not enemies)
     if (!unit.instanceId) return
@@ -369,28 +369,100 @@ export const useBattleStore = defineStore('battle', () => {
     if (!leaderSkill) return
 
     for (const effect of leaderSkill.effects) {
-      if (effect.type !== 'hp_threshold_triggered') continue
+      // Handle standard HP threshold triggered effects (e.g., Mara)
+      if (effect.type === 'hp_threshold_triggered') {
+        const threshold = unit.maxHp * (effect.threshold / 100)
 
-      const threshold = unit.maxHp * (effect.threshold / 100)
+        // Check if HP crossed the threshold (was above, now at or below)
+        if (hpBefore > threshold && unit.currentHp <= threshold) {
+          // Check triggerOnce flag
+          if (effect.triggerOnce && unit.leaderThresholdTriggered) continue
 
-      // Check if HP crossed the threshold (was above, now at or below)
-      if (hpBefore > threshold && unit.currentHp <= threshold) {
-        // Check triggerOnce flag
-        if (effect.triggerOnce && unit.leaderThresholdTriggered) continue
+          if (effect.triggerOnce) {
+            unit.leaderThresholdTriggered = true
+          }
 
-        if (effect.triggerOnce) {
-          unit.leaderThresholdTriggered = true
+          // Apply the effect
+          applyEffect(unit, effect.apply.effectType, {
+            duration: effect.apply.duration,
+            value: effect.apply.value,
+            sourceId: 'leader_skill'
+          })
+
+          const unitName = unit.template?.name || 'Unknown'
+          addLog(`${leaderSkill.name}: ${unitName} gains ${effect.apply.effectType}!`)
         }
+      }
 
-        // Apply the effect
-        applyEffect(unit, effect.apply.effectType, {
-          duration: effect.apply.duration,
-          value: effect.apply.value,
-          sourceId: 'leader_skill'
-        })
+      // Handle ally_low_hp_auto_attack (Onibaba's Grandmother's Vigil)
+      if (effect.type === 'ally_low_hp_auto_attack') {
+        const threshold = unit.maxHp * (effect.hpThreshold / 100)
 
-        const unitName = unit.template?.name || 'Unknown'
-        addLog(`${leaderSkill.name}: ${unitName} gains ${effect.apply.effectType}!`)
+        // Check if HP crossed the threshold (was above, now at or below)
+        if (hpBefore > threshold && unit.currentHp <= threshold) {
+          // Find the leader hero
+          const heroesStore = useHeroesStore()
+          const leaderId = heroesStore.partyLeader
+          const leader = heroes.value.find(h => h.instanceId === leaderId)
+          if (!leader || leader.currentHp <= 0) continue
+
+          // Don't trigger for the leader herself
+          if (unit.instanceId === leader.instanceId) continue
+
+          // Check oncePerAlly tracking
+          if (effect.oncePerAlly) {
+            if (!leader._autoAttackTriggeredFor) leader._autoAttackTriggeredFor = new Set()
+            if (leader._autoAttackTriggeredFor.has(unit.instanceId)) continue
+            leader._autoAttackTriggeredFor.add(unit.instanceId)
+          }
+
+          // Find the auto-skill from leader's template
+          const autoSkill = leader.template.skills.find(s => s.name === effect.autoSkill)
+          if (!autoSkill) continue
+
+          // Find lowest HP enemy to target
+          const aliveEnemiesList = enemies.value.filter(e => e.currentHp > 0)
+          if (aliveEnemiesList.length === 0) continue
+          const lowestEnemy = aliveEnemiesList.reduce((lowest, e) => {
+            const ePct = e.currentHp / e.maxHp
+            const lPct = lowest.currentHp / lowest.maxHp
+            return ePct < lPct ? e : lowest
+          })
+
+          // Execute the auto-attack (simplified Soul Siphon: damagePercent of leader's ATK)
+          const leaderAtk = getEffectiveStat(leader, 'atk')
+          const enemyDef = getEffectiveStat(lowestEnemy, 'def')
+          const multiplier = (autoSkill.damagePercent || 60) / 100
+          const damage = calculateDamage(leaderAtk, multiplier, enemyDef)
+          applyDamage(lowestEnemy, damage, 'attack', leader)
+
+          const leaderName = leader.template?.name || 'Leader'
+          const targetName = lowestEnemy.template?.name || 'Enemy'
+          addLog(`${leaderSkill.name}: ${leaderName} auto-attacks ${targetName} for ${damage} damage!`)
+          emitCombatEffect(lowestEnemy.id, 'enemy', 'damage', damage)
+
+          // Apply healLowestAllyPercent if present on the skill
+          if (autoSkill.healLowestAllyPercent && damage > 0) {
+            const healAmount = Math.floor(damage * autoSkill.healLowestAllyPercent / 100)
+            if (healAmount > 0) {
+              const aliveHeroesList = heroes.value.filter(h => h.currentHp > 0)
+              const lowestAlly = aliveHeroesList.reduce((lowest, h) => {
+                const hPct = h.currentHp / h.maxHp
+                const lPct = lowest.currentHp / lowest.maxHp
+                return hPct < lPct ? h : lowest
+              })
+              if (lowestAlly) {
+                const oldHp = lowestAlly.currentHp
+                lowestAlly.currentHp = Math.min(lowestAlly.maxHp, lowestAlly.currentHp + healAmount)
+                const actualHeal = lowestAlly.currentHp - oldHp
+                if (actualHeal > 0) {
+                  addLog(`${lowestAlly.template.name} is healed for ${actualHeal}!`)
+                  emitCombatEffect(lowestAlly.instanceId, 'hero', 'heal', actualHeal)
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
@@ -909,8 +981,11 @@ export const useBattleStore = defineStore('battle', () => {
 
     for (const effect of unit.statusEffects) {
       if (effect.definition.isDot) {
-        // DoT damage
-        const damage = effect.value
+        // DoT damage — double if enemy attacked the caster (Onibaba's Grudge Hex)
+        let damage = effect.value
+        if (effect.doubleIfAttacksCaster && unit._lastAttackedId === effect.sourceId) {
+          damage *= 2
+        }
         applyDamage(unit, damage, 'dot')
         addLog(`${unitName} takes ${damage} ${effect.definition.name} damage!`)
         emitCombatEffect(targetId, targetType, 'damage', damage)
@@ -4001,7 +4076,10 @@ export const useBattleStore = defineStore('battle', () => {
                     effectDuration += skill.ifMarked.extendDuration
                   }
                   const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
-                  applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
+                  // Pass through extra properties like doubleIfAttacksCaster (Onibaba's Grudge Hex)
+                  const extraProps = {}
+                  if (effect.doubleIfAttacksCaster) extraProps.doubleIfAttacksCaster = true
+                  applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId, ...extraProps })
                   emitCombatEffect(target.id, 'enemy', 'debuff', 0)
                 }
               }
@@ -5383,6 +5461,9 @@ export const useBattleStore = defineStore('battle', () => {
     }
 
     const target = targets[Math.floor(Math.random() * targets.length)]
+
+    // Track who this enemy attacks (for doubleIfAttacksCaster DoT mechanic)
+    enemy._lastAttackedId = target.instanceId
 
     // Get available skills (supports both 'skill' and 'skills')
     const allSkills = enemy.template.skills || (enemy.template.skill ? [enemy.template.skill] : [])
