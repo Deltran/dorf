@@ -140,6 +140,7 @@ export const useMawStore = defineStore('maw', () => {
       if (nextTier <= 5 && !tierUnlocks.value[nextTier]) {
         tierUnlocks.value = { ...tierUnlocks.value, [nextTier]: true }
       }
+      activeRun.value = null
       return { success: true, runComplete: true }
     }
 
