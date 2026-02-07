@@ -1,8 +1,6 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useColosseumStore } from '../stores/colosseum.js'
-import { useBattleStore } from '../stores/battle.js'
-import { useHeroesStore } from '../stores/heroes.js'
 import { getHeroTemplate } from '../data/heroes/index.js'
 import { getClass } from '../data/classes.js'
 import colosseumBg from '../assets/backgrounds/colosseum_bg.png'
@@ -11,9 +9,6 @@ import laurelIcon from '../assets/icons/laurels.png'
 const emit = defineEmits(['navigate', 'back', 'startColosseumBattle'])
 
 const colosseumStore = useColosseumStore()
-const heroesStore = useHeroesStore()
-
-const showShop = ref(false)
 
 const currentBout = computed(() => colosseumStore.getCurrentBout())
 const dailyIncome = computed(() => colosseumStore.getDailyIncome())
@@ -34,6 +29,46 @@ const rarityColors = {
   5: '#f59e0b'
 }
 
+// Tier definitions — the journey through the colosseum
+const tiers = [
+  { stars: 1, name: 'The Dregs', startBout: 1, endBout: 8, color: '#9ca3af' },
+  { stars: 2, name: 'Proving Grounds', startBout: 9, endBout: 16, color: '#22c55e' },
+  { stars: 3, name: 'Blood & Iron', startBout: 17, endBout: 28, color: '#3b82f6' },
+  { stars: 4, name: 'The Crucible', startBout: 29, endBout: 40, color: '#a855f7' },
+  { stars: 5, name: 'Hall of Legends', startBout: 41, endBout: 50, color: '#f59e0b' }
+]
+
+const currentTier = computed(() => {
+  const bout = colosseumStore.highestBout + 1 // next bout to clear
+  for (let i = tiers.length - 1; i >= 0; i--) {
+    if (bout >= tiers[i].startBout) return tiers[i]
+  }
+  return tiers[0]
+})
+
+// For tier display when all cleared, show the final tier
+const displayTier = computed(() => {
+  if (allCleared.value) return tiers[tiers.length - 1]
+  return currentTier.value
+})
+
+// All heroes, leader sorted first
+const boutHeroes = computed(() => {
+  if (!currentBout.value) return []
+  const leader = currentBout.value.leader
+  return currentBout.value.heroes
+    .map(def => ({ def, info: getHeroInfo(def) }))
+    .filter(h => h.info)
+    .sort((a, b) => (b.info.isLeader ? 1 : 0) - (a.info.isLeader ? 1 : 0))
+})
+
+// Tier color for bout preview tinting
+const boutTierColor = computed(() => {
+  if (!currentBout.value) return '#9ca3af'
+  const stars = currentBout.value.heroes[0]?.stars || 1
+  return rarityColors[stars] || '#9ca3af'
+})
+
 function getHeroInfo(heroDef) {
   const template = getHeroTemplate(heroDef.templateId)
   if (!template) return null
@@ -53,13 +88,6 @@ function getHeroInfo(heroDef) {
 function startFight() {
   if (!currentBout.value) return
   emit('startColosseumBattle', currentBout.value)
-}
-
-// Shop
-const shopItems = computed(() => colosseumStore.getColosseumShopDisplay())
-
-function purchaseItem(itemId) {
-  colosseumStore.purchaseColosseumItem(itemId)
 }
 
 // Collect daily laurels on mount
@@ -87,141 +115,106 @@ onMounted(() => {
       <h1 class="screen-title">Colosseum</h1>
       <div class="laurel-display">
         <img :src="laurelIcon" alt="Laurels" class="laurel-icon" />
-        <span class="laurel-count">{{ colosseumStore.laurels }}</span>
+        <div class="laurel-info">
+          <span class="laurel-count">{{ colosseumStore.laurels }}</span>
+          <span class="laurel-income">+{{ dailyIncome }}/day</span>
+        </div>
       </div>
     </header>
 
-    <!-- Income display -->
-    <div class="income-bar">
-      <span class="income-label">Daily Income</span>
-      <span class="income-value">{{ dailyIncome }} <img :src="laurelIcon" alt="" class="inline-laurel" />/day</span>
+    <!-- All cleared — trophy room -->
+    <div v-if="allCleared" class="all-cleared">
+      <div class="cleared-trophy">&#127942;</div>
+      <h2 class="cleared-title">Colosseum Conquered</h2>
+      <p class="cleared-subtitle">All 50 bouts cleared. You reign supreme.</p>
+      <div class="cleared-earnings">
+        <img :src="laurelIcon" alt="Laurels" class="laurel-icon" />
+        <span class="earnings-value">{{ dailyIncome }}</span>
+        <span class="earnings-label">/day</span>
+      </div>
+      <div class="cleared-tiers">
+        <div
+          v-for="tier in tiers"
+          :key="tier.stars"
+          class="cleared-tier"
+          :style="{ color: tier.color }"
+        >
+          <span class="cleared-tier-stars">{{ '\u2605'.repeat(tier.stars) }}</span>
+          <span class="cleared-tier-name">{{ tier.name }}</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Main view: Bout preview or Shop -->
-    <template v-if="!showShop">
-      <!-- All cleared state -->
-      <div v-if="allCleared" class="all-cleared">
-        <div class="cleared-icon">&#127942;</div>
-        <h2 class="cleared-title">Colosseum Conquered</h2>
-        <p class="cleared-text">All 50 bouts cleared. You reign supreme.</p>
+    <!-- Bout preview — the fight card -->
+    <div v-else-if="currentBout" class="bout-preview" :style="{ '--tier-color': boutTierColor }">
+      <div class="bout-header">
+        <span class="bout-label">Bout</span>
+        <span class="bout-number">{{ currentBout.bout }}</span>
+        <span class="bout-name">{{ currentBout.name }}</span>
+        <span class="bout-divider"></span>
       </div>
 
-      <!-- Bout preview -->
-      <div v-else-if="currentBout" class="bout-preview">
-        <div class="bout-header">
-          <span class="bout-number">Bout {{ currentBout.bout }}</span>
-          <span class="bout-name">{{ currentBout.name }}</span>
-        </div>
-
-        <div class="enemy-team">
-          <div
-            v-for="(heroDef, i) in currentBout.heroes"
-            :key="i"
-            class="enemy-hero-card"
-            :style="{ borderColor: rarityColors[heroDef.stars] || '#9ca3af' }"
-          >
-            <template v-if="getHeroInfo(heroDef)">
-              <div class="hero-card-header">
-                <span v-if="getHeroInfo(heroDef).isLeader" class="leader-crown">&#128081;</span>
-                <span class="hero-stars" :style="{ color: rarityColors[heroDef.stars] }">
-                  {{ '\u2605'.repeat(heroDef.stars) }}
-                </span>
-              </div>
-              <div class="hero-name">{{ getHeroInfo(heroDef).name }}</div>
-              <div class="hero-meta">
-                <span class="hero-class">{{ roleIcons[getHeroInfo(heroDef).role] }} {{ getHeroInfo(heroDef).className }}</span>
-                <span class="hero-level">Lv.{{ heroDef.level }}</span>
-              </div>
-            </template>
+      <div class="enemy-roster">
+        <div
+          v-for="(hero, i) in boutHeroes"
+          :key="i"
+          class="roster-card"
+          :class="{ 'is-leader': hero.info.isLeader }"
+          :style="{ borderColor: rarityColors[hero.def.stars] || '#9ca3af' }"
+        >
+          <span v-if="hero.info.isLeader" class="leader-crown">&#128081;</span>
+          <div class="roster-info">
+            <span class="hero-name">{{ hero.info.name }}</span>
+            <span class="hero-meta">{{ roleIcons[hero.info.role] }} {{ hero.info.className }} &middot; Lv.{{ hero.def.level }}</span>
           </div>
+          <span class="hero-stars" :style="{ color: rarityColors[hero.def.stars] }">
+            {{ '\u2605'.repeat(hero.def.stars) }}
+          </span>
         </div>
-
-        <div class="bout-reward">
-          <span class="reward-label">First Clear</span>
-          <span class="reward-value">{{ currentBout.firstClearReward }} <img :src="laurelIcon" alt="Laurels" class="inline-laurel" /></span>
-        </div>
-
-        <button class="fight-button" @click="startFight">
-          <span class="fight-icon">&#9876;&#65039;</span>
-          <span>Fight</span>
-        </button>
       </div>
 
-      <div class="progress-bar">
+      <div class="bout-reward">
+        <span class="reward-label">First Clear</span>
+        <span class="reward-value">{{ currentBout.firstClearReward }} <img :src="laurelIcon" alt="Laurels" class="inline-laurel" /></span>
+      </div>
+
+      <button class="fight-button" @click="startFight">
+        <span class="fight-icon">&#9876;&#65039;</span>
+        <span>Fight</span>
+      </button>
+    </div>
+
+    <!-- Tier + Progress -->
+    <div class="journey-section">
+      <div class="tier-label" :style="{ color: displayTier.color }">
+        <span class="tier-stars">{{ '\u2605'.repeat(displayTier.stars) }}</span>
+        <span class="tier-name">{{ displayTier.name }}</span>
+      </div>
+      <div class="progress-track">
         <div class="progress-fill" :style="{ width: `${(colosseumStore.highestBout / 50) * 100}%` }"></div>
+        <div
+          v-for="tier in tiers.slice(0, -1)"
+          :key="tier.stars"
+          class="tier-notch"
+          :class="{ cleared: colosseumStore.highestBout >= tier.endBout }"
+          :style="{ left: `${(tier.endBout / 50) * 100}%` }"
+        >
+          <span class="notch-line"></span>
+        </div>
         <span class="progress-label">{{ colosseumStore.highestBout }} / 50</span>
       </div>
-    </template>
-
-    <!-- Shop view -->
-    <template v-else>
-      <div class="shop-section">
-        <div class="shop-header">
-          <h2 class="shop-title">Laurel Exchange</h2>
-        </div>
-
-        <!-- Exclusive heroes -->
-        <div class="shop-category">
-          <h3 class="category-title">Exclusive Heroes</h3>
-          <div class="shop-items">
-            <div
-              v-for="item in shopItems.filter(i => i.type === 'exclusive_hero')"
-              :key="item.id"
-              class="shop-item placeholder-hero"
-              :style="{ borderColor: rarityColors[item.rarity] || '#9ca3af' }"
-            >
-              <div class="item-stars" :style="{ color: rarityColors[item.rarity] }">
-                {{ '\u2605'.repeat(item.rarity) }}
-              </div>
-              <div class="item-name">{{ item.name }}</div>
-              <div class="item-coming-soon">Coming Soon</div>
-              <div class="item-cost">{{ item.cost }} <img :src="laurelIcon" alt="Laurels" class="inline-laurel" /></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Resources -->
-        <div class="shop-category">
-          <h3 class="category-title">Resources</h3>
-          <div class="shop-items-list">
-            <div
-              v-for="item in shopItems.filter(i => i.type !== 'exclusive_hero')"
-              :key="item.id"
-              class="shop-item-row"
-            >
-              <div class="item-info">
-                <span class="item-name">{{ item.name }}</span>
-                <span class="item-stock">{{ item.remainingStock }}/{{ item.maxStock }} ({{ item.stockType }})</span>
-              </div>
-              <button
-                class="buy-button"
-                :disabled="colosseumStore.laurels < item.cost || item.remainingStock <= 0"
-                @click="purchaseItem(item.id)"
-              >
-                {{ item.cost }} <img :src="laurelIcon" alt="" class="inline-laurel" />
-              </button>
-            </div>
-          </div>
-        </div>
+      <div class="tier-markers">
+        <span
+          v-for="tier in tiers"
+          :key="tier.stars"
+          class="tier-marker"
+          :class="{ active: displayTier.stars === tier.stars, cleared: colosseumStore.highestBout >= tier.endBout }"
+          :style="{
+            color: colosseumStore.highestBout >= tier.startBout - 1 ? tier.color : '#374151',
+            flex: `${tier.endBout - tier.startBout + 1}`
+          }"
+        >{{ '\u2605'.repeat(tier.stars) }}</span>
       </div>
-    </template>
-
-    <!-- Bottom toggle -->
-    <div class="bottom-nav">
-      <button
-        class="tab-button"
-        :class="{ active: !showShop }"
-        @click="showShop = false"
-      >
-        &#9876;&#65039; Fight
-      </button>
-      <button
-        class="tab-button"
-        :class="{ active: showShop }"
-        @click="showShop = true"
-      >
-        <img :src="laurelIcon" alt="" class="inline-laurel" /> Shop
-      </button>
     </div>
   </div>
 </template>
@@ -233,7 +226,7 @@ onMounted(() => {
   position: relative;
   overflow: hidden;
   padding-top: calc(16px + var(--safe-area-top));
-  padding-bottom: calc(80px + var(--safe-area-bottom));
+  padding-bottom: calc(16px + var(--safe-area-bottom));
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -333,66 +326,110 @@ onMounted(() => {
   margin-left: 2px;
 }
 
+.laurel-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
 .laurel-count {
   color: #f59e0b;
   font-weight: 700;
   font-size: 1rem;
 }
 
-/* Income bar */
-.income-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  border-radius: 8px;
-  padding: 8px 14px;
-  position: relative;
-  z-index: 1;
-}
-
-.income-label {
+.laurel-income {
   color: #9ca3af;
-  font-size: 0.85rem;
+  font-size: 0.65rem;
 }
 
-.income-value {
-  color: #f59e0b;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-/* All cleared */
+/* All cleared — trophy room */
 .all-cleared {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 16px;
   text-align: center;
   position: relative;
   z-index: 1;
 }
 
-.cleared-icon {
-  font-size: 3rem;
+.cleared-trophy {
+  font-size: 4rem;
+  animation: trophyPulse 3s ease-in-out infinite;
+}
+
+@keyframes trophyPulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.3)); }
+  50% { filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.6)); }
 }
 
 .cleared-title {
   color: #f59e0b;
   font-size: 1.5rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
   margin: 0;
 }
 
-.cleared-text {
+.cleared-subtitle {
   color: #9ca3af;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   margin: 0;
 }
 
-/* Bout preview */
+.cleared-earnings {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 8px;
+  padding: 10px 20px;
+}
+
+.earnings-value {
+  color: #f59e0b;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.earnings-label {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+.cleared-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.cleared-tier {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.cleared-tier-stars {
+  font-size: 0.6rem;
+  letter-spacing: 1px;
+  min-width: 50px;
+  text-align: right;
+}
+
+.cleared-tier-name {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Bout preview — the fight card */
 .bout-preview {
   display: flex;
   flex-direction: column;
@@ -401,54 +438,79 @@ onMounted(() => {
   z-index: 1;
 }
 
+/* Bout header */
 .bout-header {
+  text-align: center;
   display: flex;
-  justify-content: space-between;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.bout-label {
+  color: #6b7280;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
 }
 
 .bout-number {
-  color: #f59e0b;
-  font-weight: 700;
-  font-size: 1.2rem;
+  color: var(--tier-color, #f59e0b);
+  font-weight: 900;
+  font-size: 2rem;
+  line-height: 1;
 }
 
 .bout-name {
   color: #d1d5db;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-style: italic;
+  font-weight: 500;
 }
 
-/* Enemy team grid */
-.enemy-team {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+.bout-divider {
+  width: 60px;
+  height: 2px;
+  background: var(--tier-color, #f59e0b);
+  opacity: 0.4;
+  border-radius: 1px;
+  margin-top: 4px;
 }
 
-.enemy-hero-card {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 12px;
+/* Enemy roster — single list, leader gets accent */
+.enemy-roster {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.hero-card-header {
+.roster-card {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.roster-card.is-leader {
+  padding: 12px 14px;
+  border-width: 2px;
 }
 
 .leader-crown {
-  font-size: 1rem;
+  font-size: 1.2rem;
+  flex-shrink: 0;
 }
 
-.hero-stars {
-  font-size: 0.75rem;
-  letter-spacing: 1px;
+.roster-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .hero-name {
@@ -460,21 +522,20 @@ onMounted(() => {
   text-overflow: ellipsis;
 }
 
+.is-leader .hero-name {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
 .hero-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.hero-class {
-  color: #9ca3af;
-  font-size: 0.75rem;
-}
-
-.hero-level {
   color: #6b7280;
   font-size: 0.75rem;
-  font-weight: 600;
+}
+
+.hero-stars {
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  flex-shrink: 0;
 }
 
 /* Bout reward */
@@ -528,10 +589,36 @@ onMounted(() => {
   font-size: 1.3rem;
 }
 
-/* Progress bar */
-.progress-bar {
+/* Journey section — tier + progress */
+.journey-section {
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tier-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.tier-stars {
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+}
+
+.tier-name {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+/* Progress track with tier notches */
+.progress-track {
+  position: relative;
   height: 24px;
   background: rgba(30, 41, 59, 0.8);
   border-radius: 12px;
@@ -539,7 +626,7 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.progress-fill {
+.progress-track .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #b45309, #f59e0b);
   border-radius: 12px;
@@ -558,171 +645,47 @@ onMounted(() => {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* Shop */
-.shop-section {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  flex: 1;
-  overflow-y: auto;
-  position: relative;
-  z-index: 1;
-}
-
-.shop-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.shop-title {
-  color: #f3f4f6;
-  font-size: 1.2rem;
-  margin: 0;
-}
-
-.category-title {
-  color: #9ca3af;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin: 0 0 10px;
-}
-
-.shop-items {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-}
-
-.shop-item.placeholder-hero {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border: 1px solid #334155;
-  border-radius: 10px;
-  padding: 12px 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  text-align: center;
-  opacity: 0.6;
-}
-
-.item-stars {
-  font-size: 0.7rem;
-  letter-spacing: 1px;
-}
-
-.shop-item .item-name {
-  color: #d1d5db;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.item-coming-soon {
-  color: #6b7280;
-  font-size: 0.65rem;
-  font-style: italic;
-}
-
-.item-cost {
-  color: #f59e0b;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.shop-items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.shop-item-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: rgba(30, 41, 59, 0.6);
-  border: 1px solid #334155;
-  border-radius: 8px;
-  padding: 10px 14px;
-}
-
-.item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.item-info .item-name {
-  color: #f3f4f6;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.item-stock {
-  color: #6b7280;
-  font-size: 0.75rem;
-}
-
-.buy-button {
-  background: linear-gradient(135deg, #b45309 0%, #d97706 100%);
-  border: none;
-  border-radius: 6px;
-  color: #1a0a0a;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.buy-button:disabled {
-  background: #374151;
-  color: #6b7280;
-  cursor: not-allowed;
-}
-
-.buy-button:not(:disabled):hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
-}
-
-/* Bottom nav */
-.bottom-nav {
-  position: fixed;
+.tier-notch {
+  position: absolute;
+  top: 0;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 600px;
+  width: 2px;
+  transform: translateX(-1px);
+  z-index: 2;
   display: flex;
-  padding: 0 16px;
-  padding-bottom: calc(8px + var(--safe-area-bottom));
-  gap: 8px;
-  background: linear-gradient(to top, #0a0a1a 60%, transparent);
-  z-index: 10;
+  align-items: center;
 }
 
-.tab-button {
-  flex: 1;
-  padding: 12px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid #334155;
-  border-radius: 10px;
-  color: #9ca3af;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.notch-line {
+  width: 2px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: block;
 }
 
-.tab-button.active {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: #f59e0b;
-  color: #f59e0b;
+.tier-notch.cleared .notch-line {
+  background: rgba(245, 158, 11, 0.3);
 }
 
-.tab-button:hover {
-  border-color: #4b5563;
+/* Tier star markers below the bar */
+.tier-markers {
+  display: flex;
+  padding: 0 2px;
+}
+
+.tier-marker {
+  font-size: 0.5rem;
+  letter-spacing: 0.5px;
+  text-align: center;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.tier-marker.active {
+  opacity: 1;
+}
+
+.tier-marker.cleared {
+  opacity: 0.7;
 }
 </style>
