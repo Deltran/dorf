@@ -741,11 +741,55 @@ export const useBattleStore = defineStore('battle', () => {
           }
         }
       }
+      // Handle consume_excess_rage (e.g., Vraxx's Thunderclap Crescendo)
+      if (effect.type === 'consume_excess_rage') {
+        const threshold = effect.rageThreshold || 50
+        let totalRageConsumed = 0
+        for (const hero of heroes.value) {
+          if (hero.currentHp <= 0 || !isBerserker(hero)) continue
+          const excess = (hero.currentRage || 0) - threshold
+          if (excess > 0) {
+            hero.currentRage = threshold
+            totalRageConsumed += excess
+            addLog(`${hero.template.name} has ${excess} excess Rage consumed!`)
+          }
+        }
+        if (totalRageConsumed > 0 && effect.damagePerRagePercent) {
+          const bardAtk = getEffectiveStat(bard, 'atk')
+          const totalDamagePercent = totalRageConsumed * effect.damagePerRagePercent
+          const damage = Math.floor(bardAtk * totalDamagePercent / 100)
+          for (const enemy of enemies.value) {
+            if (enemy.currentHp <= 0) continue
+            const fleDamage = processPreDamage(bard, enemy, damage)
+            applyDamage(enemy, fleDamage, 'skill', bard)
+            emitCombatEffect(enemy.id, 'enemy', 'damage', fleDamage)
+            if (enemy.currentHp <= 0) {
+              addLog(`${enemy.template.name} defeated!`)
+            }
+          }
+          addLog(`Thunderclap Crescendo deals ${damage} damage from ${totalRageConsumed} consumed Rage!`)
+        } else if (totalRageConsumed === 0 && effect.fallbackBuff) {
+          // No Rage consumed — apply fallback buff to all allies
+          const fb = effect.fallbackBuff
+          for (const hero of heroes.value) {
+            if (hero.currentHp <= 0) continue
+            applyEffect(hero, fb.type, {
+              duration: fb.duration || 2,
+              value: fb.value || 0,
+              sourceId: bard.instanceId,
+              fromAllySkill: true
+            })
+            emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+          }
+          addLog(`No excess Rage to consume — all allies gain ${fb.value}% ATK!`)
+        }
+      }
     }
 
     for (const effect of finale.effects) {
       // Skip effects already handled above
       if (effect.type === 'suffering_crescendo') continue
+      if (effect.type === 'consume_excess_rage') continue
       if (finale.target === 'all_allies') {
         for (const hero of heroes.value) {
           if (hero.currentHp <= 0) continue
@@ -2102,13 +2146,60 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Check valorThreshold passive for deathPrevention (e.g., Grateful Dead at 100 Valor)
+    // Grants a one-time DEATH_PREVENTION if unit has sufficient Valor and hasn't used it yet
+    if (unit.currentHp - damage <= 0 && unit.instanceId) {
+      const valorThresholdPassive = unit.template?.skills?.find(s => s.isPassive && s.passiveType === 'valorThreshold')
+      if (valorThresholdPassive?.thresholds && isKnight(unit)) {
+        const currentValor = unit.currentValor || 0
+        for (const threshold of valorThresholdPassive.thresholds) {
+          if (currentValor >= threshold.valor && threshold.deathPrevention && !unit._usedValorDeathPrevention) {
+            // Apply death prevention effect so checkDeathPrevention handles it
+            applyEffect(unit, EffectType.DEATH_PREVENTION, {
+              duration: 1,
+              value: 0,
+              sourceId: unit.instanceId
+            })
+            unit._usedValorDeathPrevention = true
+          }
+        }
+      }
+    }
+
     // Check death prevention before applying lethal damage
     if (unit.currentHp - damage <= 0) {
       if (checkDeathPrevention(unit, damage)) {
         const unitName = unit.template?.name || 'Unit'
-        addLog(`${unitName} is protected from death by World Root's Embrace!`)
+        addLog(`${unitName} survives a fatal blow!`)
         emitCombatEffect(unit.instanceId || unit.id, unit.instanceId ? 'hero' : 'enemy', 'heal', 0)
         return 0 // Damage was prevented by death prevention effect
+      }
+    }
+
+    // Check allySaveOnce passive (e.g., Vashek's Unyielding) — another hero intercepts killing blow
+    if (unit.currentHp - damage <= 0 && unit.instanceId) {
+      for (const ally of heroes.value) {
+        if (ally.instanceId === unit.instanceId || ally.currentHp <= 0) continue
+        // Look for saveAllyOnDeath on passive skills in the hero's template
+        const passiveSkill = ally.template?.skills?.find(s => s.isPassive && s.saveAllyOnDeath)
+        const savePassive = passiveSkill?.saveAllyOnDeath
+        if (!savePassive) continue
+        if (savePassive.oncePerBattle && ally._usedAllySave) continue
+        const allyHpPct = (ally.currentHp / ally.maxHp) * 100
+        if (allyHpPct < (savePassive.vashekMinHpPercent || 50)) continue
+
+        // Save triggers: ally survives at 1 HP, saver takes shared damage
+        const sharedDamage = Math.floor(damage * (savePassive.damageSharePercent || 50) / 100)
+        unit.currentHp = 1
+        ally.currentHp = Math.max(1, ally.currentHp - sharedDamage)
+        if (savePassive.oncePerBattle) ally._usedAllySave = true
+
+        const unitName = unit.template?.name || 'Unit'
+        const allyName = ally.template?.name || 'Ally'
+        addLog(`${allyName} intercepts the killing blow on ${unitName}, taking ${sharedDamage} damage!`)
+        emitCombatEffect(unit.instanceId, 'hero', 'heal', 0)
+        emitCombatEffect(ally.instanceId, 'hero', 'damage', sharedDamage)
+        return 0 // Damage was intercepted
       }
     }
 
@@ -3751,6 +3842,27 @@ export const useBattleStore = defineStore('battle', () => {
               addLog(`All allies are healed from the life force reclaimed!`)
             }
 
+            // Heal lowest HP ally for percentage of damage dealt (e.g., Onibaba Soul Siphon)
+            if (skill.healLowestAllyPercent && damage > 0) {
+              const healAmount = Math.floor(damage * skill.healLowestAllyPercent / 100)
+              if (healAmount > 0) {
+                const lowestAlly = aliveHeroes.value.reduce((lowest, h) => {
+                  const hpPct = h.currentHp / h.maxHp
+                  const lowestPct = lowest.currentHp / lowest.maxHp
+                  return hpPct < lowestPct ? h : lowest
+                })
+                if (lowestAlly && lowestAlly.currentHp > 0) {
+                  const oldHp = lowestAlly.currentHp
+                  lowestAlly.currentHp = Math.min(lowestAlly.maxHp, lowestAlly.currentHp + healAmount)
+                  const actualHeal = lowestAlly.currentHp - oldHp
+                  if (actualHeal > 0) {
+                    addLog(`${lowestAlly.template.name} is healed for ${actualHeal}!`)
+                    emitCombatEffect(lowestAlly.instanceId, 'hero', 'heal', actualHeal)
+                  }
+                }
+              }
+            }
+
             // Handle healSelfPercent (lifesteal) and Heartbreak lifesteal
             let totalLifestealPercent = skill.healSelfPercent || 0
 
@@ -4060,6 +4172,14 @@ export const useBattleStore = defineStore('battle', () => {
             return
           }
 
+          // Process selfHpCostPercent for ally-targeting skills (e.g., Onibaba's Crone's Gift)
+          if (skill.selfHpCostPercent) {
+            const hpCost = Math.floor(hero.currentHp * skill.selfHpCostPercent / 100)
+            hero.currentHp = Math.max(1, hero.currentHp - hpCost)
+            addLog(`${hero.template.name} sacrifices ${hpCost} HP!`)
+            emitCombatEffect(hero.instanceId, 'hero', 'damage', hpCost)
+          }
+
           // Heal unless skill is effect-only
           if (!skill.noDamage) {
             let healAmount
@@ -4275,9 +4395,14 @@ export const useBattleStore = defineStore('battle', () => {
                     : effect.redirectPercent
                   if (effect.valorOnRedirect) effectOptions.valorOnRedirect = effect.valorOnRedirect
                 }
-                // SHIELD specific properties - calculate shieldHp from shieldPercentMaxHp
-                if (effect.type === EffectType.SHIELD && effect.shieldPercentMaxHp) {
-                  effectOptions.shieldHp = calculateShieldFromPercentMaxHp(target, effect)
+                // SHIELD specific properties - calculate shieldHp
+                if (effect.type === EffectType.SHIELD) {
+                  if (effect.shieldPercentCasterMaxHp || effect.casterMaxHpPercent) {
+                    const pct = effect.shieldPercentCasterMaxHp || effect.casterMaxHpPercent
+                    effectOptions.shieldHp = Math.floor(hero.maxHp * pct / 100)
+                  } else if (effect.shieldPercentMaxHp) {
+                    effectOptions.shieldHp = calculateShieldFromPercentMaxHp(target, effect)
+                  }
                 }
                 applyEffect(target, effect.type, effectOptions)
                 emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
@@ -4597,6 +4722,37 @@ export const useBattleStore = defineStore('battle', () => {
         }
 
         case 'all_enemies': {
+          // Handle selfHpCostPercent + dealHpCostAsDamage (e.g., Onibaba's Wailing Mask)
+          if (skill.selfHpCostPercent) {
+            const hpCost = Math.floor(hero.currentHp * skill.selfHpCostPercent / 100)
+            hero.currentHp = Math.max(1, hero.currentHp - hpCost)
+            addLog(`${hero.template.name} sacrifices ${hpCost} HP!`)
+            emitCombatEffect(hero.instanceId, 'hero', 'damage', hpCost)
+
+            if (skill.dealHpCostAsDamage && hpCost > 0) {
+              let totalHpDamage = 0
+              for (const target of aliveEnemies.value) {
+                // True damage (ignores DEF) — apply directly
+                const fleDamage = processPreDamage(hero, target, hpCost)
+                applyDamage(target, fleDamage, 'attack', hero)
+                totalHpDamage += fleDamage
+                emitCombatEffect(target.id, 'enemy', 'damage', fleDamage)
+                if (target.currentHp <= 0) {
+                  addLog(`${target.template.name} defeated!`)
+                }
+              }
+
+              // Heal all allies for percentage of total damage dealt
+              if (skill.healAlliesPercent && totalHpDamage > 0) {
+                healAlliesFromDamage(aliveHeroes.value, totalHpDamage, skill.healAlliesPercent)
+                addLog(`All allies are healed from the life force reclaimed!`)
+              }
+
+              addLog(`${hero.template.name} deals ${hpCost} true damage to all enemies!`)
+              break // Skip normal damage calculation
+            }
+          }
+
           // Handle consumeBurns skill (Conflagration)
           if (skill.consumeBurns) {
             const atkBonus = skill.consumeBurnAtkBonus || 0
@@ -4935,6 +5091,39 @@ export const useBattleStore = defineStore('battle', () => {
           }
           if (skill.effects) {
             for (const effect of skill.effects) {
+              // Handle rage_grant effect type (e.g., Vraxx Drums of the Old Blood)
+              if (effect.type === 'rage_grant') {
+                if (effect.classCondition) {
+                  for (const target of aliveHeroes.value) {
+                    if (effect.classCondition === 'berserker' && isBerserker(target)) {
+                      gainRage(target, effect.amount || 0)
+                      addLog(`${target.template.name} gains ${effect.amount} Rage!`)
+                      emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+                    }
+                  }
+                }
+                continue
+              }
+              // Handle conditional_resource_or_buff (e.g., Vraxx Fury Beat)
+              if (effect.type === 'conditional_resource_or_buff') {
+                for (const target of aliveHeroes.value) {
+                  if (effect.rageGrant?.classCondition === 'berserker' && isBerserker(target)) {
+                    gainRage(target, effect.rageGrant.amount || 0)
+                    addLog(`${target.template.name} gains ${effect.rageGrant.amount} Rage!`)
+                    emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+                  } else if (effect.fallbackBuff && !isBerserker(target)) {
+                    const fb = effect.fallbackBuff
+                    applyEffect(target, fb.type, {
+                      duration: fb.duration || 2,
+                      value: fb.value || 0,
+                      sourceId: hero.instanceId,
+                      fromAllySkill: true
+                    })
+                    emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+                  }
+                }
+                continue
+              }
               if ((effect.target === 'ally' || effect.target === 'all_allies') && shouldApplyEffect(effect, hero)) {
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
@@ -4950,6 +5139,15 @@ export const useBattleStore = defineStore('battle', () => {
                     effectOptions.healOnTrigger = effect.healOnTrigger
                     effectOptions.casterAtk = effectiveAtk
                   }
+                  // SHIELD: calculate shieldHp from caster's max HP or target's max HP
+                  if (effect.type === EffectType.SHIELD) {
+                    if (effect.shieldPercentCasterMaxHp || effect.casterMaxHpPercent) {
+                      const pct = effect.shieldPercentCasterMaxHp || effect.casterMaxHpPercent
+                      effectOptions.shieldHp = Math.floor(hero.maxHp * pct / 100)
+                    } else if (effect.shieldPercentMaxHp) {
+                      effectOptions.shieldHp = calculateShieldFromPercentMaxHp(target, effect)
+                    }
+                  }
                   applyEffect(target, effect.type, effectOptions)
                   emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
                 }
@@ -4964,6 +5162,17 @@ export const useBattleStore = defineStore('battle', () => {
                 }
               }
             }
+          }
+          // selfBuffWhileShieldsActive (e.g., Philemon's Heartsworn Bulwark — DEF_UP while shields active)
+          if (skill.selfBuffWhileShieldsActive) {
+            const buff = skill.selfBuffWhileShieldsActive
+            applyEffect(hero, buff.type, {
+              duration: buff.duration || 2,
+              value: buff.value,
+              sourceId: hero.instanceId
+            })
+            emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+            addLog(`${hero.template.name} gains ${buff.type} while shields are active!`)
           }
           // Apply Well Fed effect (e.g., Second Helping)
           if (skill.wellFedEffect) {
@@ -5518,6 +5727,27 @@ export const useBattleStore = defineStore('battle', () => {
       applyDamage(enemy, riposteResult.damage, 'riposte')
       addLog(`${target.template.name} ripostes ${enemy.template.name} for ${riposteResult.damage} damage!`)
       emitCombatEffect(enemy.id, 'enemy', 'damage', riposteResult.damage)
+
+      // Check valorThreshold passive for riposteLifesteal (e.g., Grateful Dead at 75 Valor)
+      const valorThresholdPassive = target.template?.skills?.find(s => s.isPassive && s.passiveType === 'valorThreshold')
+      if (valorThresholdPassive?.thresholds && isKnight(target)) {
+        const currentValor = target.currentValor || 0
+        for (const threshold of valorThresholdPassive.thresholds) {
+          if (currentValor >= threshold.valor && threshold.riposteLifesteal) {
+            const healAmount = Math.floor(riposteResult.damage * threshold.riposteLifesteal / 100)
+            if (healAmount > 0 && target.currentHp > 0) {
+              const oldHp = target.currentHp
+              target.currentHp = Math.min(target.maxHp, target.currentHp + healAmount)
+              const actualHeal = target.currentHp - oldHp
+              if (actualHeal > 0) {
+                addLog(`${target.template.name} heals for ${actualHeal} from riposte lifesteal!`)
+                emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+              }
+            }
+          }
+        }
+      }
+
       if (enemy.currentHp <= 0) {
         addLog(`${enemy.template.name} defeated!`)
       }
