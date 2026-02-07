@@ -141,6 +141,8 @@ const enemyDetailTarget = ref(null) // For EnemyDetailSheet (long-press)
 const genusLociRewards = ref(null) // For Genus Loci victory rewards
 const combatLogExpanded = ref(false)
 const combatLogScrollRef = ref(null)
+const defeatLogExpanded = ref(false)
+const defeatLogScrollRef = ref(null)
 
 function toggleCombatLog() {
   combatLogExpanded.value = !combatLogExpanded.value
@@ -149,6 +151,17 @@ function toggleCombatLog() {
     nextTick(() => {
       if (combatLogScrollRef.value) {
         combatLogScrollRef.value.scrollTop = combatLogScrollRef.value.scrollHeight
+      }
+    })
+  }
+}
+
+function toggleDefeatLog() {
+  defeatLogExpanded.value = !defeatLogExpanded.value
+  if (defeatLogExpanded.value) {
+    nextTick(() => {
+      if (defeatLogScrollRef.value) {
+        defeatLogScrollRef.value.scrollTop = defeatLogScrollRef.value.scrollHeight
       }
     })
   }
@@ -1017,6 +1030,7 @@ function returnToMap() {
   defeatTimers.forEach(clearTimeout)
   defeatTimers = []
   defeatPhase.value = null
+  defeatLogExpanded.value = false
   explorationsStore.checkCompletions()
   battleStore.endBattle()
   emit('navigate', 'worldmap')
@@ -1026,6 +1040,7 @@ function returnHome() {
   defeatTimers.forEach(clearTimeout)
   defeatTimers = []
   defeatPhase.value = null
+  defeatLogExpanded.value = false
   explorationsStore.checkCompletions()
   battleStore.endBattle()
   emit('navigate', 'home')
@@ -1035,6 +1050,7 @@ function returnToColosseum() {
   defeatTimers.forEach(clearTimeout)
   defeatTimers = []
   defeatPhase.value = null
+  defeatLogExpanded.value = false
   showVictoryModal.value = false
   colosseumResult.value = null
   battleStore.endBattle()
@@ -1045,6 +1061,7 @@ function returnToMaw() {
   defeatTimers.forEach(clearTimeout)
   defeatTimers = []
   defeatPhase.value = null
+  defeatLogExpanded.value = false
   showVictoryModal.value = false
   mawDefeatResult.value = null
   battleStore.endBattle()
@@ -2232,6 +2249,16 @@ function getStatChange(hero, stat) {
       </div>
     </div>
 
+    <!-- View log button -->
+    <button
+      v-if="defeatPhase === 'complete' && battleStore.battleLog.length > 0"
+      class="defeat-view-log"
+      :class="{ visible: defeatPhase === 'complete' }"
+      @click="toggleDefeatLog"
+    >
+      📜 View Battle Log
+    </button>
+
     <!-- Actions -->
     <div class="defeat-actions" :class="{ visible: defeatPhase === 'complete' }">
       <template v-if="isMawBattle">
@@ -2247,6 +2274,27 @@ function getStatChange(hero, stat) {
         <button class="defeat-btn-secondary" @click="returnHome">Home</button>
       </template>
     </div>
+
+    <!-- Defeat log overlay -->
+    <Transition name="log-overlay">
+      <div v-if="defeatLogExpanded" class="defeat-log-overlay" @click.self="toggleDefeatLog">
+        <div class="combat-log-panel">
+          <div class="combat-log-header">
+            <h3>Battle Log</h3>
+            <button class="log-close-btn" @click="toggleDefeatLog">✕</button>
+          </div>
+          <div ref="defeatLogScrollRef" class="combat-log-scroll">
+            <p
+              v-for="(entry, index) in battleStore.battleLog"
+              :key="index"
+              :class="{ latest: index === battleStore.battleLog.length - 1 }"
+            >
+              {{ entry.message }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -4553,6 +4601,43 @@ function getStatChange(hero, stat) {
 .defeat-btn-secondary:hover {
   background: #1f2937;
   color: #9ca3af;
+}
+
+/* Defeat log button */
+.defeat-view-log {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease-out 0.3s;
+  background: none;
+  border: 1px solid #4b5563;
+  border-radius: 6px;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  padding: 6px 14px;
+  cursor: pointer;
+}
+
+.defeat-view-log.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.defeat-view-log:hover {
+  background: rgba(55, 65, 81, 0.5);
+  color: #d1d5db;
+  border-color: #6b7280;
+}
+
+/* Defeat log overlay — sits inside defeat-scene so inherits its z-index context */
+.defeat-log-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 110;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: calc(32px + env(safe-area-inset-top, 0px)) 16px 16px;
 }
 
 /* Maw defeat — purple tint instead of grayscale */
