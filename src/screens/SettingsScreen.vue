@@ -48,12 +48,29 @@ async function checkForUpdate() {
   }
 }
 
+function filterChangelog(text) {
+  const sections = []
+  let current = null
+  for (const line of text.split('\n')) {
+    const trimmed = line.trim()
+    if (/^\d+\.\d+\.\d+$/.test(trimmed)) {
+      current = { version: trimmed, lines: [] }
+      sections.push(current)
+    } else if (current && trimmed) {
+      current.lines.push(line)
+    }
+  }
+  const newer = sections.filter(s => isNewerVersion(s.version, APP_VERSION))
+  if (!newer.length) return null
+  return newer.map(s => [s.version, ...s.lines].join('\n')).join('\n\n')
+}
+
 async function fetchChangelog() {
   try {
     const response = await fetch(CHANGELOG_URL)
     if (!response.ok) return
     const text = (await response.text()).trim()
-    if (text) changelog.value = text
+    if (text) changelog.value = filterChangelog(text)
   } catch {
     // Silently fail — changelog is optional
   }
