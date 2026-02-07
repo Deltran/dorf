@@ -6,10 +6,8 @@ import { useGachaStore } from '../stores/gacha.js'
 import { SeededRandom } from '../utils/seededRandom.js'
 import { generateWaveEnemies } from '../data/maw/enemies.js'
 import { TIER_CONFIG, WAVE_COUNT, BOSS_WAVE } from '../data/maw/waves.js'
-import DregsShopPanel from '../components/DregsShopPanel.vue'
 import dregsIcon from '../assets/icons/valor_marks.png'
 import BoonSelectionOverlay from '../components/BoonSelectionOverlay.vue'
-import skullIcon from '../assets/icons/skull.png'
 import swordsIcon from '../assets/icons/crossed_swords.png'
 import goldIcon from '../assets/icons/gold.png'
 import gemsIcon from '../assets/icons/gems.png'
@@ -32,7 +30,6 @@ const mawStore = useMawStore()
 const heroesStore = useHeroesStore()
 const gachaStore = useGachaStore()
 
-const showShop = ref(false)
 const showRewardSummary = ref(false)
 const showCloseConfirmation = ref(false)
 const claimedRewards = ref(null)
@@ -405,7 +402,6 @@ onUnmounted(() => {
       <span class="rest-value">x{{ restBonus.toFixed(1) }}</span>
     </div>
 
-    <template v-if="!showShop">
       <!-- Closed state -->
       <div v-if="isClosed" class="closed-state">
         <div class="closed-icon"><img :src="lockIcon" alt="Locked" class="closed-lock-img" /></div>
@@ -686,33 +682,6 @@ onUnmounted(() => {
         ></div>
         <span class="depth-label">Best: {{ mawStore.bestDepth }} / {{ WAVE_COUNT }}</span>
       </div>
-    </template>
-
-    <!-- Dregs Shop panel -->
-    <template v-else>
-      <div class="shop-wrapper">
-        <h2 class="shop-heading">Dregs Exchange</h2>
-        <DregsShopPanel />
-      </div>
-    </template>
-
-    <!-- Bottom toggle -->
-    <div class="bottom-nav">
-      <button
-        class="tab-button"
-        :class="{ active: !showShop }"
-        @click="showShop = false"
-      >
-        <img :src="skullIcon" alt="" class="inline-icon" /> Delve
-      </button>
-      <button
-        class="tab-button"
-        :class="{ active: showShop }"
-        @click="showShop = true"
-      >
-        <img :src="dregsIcon" alt="Dregs" class="dregs-inline-icon" /> Shop
-      </button>
-    </div>
   </div>
 </template>
 
@@ -723,7 +692,7 @@ onUnmounted(() => {
   position: relative;
   overflow: hidden;
   padding-top: calc(16px + var(--safe-area-top));
-  padding-bottom: calc(80px + var(--safe-area-bottom));
+  padding-bottom: calc(20px + var(--safe-area-bottom));
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -1871,64 +1840,6 @@ onUnmounted(() => {
 .dismiss-button:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 12px rgba(34, 197, 94, 0.3);
-}
-
-/* Shop wrapper */
-.shop-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  flex: 1;
-  overflow-y: auto;
-  position: relative;
-  z-index: 1;
-}
-
-.shop-heading {
-  color: #f3f4f6;
-  font-size: 1.2rem;
-  font-weight: 700;
-  margin: 0;
-}
-
-/* Bottom nav */
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: 600px;
-  display: flex;
-  padding: 0 16px;
-  padding-bottom: calc(8px + var(--safe-area-bottom));
-  gap: 8px;
-  background: linear-gradient(to top, #0a0d0a 60%, transparent);
-  z-index: 10;
-}
-
-.tab-button {
-  flex: 1;
-  padding: 12px;
-  background: rgba(30, 41, 59, 0.8);
-  border: 1px solid #334155;
-  border-radius: 10px;
-  color: #9ca3af;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.tab-button.active {
-  background: rgba(74, 222, 128, 0.12);
-  border-color: #4ade80;
-  color: #4ade80;
-}
-
-.tab-button:hover {
-  border-color: #4b5563;
 }
 
 .depth-bar-standalone {
