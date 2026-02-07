@@ -72,6 +72,7 @@ export const EffectType = {
   // Oriental Fighters effects
   RELUCTANCE: 'reluctance', // Reduces healing received (stacks up to 5, -10% per stack)
   STEALTH: 'stealth', // Untargetable by enemies, CAN receive ally support
+  LIFESTEAL: 'lifesteal', // Heals for % of damage dealt
 
   // Gambler effects
   COIN_FLIP_HEADS: 'coin_flip_heads',
@@ -389,6 +390,13 @@ export const effectDefinitions = {
     color: '#6366f1',
     isBuff: true,
     isStealth: true,
+    stackable: false
+  },
+  [EffectType.LIFESTEAL]: {
+    name: 'Lifesteal',
+    icon: '🩸',
+    color: '#dc2626',
+    isBuff: true,
     stackable: false
   },
   [EffectType.COIN_FLIP_HEADS]: {

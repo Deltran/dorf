@@ -2309,6 +2309,31 @@ export const useBattleStore = defineStore('battle', () => {
       }
     }
 
+    // Passive lifestealOnDamage (e.g., Onibaba's Hungry Ghost — heal 15% of all damage dealt)
+    if (actualDamage > 0 && attacker && attacker.instanceId && attacker.currentHp > 0) {
+      let lifestealPercent = 0
+
+      // Check passive lifesteal
+      const lifestealPassive = attacker.template?.passive?.lifestealOnDamage
+      if (lifestealPassive) lifestealPercent += lifestealPassive
+
+      // Check LIFESTEAL status effect (e.g., granted by Onibaba's Crone's Gift)
+      const lifestealEffect = (attacker.statusEffects || []).find(e => e.type === EffectType.LIFESTEAL)
+      if (lifestealEffect) lifestealPercent += lifestealEffect.value || 0
+
+      if (lifestealPercent > 0) {
+        const healAmount = Math.floor(actualDamage * lifestealPercent / 100)
+        if (healAmount > 0) {
+          const oldHp = attacker.currentHp
+          attacker.currentHp = Math.min(attacker.maxHp, attacker.currentHp + healAmount)
+          const actualHeal = attacker.currentHp - oldHp
+          if (actualHeal > 0) {
+            emitCombatEffect(attacker.instanceId, 'hero', 'heal', actualHeal)
+          }
+        }
+      }
+    }
+
     // Clear all status effects on death
     if (unit.currentHp <= 0) {
       // Process onDeathDuringEffect triggers (e.g., Rosara's Monument to Defiance)
@@ -4419,6 +4444,19 @@ export const useBattleStore = defineStore('battle', () => {
             }
           }
 
+          // Grant lifesteal buff to target (e.g., Onibaba's Crone's Gift)
+          if (skill.grantLifesteal) {
+            const ls = skill.grantLifesteal
+            applyEffect(target, EffectType.LIFESTEAL, {
+              duration: ls.duration || 3,
+              value: ls.value || 0,
+              sourceId: hero.instanceId,
+              fromAllySkill: true
+            })
+            emitCombatEffect(target.instanceId, 'hero', 'buff', 0)
+            addLog(`${target.template.name} gains ${ls.value}% lifesteal!`)
+          }
+
           // Apply self-buff while guarding (e.g., Philemon's Heart's Shield — DEF_UP while guarding)
           if (skill.selfBuffWhileGuarding) {
             const buff = skill.selfBuffWhileGuarding
@@ -5128,6 +5166,13 @@ export const useBattleStore = defineStore('battle', () => {
                 const effectDuration = resolveEffectDuration(effect, hero)
                 const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                 for (const target of aliveHeroes.value) {
+                  // Check per-target condition (e.g., hpBelow for Vraxx's Unbreaking Tempo REGEN)
+                  if (effect.condition) {
+                    if (effect.condition.hpBelow !== undefined) {
+                      const targetHpPct = (target.currentHp / target.maxHp) * 100
+                      if (targetHpPct >= effect.condition.hpBelow) continue
+                    }
+                  }
                   const effectOptions = {
                     duration: effectDuration,
                     value: effectValue,

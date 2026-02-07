@@ -257,4 +257,84 @@ describe('Engine fixes batch 5 — Onibaba + Vraxx', () => {
       expect(battleStore.hasEffect(battleKnight, EffectType.ATK_UP)).toBe(true)
     })
   })
+
+  // === ONIBABA PASSIVE + LIFESTEAL ===
+
+  describe('lifestealOnDamage passive (Onibaba Hungry Ghost)', () => {
+    it('heals Onibaba for 15% of damage dealt', () => {
+      const hero = setupBattle('onibaba')
+      hero.currentMp = 0
+
+      // Damage hero first
+      hero.currentHp = Math.floor(hero.maxHp * 0.5)
+      const hpBefore = hero.currentHp
+
+      const enemy = battleStore.enemies[0]
+      enemy.currentHp = 9999
+      enemy.maxHp = 9999
+
+      // Use Soul Siphon (basic attack, deals 60% ATK damage)
+      const skillIndex = hero.template.skills.findIndex(s => s.name === 'Soul Siphon')
+      battleStore.selectAction(`skill_${skillIndex}`)
+      battleStore.selectTarget(enemy.id, 'enemy')
+
+      // Onibaba should have healed from passive lifesteal
+      // Soul Siphon does damage, Hungry Ghost heals 15% of it
+      // Plus healLowestAllyPercent also heals (but targets lowest HP ally)
+      expect(hero.currentHp).toBeGreaterThan(hpBefore)
+    })
+  })
+
+  describe('grantLifesteal (Onibaba Crone\'s Gift)', () => {
+    it('grants LIFESTEAL effect to ally', () => {
+      const [onibaba, ally] = setupMultiHeroBattle(['onibaba', 'town_guard'])
+      onibaba.currentMp = 45
+
+      const battleAlly = battleStore.heroes.find(h => h.templateId === 'town_guard')
+
+      const skillIndex = onibaba.template.skills.findIndex(s => s.name === "The Crone's Gift")
+      battleStore.selectAction(`skill_${skillIndex}`)
+      battleStore.selectTarget(battleAlly.instanceId, 'hero')
+
+      // Ally should have LIFESTEAL effect
+      expect(battleStore.hasEffect(battleAlly, EffectType.LIFESTEAL)).toBe(true)
+      const lifesteal = battleAlly.statusEffects.find(e => e.type === EffectType.LIFESTEAL)
+      expect(lifesteal.value).toBe(20)
+      expect(lifesteal.duration).toBe(3)
+    })
+  })
+
+  describe('Vraxx Unbreaking Tempo hpBelow condition', () => {
+    it('grants REGEN to allies below 50% HP', () => {
+      const [vraxx, ally] = setupMultiHeroBattle(['vraxx_thunderskin', 'town_guard'])
+
+      const battleAlly = battleStore.heroes.find(h => h.templateId === 'town_guard')
+      // Set ally below 50% HP
+      battleAlly.currentHp = Math.floor(battleAlly.maxHp * 0.3)
+
+      const skillIndex = vraxx.template.skills.findIndex(s => s.name === 'Unbreaking Tempo')
+      battleStore.selectAction(`skill_${skillIndex}`)
+
+      // Both should have DEF_UP
+      expect(battleStore.hasEffect(battleAlly, EffectType.DEF_UP)).toBe(true)
+      // Ally below 50% should also have REGEN
+      expect(battleStore.hasEffect(battleAlly, EffectType.REGEN)).toBe(true)
+    })
+
+    it('does NOT grant REGEN to allies above 50% HP', () => {
+      const [vraxx, ally] = setupMultiHeroBattle(['vraxx_thunderskin', 'town_guard'])
+
+      const battleAlly = battleStore.heroes.find(h => h.templateId === 'town_guard')
+      // Keep ally at full HP (above 50%)
+      battleAlly.currentHp = battleAlly.maxHp
+
+      const skillIndex = vraxx.template.skills.findIndex(s => s.name === 'Unbreaking Tempo')
+      battleStore.selectAction(`skill_${skillIndex}`)
+
+      // Both should have DEF_UP
+      expect(battleStore.hasEffect(battleAlly, EffectType.DEF_UP)).toBe(true)
+      // Ally above 50% should NOT have REGEN
+      expect(battleStore.hasEffect(battleAlly, EffectType.REGEN)).toBe(false)
+    })
+  })
 })
