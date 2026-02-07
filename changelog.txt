@@ -1,3 +1,12 @@
+1.1.0
+- Combat logs: review your last 5 battles in the Codex with full turn-by-turn detail
+- Battle stats summary shows damage dealt, healing done, and more after each fight
+- Defeat screen now includes the battle log for post-mortem analysis
+- Colosseum redesign: tier-based journey with named chapters, streamlined fight cards, and a trophy room for clearing all bouts
+- Shops consolidated — Colosseum and Maw no longer have duplicate shop tabs
+- Multiple hero skill and engine fixes across all rarities
+- Changelog screen now only shows versions newer than yours
+
 1.0.1
 - Rosara the Unmoved kit fixes and data cleanup
 - Hero validation pass: corrected skill data across multiple heroes
