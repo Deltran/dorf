@@ -112,7 +112,6 @@ function handleClick() {
   border-radius: 8px;
   padding: 8px;
   cursor: pointer;
-  user-select: none;
   opacity: 1;
   border: 2px solid #374151;
   transition: box-shadow 0.2s ease;

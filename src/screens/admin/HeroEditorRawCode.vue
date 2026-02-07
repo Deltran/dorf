@@ -100,7 +100,6 @@ validateCode(props.code)
   background: #252526;
   color: #858585;
   text-align: right;
-  user-select: none;
   border-right: 1px solid #374151;
   min-width: 40px;
 }

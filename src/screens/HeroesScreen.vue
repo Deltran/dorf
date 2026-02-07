@@ -2111,7 +2111,6 @@ function getEffectTypeName(type) {
   align-items: center;
   gap: 4px;
   pointer-events: none;
-  user-select: none;
   animation: xpFloat 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   z-index: 200;
 }

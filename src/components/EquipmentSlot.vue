@@ -103,7 +103,6 @@ const borderStyle = computed(() => {
   border: 2px solid #374151;
   cursor: pointer;
   transition: all 0.2s ease;
-  user-select: none;
 }
 
 .equipment-slot:hover {

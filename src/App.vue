@@ -645,6 +645,9 @@ function handleBattleNavigate(screen, param) {
 
 * {
   box-sizing: border-box;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 body {

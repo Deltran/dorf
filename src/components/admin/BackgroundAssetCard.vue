@@ -95,7 +95,6 @@ const typeBadge = computed(() => {
   justify-content: center;
   font-size: 28px;
   color: #4b5563;
-  user-select: none;
 }
 
 .card-info {

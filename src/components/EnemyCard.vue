@@ -104,7 +104,6 @@ const statusEffects = computed(() => {
   border: 2px solid #4b5563;
   min-width: 120px;
   transition: all 0.2s ease;
-  user-select: none;
 }
 
 .enemy-card.targetable {

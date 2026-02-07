@@ -118,7 +118,6 @@ const displayImage = computed(() => {
   transition: all 0.2s ease;
   border: 2px solid transparent;
   min-width: 140px;
-  user-select: none;
   display: flex;
   flex-direction: column;
   align-items: center;

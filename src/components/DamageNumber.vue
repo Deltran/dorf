@@ -51,7 +51,6 @@ const displayValue = props.type === 'miss' ? 'Miss!' : props.type === 'heal' ? `
   font-weight: 700;
   font-size: 1.25rem;
   pointer-events: none;
-  user-select: none;
   z-index: 100;
   text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.8);
   animation: floatUp 1.5s ease-out forwards;

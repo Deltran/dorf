@@ -1510,9 +1510,6 @@ const totalCleared = computed(() => {
   border: 2px solid #ef4444;
   cursor: pointer;
   transition: transform 0.15s ease;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
 }
 
 .enemy-portrait-wrap:hover {

@@ -50,7 +50,6 @@ onMounted(() => {
   transform: translate(-50%, -50%);
   font-size: 2.5rem;
   pointer-events: none;
-  user-select: none;
   z-index: 200;
   animation: impactPop 0.4s ease-out forwards;
   filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.8));

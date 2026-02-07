@@ -137,7 +137,6 @@ const shardDropDisplay = ref(null) // For displaying shard drops in victory
 const inspectedHero = ref(null) // For hero stats popup (legacy, replaced by detailSheetHero)
 const detailSheetHero = ref(null) // For HeroDetailSheet
 const enemyDetailTarget = ref(null) // For EnemyDetailSheet (long-press)
-const lastClickedHero = ref(null) // Track for double-click detection
 const genusLociRewards = ref(null) // For Genus Loci victory rewards
 const combatLogExpanded = ref(false)
 const combatLogScrollRef = ref(null)
@@ -1385,19 +1384,37 @@ function handleHeroClick(hero) {
     selectDeadHeroTarget(hero)
     return
   }
+}
 
-  // If not in targeting mode, open detail sheet on double-tap
-  if (lastClickedHero.value === hero.instanceId) {
-    openHeroDetail(hero)
-    lastClickedHero.value = null
-  } else {
-    lastClickedHero.value = hero.instanceId
-    // Clear after a short delay if no second click
-    setTimeout(() => {
-      if (lastClickedHero.value === hero.instanceId) {
-        lastClickedHero.value = null
-      }
-    }, 500)
+// Long-press duration for hero and enemy detail sheets
+const LONG_PRESS_DURATION = 500
+
+// Long-press detection for hero detail sheet (mirrors enemy long-press)
+let heroLongPressTimer = null
+let heroLongPressTarget = null
+
+function onHeroTouchStart(hero, event) {
+  heroLongPressTarget = hero
+  heroLongPressTimer = setTimeout(() => {
+    if (heroLongPressTarget === hero) {
+      openHeroDetail(hero)
+    }
+    heroLongPressTimer = null
+  }, LONG_PRESS_DURATION)
+}
+
+function onHeroTouchEnd(event) {
+  if (heroLongPressTimer) {
+    clearTimeout(heroLongPressTimer)
+    heroLongPressTimer = null
+  }
+  heroLongPressTarget = null
+}
+
+function onHeroTouchMove(event) {
+  if (heroLongPressTimer) {
+    clearTimeout(heroLongPressTimer)
+    heroLongPressTimer = null
   }
 }
 
@@ -1430,7 +1447,6 @@ const isEnemyKnown = computed(() => {
 // Long-press detection for enemy info sheet
 let enemyLongPressTimer = null
 let enemyLongPressTarget = null
-const LONG_PRESS_DURATION = 500
 
 function onEnemyTouchStart(enemy, event) {
   enemyLongPressTarget = enemy
@@ -1636,6 +1652,12 @@ function getStatChange(hero, stat) {
           dead: hero.currentHp <= 0
         }]"
         @click="handleHeroClick(hero)"
+        @touchstart.passive="onHeroTouchStart(hero, $event)"
+        @touchend="onHeroTouchEnd"
+        @touchmove="onHeroTouchMove"
+        @mousedown="onHeroTouchStart(hero, $event)"
+        @mouseup="onHeroTouchEnd"
+        @mouseleave="onHeroTouchEnd"
       >
         <!-- Leader Skill Announcement -->
         <div v-if="leaderActivating === hero.instanceId" class="leader-skill-announce">
@@ -2513,7 +2535,6 @@ function getStatChange(hero, stat) {
   z-index: 30;
   animation: enemySkillFloat 2s ease-out forwards;
   pointer-events: none;
-  user-select: none;
 }
 
 @keyframes enemySkillFloat {
@@ -2545,7 +2566,6 @@ function getStatChange(hero, stat) {
   border-radius: 8px;
   border: 2px solid transparent;
   transition: all 0.2s ease;
-  user-select: none;
 }
 
 .enemy-image-display.targetable {
@@ -2815,8 +2835,6 @@ function getStatChange(hero, stat) {
   cursor: pointer;
   z-index: 30;
   border-top: 1px solid #374151;
-  user-select: none;
-  -webkit-user-select: none;
 }
 
 .log-last-message {
@@ -3858,7 +3876,6 @@ function getStatChange(hero, stat) {
   z-index: 30;
   animation: skillNameFloat 1.5s ease-out forwards;
   pointer-events: none;
-  user-select: none;
 }
 
 @keyframes skillNameFloat {
@@ -4189,7 +4206,6 @@ function getStatChange(hero, stat) {
 .hero-inspect-effects {
   border-top: 1px solid #374151;
   padding-top: 12px;
-  user-select: none;
 }
 
 .effects-header {
@@ -4297,7 +4313,6 @@ function getStatChange(hero, stat) {
   z-index: 30;
   animation: finaleNameFloat 1.5s ease-out forwards;
   pointer-events: none;
-  user-select: none;
 }
 
 @keyframes finaleNameFloat {
@@ -4332,7 +4347,6 @@ function getStatChange(hero, stat) {
   justify-content: center;
   gap: 24px;
   padding: 20px;
-  user-select: none;
   background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.85) 100%);
 }
 

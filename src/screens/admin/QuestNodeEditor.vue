@@ -910,7 +910,6 @@ function onNodeSaved() {
   font-size: 0.9rem;
   color: #f3f4f6;
   font-weight: 600;
-  user-select: none;
 }
 
 .collapse-icon {

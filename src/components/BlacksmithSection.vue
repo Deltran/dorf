@@ -357,7 +357,6 @@ function performUpgrade(equipmentId) {
   cursor: pointer;
   transition: all 0.2s ease;
   border: 2px solid transparent;
-  user-select: none;
 }
 
 .equipment-card:hover {
