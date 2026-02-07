@@ -1,3 +1,14 @@
+1.0.1
+- Rosara the Unmoved kit fixes and data cleanup
+- Hero validation pass: corrected skill data across multiple heroes
+- Bestiary now shows summonable enemies
+- Codex text updates
+- Genus Loci power levels display in tidy rows (max 5 per row)
+- Tapping a summoning banner opens its info sheet
+- Hold-press heroes in combat to inspect stats (replaces double-tap)
+- Long-press no longer accidentally selects text anywhere in the app
+- Settings screen gets the atmospheric vignette background
+
 1.0.0
 - Initial release
 - Settings menu with upload checker!

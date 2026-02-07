@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.0.0'
+export const APP_VERSION = '1.0.1'
 
 export const VERSION_CHECK_URL = 'https://raw.githubusercontent.com/Deltran/dorf/main/version.txt'
 
