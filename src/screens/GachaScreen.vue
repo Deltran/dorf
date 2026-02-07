@@ -671,6 +671,7 @@ function handleTenPull() {
             <div
               class="banner-image"
               :style="displayBannerImageUrl ? { backgroundImage: `url(${displayBannerImageUrl})` } : {}"
+              @click="openInfoSheet"
             >
               <div class="banner-inner-shadow"></div>
             </div>
@@ -1017,6 +1018,7 @@ function handleTenPull() {
   border-radius: 4px;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .banner-inner-shadow {
