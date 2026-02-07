@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
-import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLociStore, useExplorationsStore, BattleState } from '../stores'
+import { useBattleStore, useQuestsStore, useHeroesStore, useGachaStore, useInventoryStore, useGenusLociStore, useExplorationsStore, useCombatLogsStore, BattleState } from '../stores'
 import { useColosseumStore } from '../stores/colosseum.js'
 import { useMawStore } from '../stores/maw.js'
 import goldIcon from '../assets/icons/gold.png'
@@ -107,6 +107,7 @@ const genusLociStore = useGenusLociStore()
 const explorationsStore = useExplorationsStore()
 const colosseumStore = useColosseumStore()
 const mawStore = useMawStore()
+const combatLogsStore = useCombatLogsStore()
 const tipsStore = useTipsStore()
 
 const showVictoryModal = ref(false)
@@ -151,6 +152,70 @@ function toggleCombatLog() {
       }
     })
   }
+}
+
+// Combat log accumulation (for post-battle review)
+const accumulatedLog = ref([])
+const currentWave = ref(1)
+
+function snapshotBattleLog() {
+  for (const entry of battleStore.battleLog) {
+    accumulatedLog.value.push({
+      round: entry.round,
+      message: entry.message,
+      wave: currentWave.value
+    })
+  }
+}
+
+function capturePartySnapshot() {
+  return battleStore.heroes.map(h => ({
+    templateId: h.template?.id,
+    name: h.name,
+    level: h.level,
+    classId: h.template?.classId,
+    rarity: h.template?.rarity,
+    isLeader: h.instanceId === heroesStore.partyLeader
+  }))
+}
+
+function recordCombatLog(outcome) {
+  // Don't record Maw fights
+  if (isMawBattle.value) return
+
+  snapshotBattleLog()
+
+  let battleType = 'quest'
+  const context = {}
+
+  if (isGenusLociBattle.value) {
+    battleType = 'genusLoci'
+    const meta = battleStore.genusLociMeta
+    const bossData = meta ? getGenusLoci(meta.genusLociId) : null
+    context.genusLociId = meta?.genusLociId
+    context.genusLociName = bossData?.name || battleStore.enemies?.[0]?.name || 'Unknown Boss'
+    context.waveCount = 1
+  } else if (isColosseumBattle.value) {
+    battleType = 'colosseum'
+    context.colosseumBout = props.colosseumContext.bout?.bout
+    context.waveCount = 1
+  } else {
+    const node = currentNode.value || getQuestNode(questsStore.lastVisitedNode)
+    context.nodeId = node?.id || questsStore.lastVisitedNode
+    context.nodeName = node?.name || 'Unknown Quest'
+    context.region = node?.region || ''
+    context.waveCount = totalBattles.value || 1
+  }
+
+  combatLogsStore.addLog({
+    id: 'log_' + Date.now(),
+    timestamp: Date.now(),
+    outcome,
+    battleType,
+    context,
+    party: capturePartySnapshot(),
+    logEntries: [...accumulatedLog.value]
+  })
 }
 
 // Computed to check if this is a Genus Loci battle
@@ -496,6 +561,8 @@ const rotatedTurnOrder = computed(() => {
 
 // Start battle when component mounts
 onMounted(() => {
+  accumulatedLog.value = []
+  currentWave.value = 1
   startCurrentBattle()
 
   // Show first-time combat tips based on current node
@@ -631,12 +698,15 @@ function handleVictory() {
 
     // Small delay then start next battle
     setTimeout(() => {
+      snapshotBattleLog()
+      currentWave.value++
       battleStore.endBattle()
       startCurrentBattle()
       nextTick(() => battleStore.signalTransitionComplete())
     }, 1000)
   } else {
     // Node complete!
+    recordCombatLog('victory')
     rewards.value = questsStore.completeRun()
     explorationsStore.incrementFightCount()
     if (rewards.value) {
@@ -721,6 +791,8 @@ function handleDefeat() {
     questsStore.failRun()
   }
 
+  recordCombatLog('defeat')
+
   // Pick random flavor text
   defeatFlavorText.value = DEFEAT_LINES[Math.floor(Math.random() * DEFEAT_LINES.length)]
 
@@ -748,6 +820,8 @@ function handleGenusLociVictory() {
 
   const bossData = getGenusLoci(meta.genusLociId)
   if (!bossData) return
+
+  recordCombatLog('victory')
 
   // Record victory in genus loci store
   const { isFirstClear } = genusLociStore.recordVictory(meta.genusLociId, meta.powerLevel)
@@ -987,6 +1061,7 @@ function handleMawVictory() {
 }
 
 function handleColosseumVictory() {
+  recordCombatLog('victory')
   const bout = props.colosseumContext.bout
   const result = colosseumStore.completeBout(bout.bout)
   colosseumResult.value = {
@@ -1003,6 +1078,8 @@ function replayStage() {
   const nodeId = questsStore.lastVisitedNode
   if (!nodeId) return
 
+  accumulatedLog.value = []
+  currentWave.value = 1
   explorationsStore.checkCompletions()
 
   // Hide modal and reset victory state first
