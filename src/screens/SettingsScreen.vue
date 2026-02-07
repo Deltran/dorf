@@ -66,6 +66,7 @@ function downloadApk() {
 
 <template>
   <div class="settings-screen">
+    <div class="bg-vignette"></div>
     <header class="settings-header">
       <button class="back-btn" @click="emit('back')">‹</button>
       <h1 class="header-title">Settings</h1>
@@ -119,9 +120,21 @@ function downloadApk() {
 <style scoped>
 .settings-screen {
   min-height: 100vh;
-  background: #111827;
+  background: linear-gradient(to bottom, #0a0a0a 0%, #111827 100%);
   padding: 20px;
   padding-top: calc(20px + var(--safe-area-top));
+  position: relative;
+}
+
+.bg-vignette {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.8) 100%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .settings-header {
@@ -129,6 +142,8 @@ function downloadApk() {
   align-items: center;
   gap: 12px;
   margin-bottom: 32px;
+  position: relative;
+  z-index: 1;
 }
 
 .back-btn {
@@ -150,6 +165,11 @@ function downloadApk() {
 
 .spacer {
   flex: 1;
+}
+
+.settings-content {
+  position: relative;
+  z-index: 1;
 }
 
 /* Section */
