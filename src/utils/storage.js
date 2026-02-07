@@ -1,8 +1,8 @@
 const SAVE_KEY = 'dorf_save'
-const SAVE_VERSION = 12  // Multi-party system + gem shop + maw
+const SAVE_VERSION = 13  // Combat logs
 
 export function saveGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex, colosseum, gemShop, maw } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex, colosseum, gemShop, maw, combatLogs } = stores
 
   const saveData = {
     version: SAVE_VERSION,
@@ -20,7 +20,8 @@ export function saveGame(stores) {
     codex: codex?.saveState() || { unlockedTopics: [], readEntries: [] },
     colosseum: colosseum?.saveState() || { highestBout: 0, laurels: 0, colosseumUnlocked: false, lastDailyCollection: null, shopPurchases: {} },
     gemShop: gemShop?.saveState() || { lastPurchaseDate: null, purchasedToday: [] },
-    maw: maw?.saveState() || { tierUnlocks: { 1: true }, dregs: 0 }
+    maw: maw?.saveState() || { tierUnlocks: { 1: true }, dregs: 0 },
+    combatLogs: combatLogs?.saveState() || { logs: [] }
   }
 
   try {
@@ -33,7 +34,7 @@ export function saveGame(stores) {
 }
 
 export function loadGame(stores) {
-  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex, colosseum, gemShop, maw } = stores
+  const { heroes, gacha, quests, inventory, shards, genusLoci, explorations, shops, equipment, intro, codex, colosseum, gemShop, maw, combatLogs } = stores
 
   try {
     const saved = localStorage.getItem(SAVE_KEY)
@@ -61,6 +62,7 @@ export function loadGame(stores) {
     if (saveData.colosseum && colosseum) colosseum.loadState(saveData.colosseum)
     if (saveData.gemShop && gemShop) gemShop.loadState(saveData.gemShop)
     if (saveData.maw && maw) maw.loadState(saveData.maw)
+    if (saveData.combatLogs && combatLogs) combatLogs.loadState(saveData.combatLogs)
 
     return true
   } catch (e) {

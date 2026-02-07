@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore, useIntroStore, useCodexStore, useBattleStore } from './stores'
+import { useHeroesStore, useGachaStore, useQuestsStore, useInventoryStore, useShardsStore, useGenusLociStore, useExplorationsStore, useTipsStore, useShopsStore, useEquipmentStore, useIntroStore, useCodexStore, useBattleStore, useCombatLogsStore } from './stores'
 import { useColosseumStore } from './stores/colosseum.js'
 import { useGemShopStore } from './stores/gemShop.js'
 import { useMawStore } from './stores/maw.js'
@@ -33,6 +33,8 @@ import FieldGuideArticleScreen from './screens/FieldGuideArticleScreen.vue'
 import CompendiumRosterScreen from './screens/CompendiumRosterScreen.vue'
 import CompendiumBestiaryScreen from './screens/CompendiumBestiaryScreen.vue'
 import CompendiumAtlasScreen from './screens/CompendiumAtlasScreen.vue'
+import CombatLogsScreen from './screens/CombatLogsScreen.vue'
+import CombatLogDetailScreen from './screens/CombatLogDetailScreen.vue'
 import ColosseumScreen from './screens/ColosseumScreen.vue'
 import MawScreen from './screens/MawScreen.vue'
 import SettingsScreen from './screens/SettingsScreen.vue'
@@ -57,6 +59,7 @@ const codexStore = useCodexStore()
 const colosseumStore = useColosseumStore()
 const gemShopStore = useGemShopStore()
 const mawStore = useMawStore()
+const combatLogsStore = useCombatLogsStore()
 const battleStore = useBattleStore()
 
 const battleTransitionActive = ref(false)
@@ -75,6 +78,7 @@ const placingHeroId = ref(null)
 const initialRegionName = ref(null)
 const isIntroBattle = ref(false)
 const selectedTopicId = ref(null)
+const selectedCombatLogId = ref(null)
 
 // Navigation back-stack
 const navigationStack = ref([])
@@ -101,6 +105,8 @@ const FALLBACK_BACK = {
   'field-guide': 'codex',
   'field-guide-article': 'field-guide',
   'compendium': 'codex',
+  'combat-logs': 'codex',
+  'combat-log-detail': 'combat-logs',
   'compendium-roster': 'compendium',
   'compendium-bestiary': 'compendium',
   'compendium-atlas': 'compendium',
@@ -116,6 +122,7 @@ function captureCurrentParams() {
   if (s === 'party') return placingHeroId.value
   if (s === 'worldmap') return initialRegionName.value
   if (s === 'field-guide-article') return selectedTopicId.value
+  if (s === 'combat-log-detail') return selectedCombatLogId.value
   return null
 }
 
@@ -145,7 +152,8 @@ const persistedStores = {
   codex: codexStore,
   colosseum: colosseumStore,
   gemShop: gemShopStore,
-  maw: mawStore
+  maw: mawStore,
+  combatLogs: combatLogsStore
 }
 
 // Load game on mount
@@ -281,6 +289,8 @@ function applyNavigation(screen, param = null) {
     initialRegionName.value = param
   } else if (screen === 'field-guide-article') {
     selectedTopicId.value = param
+  } else if (screen === 'combat-log-detail') {
+    selectedCombatLogId.value = param
   } else if (screen === 'shards') {
     codexStore.unlockTopic('shards')
   } else if (screen === 'merge') {
@@ -605,6 +615,17 @@ function handleBattleNavigate(screen, param) {
       />
       <CompendiumAtlasScreen
         v-else-if="currentScreen === 'compendium-atlas'"
+        @navigate="navigate"
+        @back="navigateBack"
+      />
+      <CombatLogsScreen
+        v-else-if="currentScreen === 'combat-logs'"
+        @navigate="navigate"
+        @back="navigateBack"
+      />
+      <CombatLogDetailScreen
+        v-else-if="currentScreen === 'combat-log-detail'"
+        :log-id="selectedCombatLogId"
         @navigate="navigate"
         @back="navigateBack"
       />

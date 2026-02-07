@@ -1,9 +1,10 @@
 <script setup>
-import { useCodexStore } from '../stores'
+import { useCodexStore, useCombatLogsStore } from '../stores'
 import codexIcon from '../assets/icons/codex.png'
 
 const emit = defineEmits(['navigate', 'back'])
 const codexStore = useCodexStore()
+const combatLogsStore = useCombatLogsStore()
 </script>
 
 <template>
@@ -47,6 +48,23 @@ const codexStore = useCodexStore()
         </div>
         <span v-if="codexStore.unreadHeroCount + codexStore.unreadEnemyCount + codexStore.unreadRegionCount > 0" class="unread-badge">
           {{ codexStore.unreadHeroCount + codexStore.unreadEnemyCount + codexStore.unreadRegionCount }} new
+        </span>
+        <div class="nav-arrow">›</div>
+      </button>
+
+      <button
+        class="nav-button nav-button-primary combat-logs-button"
+        @click="emit('navigate', 'combat-logs')"
+      >
+        <div class="nav-icon-wrapper combat-logs">
+          <span class="nav-icon">📜</span>
+        </div>
+        <div class="nav-content">
+          <span class="nav-label">Combat Logs</span>
+          <span class="nav-hint">Recent battle records</span>
+        </div>
+        <span v-if="combatLogsStore.logCount > 0" class="log-count-badge">
+          {{ combatLogsStore.logCount }}
         </span>
         <div class="nav-arrow">›</div>
       </button>
@@ -224,6 +242,30 @@ const codexStore = useCodexStore()
 
 .nav-button.compendium-button:hover {
   border-color: #3b82f6;
+}
+
+/* Combat Logs button styling */
+.nav-icon-wrapper.combat-logs {
+  background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+}
+
+.nav-button.combat-logs-button {
+  border-color: #b91c1c;
+}
+
+.nav-button.combat-logs-button:hover {
+  border-color: #ef4444;
+}
+
+.log-count-badge {
+  background: rgba(185, 28, 28, 0.3);
+  color: #f87171;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Unread badge */
