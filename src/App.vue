@@ -235,10 +235,12 @@ function showNextCompletionPopup() {
 
   // Pre-calculate rewards for display (without claiming yet)
   const config = node.explorationConfig
-  const bonusMultiplier = exploration.partyRequestMet ? 1.10 : 1.0
+  const rankMultiplier = explorationsStore.getRankMultiplier(nodeId)
+  const partyMultiplier = exploration.partyRequestMet ? 1.10 : 1.0
+  const bonusMultiplier = rankMultiplier * partyMultiplier
   const goldReward = Math.floor(config.rewards.gold * bonusMultiplier)
   const gemsReward = Math.floor(config.rewards.gems * bonusMultiplier)
-  const xpReward = Math.floor(config.rewards.xp * bonusMultiplier)
+  const xpReward = Math.floor(config.rewards.exp * bonusMultiplier)
   const xpPerHero = Math.floor(xpReward / 5)
 
   currentCompletionPopup.value = {

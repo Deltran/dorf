@@ -736,7 +736,7 @@ const totalCleared = computed(() => {
                 <span class="reward-icon">⭐</span>
                 <div class="reward-info">
                   <span class="reward-label">XP</span>
-                  <span class="reward-value">{{ selectedNode.explorationConfig.rewards.xp }}</span>
+                  <span class="reward-value">{{ selectedNode.explorationConfig.rewards.exp }}</span>
                 </div>
               </div>
             </div>
