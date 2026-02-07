@@ -25,7 +25,7 @@ export const tips = {
   },
   hero_inspect_intro: {
     title: 'Hero Details',
-    message: 'Double-click on a hero\'s combat card to get detailed information about their current stats and the different effects that are currently affecting them.'
+    message: 'Hold-press on a hero\'s combat card to get detailed information about their current stats and the different effects that are currently affecting them.'
   },
   colosseum_unlock: {
     title: 'The Colosseum',
