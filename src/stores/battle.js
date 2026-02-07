@@ -463,6 +463,17 @@ export const useBattleStore = defineStore('battle', () => {
       total = Math.floor(total * (1 + bonusPercent / 100))
     }
 
+    // Apply valorThreshold passive stat bonuses (e.g., Grateful Dead's Already Dead)
+    const valorThresholdPassive = unit.template?.skills?.find(s => s.isPassive && s.passiveType === 'valorThreshold')
+    if (valorThresholdPassive?.thresholds && isKnight(unit)) {
+      const currentValor = unit.currentValor || 0
+      for (const threshold of valorThresholdPassive.thresholds) {
+        if (currentValor >= threshold.valor && threshold.stat === statName) {
+          total = Math.floor(total * (1 + threshold.value / 100))
+        }
+      }
+    }
+
     return total
   }
 
@@ -1412,6 +1423,20 @@ export const useBattleStore = defineStore('battle', () => {
     if (effect.atkPercent) {
       const effectivePercent = effect.atkPercent + shardBonus
       return Math.floor(casterAtk * effectivePercent / 100)
+    }
+
+    // Handle valuePerAlly (e.g., Vashek's Shoulder to Shoulder — buff scales with alive ally count)
+    if (effect.valuePerAlly) {
+      const rawPerAlly = effect.valuePerAlly
+      let perAllyValue
+      if (typeof rawPerAlly === 'object' && rawPerAlly !== null && rawPerAlly.base !== undefined) {
+        const tier = getValorTier(hero)
+        perAllyValue = resolveValorScaling(rawPerAlly, tier)
+      } else {
+        perAllyValue = rawPerAlly
+      }
+      const aliveAllyCount = aliveHeroes.value.length
+      return (perAllyValue * aliveAllyCount) + shardBonus
     }
 
     const rawValue = effect.value
@@ -3622,6 +3647,35 @@ export const useBattleStore = defineStore('battle', () => {
               heartbreakBonusDamagePercent += btBonus
             }
 
+            // Resolve conditionalDamage to damagePercent based on hero HP (e.g., Matsuda's Death Before Dishonor)
+            let resolvedConditionalDamagePercent = null
+            if (skill.conditionalDamage) {
+              const heroHpPct = (hero.currentHp / hero.maxHp) * 100
+              if (heroHpPct < 25 && skill.conditionalDamage.hpBelow25 !== undefined) {
+                resolvedConditionalDamagePercent = skill.conditionalDamage.hpBelow25
+              } else if (heroHpPct < 50 && skill.conditionalDamage.hpBelow50 !== undefined) {
+                resolvedConditionalDamagePercent = skill.conditionalDamage.hpBelow50
+              }
+            }
+
+            // Conditional bonus damage when allies are low (e.g., Vashek's Hold the Line)
+            if (skill.conditionalBonusDamage) {
+              const { condition, bonusPercent } = skill.conditionalBonusDamage
+              let conditionMet = false
+              if (condition === 'anyAllyBelowHalfHp') {
+                conditionMet = aliveHeroes.value.some(h =>
+                  h.instanceId !== hero.instanceId && h.currentHp < h.maxHp * 0.5
+                )
+              }
+              if (conditionMet) {
+                const valorTier = getValorTier(hero)
+                const bonus = (typeof bonusPercent === 'object' && bonusPercent.base !== undefined)
+                  ? resolveValorScaling(bonusPercent, valorTier)
+                  : bonusPercent
+                heartbreakBonusDamagePercent += bonus
+              }
+            }
+
             // Check for Valor-scaled damage
             const scaledDamage = getSkillDamage(skill, hero)
             if (scaledDamage !== null) {
@@ -3637,13 +3691,13 @@ export const useBattleStore = defineStore('battle', () => {
               // Apply shard bonus and Heartbreak bonus as percentage
               baseMultiplier += (shardBonus + heartbreakBonusDamagePercent) / 100
               damage = calculateDamageWithMarked(finalDamageStat, baseMultiplier, reducedDef, markedMultiplier)
-            } else if (skill.damagePercent !== undefined) {
-              // Use explicit damagePercent if provided (for skills like Mara's)
+            } else if (skill.damagePercent !== undefined || resolvedConditionalDamagePercent !== null) {
+              // Use explicit damagePercent or resolvedConditionalDamagePercent (for skills like Mara's, Matsuda's)
               // Apply Volatility damage bonus for Alchemist skills
               const volatilityBonus = (skill.usesVolatility && isAlchemist(hero)) ? getVolatilityDamageBonus(hero) : 0
 
               // Execute bonus: override damagePercent if target is below HP threshold (e.g., Death Knell)
-              let effectiveDamagePercent = bonusDamagePercent || skill.damagePercent
+              let effectiveDamagePercent = bonusDamagePercent || resolvedConditionalDamagePercent || skill.damagePercent
               if (skill.executeBonus) {
                 const targetHpPercent = (target.currentHp / target.maxHp) * 100
                 if (targetHpPercent < skill.executeBonus.threshold) {
@@ -3804,7 +3858,11 @@ export const useBattleStore = defineStore('battle', () => {
                       continue
                     }
                   }
-                  const effectDuration = resolveEffectDuration(effect, hero)
+                  let effectDuration = resolveEffectDuration(effect, hero)
+                  // Extend duration if target is Marked (e.g., Shinobi Jin's Kunai)
+                  if (skill.ifMarked?.extendDuration && hasEffect(target, EffectType.MARKED)) {
+                    effectDuration += skill.ifMarked.extendDuration
+                  }
                   const effectValue = resolveEffectValue(effect, hero, effectiveAtk, shardBonus)
                   applyEffect(target, effect.type, { duration: effectDuration, value: effectValue, sourceId: hero.instanceId })
                   emitCombatEffect(target.id, 'enemy', 'debuff', 0)
@@ -3867,6 +3925,39 @@ export const useBattleStore = defineStore('battle', () => {
             const spreadCount = spreadBurnFromTarget(target, aliveEnemies.value, hero.instanceId)
             if (spreadCount > 0) {
               addLog(`Flames spread to ${spreadCount} other enemies!`)
+            }
+          }
+
+          // Execute threshold: instant-kill if target below HP% (e.g., Shinobi Jin's Ansatsu)
+          if (skill.executeThreshold && target.currentHp > 0 && !targetEvaded) {
+            let threshold = skill.executeThreshold
+            // Override threshold if target is Marked (e.g., Ansatsu ifMarked.executeThreshold)
+            if (skill.ifMarked?.executeThreshold && hasEffect(target, EffectType.MARKED)) {
+              threshold = skill.ifMarked.executeThreshold
+            }
+            const targetHpPctExec = (target.currentHp / target.maxHp) * 100
+            if (targetHpPctExec <= threshold) {
+              addLog(`${target.template.name} executed!`)
+              target.currentHp = 0
+              // Reset cooldown on execute of Marked target
+              if (skill.ifMarked?.onExecute?.resetCooldown && hasEffect(target, EffectType.MARKED) && hero.currentCooldowns) {
+                hero.currentCooldowns[skill.name] = 0
+                addLog(`${hero.template.name}'s ${skill.name} cooldown reset!`)
+              }
+            }
+          }
+
+          // Conditional evasion based on hero HP (e.g., Matsuda's Death Before Dishonor)
+          if (skill.conditionalEvasion && !targetEvaded) {
+            const heroHpPctEvasion = (hero.currentHp / hero.maxHp) * 100
+            if (heroHpPctEvasion < 25 && skill.conditionalEvasion.hpBelow25) {
+              applyEffect(hero, EffectType.EVASION, {
+                duration: 2,
+                value: skill.conditionalEvasion.hpBelow25,
+                sourceId: hero.instanceId
+              })
+              addLog(`${hero.template.name} gains ${skill.conditionalEvasion.hpBelow25}% Evasion!`)
+              emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
             }
           }
 
@@ -3992,6 +4083,17 @@ export const useBattleStore = defineStore('battle', () => {
             addLog(`${hero.template.name} uses ${skill.name} on ${target.template.name}, healing for ${actualHeal} HP!`)
             if (actualHeal > 0) {
               emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+              // Process passive.onHealed (e.g., Matsuda's Bushido — gain Reluctance on heal)
+              if (target.template?.passive?.onHealed) {
+                const onHealed = target.template.passive.onHealed
+                if (onHealed.type) {
+                  applyEffect(target, onHealed.type, {
+                    duration: onHealed.duration || 99,
+                    value: onHealed.value || 0,
+                    sourceId: target.instanceId
+                  })
+                }
+              }
               // Rangers gain focus when healed by ally
               if (isRanger(target)) {
                 grantFocus(target)
@@ -4190,6 +4292,18 @@ export const useBattleStore = defineStore('battle', () => {
                 emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
               }
             }
+          }
+
+          // Apply self-buff while guarding (e.g., Philemon's Heart's Shield — DEF_UP while guarding)
+          if (skill.selfBuffWhileGuarding) {
+            const buff = skill.selfBuffWhileGuarding
+            applyEffect(hero, buff.type, {
+              duration: buff.duration || 2,
+              value: buff.value,
+              sourceId: hero.instanceId
+            })
+            emitCombatEffect(hero.instanceId, 'hero', 'buff', 0)
+            addLog(`${hero.template.name} gains ${buff.type} while guarding!`)
           }
 
           // Buff per debuff on target (e.g., Despair - gain ATK buff per debuff on ally)
@@ -4589,7 +4703,13 @@ export const useBattleStore = defineStore('battle', () => {
             if (!skill.noDamage) {
               const effectiveDef = getEffectiveStat(target, 'def')
               const markedMultiplier = getMarkedDamageMultiplier(target)
-              damage = calculateDamageWithMarked(effectiveAtk, multiplier, effectiveDef, markedMultiplier)
+              // Override multiplier for Marked targets (e.g., Shinobi Jin's Kusari Fundo)
+              let targetMultiplier = multiplier
+              if (skill.ifMarked?.damagePercent && hasEffect(target, EffectType.MARKED)) {
+                const volatilityBonusMarked = (skill.usesVolatility && isAlchemist(hero)) ? getVolatilityDamageBonus(hero) : 0
+                targetMultiplier = (skill.ifMarked.damagePercent + shardBonus + heartbreakBonusDamagePercentAoe + volatilityBonusMarked + valorBonusDamage + missingHpBonusAoe) / 100
+              }
+              damage = calculateDamageWithMarked(effectiveAtk, targetMultiplier, effectiveDef, markedMultiplier)
               // Apply crit and spell amp
               damage = Math.floor(damage * critResult.multiplier * (1 + spellAmp / 100))
               damage = processPreDamage(hero, target, damage)
@@ -4767,6 +4887,17 @@ export const useBattleStore = defineStore('battle', () => {
               const actualHeal = target.currentHp - oldHp
               if (actualHeal > 0) {
                 emitCombatEffect(target.instanceId, 'hero', 'heal', actualHeal)
+                // Process passive.onHealed (e.g., Matsuda's Bushido — gain Reluctance on heal)
+                if (target.template?.passive?.onHealed) {
+                  const onHealed = target.template.passive.onHealed
+                  if (onHealed.type) {
+                    applyEffect(target, onHealed.type, {
+                      duration: onHealed.duration || 99,
+                      value: onHealed.value || 0,
+                      sourceId: target.instanceId
+                    })
+                  }
+                }
                 // Rangers gain focus when healed by ally
                 if (isRanger(target)) {
                   grantFocus(target)
@@ -4911,6 +5042,17 @@ export const useBattleStore = defineStore('battle', () => {
       }
       hero.currentValor = Math.min(100, (hero.currentValor || 0) + valorGain)
       addLog(`${hero.template.name} gains ${valorGain} Valor!`)
+    }
+
+    // Process passive.onSkillUse (e.g., Shinobi Jin's Kage no Mai — stacking evasion)
+    if (usedSkill && hero.template?.passive?.onSkillUse) {
+      const passiveEffect = hero.template.passive.onSkillUse
+      // +1 to survive same-turn end-of-turn decrement (same pattern as cooldown +1)
+      applyEffect(hero, passiveEffect.type, {
+        duration: (passiveEffect.duration || 1) + 1,
+        value: passiveEffect.value || 0,
+        sourceId: hero.instanceId
+      })
     }
 
     // Rangers regain focus if they didn't use a skill this turn
@@ -5683,6 +5825,18 @@ export const useBattleStore = defineStore('battle', () => {
     const oldHp = unit.currentHp
     unit.currentHp = Math.min(unit.maxHp, unit.currentHp + healAmount)
     const actualHeal = unit.currentHp - oldHp
+
+    // Process passive.onHealed (e.g., Matsuda's Bushido — gain Reluctance on heal)
+    if (actualHeal > 0 && unit.template?.passive?.onHealed) {
+      const onHealed = unit.template.passive.onHealed
+      if (onHealed.type) {
+        applyEffect(unit, onHealed.type, {
+          duration: onHealed.duration || 99,
+          value: onHealed.value || 0,
+          sourceId: unit.instanceId
+        })
+      }
+    }
 
     return actualHeal
   }
