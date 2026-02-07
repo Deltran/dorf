@@ -68,6 +68,17 @@ const canChallenge = computed(() => {
   return selectedLevel.value && keyCount.value > 0
 })
 
+const LEVELS_PER_ROW = 5
+
+const levelRows = computed(() => {
+  const levels = availableLevels.value
+  const rows = []
+  for (let i = 0; i < levels.length; i += LEVELS_PER_ROW) {
+    rows.push(levels.slice(i, i + LEVELS_PER_ROW))
+  }
+  return rows
+})
+
 function selectLevel(level) {
   selectedLevel.value = level
 }
@@ -174,12 +185,9 @@ function goBack() {
         </div>
 
         <div class="level-track">
-          <div class="track-line">
-            <div class="track-progress" :style="{ width: selectedLevel ? `${((selectedLevel - 1) / (availableLevels.length - 1)) * 100}%` : '0%' }"></div>
-          </div>
-          <div class="level-nodes">
+          <div v-for="(row, rowIndex) in levelRows" :key="rowIndex" class="level-row">
             <button
-              v-for="level in availableLevels"
+              v-for="level in row"
               :key="level"
               :class="['level-node', {
                 selected: selectedLevel === level,
@@ -732,40 +740,22 @@ function goBack() {
   border: 1px solid #334155;
 }
 
-/* Level Track - Horizontal progression */
+/* Level Track - Grid of level nodes */
 .level-track {
   position: relative;
-  padding: 20px 0 16px;
+  padding: 12px 0 16px;
 }
 
-.track-line {
-  position: absolute;
-  top: 50%;
-  left: 24px;
-  right: 24px;
-  height: 4px;
-  background: rgba(75, 85, 99, 0.5);
-  border-radius: 2px;
-  transform: translateY(-50%);
-  margin-top: -8px;
-}
-
-.track-progress {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: linear-gradient(90deg, #7c3aed 0%, #9333ea 100%);
-  border-radius: 2px;
-  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 0 12px rgba(147, 51, 234, 0.6);
-}
-
-.level-nodes {
+.level-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 8px;
   position: relative;
   z-index: 1;
+}
+
+.level-row + .level-row {
+  margin-top: 10px;
 }
 
 .level-node {
