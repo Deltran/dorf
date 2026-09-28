@@ -1,0 +1,265 @@
+3.2.0
+- The summon hall is reborn: light the vigil candles yourself, and a glowing wick hints at who's coming
+- Every new hero gets their own spotlight, painted portrait and all, with a first line just for you. The banner's star gets the biggest moment of all
+- New results after a 10-pull: a golden night when a 5-star answers, or a quiet-night summary with new faces, Soul Echoes and who's closest to their next star
+- Redesigned banners with painted heroes. Pity is now Hope (Desperation in the Black Market), with a bar that shows how close you are
+- New music for battles, the world map, Aquarias and the summon hall, and every track now loops seamlessly
+- Fixes music cutting out on quiet screens
+
+3.1.0
+- New: Hero Tales — Shadow King, Aurora and Yggra each have six illustrated story chapters that unlock as you play
+- Heroes now strike poses in battle: attack, hit and skill art for every hero, plus idle animations for 5-star heroes
+- Every duplicate summon now pays out something useful, and Anima has new things to spend it on
+- All emoji replaced with hand-made pixel-art icons
+- New screen transitions: the camera flies into the button you tap, and the region list burns away into the map (toggle in Settings → Reduce Transitions)
+- New app icon, splash art and a dark launch screen
+- Dozens of hero skills and passives now work the way their descriptions say (Mireha, Copper Jack, Korrath, Grandmother Rot, Cacophon, Shinobi Jin and more)
+- Tavern heroes are smaller and tappable, and the tavern controls no longer hide under the status bar
+- Battle stability fixes, including a freeze from Blitz Strike and missing sprites in the Maw
+
+3.0.1
+- Fixes a bug where dragging the world map on Android would stop responding partway through the gesture
+
+3.0.0
+- Every hero and enemy in the game has been redrawn with sharper, more detailed pixel art
+- Stormwind Peaks and The Summit are much bigger now — new areas to fight through, a hidden shrine that grants a lasting blessing, and a rope bridge only a Ranger can lead your party across
+- Blistering Cliffsides expands with five new battles and a new boss-tier enemy: the Cinder Shaman
+- Melee attacks now have a windup flourish before they strike, and hit effects land with more punch
+- Fixes a bug where victory-screen loot icons could show up as a black box instead of the item
+- Home screen polish: carousel heroes get warm rim lighting, and hero reveals get a new spotlight effect
+- Assorted combat and battle-map bug fixes
+
+2.3.0
+- Expeditions now feel alive — each route has atmospheric flavor text and a living activity feed with dispatches from your heroes
+- Ranking up an expedition route shows narrative progression and explicit stat improvements
+- Active expeditions appear as mini-cards on the home screen for at-a-glance status
+- New crafted UI — brick-textured headers, stone buttons, and styled currency displays across all screens
+- Fixes Fortify modal showing wrong reward bonus percentage
+
+2.2.1
+- Ember Witch reworked — Flame Shield replaced with Flashfire, a burn-exploiting nuke that ignores DEF
+- Sir Gallan reworked — Oath of Protection replaced with Brace for Impact, a defensive stance that builds Valor when hit
+- Sir Gallan's Defensive Footwork damage reduced for better balance
+- Burn damage now mitigated by target's DEF stat (fire meets armor)
+- Swift Arrow's bleed slightly buffed
+- Updated pixel art border frames
+
+2.2.0
+- Pixel art border frames on navigation buttons across Home, Map Room, Markets, Heroes, and Genus Loci screens
+- Soul Mirror stained glass on hero portraits tracks echo fusion progress
+- Explorations reworked — partial party support, hero picker modal, and item drop fixes
+- Yggra the World Root buffed — poison heal synergy, new capstone, ATK increase
+- New Madness mechanic for Thalassion Genus Loci boss
+- Contextual tips for new players — leader skills, equipment, echo merging, gacha pity
+- Defeat screen now shows tactical advice before retry
+- Shard bonus scaling changed from additive to multiplicative
+- Fixes popup padding and width on small screens
+
+2.1.0
+- Soul Echo system replaces hero copies for fusion — duplicates now convert to echoes automatically
+- Heroes Hub consolidates Roster, Party, Fusion, and Enhancement into one tabbed screen
+- New Anima Emporium — weekly rotating shop spending anima currency
+- Fusion tab lets you promote heroes directly with echoes or anima
+- Soul Mirror on hero portraits tracks echo progress toward max stars
+- Essence migration runs on first launch — existing dupes convert to echoes with a summary
+- Divine Sacrifice no longer accidentally intercepts damage dealt to enemies
+- Capstone system now offers an essence path alongside hero sacrifice
+
+2.0.0
+- Battle engine completely rebuilt — real particle effects, class-specific skill animations, and snappier combat feel
+- New victory sequence — battlefield transforms in place with loot raining down Diablo-style instead of a popup modal
+- Hero-specific battle effects for Aurora, Shadow King, and Yggra
+- Boss entrances now have a dramatic vignette and zoom
+- Heroes show grayscale + shrink on death instead of disappearing
+- Item drop sound effects during victory loot rain
+- Fixes skill tooltips showing raw data instead of readable text
+- Fixes super region map counting expeditions in quest totals
+
+1.9.0
+- Tavern rebuilt with PixiJS — heroes wander with smooth movement, hearth crackles with embers, and lighting shifts through the day
+- New drop table system — loot is now region-aware and progression-gated for better reward pacing
+- Startup loading screen with progress bar
+- Victory modal no longer overflows the screen — Continue button always visible
+- Attunement runes now correctly unlock at Underground Morass
+- Fixes equipment drops showing NaN when drop ranges weren't specified
+- Fixes stack badges showing 999 instead of actual count
+
+1.8.1
+- Cleaner back buttons across every screen — minimal icon-only style
+- Gold and gem displays unified to a compact layout everywhere
+- Fixes enemies playing their attack animation during leader skill heals
+- Removes tome XP preview from shops (wasn't working reliably)
+
+1.8.0
+- Cinzel title font across the game for a bolder, more epic feel
+- Pity counter bars on the summon altar so you can see how close you are to a guaranteed pull
+- ENDURE! flash when death prevention saves a hero
+- Blacksmith now groups equipment by upgrade family (Bronze → Iron → Steel)
+- XP preview on tomes shows exactly how much your hero will gain
+- Larger turn order portraits and sorted status effect badges in battle
+- Gacha ritual feels snappier with faster transitions and tap feedback
+- Forlorn Hope Sortie button pulses when ready, starting team is easier to spot
+- Genus Loci returns you to the region map on victory instead of Map Room
+- Fixes victory sound effect not playing after the first battle
+- Fixes skill tooltips showing raw data for Valor-scaling abilities
+
+1.7.0
+- New heroes: Cindra Vael (3-star Mage), Sable Cray (4-star Bard), Vellen the Oathbreaker (5-star Knight)
+- New mechanics: Heat counter (Cindra), Allegiance system (Sable Cray), self-strip Valor combos (Vellen)
+- Villains and Anti-heroes summon banner
+- Massive UI polish pass across every screen — animations, tap feedback, and visual refinements
+- Explorations rewritten with grittier tone — "Depart", "Recall Party", hero arrival drama
+- Fellowship Hall hints now react to your progress
+- Tavern backgrounds crossfade between time-of-day, tip jar shows coins accumulating
+- Miniboss music now plays correctly in hard mode with extra enemies
+- New settings: battle speed, skip victory animations, font size, reduce motion
+- Effect tooltips now show human-readable descriptions instead of raw data
+
+1.6.5
+- New heroes: Ditch Digger, Rat Catcher (1-star), Knuckle Bess, Cobb Rattlebag (2-star)
+- New enemy art for the Broken Crown army (12 enemies with portraits)
+- Cleaned up green fringe artifacts on 17+ sprites
+- Fixes to Field Guide formatting and status effects display
+- Minor UI fixes in Map Room and Goods & Markets
+- New summon banners updated with the latest heroes
+
+1.6.4
+- Map Room redesigned with atmospheric background, dramatic quest button, and entrance animations
+- Quest node preview now shows battle location art behind the header
+- Fight-Level Effects (battle conditions) now displayed in node preview for hard mode
+- Node labels visible by default so you can orient on the map
+- Party selector in quest preview shows hero portraits with rarity-colored borders
+- Laurel shop prices reduced across the board
+
+1.6.3
+- Fight Level Effects now show as tappable badges during battle
+- Region-specific battle and boss music, plus hard mode music variants
+- Shops overhaul: item categories, region tokens, GL key exchange, price adjustments
+- Hard mode difficulty rebalanced across all 28 regions
+- Harder enemy compositions for early hard mode zones
+- Explorations require fewer fights at higher ranks
+- Colosseum shop prices reduced by 10%
+- New hero art and banner images
+- Fixes hard mode battles not starting correctly in some cases
+
+1.6.2
+- New banner: The Thaw Rite with three new heroes — Mireha the Rot Drinker (5-star Cleric), Vernal Breck (4-star Berserker), and Thaw Warden Pol (3-star Paladin)
+- Mireha summons Kuchiname, a rot spirit companion that fights alongside her
+- Weekend banners rotate through the Black Market on Saturdays and Sundays
+- Status effects now show descriptions when inspecting heroes and enemies in combat
+- Codex status effect entries expanded with detailed explanations
+- Shard drop rates increased across all regions
+
+1.6.1
+- New hero: Hollow Kiln (5-star Alchemist) — the first summoner with an AI companion, The Cinder
+- New heroes: Vorjenn, Soren the Scorched, and Twice-Burned Hask join the fire team
+- Mara Thornheart's Heartbreak mechanic reworked with proper stacking
+- New monthly banner: Forge and Flame (August)
+- New tavern sets: Oriental and Ocean themes with shop items
+- Companion system: Cinder fights alongside Hollow Kiln, goes dormant when defeated, and revives each turn
+
+1.6.0
+- New mode: Hard Mode — replay regions with tougher enemies for crimson dust rewards
+- Crimson Forge shop: spend crimson dust on tavern cosmetics
+- Tavern makeover: customize your tavern piece by piece — background, tables, bar, hearth, rugs, and wall decor across three style tiers
+- Complete The Summit in hard mode to earn the exclusive Summit Weave area rug
+- 6 new Grand Tournament heroes: Lucky Lyam, Ticket Scalper Tom, The Arena Itself, Thornweald, The King's Severed Hand, and The Arbiter
+- Fixes heroes occasionally spawning in the corner on first tavern visit
+
+1.5.0
+- New mode: Forlorn Hope — an endurance defense mode with escalating waves, artillery support, and multi-team battles
+- Forlorn Hope unlocks after completing Coral Depths
+- Each Forlorn Hope team can now have its own party leader
+- New Dregs Shop tab with scrollable tab navigation
+- Updated enemy art for Goblin Bulwark, Goblin Chieftain, Goblin Commander, Hydra, Pyroclast, and Spider Queen
+- New battle backgrounds for Eruption Vent and Hibernation Den
+- Aquaria enemies rebalanced with tuned stats and reduced cooldowns
+- Fixes boss death flash covering the full viewport correctly
+- Fixes Genus Loci battle back button navigating to the wrong screen
+
+1.4.1
+- Victory fanfare now plays when the victory screen appears, not on last enemy death
+- Audio pauses when the app is backgrounded and resumes when you return
+- Updated battle sound effects
+
+1.4.0
+- Full audio system: background music, battle SFX, combat hits, and a splash screen with audio unlock
+- History of War: collect Genus Loci rewards instantly with a new collectible item
+- Bleed and burn: damage-over-time effects now in the battle engine, with bleed on Swift Arrow and Farm Hand
+- Enemies with Taunt now force your attacks toward them
+- Floating combat text for passive triggers, death prevention, thorns, and riposte
+- Doubled Genus Loci rewards across the board
+- Rosara's leader skill now protects for 2 rounds instead of 1
+- Fixes miniboss music not playing on wave transitions
+- Fixes hero roster grid overflowing on mobile
+
+1.3.0
+- Capstone sacrifice now scales by rarity — 5-stars need a matching 5-star, lower rarities need one tier above
+- Attunement progress visible in the Fellowship Hall
+- Valentines banner now works properly for all pull rarities
+- Refreshed map art across six regions
+
+1.2.2
+- Redesigned shard hunting loadout with improved hero picker
+- Battle engine overhauled under the hood for stability and future features
+- Shard data now tracked per hero template instead of per copy
+
+1.2.1
+- Redesigned super region selection screen with realm cards and progress tracking
+- Unlocking a new realm now takes you straight to the realm selection screen
+- Rebalanced hero growth rates for more consistent scaling across rarities
+- Enemy stat tuning across multiple regions for smoother difficulty curves
+- Tavern diorama now scales to fit your screen properly
+- Fixes blacksmith not unlocking when it should
+- Fixes ghost items appearing in inventory
+
+1.2.0
+- The Tavern: visit the tavern to collect passive rewards and stumble into mini-events throughout the day
+- Hero capstone abilities unlock powerful new skills for your strongest heroes
+- Attunement system replaces Enhancement — unlocked after reaching Aquaria
+- Low-rarity heroes hit harder with buffed ATK and skill damage across the board
+- Shard unlock moves to The Summit with new shard drops in late Western Veros
+- Fixes Zina's on-death poison dealing 0 damage
+- Fixes tavern back button not appearing on mobile
+
+1.1.3
+- The Debt now has a boss portrait in battle
+- Fixes battles replaying The Maw fight after leaving the Maw
+
+1.1.2
+- The Maw now features a boss encounter: The Debt, with a unique Shadow Debt mechanic
+- Maw enemies are now corrupted variants with scaled stats and a dark visual tint
+- A mysterious benefactor may leave gifts for you — keep an eye out
+- Heroes can spend their turn to pay down Shadow Debt stacks during Maw boss fights
+- Fixes Shattered Tempo not properly boosting turn order when applied by allies
+- Fixes boss wave being repeatable for infinite rewards
+
+1.1.1
+- Fixes exploration rewards showing NaN XP instead of actual numbers
+- Exploration reward preview now correctly includes rank bonus
+- Fixes battle background briefly rescaling during wave transitions on mobile
+- Fixes Maw boss wave being repeatable for infinite rewards
+
+1.1.0
+- Combat logs: review your last 5 battles in the Codex with full turn-by-turn detail
+- Battle stats summary shows damage dealt, healing done, and more after each fight
+- Defeat screen now includes the battle log for post-mortem analysis
+- Colosseum redesign: tier-based journey with named chapters, streamlined fight cards, and a trophy room for clearing all bouts
+- Shops consolidated — Colosseum and Maw no longer have duplicate shop tabs
+- Multiple hero skill and engine fixes across all rarities
+- Changelog screen now only shows versions newer than yours
+
+1.0.1
+- Rosara the Unmoved kit fixes and data cleanup
+- Hero validation pass: corrected skill data across multiple heroes
+- Bestiary now shows summonable enemies
+- Codex text updates
+- Genus Loci power levels display in tidy rows (max 5 per row)
+- Tapping a summoning banner opens its info sheet
+- Hold-press heroes in combat to inspect stats (replaces double-tap)
+- Long-press no longer accidentally selects text anywhere in the app
+- Settings screen gets the atmospheric vignette background
+
+1.0.0
+- Initial release
+- Settings menu with upload checker!
