@@ -1,3 +1,11 @@
+3.3.0
+- Every hero now has an idle animation in battle, not just the 5-stars (plus sprite fixes for Sir Gallan and Thornweald)
+- Bigger heroes and clearer HP in battle. Fallen heroes now stay on the field in sepia instead of vanishing
+- New music for Genus Loci bosses, minibosses, hard mode, the Colosseum and the intro
+- All music is now evenly leveled: no more quiet parts you can't hear or loud parts that blare
+- Fixes: Aquarias enemies' debuffs now land, Thaw Warden Pol's Shield Bash works again, Knight skills that spend Valor stay greyed out until you have enough, and the Colosseum Hedge Wizard's Fumblefingers stuns as often as it says
+- Fixes the app icon sitting on a white tile, and the blue box when holding a hero or enemy on Android
+
 3.2.0
 - The summon hall is reborn: light the vigil candles yourself, and a glowing wick hints at who's coming
 - Every new hero gets their own spotlight, painted portrait and all, with a first line just for you. The banner's star gets the biggest moment of all
