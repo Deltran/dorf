@@ -1,3 +1,13 @@
+4.0.0
+- Casters rework: Mages, Clerics, Paladins and Druids start every fight with full MP, but recasting the same spell costs more (Strain). Mix it up! Colosseum casters now play by the same rules
+- New players pick their starting 4-star from four candles
+- Battles show who did what: companions, burn and poison ticks, stuns, thorns, deaths and summons get a caption and a short pause (tap to skip)
+- Shields now show as a shimmering bar above HP, and some shields last until they break
+- Every capstone can finally be unlocked: pay with Wergild (Aquarias hard-mode bosses) or King's Wergild (Genus Loci level 15+). No more sacrificing heroes
+- See before and after when you spend: Fusion, attunement (now confirm before you commit), shard tiers and Soul Exchange. Plus first-fight tips for every class that link to the Codex
+- Tavern events open as a scene with the hero's painting, and the whole Core banner has Hero Tales
+- Alchemists lose 15% HP at the end of a Volatile turn instead of per skill. Fixes: the Enhancement capstone button, the Shards and Essence Codex pages, and Traveler's Cape restores MP each wave (Spellthief's Cloak is now Pitfighter's Cloak)
+
 3.3.0
 - Every hero now has an idle animation in battle, not just the 5-stars (plus sprite fixes for Sir Gallan and Thornweald)
 - Bigger heroes and clearer HP in battle. Fallen heroes now stay on the field in sepia instead of vanishing
