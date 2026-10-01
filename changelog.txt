@@ -1,3 +1,13 @@
+4.1.0
+- Element Gifts: every hero now has an element, and each different element in your party gives the whole team a small gift (more HP, damage, DEF, speed, healing, lifesteal, or a boost at the start of each wave). Find the gift strip on the Party screen and the new Codex page. Colosseum opponents have gifts too
+- New October banner, The Hollow Tide: Selwyn, Twice Seen; Tollmaster Pell; Gravedigger Mott
+- New heroes for the rarer elements: Inspector Grell (arcane, Grand Tournament), Soot Nan (fire, Forge and Flame), Widow Ansa Keen (frost, Winter's Teeth), each with their own Hero Tales
+- Heroes screen: filter by element, and see at a glance which elements you're missing
+- Freeze triggers once when Frost reaches 5 stacks instead of locking an enemy down for the whole fight
+- Many enemy skills that quietly did nothing now work: summons, death triggers, steals and drains, lifesteal, multi-hits, Charm and stealth
+- Fresh battles start at full HP, gear included. Reflect now goes through shields and defenses
+- Settings has a Patch notes section with the full release history
+
 4.0.0
 - Casters rework: Mages, Clerics, Paladins and Druids start every fight with full MP, but recasting the same spell costs more (Strain). Mix it up! Colosseum casters now play by the same rules
 - New players pick their starting 4-star from four candles
