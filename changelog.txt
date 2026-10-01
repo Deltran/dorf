@@ -1,3 +1,8 @@
+4.1.2
+- Fixes the battlefield slowly drifting sideways over a long run of fights
+- Long hero names now fit on one line in the action bar, so the gift icons no longer cover your first hero's health and mana
+- Leader skill, finale and enemy skill names no longer run off the edge of the screen
+
 4.1.1
 - Fixes the victory screen flickering and stretching when loot landed near the edge of the screen
 - Monsters are bigger in battle and have a faint dark outline, so they stand out from the background
