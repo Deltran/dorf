@@ -1,3 +1,7 @@
+4.1.1
+- Fixes the victory screen flickering and stretching when loot landed near the edge of the screen
+- Monsters are bigger in battle and have a faint dark outline, so they stand out from the background
+
 4.1.0
 - Element Gifts: every hero now has an element, and each different element in your party gives the whole team a small gift (more HP, damage, DEF, speed, healing, lifesteal, or a boost at the start of each wave). Find the gift strip on the Party screen and the new Codex page. Colosseum opponents have gifts too
 - New October banner, The Hollow Tide: Selwyn, Twice Seen; Tollmaster Pell; Gravedigger Mott
