@@ -1,3 +1,12 @@
+4.2.0
+- The Map Room is now a war table: each fight mode is an object on it that shows what's waiting (the Maw open, laurels to collect, parties out exploring). A scrying orb points you to the most urgent one, and locked modes tell you what opens them
+- Three Colosseum heroes to buy with Laurels: Nessa Netcast (3★ Berserker), Ninety-Nine Dask (4★ Knight) and Vespera, the Bestiarius (5★ Alchemist). The Laurel shop now actually gives you what you buy
+- Hero pages get portrait card art and a full-screen layout with tabs, and you can hold to feed XP items
+- Selwyn, Twice Seen now fights on two sides of the health bar, Whole and Unfinished, shown right on the battlefield
+- Calisus, the Apprentice Mage, has all-new art
+- Settings can copy or share a problem log, so you can send bug reports
+- Removes the unfinished rival node from Echoing Caverns for now
+
 4.1.2
 - Fixes the battlefield slowly drifting sideways over a long run of fights
 - Long hero names now fit on one line in the action bar, so the gift icons no longer cover your first hero's health and mana
