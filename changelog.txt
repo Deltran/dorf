@@ -1,3 +1,13 @@
+4.3.0
+- The tavern becomes a hub: a wide room you can pan, livelier heroes who chat, sit and react when you tap them, a storyteller at the back table, and trash to clean up for a better tip jar
+- Cooking: gather ingredients across the world, learn and level up recipes, and cook a meal that buffs your whole party for two hours
+- Copper Jack's Coin Toss, the first tavern minigame, waits at the gaming table
+- The shops are now Market Street, a row of storefronts whose signs tell you what's waiting inside
+- Genus Loci crests come in three named tiers, and the Enhancement tab is now the Rune Forge
+- Every region from Whispering Woods to the Summit gets new enemy lineups and tricks: elemental wards to shatter, enemies that adapt to your elements, and some that rise again
+- Tap any hero or enemy in battle for one sheet with live stats, turn order and what it's about to do; enemy attacks now land when they connect
+- Shields, Death Prevention and guards now work properly when damage is redirected to a protector, and problem reports can be sent straight to the developer
+
 4.2.0
 - The Map Room is now a war table: each fight mode is an object on it that shows what's waiting (the Maw open, laurels to collect, parties out exploring). A scrying orb points you to the most urgent one, and locked modes tell you what opens them
 - Three Colosseum heroes to buy with Laurels: Nessa Netcast (3★ Berserker), Ninety-Nine Dask (4★ Knight) and Vespera, the Bestiarius (5★ Alchemist). The Laurel shop now actually gives you what you buy
