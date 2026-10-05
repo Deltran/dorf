@@ -1,3 +1,13 @@
+4.4.0
+- Whisper Lake Fishing, the first tavern game you can play forever: 120 fish on a real clock and seasons, lures, a tackle box, the Angler's Ledger with rewards, trophies to hang, and new fish recipes
+- Janxier Floodplain is remade: a new map, a tide that opens some paths only at low or high water, the Flooded Graveyard event, and new foes that dive, latch on, steal buffs, wait buried in the mud and grow heads back
+- The early regions are rebuilt with fuller, tougher fights: Whispering Woods gets the Silk Weaver, Whisper Lake and the Echoing Caverns get longer nodes, and the Stormwind Peaks end with a far deadlier Shadow Dragon
+- Mushrooms take root in the Echoing Caverns: Glowcaps that light you up for everything else, Shriekers that call the bats, and the Sporemother in the Fungal Gallery
+- The Lost Miner no longer blocks the Caverns: he's a side stop now, and helping him opens Brek's Dig, an old mine the fungus broke into
+- Enemies show at their real size, small and big, and the Broken Crown army gets its own art
+- Quest XP is now split across all four party slots, so a small party no longer gets extra XP each; Gravedigger Mott's Rage skills are retuned
+- Fixes: Forlorn Hope fields the team you chose and keeps its HP bars right; Cave Bats' Sonic Screech hits every hero; dodged attacks no longer show damage; tapping a status icon no longer crashes; updates now download from GitHub
+
 4.3.0
 - The tavern becomes a hub: a wide room you can pan, livelier heroes who chat, sit and react when you tap them, a storyteller at the back table, and trash to clean up for a better tip jar
 - Cooking: gather ingredients across the world, learn and level up recipes, and cook a meal that buffs your whole party for two hours
