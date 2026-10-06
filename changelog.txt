@@ -1,3 +1,12 @@
+4.5.1
+- The world maps come alive: heat shimmers over the Blistering Cliffsides lava, snow and blizzard gusts sweep The Summit, mist drifts across Whisper Lake, leaves fall in the Whispering Woods, candles flicker in the Echoing Caverns, lightning flashes over the Stormwind Peaks and the Janxier Floodplain river flows
+- Attacks hit harder on screen: steel slashes for fighters, glowing element bolts for casters, real arrows for Rangers, and every hit makes its target flinch
+- Your parties get war banners: pick a heraldic dye, rename them, and swap between parties from the Party page
+- Catching a fish is a moment now: it's hauled out and hangs dripping over the lake, and a fighter thrashes and drags your float under
+- The Goblin Chieftain's War Cry and the Shadow Dragon's Shadow Breath now hit your whole party, as their descriptions always said
+- New art: Swift Arrow redrawn, the goblin family, cultists and Helga reworked, sprites lose their gray haze, and battle backgrounds no longer have words painted in
+- Tavern guests sit properly on their benches, and the tip jar always shows your clean-tavern bonus
+
 4.5.0
 - Knights work as intended again: Valor starts fresh every wave and climbs through the fight (Forlorn Hope keeps it until after a boss wave), and Kensin can taunt from his first turn
 - The Soul Mirror is now a real stained-glass window that fills toward your hero's next star, says what fusing needs, and lets you fuse right from the hero page
