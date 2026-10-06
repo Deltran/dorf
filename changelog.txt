@@ -1,3 +1,13 @@
+4.5.0
+- Knights work as intended again: Valor starts fresh every wave and climbs through the fight (Forlorn Hope keeps it until after a boss wave), and Kensin can taunt from his first turn
+- The Soul Mirror is now a real stained-glass window that fills toward your hero's next star, says what fusing needs, and lets you fuse right from the hero page
+- Combat is easier to read: misses make a sound and say why, poison and burn ticks stand out, debuffs glint as they wear off, enemy heals show, and bosses with adds get a proper boss entrance
+- Bones McCready's dice now roll onto the screen before his effect lands
+- Victory feels better: a bigger Level Up with an XP bar that makes sense, loot that doesn't pile up, and tap any drop to see what it is; the hero page shows level and XP on every tab
+- The world map gets restyled quest panels with enemy portraits, obstacles that tell you what they need and how to get it, a map that centers on where you should go next, and signposts back to the region you came from
+- Summoning no longer piles up sounds and its recap is back on Dorf stone; tips are redone and point you to the right place
+- Fixes: a white box no longer covers the lake after a catch; "Ready to fuse" no longer shows when you're short on gold; the summon Hope bar and the party leader's crown display correctly
+
 4.4.0
 - Whisper Lake Fishing, the first tavern game you can play forever: 120 fish on a real clock and seasons, lures, a tackle box, the Angler's Ledger with rewards, trophies to hang, and new fish recipes
 - Janxier Floodplain is remade: a new map, a tide that opens some paths only at low or high water, the Flooded Graveyard event, and new foes that dive, latch on, steal buffs, wait buried in the mud and grow heads back
