@@ -1,3 +1,13 @@
+4.6.0
+- The Standard banner is rebuilt around 30 core heroes, each with a reworked kit and a capstone to unlock
+- New hero: Brannoc, a 3-star Arcane seal-breaker who smashes shields and wards
+- New banner: The Pyre and the Cold House, with Garrow, Margit and Crane (through October 22)
+- Events play out as conversations: meet the Woodsman, Brek and the Widow face to face, and your choices open paths, start fights or change who you meet on the road
+- New roads: the Eruption Vent, where fumaroles feed Pyroclast's Pressure until he erupts (break them to vent it), and Hibernation Den's five-node trail with its own map
+- The Genus Loci screen is carved in stone: every level of every crest tier on show, with the next one you haven't beaten picked for you
+- Health bars drop when the hit lands, not before it; Penny Dreadful is redrawn, and eight core heroes get their tales
+- Fixes a battle freeze when two or more units fell at the end of a round
+
 4.5.1
 - The world maps come alive: heat shimmers over the Blistering Cliffsides lava, snow and blizzard gusts sweep The Summit, mist drifts across Whisper Lake, leaves fall in the Whispering Woods, candles flicker in the Echoing Caverns, lightning flashes over the Stormwind Peaks and the Janxier Floodplain river flows
 - Attacks hit harder on screen: steel slashes for fighters, glowing element bolts for casters, real arrows for Rangers, and every hit makes its target flinch
