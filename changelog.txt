@@ -1,3 +1,6 @@
+4.7.1
+- Fixes tavern sounds playing while Dorf is in the background
+
 4.7.0
 - Updates now happen inside the game: tap Update, watch it download, and most updates apply in seconds without reinstalling (from this version on)
 - Saves are much safer: rolling backups, restore, export and import, and a button to send a broken save to Patrick. Saves from 4.6.0 and earlier can't be carried over, so this version starts fresh
