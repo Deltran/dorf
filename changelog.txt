@@ -1,3 +1,7 @@
+4.7.2
+- The Lantern Rot logo now appears on the title screen and at the bottom of Settings
+- Something wrong? Settings has one Send report button that sends the error log and a copy of your save together
+
 4.7.1
 - Fixes tavern sounds playing while Dorf is in the background
 
