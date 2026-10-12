@@ -1,3 +1,13 @@
+4.7.0
+- Updates now happen inside the game: tap Update, watch it download, and most updates apply in seconds without reinstalling (from this version on)
+- Saves are much safer: rolling backups, restore, export and import, and a button to send a broken save to Patrick. Saves from 4.6.0 and earlier can't be carried over, so this version starts fresh
+- Old Fort Calindash is rebuilt: a new map where the banner flips who holds the fort, Deserters and a Garrison that won't stay down, and the Last Watch guarding the road to the Catacombs
+- Explorations are redone: plan routes in the ledger, muster your party, watch them march out along the trail and come home with the spoils
+- The hero takes the floor in battle: the skill menu opens on their Tale painting and shows each skill's live damage
+- The Library: heroes below your best catch up on XP, extra XP pools for you to hand out, and levels now run to 250
+- New tavern game: Arm Wrestling. Read the champion's tell, then push, brace or breathe
+- Hero and enemy reworks (Garrow, Margit, Crane, Grateful Dead, Vurgorol, Knight Creeds), a Colosseum retune, the Aquarias wave pass, iron-card looks for the Roster, Party and Fusion, and Bleed now ends when a heal lands
+
 4.6.0
 - The Standard banner is rebuilt around 30 core heroes, each with a reworked kit and a capstone to unlock
 - New hero: Brannoc, a 3-star Arcane seal-breaker who smashes shields and wards
