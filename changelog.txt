@@ -1,3 +1,13 @@
+4.8.0
+- The Ancient Catacombs are rebuilt: a new map, the Lich King's three phylactery jars that keep him rising, Necromancers raising the fallen, Vigil Lights, and a mourner with a choice to make
+- New Genus Loci: Old Knell, the fallen chapel bell, waits at the bottom of the Bell Pit, deep under the Catacombs
+- New Whispering Woods enemy: the Cinder Dryad, who sets heroes Burning
+- The region list is repainted, with a painted card for every region and a realm picker
+- The hero roster's filters are simpler: Sort and More, with counts on every choice
+- The Maw is retuned, and each tier shows the hero level it's meant for
+- Margit gets Brine Wash at level 1, and Darl's Twine and Prayer lasts 4 turns
+- Fixes tavern games freezing when left open past midnight, and damage numbers are easier to read
+
 4.7.2
 - The Lantern Rot logo now appears on the title screen and at the bottom of Settings
 - Something wrong? Settings has one Send report button that sends the error log and a copy of your save together
