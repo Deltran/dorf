@@ -1,3 +1,12 @@
+4.9.0
+- New in the Echoing Caverns: the Iron Oath, a rival adventuring party camped past Warden's Post. Challenge Ser Hagen, Flick and Merry Tel, trade at their camp counter, and win them over for discounts and a few things only they sell
+- Rivals fight like heroes: Hagen calls his next target a turn ahead, and when they're beaten, the last one standing asks to yield. Accept for their respect, or finish it for the full spoils
+- Rival and Colosseum opponents show their Valor, Verses and Essence under their health bars
+- World map nodes are now pixel-art landmarks, and the trails between them are boot prints
+- Hask, Margit, Darl and Soot Nan heal harder
+- Settings and the Codex get an iron-and-stone look
+- The Blacksmith no longer merges away gear your heroes are wearing, and Replay after a victory is now press-and-hold so collecting loot can't restart the fight
+
 4.8.0
 - The Ancient Catacombs are rebuilt: a new map, the Lich King's three phylactery jars that keep him rising, Necromancers raising the fallen, Vigil Lights, and a mourner with a choice to make
 - New Genus Loci: Old Knell, the fallen chapel bell, waits at the bottom of the Bell Pit, deep under the Catacombs
