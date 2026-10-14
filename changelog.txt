@@ -1,9 +1,20 @@
+4.10.0
+- The Underground Morass is rebuilt: a new map, monsters that hunt by sound (the loudest hero gets found first), the Blind Matriarch, and Orlo's hidden garden
+- The Gate to Aquaria is rebuilt: the Kraken's arms grab heroes and let go after three turns, and every arm you sever weakens the Kraken. Plus the Gatewarden, a reworked Kraken with its own music, and Thessaly at the Warden's Rock
+- The Summit and the Blistering Cliffsides get new waves and new enemy tricks: the Titan calls up Ice Wraiths, Marmot avalanches put out Burns, and Cliffsides enemies carry passives worth killing first
+- The Caverns cult fights as one: every fallen cultist makes the rest stronger, with Pact-Bound guards up front
+- Hire Flick from the Iron Oath camp for three clears
+- Fire heroes reworked: Shasha's Fireball sets three enemies Burning, Crane keeps fires going, and Garrow's Final Rest finishes the Condemned
+- Yggra's Bark Shield becomes Taproot, a stun. Fennick, Fox, Bess, Bertan, Grandma Helga, Penny and Darl all get stronger
+- New miniboss music. Fixes a last killing blow spilling into the next round, and Alchemist Essence now resets each wave
+
 4.9.0
 - New in the Echoing Caverns: the Iron Oath, a rival adventuring party camped past Warden's Post. Challenge Ser Hagen, Flick and Merry Tel, trade at their camp counter, and win them over for discounts and a few things only they sell
 - Rivals fight like heroes: Hagen calls his next target a turn ahead, and when they're beaten, the last one standing asks to yield. Accept for their respect, or finish it for the full spoils
 - Rival and Colosseum opponents show their Valor, Verses and Essence under their health bars
 - World map nodes are now pixel-art landmarks, and the trails between them are boot prints
-- Hask, Margit, Darl and Soot Nan heal harder
+- Hask and Soot Nan heal much harder, and Darl's Twine and Prayer heals more and gives a bigger but shorter attack buff
+- Margit's Brine Wash shield doubles (and so does its cost), while her free Brine for Blood shield shrinks
 - Settings and the Codex get an iron-and-stone look
 - The Blacksmith no longer merges away gear your heroes are wearing, and Replay after a victory is now press-and-hold so collecting loot can't restart the fight
 

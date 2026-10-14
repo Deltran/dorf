@@ -1,5 +1,5 @@
 {
- "version": "4.9.0",
+ "version": "4.10.0",
  "nativeVersion": 3,
  "files": [
   {
@@ -9,15 +9,15 @@
    "file_size": 11807
   },
   {
-   "file_name": "assets/AnglersLedger-ChyX_Ym4.js",
-   "file_hash": "587502ce87f8b68857ebe062f9003c4f6ed38b800308502c4efea8b5fc7f85a3",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/587502ce87f8b68857ebe062f9003c4f6ed38b800308502c4efea8b5fc7f85a3.js",
+   "file_name": "assets/AnglersLedger-DxmMHUwl.js",
+   "file_hash": "b1603ff1f47c591600f35716efef9d1d67de19f597312c93cf1b9f6a2602e8d5",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/b1603ff1f47c591600f35716efef9d1d67de19f597312c93cf1b9f6a2602e8d5.js",
    "file_size": 11454
   },
   {
-   "file_name": "assets/ArmWrestlingGame-C1kF9TBh.js",
-   "file_hash": "9b706ab27a2ac9dab70f515abbc16b91eb076c81a59415fab9945ebb5f7c8540",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/9b706ab27a2ac9dab70f515abbc16b91eb076c81a59415fab9945ebb5f7c8540.js",
+   "file_name": "assets/ArmWrestlingGame-CMhESpfB.js",
+   "file_hash": "10e6be1a332e8354efecbab40c3262079a4d2833c40e5e8fd2d47c15bb93ab28",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/10e6be1a332e8354efecbab40c3262079a4d2833c40e5e8fd2d47c15bb93ab28.js",
    "file_size": 24360
   },
   {
@@ -27,9 +27,9 @@
    "file_size": 15148
   },
   {
-   "file_name": "assets/ArmWrestlingUpgrades-CB8Q92Kd.js",
-   "file_hash": "59ce92903c0cb91daa2df63f33cee935e94d3d9cf4a65ac6adbdc134d0173801",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/59ce92903c0cb91daa2df63f33cee935e94d3d9cf4a65ac6adbdc134d0173801.js",
+   "file_name": "assets/ArmWrestlingUpgrades-CqsnOEdj.js",
+   "file_hash": "4e123317b4e52ddc3627f2370b26159a7213ac74d15d548a28b49775687aed55",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/4e123317b4e52ddc3627f2370b26159a7213ac74d15d548a28b49775687aed55.js",
    "file_size": 2930
   },
   {
@@ -39,21 +39,21 @@
    "file_size": 2786
   },
   {
-   "file_name": "assets/BitmapFont-aTPStrs2.js",
-   "file_hash": "1573937c6b84e4fc2dfe01103e92236c6099347cb88ad81293d4a3126d835e9b",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/1573937c6b84e4fc2dfe01103e92236c6099347cb88ad81293d4a3126d835e9b.js",
+   "file_name": "assets/BitmapFont-D7FStEyl.js",
+   "file_hash": "20ff5a89c91da146be47e1befc62f758e165c9eb177c0889a55efc8deb7b10f3",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/20ff5a89c91da146be47e1befc62f758e165c9eb177c0889a55efc8deb7b10f3.js",
    "file_size": 12055
   },
   {
-   "file_name": "assets/BufferResource-DSiaAWk7.js",
-   "file_hash": "c24c5cdad80d20f0019b0f055730954858531d7006796f96a4ad005439a9d6e6",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/c24c5cdad80d20f0019b0f055730954858531d7006796f96a4ad005439a9d6e6.js",
+   "file_name": "assets/BufferResource-CRFj4BaF.js",
+   "file_hash": "79ceda19bc26263af19e0aa5ba13eac6d5adfd0776a145359e4e8f3fadbfd5fa",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/79ceda19bc26263af19e0aa5ba13eac6d5adfd0776a145359e4e8f3fadbfd5fa.js",
    "file_size": 10619
   },
   {
-   "file_name": "assets/CanvasRenderer-Ct0Xkamp.js",
-   "file_hash": "3adbbd621422ba205aeeb78e9d837b115440155d5b164dbe337a262fa253111d",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/3adbbd621422ba205aeeb78e9d837b115440155d5b164dbe337a262fa253111d.js",
+   "file_name": "assets/CanvasRenderer-D8RSTAeH.js",
+   "file_hash": "06095b5a3d3ba2983864b9db112c4832ed157da14964aa23c542e8e7600be807",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/06095b5a3d3ba2983864b9db112c4832ed157da14964aa23c542e8e7600be807.js",
    "file_size": 22657
   },
   {
@@ -63,9 +63,9 @@
    "file_size": 125468
   },
   {
-   "file_name": "assets/CoinTossGame-CEfOv6K4.js",
-   "file_hash": "5ae8abb82d47fdedadfa461e932d8812beff4cc8073a42111bba58af7acb2099",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/5ae8abb82d47fdedadfa461e932d8812beff4cc8073a42111bba58af7acb2099.js",
+   "file_name": "assets/CoinTossGame-BYniIoah.js",
+   "file_hash": "8ef92f2defd6c4d1eaa5e52bf96b6f6cba2386ae356750c7e016e1a0b8c822a0",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/8ef92f2defd6c4d1eaa5e52bf96b6f6cba2386ae356750c7e016e1a0b8c822a0.js",
    "file_size": 19319
   },
   {
@@ -75,9 +75,9 @@
    "file_size": 16232
   },
   {
-   "file_name": "assets/CoinTossUpgrades-C8kqbNMR.js",
-   "file_hash": "462dac96c950a4dfae8f7df3d8cb53d791b8a4bd9f66b14f4fe10233740be27d",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/462dac96c950a4dfae8f7df3d8cb53d791b8a4bd9f66b14f4fe10233740be27d.js",
+   "file_name": "assets/CoinTossUpgrades-B9UbvgXE.js",
+   "file_hash": "4e947a549189f3e84106852028cc65d494bdd3a1843748ee8965246928e4f80c",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/4e947a549189f3e84106852028cc65d494bdd3a1843748ee8965246928e4f80c.js",
    "file_size": 11889
   },
   {
@@ -87,28 +87,28 @@
    "file_size": 2948
   },
   {
+   "file_name": "assets/FishingGame-33XiIRVP.js",
+   "file_hash": "a22847b10b85a4cca2e7bdf9f2df7b895932bd03b53ca22387fc97c4f0754048",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/a22847b10b85a4cca2e7bdf9f2df7b895932bd03b53ca22387fc97c4f0754048.js",
+   "file_size": 32579
+  },
+  {
    "file_name": "assets/FishingGame-CdTedxYm.css",
    "file_hash": "e43e48ed6b018b8ba1bd518451cfc6c986ed9f5638cfb9a14d6fe88f1854b824",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/e43e48ed6b018b8ba1bd518451cfc6c986ed9f5638cfb9a14d6fe88f1854b824.css",
    "file_size": 13904
   },
   {
-   "file_name": "assets/FishingGame-DXyq2hes.js",
-   "file_hash": "b94b37f856645861a9fe5e14ee871c0ba7de49586556d6697661d2a3e4c75f7c",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/b94b37f856645861a9fe5e14ee871c0ba7de49586556d6697661d2a3e4c75f7c.js",
-   "file_size": 32579
+   "file_name": "assets/FishingTackleBox-D0cp4HkN.js",
+   "file_hash": "1a9a6174799859e44a92aaefb567e81585ad2ec7d68d219074c2cec6a2a24885",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/1a9a6174799859e44a92aaefb567e81585ad2ec7d68d219074c2cec6a2a24885.js",
+   "file_size": 7107
   },
   {
    "file_name": "assets/FishingTackleBox-DQZv-0yp.css",
    "file_hash": "30d9c53d5c74aa7d47b36018584235809703fcbfa7762d98f42160dd2891620e",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/30d9c53d5c74aa7d47b36018584235809703fcbfa7762d98f42160dd2891620e.css",
    "file_size": 4981
-  },
-  {
-   "file_name": "assets/FishingTackleBox-uVvWxHli.js",
-   "file_hash": "eeb32a8533522d4160dfd21c24fb949e6c06b5cb709fd2c105f1f7e468e4bb9d",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/eeb32a8533522d4160dfd21c24fb949e6c06b5cb709fd2c105f1f7e468e4bb9d.js",
-   "file_size": 7107
   },
   {
    "file_name": "assets/IMFellEnglish-Italic-C2NhvXbF.ttf",
@@ -129,21 +129,21 @@
    "file_size": 276932
   },
   {
-   "file_name": "assets/RenderTargetSystem-G4yNsBWi.js",
-   "file_hash": "628bd11b44325e83e26cd18409ed499fcf95d3495da23ef09a802db59dfffbd6",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/628bd11b44325e83e26cd18409ed499fcf95d3495da23ef09a802db59dfffbd6.js",
+   "file_name": "assets/RenderTargetSystem-C1bR1qXb.js",
+   "file_hash": "338243c2dd2a3c33fddaf074958fce52d2b882b178969e8bf65224dad6d64d56",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/338243c2dd2a3c33fddaf074958fce52d2b882b178969e8bf65224dad6d64d56.js",
    "file_size": 45597
   },
   {
-   "file_name": "assets/WebGLRenderer-Dkivl9pa.js",
-   "file_hash": "d7778c09d17739ee6d30bfcd456bbe75e2c1ae3535fdb94ef918e91337385840",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/d7778c09d17739ee6d30bfcd456bbe75e2c1ae3535fdb94ef918e91337385840.js",
+   "file_name": "assets/WebGLRenderer-BxSBwws9.js",
+   "file_hash": "dbb17d8dec83fba7c20efd040231c6b46e00c4f31394462999690dbc0bdc77ac",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/dbb17d8dec83fba7c20efd040231c6b46e00c4f31394462999690dbc0bdc77ac.js",
    "file_size": 68405
   },
   {
-   "file_name": "assets/WebGPURenderer-CtD11Ag1.js",
-   "file_hash": "67ff175665bfc8ff74bf1afaebfe0a6e6bcdd066413bbe2cc54acc227fe21844",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/67ff175665bfc8ff74bf1afaebfe0a6e6bcdd066413bbe2cc54acc227fe21844.js",
+   "file_name": "assets/WebGPURenderer-1A8wFqVf.js",
+   "file_hash": "6f46ac14b96693eda3ec6c3a91627747552a551a504254b0146a98c65660fafb",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/6f46ac14b96693eda3ec6c3a91627747552a551a504254b0146a98c65660fafb.js",
    "file_size": 38190
   },
   {
@@ -343,6 +343,24 @@
    "file_hash": "930609d07329640bfb6d07ac3e5aff84be7c5056fb6367b4fc7f9e2f43481074",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/930609d07329640bfb6d07ac3e5aff84be7c5056fb6367b4fc7f9e2f43481074.png",
    "file_size": 1216756
+  },
+  {
+   "file_name": "assets/aqua_choir-jHxzvDCD.png",
+   "file_hash": "14851b06e9c0bf11babfa284e75dc3bed83b990ca00aa7811b1b3331000250cb",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/14851b06e9c0bf11babfa284e75dc3bed83b990ca00aa7811b1b3331000250cb.png",
+   "file_size": 805255
+  },
+  {
+   "file_name": "assets/aqua_wall-DGSBKzVd.png",
+   "file_hash": "400e28f6db7b337ea02431f248346e04846cf8f6b61d66974a5110447d67ef7c",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/400e28f6db7b337ea02431f248346e04846cf8f6b61d66974a5110447d67ef7c.png",
+   "file_size": 781540
+  },
+  {
+   "file_name": "assets/aqua_wreck-B0hf4jNM.png",
+   "file_hash": "28b771b3d453fd967cc3f059c1299ef98f0ed7d9195089259e5ed5888e73851f",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/28b771b3d453fd967cc3f059c1299ef98f0ed7d9195089259e5ed5888e73851f.png",
+   "file_size": 714834
   },
   {
    "file_name": "assets/aquarian_enforcer-CHNi_5xE.png",
@@ -603,10 +621,16 @@
    "file_size": 907721
   },
   {
-   "file_name": "assets/battle_miniboss-DfEsUwQz.ogg",
-   "file_hash": "f5ddb0e8b7248b540238fe1b6fc5f206b83a202c4f99c49b75d2842ec30f0603",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/f5ddb0e8b7248b540238fe1b6fc5f206b83a202c4f99c49b75d2842ec30f0603.ogg",
-   "file_size": 1210195
+   "file_name": "assets/battle_kraken-gOzySUB-.ogg",
+   "file_hash": "0afcaa9e3e79404720ff8a05553526583981940cdcc42b27b2feedcac01f4c70",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/0afcaa9e3e79404720ff8a05553526583981940cdcc42b27b2feedcac01f4c70.ogg",
+   "file_size": 1485981
+  },
+  {
+   "file_name": "assets/battle_miniboss-B4rXGMpT.ogg",
+   "file_hash": "0a32a6d7d70baf227fd4813caa3472eda449c1324c82c1fb3938016a73870714",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/0a32a6d7d70baf227fd4813caa3472eda449c1324c82c1fb3938016a73870714.ogg",
+   "file_size": 2230222
   },
   {
    "file_name": "assets/battle_miniboss_aquarias-CGDRkK3t.ogg",
@@ -897,6 +921,18 @@
    "file_size": 6596
   },
   {
+   "file_name": "assets/blind_matriarch-Bc6NpdOP.png",
+   "file_hash": "49d59f252694ca0c98ca404aa3ffff5484eabb4dcdcd4672a00e18bd9940b111",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/49d59f252694ca0c98ca404aa3ffff5484eabb4dcdcd4672a00e18bd9940b111.png",
+   "file_size": 22529
+  },
+  {
+   "file_name": "assets/blind_matriarch_portrait-DCQJrzdy.png",
+   "file_hash": "bf698d0ba0b3e6c25ed17823ad2ad89b059d8a6db93aa7bfb8e2e62a9e524009",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/bf698d0ba0b3e6c25ed17823ad2ad89b059d8a6db93aa7bfb8e2e62a9e524009.png",
+   "file_size": 10648
+  },
+  {
    "file_name": "assets/blistering_cliffsides-Btb_KRSi.webp",
    "file_hash": "38edcb40097b2376f1f53df87b9d486eeef2360d292c2101311fa5cac79293c5",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/38edcb40097b2376f1f53df87b9d486eeef2360d292c2101311fa5cac79293c5.webp",
@@ -1053,9 +1089,9 @@
    "file_size": 7963
   },
   {
-   "file_name": "assets/browserAll-DtiGbAPM.js",
-   "file_hash": "1adf635fe53b9d874dc4b032c059125e237143990db2b6bd0e67b17702bf2dc3",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/1adf635fe53b9d874dc4b032c059125e237143990db2b6bd0e67b17702bf2dc3.js",
+   "file_name": "assets/browserAll-Cl_rqEZ_.js",
+   "file_hash": "159865f3b00a4d6414e254b91a3e5a7b57139bf4c68057d2bf85597ad39df902",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/159865f3b00a4d6414e254b91a3e5a7b57139bf4c68057d2bf85597ad39df902.js",
    "file_size": 41284
   },
   {
@@ -1267,6 +1303,18 @@
    "file_hash": "3f8c470f2ac3e537c23607e02d95e6d1fece4a0acc614589aa0ff5ca8785f791",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.8.0-a/3f8c470f2ac3e537c23607e02d95e6d1fece4a0acc614589aa0ff5ca8785f791.png",
    "file_size": 721389
+  },
+  {
+   "file_name": "assets/caustic_spring-fXEVhW6T.png",
+   "file_hash": "b17b6792dc86ab0440a5bc45d001770cb69e5361d659de22e588620c8e6102ff",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/b17b6792dc86ab0440a5bc45d001770cb69e5361d659de22e588620c8e6102ff.png",
+   "file_size": 14546
+  },
+  {
+   "file_name": "assets/caustic_spring_portrait-UbfVvppA.png",
+   "file_hash": "f281bf05797260083682138e94440d6ebbee96028fb4e7d2d81413db16c648eb",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/f281bf05797260083682138e94440d6ebbee96028fb4e7d2d81413db16c648eb.png",
+   "file_size": 5223
   },
   {
    "file_name": "assets/cave_01-Do71kGc7.png",
@@ -2721,6 +2769,12 @@
    "file_size": 5347
   },
   {
+   "file_name": "assets/effect_listening-DWCcyCkE.png",
+   "file_hash": "f9028cee777001cc1c6a78ceb5785f02395e2fc8c49fddbb1da8c7d525d62294",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/f9028cee777001cc1c6a78ceb5785f02395e2fc8c49fddbb1da8c7d525d62294.png",
+   "file_size": 4547
+  },
+  {
    "file_name": "assets/effect_loaded_dice-Cd6__ZNE.png",
    "file_hash": "24f0ee8a9e242a34967e3cdd91dc0c61418006fb9006c386d6b6a39872645302",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/24f0ee8a9e242a34967e3cdd91dc0c61418006fb9006c386d6b6a39872645302.png",
@@ -3519,16 +3573,28 @@
    "file_size": 101802
   },
   {
+   "file_name": "assets/gate_to_aquaria-BLc1E750.webp",
+   "file_hash": "77da7232d2c000adfcd2471c72e4c26d983062c2e1d5c7c8d2197358e9bf742b",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/77da7232d2c000adfcd2471c72e4c26d983062c2e1d5c7c8d2197358e9bf742b.webp",
+   "file_size": 515450
+  },
+  {
    "file_name": "assets/gate_to_aquaria-C148F__e.webp",
    "file_hash": "82f35318013e04567f5c3f1e67a70fd42c30c3a051f76f5089e952dc00ead476",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.8.0-a/82f35318013e04567f5c3f1e67a70fd42c30c3a051f76f5089e952dc00ead476.webp",
    "file_size": 97106
   },
   {
-   "file_name": "assets/gate_to_aquaria-CZQbtIgK.webp",
-   "file_hash": "965edc76a25837179dc496cf4e552dc1ea6cd02401df5987ca82ec7da197114d",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/965edc76a25837179dc496cf4e552dc1ea6cd02401df5987ca82ec7da197114d.webp",
-   "file_size": 86280
+   "file_name": "assets/gatewarden-BRtGRdQ-.png",
+   "file_hash": "19af8416b6bd6490978ac7ae3ae1fe49694677f3b54d7bc9f2ae070a13c514e7",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/19af8416b6bd6490978ac7ae3ae1fe49694677f3b54d7bc9f2ae070a13c514e7.png",
+   "file_size": 19942
+  },
+  {
+   "file_name": "assets/gatewarden_portrait-DnOdvwA5.png",
+   "file_hash": "12cea3a63ed77cf2a66dc5184840e5cface62da0db029c621b18a78cbc30ff20",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/12cea3a63ed77cf2a66dc5184840e5cface62da0db029c621b18a78cbc30ff20.png",
+   "file_size": 8894
   },
   {
    "file_name": "assets/gelid_the_miser-CZYVmCqg.png",
@@ -4179,6 +4245,18 @@
    "file_size": 5371
   },
   {
+   "file_name": "assets/horror_whelp-m5UDDHck.png",
+   "file_hash": "ced621ba2b6cb8d2d739e593f4607a29d82479f3b32f55c8a389acd76c61c337",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/ced621ba2b6cb8d2d739e593f4607a29d82479f3b32f55c8a389acd76c61c337.png",
+   "file_size": 15784
+  },
+  {
+   "file_name": "assets/horror_whelp_portrait-Z2yZHu17.png",
+   "file_hash": "9d00059ab8edb012ae4bedd103861c2cf588ca1dea20e10b6233d256ddd2b65b",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/9d00059ab8edb012ae4bedd103861c2cf588ca1dea20e10b6233d256ddd2b65b.png",
+   "file_size": 7133
+  },
+  {
    "file_name": "assets/hydra-Dlsm3aqV.png",
    "file_hash": "b17bab35040dae50f404369d3c0fadf663a8eafd706f7ffec1696283abe7d42e",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/b17bab35040dae50f404369d3c0fadf663a8eafd706f7ffec1696283abe7d42e.png",
@@ -4221,28 +4299,28 @@
    "file_size": 41469
   },
   {
-   "file_name": "assets/index-BXEqlfUk.js",
-   "file_hash": "3f1d9e28f83fdff80842967e8c58d8c248bdff541bfc362d05653ba865260ea3",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/3f1d9e28f83fdff80842967e8c58d8c248bdff541bfc362d05653ba865260ea3.js",
+   "file_name": "assets/index-CeU01Yi0.css",
+   "file_hash": "4d84693deac0b24a68b9ec1b18a64229dd11f6a413adb3212a3332f7beaa6d11",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/4d84693deac0b24a68b9ec1b18a64229dd11f6a413adb3212a3332f7beaa6d11.css",
+   "file_size": 700251
+  },
+  {
+   "file_name": "assets/index-CnVEIWWR.js",
+   "file_hash": "d29be54c8cef7ca88b1448f6b8699c44e0b4c2024e4a9124e7f22e0efece4f89",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/d29be54c8cef7ca88b1448f6b8699c44e0b4c2024e4a9124e7f22e0efece4f89.js",
+   "file_size": 5187213
+  },
+  {
+   "file_name": "assets/index-EH5Y6f_b.js",
+   "file_hash": "c67a6b36b32eb0e14d981128915645f383531b3e0a6fd4021888f1fee2b17671",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/c67a6b36b32eb0e14d981128915645f383531b3e0a6fd4021888f1fee2b17671.js",
    "file_size": 333
   },
   {
-   "file_name": "assets/index-BZSrkfDC.css",
-   "file_hash": "a650596f60e8a221e3cd49275bd777dc6c7851b6165ae5e50d10928f1d8a228d",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/a650596f60e8a221e3cd49275bd777dc6c7851b6165ae5e50d10928f1d8a228d.css",
-   "file_size": 692682
-  },
-  {
-   "file_name": "assets/index-D7fhhL04.js",
-   "file_hash": "6a21150ff16defca68e6b8efcaf74b7b9f94414f18d4fb4f001578db34cf435f",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/6a21150ff16defca68e6b8efcaf74b7b9f94414f18d4fb4f001578db34cf435f.js",
+   "file_name": "assets/index-n4c_j5La.js",
+   "file_hash": "0c8dcfd24a9c986e822d8c854ed3b90e407ff4a3313fbc1a9c2b47dd6f34eaff",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/0c8dcfd24a9c986e822d8c854ed3b90e407ff4a3313fbc1a9c2b47dd6f34eaff.js",
    "file_size": 1408
-  },
-  {
-   "file_name": "assets/index-q8k1Y189.js",
-   "file_hash": "be0eaa25936b43365edddcbb67bda2436b1cae005acb4ae3b9dac885172c6343",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/be0eaa25936b43365edddcbb67bda2436b1cae005acb4ae3b9dac885172c6343.js",
-   "file_size": 5081352
   },
   {
    "file_name": "assets/ink_specter-Dazy3WUS.png",
@@ -4785,16 +4863,28 @@
    "file_size": 6810
   },
   {
-   "file_name": "assets/kraken-Bc4TNG2N.png",
-   "file_hash": "52606d4f8be70b1a38beaf7ce0ac5b99589065710463c6611cd21b86e78359c1",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/52606d4f8be70b1a38beaf7ce0ac5b99589065710463c6611cd21b86e78359c1.png",
-   "file_size": 31050
+   "file_name": "assets/kraken-C4wnMEUt.png",
+   "file_hash": "059a168ed5713cc86aa6320c8639cad3bc920ade38e7abf16e11d16c9560653a",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/059a168ed5713cc86aa6320c8639cad3bc920ade38e7abf16e11d16c9560653a.png",
+   "file_size": 21991
   },
   {
-   "file_name": "assets/kraken_portrait-C5C0YUez.png",
-   "file_hash": "dbb30f91658d79de1b3eedd53100e27c976352f891c773ce908ce6d0b54eb5b3",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/dbb30f91658d79de1b3eedd53100e27c976352f891c773ce908ce6d0b54eb5b3.png",
-   "file_size": 8320
+   "file_name": "assets/kraken_arm-CiFJLHXY.png",
+   "file_hash": "a6c2ef112b7e133b7ca3d5d8b1d8eda4baf63ae1e01c2c003d899b23afb1ec34",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/a6c2ef112b7e133b7ca3d5d8b1d8eda4baf63ae1e01c2c003d899b23afb1ec34.png",
+   "file_size": 12792
+  },
+  {
+   "file_name": "assets/kraken_arm_portrait-DKYk1cZL.png",
+   "file_hash": "5c17892c71cc887fea26191d61aafd441362ec3defca9fb7ec40be425a634f36",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/5c17892c71cc887fea26191d61aafd441362ec3defca9fb7ec40be425a634f36.png",
+   "file_size": 6042
+  },
+  {
+   "file_name": "assets/kraken_portrait-gl8B8krq.png",
+   "file_hash": "9e42451bab121e0749e0ce8cd0df66cee2a87c7a135979a639300a17a252a139",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/9e42451bab121e0749e0ce8cd0df66cee2a87c7a135979a639300a17a252a139.png",
+   "file_size": 9192
   },
   {
    "file_name": "assets/lady_moonwhisper-Bb66yzQQ.avif",
@@ -5481,6 +5571,36 @@
    "file_size": 1215693
   },
   {
+   "file_name": "assets/morass_brood-afxkm87B.png",
+   "file_hash": "7233ce3019b666fc9bb11f5d766b06ae1af24cb6ef377e3d96e2519ad70634a9",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/7233ce3019b666fc9bb11f5d766b06ae1af24cb6ef377e3d96e2519ad70634a9.png",
+   "file_size": 687358
+  },
+  {
+   "file_name": "assets/morass_drowned_mine-BHnJQc3C.png",
+   "file_hash": "8b036c00f71ff4d83218ce29956b2d6ff94d04b0634e26639a63b9c86f1b4daf",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/8b036c00f71ff4d83218ce29956b2d6ff94d04b0634e26639a63b9c86f1b4daf.png",
+   "file_size": 703975
+  },
+  {
+   "file_name": "assets/morass_leech_falls-DXBse6Pl.png",
+   "file_hash": "a7f18c3b2bd29c0325cc8660599333e478ec4e1b468b32b9773d1a43358e633a",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/a7f18c3b2bd29c0325cc8660599333e478ec4e1b468b32b9773d1a43358e633a.png",
+   "file_size": 697008
+  },
+  {
+   "file_name": "assets/morass_listening_pools-CloFnJTh.png",
+   "file_hash": "5357b4f36e9ea162e4c5b06afaa8ea0a44bd61a94c0d72c62eacabf31d05c57b",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/5357b4f36e9ea162e4c5b06afaa8ea0a44bd61a94c0d72c62eacabf31d05c57b.png",
+   "file_size": 643889
+  },
+  {
+   "file_name": "assets/morass_shrieker_beds-YEDNoDbV.png",
+   "file_hash": "68b5a7836cd01f97ce348260c3be9f8acca05cab34599ec974769ead432c4d69",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/68b5a7836cd01f97ce348260c3be9f8acca05cab34599ec974769ead432c4d69.png",
+   "file_size": 677837
+  },
+  {
    "file_name": "assets/moray_eel-C_AuOf3R.png",
    "file_hash": "1f2b7fe9cfcb2fb53f2d52c6a437ac4695aafefb8ed955b5050a52f3d5811aff",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/1f2b7fe9cfcb2fb53f2d52c6a437ac4695aafefb8ed955b5050a52f3d5811aff.png",
@@ -5907,6 +6027,12 @@
    "file_size": 272693
   },
   {
+   "file_name": "assets/orlo-YCrq76hw.avif",
+   "file_hash": "f768c8dfc9eb1ffae221c8d0744269eba7866ca9c47d769f65084ea74cb97d33",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/f768c8dfc9eb1ffae221c8d0744269eba7866ca9c47d769f65084ea74cb97d33.avif",
+   "file_size": 322647
+  },
+  {
    "file_name": "assets/oskar_bitter_watch-a1U30tBY.avif",
    "file_hash": "9b4c75690706d20fdfaac2a7643a4186cc1b0491ed5e047d570472b45d6608cf",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/9b4c75690706d20fdfaac2a7643a4186cc1b0491ed5e047d570472b45d6608cf.avif",
@@ -6025,6 +6151,42 @@
    "file_hash": "58e5a8423270b0d7ba54d7512562eb5e17db39efaae02ab5db2f8bf50d428938",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-a/58e5a8423270b0d7ba54d7512562eb5e17db39efaae02ab5db2f8bf50d428938.png",
    "file_size": 6614
+  },
+  {
+   "file_name": "assets/pact_bound_bulwark-F2mDgqIH.png",
+   "file_hash": "4dd015c7dc1bad9d98ea8b5c2fba17c088ede1e83f57274610cb286a6fb2d511",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/4dd015c7dc1bad9d98ea8b5c2fba17c088ede1e83f57274610cb286a6fb2d511.png",
+   "file_size": 18556
+  },
+  {
+   "file_name": "assets/pact_bound_bulwark_portrait-BI_gzwtZ.png",
+   "file_hash": "e1008d746afedd49804d8dad0e3bef63c25fcd32fd108144bb231e85af59d2f0",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/e1008d746afedd49804d8dad0e3bef63c25fcd32fd108144bb231e85af59d2f0.png",
+   "file_size": 8049
+  },
+  {
+   "file_name": "assets/pact_bound_troll-Bf2MUJ4d.png",
+   "file_hash": "a477cbb2133ac6e39f19a151e6bd65b759c625c65204520ad06647f82198f170",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/a477cbb2133ac6e39f19a151e6bd65b759c625c65204520ad06647f82198f170.png",
+   "file_size": 30588
+  },
+  {
+   "file_name": "assets/pact_bound_troll_portrait-CTRmUB8y.png",
+   "file_hash": "5f3b8e1ed3469350767705160e328dd2b6d5894325780c80f6d41e410815deb2",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/5f3b8e1ed3469350767705160e328dd2b6d5894325780c80f6d41e410815deb2.png",
+   "file_size": 10532
+  },
+  {
+   "file_name": "assets/pale_shrieker-DCqMCLGR.png",
+   "file_hash": "b0cbef6ace376da2bb760280a4fdaf35ab7a3ec1c1c94c1e43407a3248da1d8e",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/b0cbef6ace376da2bb760280a4fdaf35ab7a3ec1c1c94c1e43407a3248da1d8e.png",
+   "file_size": 14137
+  },
+  {
+   "file_name": "assets/pale_shrieker_portrait-DgbRE6_8.png",
+   "file_hash": "ebf653279fbd8ea96ce38cb1f93f0f24ea3e42ea7e1aa99d43ddd326f07f36a4",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/ebf653279fbd8ea96ce38cb1f93f0f24ea3e42ea7e1aa99d43ddd326f07f36a4.png",
+   "file_size": 6987
   },
   {
    "file_name": "assets/parchment_a-131Pcy3d.png",
@@ -7557,16 +7719,16 @@
    "file_size": 67772
   },
   {
-   "file_name": "assets/swamp_hag-DnbL3Cw_.png",
-   "file_hash": "d171db76757aca9135c3d69554a138393c9a4277f87b23dcb78dc437d1d0d026",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-b/d171db76757aca9135c3d69554a138393c9a4277f87b23dcb78dc437d1d0d026.png",
-   "file_size": 28883
+   "file_name": "assets/swamp_hag-DKDfAdLn.png",
+   "file_hash": "e88f3dfdae7500f35f479446339bf9cf83dd8ab578830d6e5d27b4d9ccd53a8b",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/e88f3dfdae7500f35f479446339bf9cf83dd8ab578830d6e5d27b4d9ccd53a8b.png",
+   "file_size": 16358
   },
   {
-   "file_name": "assets/swamp_hag_portrait-DZwUB50Z.png",
-   "file_hash": "0bec74b37fc374da04d2e5cff9a3b04d91f5a2112e6682bebb414eaa83aea500",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-b/0bec74b37fc374da04d2e5cff9a3b04d91f5a2112e6682bebb414eaa83aea500.png",
-   "file_size": 10079
+   "file_name": "assets/swamp_hag_portrait-CkO7YiSB.png",
+   "file_hash": "3c7bcfda45f94be0f54520bd4133a122df0d50d2430890ac3cd061a558dc8704",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/3c7bcfda45f94be0f54520bd4133a122df0d50d2430890ac3cd061a558dc8704.png",
+   "file_size": 7262
   },
   {
    "file_name": "assets/swamp_lurker-BQTTrVL3.png",
@@ -8103,6 +8265,12 @@
    "file_size": 8126
   },
   {
+   "file_name": "assets/thessaly-D-InXhY7.avif",
+   "file_hash": "53ae8b2639fb12d1f2f0549454b57388090930221f63476e36d40348269d09d4",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/53ae8b2639fb12d1f2f0549454b57388090930221f63476e36d40348269d09d4.avif",
+   "file_size": 193707
+  },
+  {
    "file_name": "assets/thornweald-9d6MFbTk.png",
    "file_hash": "9c700cc28753491bfd54452e7051f8f98d2c3dd4c1a0268ac318d729a3b02be1",
    "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-b/9c700cc28753491bfd54452e7051f8f98d2c3dd4c1a0268ac318d729a3b02be1.png",
@@ -8283,16 +8451,16 @@
    "file_size": 5995
   },
   {
-   "file_name": "assets/tide_priest-BZxLK9fo.png",
-   "file_hash": "392535e74895b9159cdd344f6bb848cc21ff8b86baf173ec2baa0c6b31d4bf1a",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-b/392535e74895b9159cdd344f6bb848cc21ff8b86baf173ec2baa0c6b31d4bf1a.png",
-   "file_size": 14266
+   "file_name": "assets/tide_priest-RTkPAH8l.png",
+   "file_hash": "a1ec0adc1d1901236fa17f841d12c3bbf143824422349849613d86ff2be4d2c7",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/a1ec0adc1d1901236fa17f841d12c3bbf143824422349849613d86ff2be4d2c7.png",
+   "file_size": 15173
   },
   {
-   "file_name": "assets/tide_priest_portrait-BLw-TUPi.png",
-   "file_hash": "ae15c6b9c6157034c6f975c3a71e2375482e1750f75d3ddcbf28ba60159e224a",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-b/ae15c6b9c6157034c6f975c3a71e2375482e1750f75d3ddcbf28ba60159e224a.png",
-   "file_size": 7192
+   "file_name": "assets/tide_priest_portrait-mVQjocS-.png",
+   "file_hash": "2e14bc8f63f1cbae68bbf3afcdd33a78723e2f9fb5936e0eda9182e34e04f0e2",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/2e14bc8f63f1cbae68bbf3afcdd33a78723e2f9fb5936e0eda9182e34e04f0e2.png",
+   "file_size": 7653
   },
   {
    "file_name": "assets/tidewall_01-CLcmLjhN.png",
@@ -8589,10 +8757,10 @@
    "file_size": 4844
   },
   {
-   "file_name": "assets/underground_morass-C7laPQfe.webp",
-   "file_hash": "824d63faff6cf961d0185dc6715ba45a9fc6690c2e29ae1d1ecef49a32da5251",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.7.0-b/824d63faff6cf961d0185dc6715ba45a9fc6690c2e29ae1d1ecef49a32da5251.webp",
-   "file_size": 97132
+   "file_name": "assets/underground_morass-BYhkWTaL.webp",
+   "file_hash": "0ae3cb318374714d24c66923095ab4b0c0125817d832c82a271132c1a8fba8bb",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/0ae3cb318374714d24c66923095ab4b0c0125817d832c82a271132c1a8fba8bb.webp",
+   "file_size": 426994
   },
   {
    "file_name": "assets/underground_morass-DlGWRMMk.webp",
@@ -9117,27 +9285,27 @@
    "file_size": 9481
   },
   {
-   "file_name": "assets/web-BgPuu8mJ.js",
-   "file_hash": "8070f28ecd6505ee81126a2ef17fee2154a0c08908db802406892aae3026fe69",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/8070f28ecd6505ee81126a2ef17fee2154a0c08908db802406892aae3026fe69.js",
-   "file_size": 8717
-  },
-  {
-   "file_name": "assets/web-C3Z202pR.js",
-   "file_hash": "558f044ba165bba3f74d5f38177c152a931f068bc2ae85cac35b42e8a3857f2d",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/558f044ba165bba3f74d5f38177c152a931f068bc2ae85cac35b42e8a3857f2d.js",
-   "file_size": 2440
-  },
-  {
-   "file_name": "assets/web-H1wLbYUP.js",
-   "file_hash": "5a2a64489cd9177f43b16eb4bd42c84ddb744a90ad1a9a2defd8342759083d19",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/5a2a64489cd9177f43b16eb4bd42c84ddb744a90ad1a9a2defd8342759083d19.js",
+   "file_name": "assets/web-CdyiNfJq.js",
+   "file_hash": "03d482763d38a3a843f3289133c50cc0dc48d061c47952b32d99a98f86597bd6",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/03d482763d38a3a843f3289133c50cc0dc48d061c47952b32d99a98f86597bd6.js",
    "file_size": 361
   },
   {
-   "file_name": "assets/webworkerAll-B5faDE31.js",
-   "file_hash": "8e767977c42ba0e92810387b1609a5e8d10bcb971c2ba9c7af709aa9633250b3",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/8e767977c42ba0e92810387b1609a5e8d10bcb971c2ba9c7af709aa9633250b3.js",
+   "file_name": "assets/web-Ct4o51CO.js",
+   "file_hash": "fce775e93bedb133562f898d999f79a1774a8fa7cb817a6f4d2b99df83cda568",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/fce775e93bedb133562f898d999f79a1774a8fa7cb817a6f4d2b99df83cda568.js",
+   "file_size": 8717
+  },
+  {
+   "file_name": "assets/web-DcdOQN6u.js",
+   "file_hash": "bded49cef087107ad9e51d1bbd4291b26963186215c563c14e02fd779d1613b9",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/bded49cef087107ad9e51d1bbd4291b26963186215c563c14e02fd779d1613b9.js",
+   "file_size": 2440
+  },
+  {
+   "file_name": "assets/webworkerAll-C-cbD1B7.js",
+   "file_hash": "36af4222667e3b4320b8451d1c20e5cab95de10377e99064bbdd170911b8630a",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/36af4222667e3b4320b8451d1c20e5cab95de10377e99064bbdd170911b8630a.js",
    "file_size": 11230
   },
   {
@@ -9400,8 +9568,8 @@
   },
   {
    "file_name": "index.html",
-   "file_hash": "51e9c4addbc9476b680d26beaf699c4c3eb9077aadcbb56f9e235e1ea6ee8eef",
-   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.9.0-a/51e9c4addbc9476b680d26beaf699c4c3eb9077aadcbb56f9e235e1ea6ee8eef.html",
+   "file_hash": "cc6021d0c681462444022c6ca8f18fb7cc31b6268f5b7d42dc15bd7b653d0f9e",
+   "download_url": "https://github.com/Deltran/dorf/releases/download/web-4.10.0-a/cc6021d0c681462444022c6ca8f18fb7cc31b6268f5b7d42dc15bd7b653d0f9e.html",
    "file_size": 479
   },
   {
