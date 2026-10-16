@@ -1,3 +1,12 @@
+4.11.0
+- The Janxier Floodplain gets new waves: the Hydra fights with all four heads, its body wakes when it drops to half health, and the side paths pay out like the main road
+- The Ancient Titan is tougher and warns you before he strikes: he singles out a hero a turn ahead, and below half health his Fury hits much harder. Titan's Throne waves 3 and 5 are a little easier
+- The battle screen gets a new look: iron hero plates, party gifts in a bronze tray under the round counter, and your hero's skill book as the action bar
+- The turn order now runs across the top of the battle screen
+- Heroes regain at most 15 MP a round, so a big MP pool buys a strong opening but can't refill every turn
+- When a hero loses a turn to Stun, Freeze, Sleep or Spent, their book says so
+- Fixes the skill book flickering the first time you tap it
+
 4.10.0
 - The Underground Morass is rebuilt: a new map, monsters that hunt by sound (the loudest hero gets found first), the Blind Matriarch, and Orlo's hidden garden
 - The Gate to Aquaria is rebuilt: the Kraken's arms grab heroes and let go after three turns, and every arm you sever weakens the Kraken. Plus the Gatewarden, a reworked Kraken with its own music, and Thessaly at the Warden's Rock
