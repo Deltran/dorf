@@ -1,3 +1,14 @@
+4.12.0
+- Oskar is reworked: Hold the Line now links him to one ally for 5 turns and he takes 40% of the hits meant for them (at half the damage). His new capstone, Back Pay, gives him MP back for the damage his shields and Link soak. Bitter Wind now really lasts its 2 turns
+- Skills that pay off against whoever hit you (Oskar, Fennick, Rosara, Sir Gallan) mark those enemies with a cracked shield while you aim
+- Damage numbers show what actually landed after shields, damage reduction and redirects
+- After a win, the map pauses on the node you beat, then slides to the one that just opened
+- Every tavern game gets a How to play button, and Copper Jack's Coin Toss gets its own Field Guide page
+- Fishing: every cast ends in a bite, a fish out of reach says so, and Lucky Charm catches show as the Charm's
+- The summon info shows the overall rate next to the per-pull rate
+- A handful of hero tales are rewritten to be about the hero, not their skills
+- Fixes the Genus Loci, Exploration and Shrine panels on the map hiding their bottom button
+
 4.11.0
 - The Janxier Floodplain gets new waves: the Hydra fights with all four heads, its body wakes when it drops to half health, and the side paths pay out like the main road
 - The Ancient Titan is tougher and warns you before he strikes: he singles out a hero a turn ahead, and below half health his Fury hits much harder. Titan's Throne waves 3 and 5 are a little easier
