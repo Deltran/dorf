@@ -1,3 +1,12 @@
+4.12.1
+- Fishing at Whisper Lake is a fight you can win: no timer any more. Ease off while the fish is calm and it slowly swims back out; leave it too long and it gets away. The float jerks just before each thrash so you can let go in time
+- A snapped line and a fish that got away each get their own moment on the water before the spots come back. The jumping fish leaps head-first, and the diving bird is a real tern that flies off with its catch
+- When an enemy winds up a big blow (like the Ancient Titan's Wrath), a hero who taunts before it lands takes it instead, and the Singled Out mark moves to them
+- Selwyn is redrawn: an ink-black Order coat and a violet-burning lantern on a ferryman's pole, with the Other Selwyn in the same coat, faded and soaked. New painting, poses and attack
+- Tavern: hold a plate near the screen's edge to pan the room toward the wash trough, and your party leader stays in the Seat of Honor instead of also wandering the floor
+- Fixes the Glowstone Altar in the Echoing Caverns not opening the road to Troll Bridge (stuck saves are freed)
+- Fixes music and sounds playing on with the screen off or the app in the background on Android
+
 4.12.0
 - Oskar is reworked: Hold the Line now links him to one ally for 5 turns and he takes 40% of the hits meant for them (at half the damage). His new capstone, Back Pay, gives him MP back for the damage his shields and Link soak. Bitter Wind now really lasts its 2 turns
 - Skills that pay off against whoever hit you (Oskar, Fennick, Rosara, Sir Gallan) mark those enemies with a cracked shield while you aim
