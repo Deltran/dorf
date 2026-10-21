@@ -1,3 +1,13 @@
+4.12.2
+- Big moves get their moment: the first time a hero uses their biggest skill in a fight, their attack painting rises out of the sprite before the blow lands, and six heroes have a line to say first. A party leader's skill and a Bard's Finale flare their painting up behind them
+- Status effects are easier to follow: icons pop in when they land, buffs sink and debuffs sparkle away when they end, and each effect shows its name as it's applied
+- Stormwind Peaks has a new stop on the main road, the Broken Sledge, between Storm Plateau and the fork. The Shadow Dragon turns at half HP: Darken the Sky withers the whole party, then Rend. Kill a Nesting Roc's chick and Mother's Fury makes her stronger, and her next blow goes at the hero who did it
+- The Shadow Dragon, Storm Elemental and Mountain Giant are redrawn, Ser Hagen has a new face, and Rosara's painting matches her colours
+- Oskar's Icebound Oath now also strikes every foe, harder with each Frost stack. Sir Gallan's Challenge hits again (80% ATK) before it taunts. Shasha's Fireball hits a little softer (120% ATK, was 130%)
+- Long-press a unit in battle for its new sheet: your heroes open their book, enemies get iron. Enemy skill timers on it now count down right
+- The opening story pages show the rot creeping over the Whispering Woods, with new sounds, and Whisper Lake fishing has real sounds
+- Fights wait for the battle doors to open before anything moves. Fixes Summon Tickets not paying for pulls, a party leader's opening effect on enemies (like Iselda's Dead Air) missing in the Maw, Forlorn Hope, the Colosseum and rival fights, and a doubled Blood Offering popup in the Echoing Caverns
+
 4.12.1
 - Fishing at Whisper Lake is a fight you can win: no timer any more. Ease off while the fish is calm and it slowly swims back out; leave it too long and it gets away. The float jerks just before each thrash so you can let go in time
 - A snapped line and a fish that got away each get their own moment on the water before the spots come back. The jumping fish leaps head-first, and the diving bird is a real tern that flies off with its catch
