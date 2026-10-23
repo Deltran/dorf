@@ -1,3 +1,12 @@
+4.14.0
+- Yggra has a new leader skill, Rot Through the Roots: when a Poisoned enemy dies, its strongest Poison spreads to every other enemy for 2 turns. Her base ATK drops a little
+- Wither has one shape for everyone: it always lasts 3 turns and hits weak, then harder, then hardest. A Wither landing on someone already Withered does nothing
+- The Shadow King's Stares Back now Withers anyone who hits him, area attacks included, in place of Thorns. Void Strike costs 30 Rage and goes through DEF on a Withered target
+- Cobb's Finale now Marks and Withers every enemy
+- Onibaba's Wailing Mask costs 15% of her HP and heals every ally for the damage it deals to one enemy
+- XP from fights goes to the heroes who fought; XP from expeditions, tavern events and map events goes to the Library
+- Heroes out on an expedition can still fight in your party, be fused and take XP
+
 4.13.0
 - Heroes level up in style: a full-screen scene with their painting, a line in their own voice and their stats counting up, after a win, an expedition, the XP tray or anywhere else they gain levels. Fusing a hero to a new rank gets its own Rank Up scene
 - Boss kills land: the final blow plays in slow motion as the camera pushes in and the music drops away. Rare drops catch the light, gold and gems count up, and every hero with tales now has a line before their biggest move, with a bigger painting that pans
