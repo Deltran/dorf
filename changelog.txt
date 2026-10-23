@@ -1,3 +1,13 @@
+4.13.0
+- Heroes level up in style: a full-screen scene with their painting, a line in their own voice and their stats counting up, after a win, an expedition, the XP tray or anywhere else they gain levels. Fusing a hero to a new rank gets its own Rank Up scene
+- Boss kills land: the final blow plays in slow motion as the camera pushes in and the music drops away. Rare drops catch the light, gold and gems count up, and every hero with tales now has a line before their biggest move, with a bigger painting that pans
+- Combat sounds are redone: buffs, heals, magic hits, Burn, Poison and Bleed ticks, deaths and a boss's last fade. Repeated sounds vary in pitch, and Knuckle Bess's Jab-Jab climbs punch by punch
+- The daily gift is now a parcel waiting at your party's feet on the Home screen
+- The Colosseum Gate is now a fight against four of the arena's gladiators. The Floodplain's Hydra is one beast with four necks, and a chopped head leaves a stump. Every Knight's Creed on the Standard banner now also taunts, and Gromm and the Grateful Dead have reworked kits
+- New look across the board: new Stormwind Peaks and Summit maps and battle backgrounds, new rooms and backgrounds in the Echoing Caverns (watch for eyes and bats), 23 enemies redrawn, and real art replacing plain boxes in summon, Market Street, the inventory and fight popups
+- On Android, the back button closes whatever popup is open. Fishing gets a camera that closes in on the float, Coin Toss gets moving coins, and the summon ritual gives your last candle and any golden one time to shine
+- Error reports now also carry short summaries of your fights to help balance the beta (same "Send error reports automatically" switch). Fixes a new status icon hiding the one beside it, and counter-attacks now count toward a hero's damage
+
 4.12.2
 - Big moves get their moment: the first time a hero uses their biggest skill in a fight, their attack painting rises out of the sprite before the blow lands, and six heroes have a line to say first. A party leader's skill and a Bard's Finale flare their painting up behind them
 - Status effects are easier to follow: icons pop in when they land, buffs sink and debuffs sparkle away when they end, and each effect shows its name as it's applied
