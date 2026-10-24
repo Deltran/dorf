@@ -1,3 +1,7 @@
+4.14.1
+- Dorf now checks for updates when you open it. Small updates install on their own before you tap in; bigger ones ask first, and you can always choose to play the version you have
+- The splash screen shows your version number in the corner
+
 4.14.0
 - Yggra has a new leader skill, Rot Through the Roots: when a Poisoned enemy dies, its strongest Poison spreads to every other enemy for 2 turns. Her base ATK drops a little
 - Wither has one shape for everyone: it always lasts 3 turns and hits weak, then harder, then hardest. A Wither landing on someone already Withered does nothing
