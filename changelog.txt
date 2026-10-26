@@ -1,3 +1,13 @@
+4.15.0
+- Some enemies now react to your elements. Hit the Magma Golem with Frost and it crusts over, so its Molten Slam comes a turn later, but the steam gives its side Evasion for a round. Eleven creatures react, from the Cinder Dryad in the Whispering Woods to the Coral Golem and the Wind Spirit, and each one spills something onto the fight: steam, a blast of fire, meltwater, coral shards or dust
+- Fusion is worth it: every star a hero gains adds 15% to their HP, ATK and DEF, and each star builds on the last, so a 1★ fused to 5★ has 5★-sized stats. Heroes you've already fused get stronger as soon as you update
+- Mara Thornheart's ATK drops (52 → 41). The Shadow King's HP and ATK drop (110 → 81 HP, 55 → 41 ATK). Iselda's ATK goes up (48 → 63)
+- The Maw: a run still going at midnight is no longer wiped, and it pays the day's best take when it ends. Your party is set for the whole run, and the rest bonus only counts days you actually skipped
+- Hard mode: replaying a Hard fight stays on Hard, the combat log marks Hard fights, and leaving one opens the map where you fought
+- On phones: the back button does what the on-screen back arrow does, nothing hides under the bottom bar on Samsung and other Android 15 phones, Coin Toss fits short screens, and phones with an old WebView get through the intro. If your WebView is out of date, the splash screen tells you
+- Fixes: every win now counts toward expeditions (Genus Loci, the Colosseum, rivals, Forlorn Hope and the Maw); a Bard's Finale shows on their Skills page and long-press sheet; star ratings are back on the Party page; the Bestiary lists the Debt Collectors and the Ringer; heroes from the Colosseum open their Field Guide pages right away; Forlorn Hope's music stops after a loss, and a Forlorn Hope team with no leader fights without one
+- Error reports now also say why Android closed the game, to help track down crashes (same "Send error reports automatically" switch)
+
 4.14.1
 - Dorf now checks for updates when you open it. Small updates install on their own before you tap in; bigger ones ask first, and you can always choose to play the version you have
 - The splash screen shows your version number in the corner
