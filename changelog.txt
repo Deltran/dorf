@@ -1,3 +1,18 @@
+4.16.0
+- Shrines explain themselves: each blessing shows its name, what it does, how long it has left and that it covers every fight in the region (not Hard mode). The map marker lights while a blessing is on. Three damage blessings gave far more than intended; they're now +15%, +20% and +15%
+- The Arbiter: Contempt of Court makes every debuff on its target last a turn longer. Final Verdict uses up the target's debuffs for +40% damage each (up to 3) and Stuns if it used up 3. Control effects like Stun and Sleep are never stretched or used up. Base ATK 48 → 40
+- Hollow Kiln: Open the Kiln needs 40 Essence and scales only with Essence (100% at 50). The Cinder no longer gains Inferno; HP it loses to an enemy's hit, Hollow Kiln loses too. Base ATK 42 → 34
+- Selwyn: enemies can't target The Other Selwyn. Hindsight and Un-happen It hit for less, base ATK 46 → 33
+- Mireha: Mire Touch, Rot Communion and The Bitter Draught heal less and share a 3-turn wait after using any of them
+- Sister Marrow's heals are four times as strong. Grandmother Rot's Fungal Network heals far more (60% of ATK, 140% with an ally Poisoned). The Grateful Dead's Graveside Manner shields for 20% of max HP (30% before)
+- Element gifts: Green Mend heals 5% at each wave start (8% before), and Wellspring gives 10 resource (15 before)
+- The tavern shows new players what they can do: the party leader gives a tip, and the trash, the gaming die and the meal table shine until you've used each one once
+- Easier reading: the fancy italic font is gone. Expeditions, the region list, the intro and Arm Wrestling now use the same title font as the rest of the game
+- Expedition returns: every route lines your party up at the same height, the party bonus gets its own moment, and collecting one return opens the next straight away
+- Shops: the buy panel is easier to read and use, with bigger − / + / Max buttons and a gold Buy button
+- The download is much smaller (about 337 MB → about 113 MB) with no visible loss in the art
+- Fixes: a skill on cooldown can't be used by mistake; the Arbiter's card lists exactly which debuffs her Sentence leaves alone; the parcel page drops the "Next seal" countdown
+
 4.15.0
 - Some enemies now react to your elements. Hit the Magma Golem with Frost and it crusts over, so its Molten Slam comes a turn later, but the steam gives its side Evasion for a round. Eleven creatures react, from the Cinder Dryad in the Whispering Woods to the Coral Golem and the Wind Spirit, and each one spills something onto the fight: steam, a blast of fire, meltwater, coral shards or dust
 - Fusion is worth it: every star a hero gains adds 15% to their HP, ATK and DEF, and each star builds on the last, so a 1★ fused to 5★ has 5★-sized stats. Heroes you've already fused get stronger as soon as you update
