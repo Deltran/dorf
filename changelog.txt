@@ -1,3 +1,9 @@
+4.17.0
+- The early regions are kinder to new parties. The Goblin Cavern is four waves, not five. At the Lake, the Hags only come in the finale, and their Murky Curse waits two turns before it lands and hits softer. In the Caverns, Deep Chasm and Summoning Circle end on four cult enemies, not five
+- Stormwind Peaks: Storm Plateau and Lightning Spire end on one Storm Elemental, not two, and the Broken Sledge's finale loses its Thunder Hawk. Every Peaks fight pays 60% more XP, every time you clear it
+- A hired Flick gets their own big moment on Powder Keg, and their painting on the battle floor
+- Fixes: Chroma's Chromatic Fade now lasts the full two rounds it says (it was running out after one)
+
 4.16.0
 - Shrines explain themselves: each blessing shows its name, what it does, how long it has left and that it covers every fight in the region (not Hard mode). The map marker lights while a blessing is on. Three damage blessings gave far more than intended; they're now +15%, +20% and +15%
 - The Arbiter: Contempt of Court makes every debuff on its target last a turn longer. Final Verdict uses up the target's debuffs for +40% damage each (up to 3) and Stuns if it used up 3. Control effects like Stun and Sleep are never stretched or used up. Base ATK 48 → 40
