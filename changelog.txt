@@ -1,3 +1,6 @@
+4.17.1
+- Something's cooking in Bramleigh. From November 1 a sign hangs on Home counting down to the day it opens (once you've cleared Whispering Woods)
+
 4.17.0
 - The early regions are kinder to new parties. The Goblin Cavern is four waves, not five. At the Lake, the Hags only come in the finale, and their Murky Curse waits two turns before it lands and hits softer. In the Caverns, Deep Chasm and Summoning Circle end on four cult enemies, not five
 - Stormwind Peaks: Storm Plateau and Lightning Spire end on one Storm Elemental, not two, and the Broken Sledge's finale loses its Thunder Hawk. Every Peaks fight pays 60% more XP, every time you clear it
