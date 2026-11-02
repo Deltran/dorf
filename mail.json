@@ -15,6 +15,18 @@
         "items": [{ "itemId": "tome_small", "count": 2 }],
         "heroes": ["ember_witch"]
       }
+    },
+    {
+      "id": "five-oh-ten-pull-2026-11-02",
+      "title": "A Ten-Pull on Us",
+      "note": "Dorf 5.0 is here, and every level counts now. Whether you brought your old save along or started over at the edge of the Whispering Woods, this ten-pull is on us. Thank you for climbing with us, and tell us how the new climb feels.",
+      "signedBy": "— Patrick",
+      "from": "2026-11-02",
+      "until": "2026-11-30",
+      "versions": { "min": "5.0.0" },
+      "rewards": {
+        "items": [{ "itemId": "gacha_ticket_ten", "count": 1 }]
+      }
     }
   ]
 }
