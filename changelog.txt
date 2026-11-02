@@ -1,3 +1,15 @@
+5.0.0
+- A new level curve. Every level makes a hero about 4% stronger, all the way to level 250, the same at every star. Before, a level past 10 added about 1%, so five levels were worth less than one fusion star. Every fight now has a level, and its monsters are built for it
+- Your save comes with you. The game sets your heroes' levels from how far you've got, and nobody loses a level. Attunement starts fresh with every rune paid back as Anima, region tokens become Quest Tokens, and hero shards retire, paid back in gold. Your old save is kept on the device as a backup
+- Attunement comes from levels: a point every 10 levels, 20 in all. SPD and MP no longer grow with level
+- Fights pay by their level. A replay at your level pays the most (the map marks it "At your level"), replays pay fewer gems than before, and first clears pay as they did. One Quest Token quick-clears any fight you've cleared, two in every daily parcel. New players get three free ten-pulls in their first parcels
+- Fusion adds 10% a star (was 15%)
+- Every region from the Echoing Caverns to the Gate to Aquaria is rebuilt: four waves a fight, one level per region, and new tricks for its monsters. New goblins move into the Caverns, the Goblin Cavern and the Goblin Camp end in boss fights, and the Peaks gain the Standing Stones
+- The Colosseum is rebuilt: 250 bouts in five arenas, each fought once, with a stand-off before every bout and laurels thrown on a win
+- A mailbox by Home's gear for gifts from us. A hero's fall gets its own moment. A summon ticket for each month. Big numbers read short. New Woods battle backgrounds, a living Woods map and a new Catacombs map
+- Berserkers earn at most 10 Rage from one skill's hits. Darl's and Brannoc's Rage costs come down. Salia's Desperation hits harder the more HP she's missing, and costs her blood
+- Fixes: an effect a hero casts on the party now lasts on the caster as long as its card says; The Arbiter's Judicial Precedent card names the skills that pay MP
+
 4.17.1
 - Something's cooking in Bramleigh. From November 1 a sign hangs on Home counting down to the day it opens (once you've cleared Whispering Woods)
 
