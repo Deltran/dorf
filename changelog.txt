@@ -1,3 +1,13 @@
+5.0.1
+- Burning enemies burn: embers rise off them and they glow orange, flaring each time the Burn ticks and going out with a puff of smoke
+- Poisoned enemies bubble: lime bubbles and a sickly green pulse, flaring on each tick. Poison is lime everywhere now, its icon and its numbers too. A foe that is burning and poisoned shows whichever hurts more
+- Salia throws her own knife and Wilf one of his plates, which smashes on the target. Fennick and Shinobi Jin step in and strike instead of firing an arrow
+- Skills that only help your side look like a buff, not an attack (Harl's songs, Dragan's knots, Cousin Simnel's feeds and more)
+- A foe that hit one of your heroes shows a cracked shield for that hero's whole turn when one of their skills would pay off on it (Fennick, Oskar, The Grateful Dead)
+- The Summit's fights are level 25 now, and its replays pay a little more. The Hibernation Den gets meaner: Harpies move into the Bone Midden, and the Troll Chieftain's Cave ends with a third troll
+- The Eruption Vent gets a few more scares: a Fire Elemental joins the third wave in the Fumarole Field and in the Molten Chamber
+- Fixes: a Ranger no longer gets Focus from a heal Heal Block stopped; Quorra's hold preview over a foe is just the skill's name; Ambrose's battle plate fits on small phones
+
 5.0.0
 - A new level curve. Every level makes a hero about 4% stronger, all the way to level 250, the same at every star. Before, a level past 10 added about 1%, so five levels were worth less than one fusion star. Every fight now has a level, and its monsters are built for it
 - Your save comes with you. The game sets your heroes' levels from how far you've got, and nobody loses a level. Attunement starts fresh with every rune paid back as Anima, region tokens become Quest Tokens, and hero shards retire, paid back in gold. Your old save is kept on the device as a backup
