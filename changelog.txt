@@ -1,3 +1,12 @@
+5.1.0
+- The Underground Morass is rebuilt around sound. Every hero action is Silent, Soft, Sharp or Loud, and monsters that hear it strike back right away. Adds four new monsters (the Merelock, Tangle Golem, Black Water, Agitated Whelp), The Clutch event, and new wares from Orlo
+- The Ancient Catacombs are rebuilt: the Lich King sits alone on his throne and calls his court as he weakens, Ghouls feed on the bodies of the fallen, and every fight has new waves
+- The Janxier Floodplain gets meaner: gators' Death Roll hunts the Bleeding, Eel Trappers wade in beside them, and the Hydra's heads focus your most wounded. Sawgrass eases off, and battles get new backgrounds
+- Kensin rework: Retribution Provokes the target's whole kind and counters each one until his next turn, and he grows tougher the more enemies he holds
+- Pointers on the map edge aim at off-screen places worth visiting. Tap one to glide the camera there
+- The battle skill menu only scrolls when needed, and heroes with four skills fit without an arrow
+- Fixes: leaving a fight while an enemy was being summoned no longer causes an error
+
 5.0.1
 - Burning enemies burn: embers rise off them and they glow orange, flaring each time the Burn ticks and going out with a puff of smoke
 - Poisoned enemies bubble: lime bubbles and a sickly green pulse, flaring on each tick. Poison is lime everywhere now, its icon and its numbers too. A foe that is burning and poisoned shows whichever hurts more
