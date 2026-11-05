@@ -27,6 +27,18 @@
       "rewards": {
         "items": [{ "itemId": "gacha_ticket_ten", "count": 1 }]
       }
+    },
+    {
+      "id": "five-one-ten-pull-2026-11-05",
+      "title": "Another Ten-Pull on Us",
+      "note": "Dorf 5.1 is here, and the Underground Morass has started listening. This ten-pull is on us, with our thanks for playing and for telling us how it feels.",
+      "signedBy": "— Patrick",
+      "from": "2026-11-05",
+      "until": "2026-11-30",
+      "versions": { "min": "5.1.0" },
+      "rewards": {
+        "items": [{ "itemId": "gacha_ticket_ten", "count": 1 }]
+      }
     }
   ]
 }
