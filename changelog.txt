@@ -1,3 +1,8 @@
+5.2.1
+- A new set piece at the Summit: at Guardian's Gate an Extra Climber stalks you from the snow. It can't be picked out, creeps closer each turn nobody hits it, and on its third step strikes your weakest hero. It turns up again in the Hall of Winds, the Frost Sanctum and Titan's Throne
+- A new set piece in the Ancient Catacombs: in the Hall of Bones an Embalmer evens out the wounds of the dead around it on its turn, so a hurt foe is patched up from the healthy ones. Kill it first, or finish your target before its turn. It turns up again in the Wraith Sanctum, the Ritual Chamber and the Chapel of Candles
+- Fixes: Onibaba's Vigil never picks a hidden foe
+
 5.2.0
 - Link your Twitch account in Settings, and every Pull Hero you redeem on a Lantern Rot stream sends a Summon Ticket to your mailbox
 - The Gate to Aquaria is rebuilt: the Kraken's arms grab your heroes and let go after three turns, cutting one earns you a lash, and the Kraken himself drags heroes under. Merfolk, a shark pack and a Deep Cantor join his fights
