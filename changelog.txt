@@ -1,3 +1,10 @@
+5.2.0
+- Link your Twitch account in Settings, and every Pull Hero you redeem on a Lantern Rot stream sends a Summon Ticket to your mailbox
+- The Gate to Aquaria is rebuilt: the Kraken's arms grab your heroes and let go after three turns, cutting one earns you a lash, and the Kraken himself drags heroes under. Merfolk, a shark pack and a Deep Cantor join his fights
+- Bloats move into the Janxier Floodplain: pop a Bog Bloat and it bursts back at whoever dealt the blow, an Old Bloat over everyone. Naga Territory is built around them, and three more fights get one
+- Battles are heard: a tap on a target, a turn coming up, war drums as a wave walks in, and gold and gems counting up with coin and stone ticks
+- Fixes: a foe's strike goes at the hero it hit; Judgment's Echo names itself as it goes off; wide paintings in tales fit the screen; letters no longer sign off with a double dash
+
 5.1.0
 - The Underground Morass is rebuilt around sound. Every hero action is Silent, Soft, Sharp or Loud, and monsters that hear it strike back right away. Adds four new monsters (the Merelock, Tangle Golem, Black Water, Agitated Whelp), The Clutch event, and new wares from Orlo
 - The Ancient Catacombs are rebuilt: the Lich King sits alone on his throne and calls his court as he weakens, Ghouls feed on the bodies of the fallen, and every fight has new waves
