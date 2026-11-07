@@ -4,7 +4,7 @@
 - Fixes: Onibaba's Vigil never picks a hidden foe
 
 5.2.0
-- Link your Twitch account in Settings, and every Pull Hero you redeem on a Lantern Rot stream sends a Summon Ticket to your mailbox
+- Link your Twitch account in Settings to trade Channel Points on Lantern Rot streams for Summon Tickets, sent to your mailbox
 - The Gate to Aquaria is rebuilt: the Kraken's arms grab your heroes and let go after three turns, cutting one earns you a lash, and the Kraken himself drags heroes under. Merfolk, a shark pack and a Deep Cantor join his fights
 - Bloats move into the Janxier Floodplain: pop a Bog Bloat and it bursts back at whoever dealt the blow, an Old Bloat over everyone. Naga Territory is built around them, and three more fights get one
 - Battles are heard: a tap on a target, a turn coming up, war drums as a wave walks in, and gold and gems counting up with coin and stone ticks
