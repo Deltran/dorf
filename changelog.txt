@@ -1,3 +1,12 @@
+5.3.0
+- The Coral Depths are rebuilt under the sea on a new map, with eleven fights. Everything with teeth takes a piece of your max HP until the wave ends. The Grouper, Reef Barracuda and Parrotfish join the reef, and the Morays, Cave Crabs and Reef Wardens learn new tricks
+- The Drowned Prison is rebuilt around the keys: when a guard falls, the next inmate to act picks up his keys and becomes him. Chain Golems keep the inmates chained, and the Ducking Stools are a new fight before the Warden's Sanctum
+- Free Halia, a merfolk smith, in the Warden's Sanctum. At the Blacksmith she builds weapons, armor, rings and cloaks, then raises the same piece a star at a time with iron and gold
+- Gear gives a share of its wearer's own stats, so it keeps its worth as heroes level. Ring and cloak effects start at 3 stars. Your old gear and materials come with you as built pieces and iron
+- Once Halia is free, iron drops from every Hard fight and every Normal fight in Aquarias. The General Store sells 3 Scrap Iron a day, the Gem Merchant offers irons, and the daily parcel gives some
+- The gear picker is a full page, and shows what each piece adds for the hero you're dressing
+- The Bramleigh Hog, Cousin Simnel and Amyas Merestone get their voices
+
 5.2.1
 - A new set piece at the Summit: at Guardian's Gate an Extra Climber stalks you from the snow. It can't be picked out, creeps closer each turn nobody hits it, and on its third step strikes your weakest hero. It turns up again in the Hall of Winds, the Frost Sanctum and Titan's Throne
 - A new set piece in the Ancient Catacombs: in the Hall of Bones an Embalmer evens out the wounds of the dead around it on its turn, so a hurt foe is patched up from the healthy ones. Kill it first, or finish your target before its turn. It turns up again in the Wraith Sanctum, the Ritual Chamber and the Chapel of Candles
